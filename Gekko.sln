@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gekko", "Gekko.vcproj", "{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug - Speed = Debug - Speed
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}.Debug.ActiveCfg = Debug|Win32
+		{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}.Debug.Build.0 = Debug|Win32
+		{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}.Debug - Speed.ActiveCfg = Debug - Speed|Win32
+		{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}.Debug - Speed.Build.0 = Debug - Speed|Win32
+		{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}.Release.ActiveCfg = Release|Win32
+		{BC554F91-382F-40C4-AA4E-4DB5DEE49C05}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
