@@ -1,7 +1,7 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    xml.cpp
+ * \file    xml.h
  * \author  ShizZy <shizzy247@gmail.com>
  * \date    2012-02-12
  * \brief   Used for parsing XML configurations
