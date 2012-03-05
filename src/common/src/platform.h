@@ -76,7 +76,7 @@ extern char *kGekkoOS;
 
 #if EMU_PLATFORM == PLATFORM_WINDOWS
 
-#define EMU_FASTCALL __fastcall
+#define EMU_FASTCALL        __fastcall
 
 #else
 
@@ -109,6 +109,9 @@ extern char *kGekkoOS;
 
 // TODO: EXCEPTION_POINTERS wasn't defined anywhere...
 typedef void EXCEPTION_POINTERS;
+
+
+#define EMU_IGNORE_RECOMPILER
 
 
 #endif

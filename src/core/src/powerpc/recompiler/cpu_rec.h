@@ -11,6 +11,8 @@
 #ifndef _GEKKO_REC_H
 #define _GEKKO_REC_H
 
+#ifndef EMU_IGNORE_RECOMPILER
+
 //#include "../../emu.h"
 #include "common.h"
 #include "../cpu_core.h"
@@ -1295,5 +1297,7 @@ typedef void (__fastcall *RecX86FPUAssignRegsPtr)(RecInstruction *Instruction, P
 	static GekkoRecOp(STFSX);
 	static GekkoRecOp(PSQ_L);
 };
+
+#endif
 
 #endif

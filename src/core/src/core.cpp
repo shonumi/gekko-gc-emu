@@ -88,11 +88,17 @@ int Init() {
     Init_CRC32_Table();     // Init CRC table
     input_common::Init();   // Init user input plugin
 
-    delete cpu;
-    cpu = new GekkoCPURecompiler();
+
     // TODO(ShizZy): FIXME this causes a crash... Why?
     if (common::g_config->powerpc_core() == common::Config::CPU_INTERPRETER) {
+        delete cpu;
         cpu = new GekkoCPUInterpreter();
+    } else {
+#ifndef EMU_IGNORE_RECOMPILER
+        delete cpu;
+        cpu = new GekkoCPURecompiler();
+#endif
+        LOG_ERROR(TCORE, "Recompiler removed from this build - Please switch your configuration to the interpreter!\n");
     }
 	SetState(SYS_IDLE);
     g_started = false;
