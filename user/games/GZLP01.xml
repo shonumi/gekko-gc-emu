@@ -1,0 +1,14 @@
+<!-- [GLZP01] The Legend of Zelda: Collector's Edition(Wind Waker) -->
+<?xml version="1.0" encoding="UTF-8"?>
+<SysConfig xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+    xsd:schemaLocation="http://6bit.net/gekko gekko-conf.xsd"
+    xmlns="http://6bit.net/gekko">
+    <Boot>
+        <Patches>
+            <!-- TODO(ShizZy): Are these necessary? -->
+            <Patch address="803066BC" instr="NOP"/>
+            <Patch address="80058358" instr="BLR"/>
+            <Patch address="80295654" instr="BLR"/>
+        </Patches>
+    </Boot>
+</SysConfig>

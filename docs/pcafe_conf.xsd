@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+    targetNamespace="http://6bit.net/gekko" xmlns="http://6bit.net/gekko">
+
+    <!-- ConfigType: Top-level configurationtype 
+        
+       |_ SysConfig:    Default configuration of system, should never be changed
+            |
+            |_ GameConfig:  This is a game-specific configuration (e.g. patches, cheats, etc).
+                |           Anything is valid here. This overrides nything previously specified in
+                |           SysConfig on boot.
+                |
+                |_ UserConfig:  This is a user-level configuration (e.g. display or keyboard
+                                settings). Anything is valid here. This overrides anything 
+                                previously specified in GameConfig or SysConfig on boot.
+    -->
+    <xsd:complexType name="ConfigType">
+        <xsd:all>
+            <xsd:element ref="General" minOccurs="0"/> 
+            <xsd:element ref="Debug" minOccurs="0"/>
+            <xsd:element ref="Boot" minOccurs="0"/>
+            <xsd:element ref="PowerPC" minOccurs="0"/>
+            <xsd:element ref="Video" minOccurs="0"/>
+            <xsd:element ref="Devices" minOccurs="0"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:element name="SysConfig" type="ConfigType"/>
+    <xsd:element name="GameConfig" type="ConfigType"/>
+    <xsd:element name="UserConfig" type="ConfigType"/>
+
+    <!-- General: Contains general system setting-->
+    <xsd:element name="General">
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element name="EnableMultiCore" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnableIdleSkipping" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnableHLE" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnableAutoBoot" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnableCheats" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="DefaultBootFile" type="xsd:string" minOccurs="0"/>
+                <xsd:element name="DVDImagePaths">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="Path" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <!-- Debug: Contains all (specifically) debug configurations -->
+    <xsd:element name="Debug">
+        <xsd:complexType>
+            <xsd:all>
+                <!-- Simple elements -->
+                <xsd:element name="EnableShowFPS" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnableDumpOpcode0" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnablePauseOnUnknownOpcode" type="xsd:boolean" minOccurs="0"/>
+                <xsd:element name="EnableDumpGCMReads" type="xsd:boolean" minOccurs="0"/>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- Boot: Contains all bootup-related configurations -->
+    <xsd:element name="Boot">
+        <xsd:complexType>
+            <xsd:all>
+                <!-- Simple elements -->
+                <xsd:element name="EnableIPL" type="xsd:boolean" minOccurs="0"/>
+
+                <!-- Patches: Used primarily for making game-specific patches -->
+                <xsd:element name="Patches" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element ref="Patch" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+
+                <!-- Cheats: Like game-specific patches, except can be disabled globally -->
+                <xsd:element name="Cheats" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element ref="Patch" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- PowerPC: Contains all PowerPC configurations -->
+    <xsd:element name="PowerPC">
+        <xsd:complexType>
+            <xsd:sequence>
+                <!-- Core: Used for configuring PowerPC cores -->
+                <xsd:element name="Core" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:all/>
+                        <xsd:attribute name="name" type="ProcessorCoreType" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="core" type="ProcessorCoreType" default="interpreter" use="optional"/>
+            <xsd:attribute name="freq" type="xsd:unsignedShort" default="486" use="optional"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- Video: Contains all video configurations -->
+    <xsd:element name="Video">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="EnableFullscreen" type="xsd:boolean"/>
+                <xsd:element name="WindowResolution" type="ResolutionType"/>
+                <xsd:element name="FullscreenResolution" type="ResolutionType"/>
+                <xsd:element name="Renderer" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:all>
+                            <xsd:element name="EnableWireframe" type="xsd:boolean" minOccurs="0"/>
+                            <xsd:element name="EnableShaders" type="xsd:boolean" minOccurs="0"/>
+                            <xsd:element name="EnableTextureDumping" type="xsd:boolean"
+                                minOccurs="0"/>
+                            <xsd:element name="EnableForceWhite" type="xsd:boolean" minOccurs="0"/>
+                            <xsd:element name="EnableForceAlpha" type="xsd:boolean" minOccurs="0"/>
+                            <xsd:element name="AntiAliasingMode" type="xsd:unsignedShort"
+                                minOccurs="0"/>
+                            <xsd:element name="AnistropicFilteringMode" type="xsd:unsignedShort"
+                                minOccurs="0"/>
+                        </xsd:all>
+                        <xsd:attribute name="name" type="RendererType" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="renderer" type="RendererType" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- Devuces: Used for configuring all input devices -->
+    <xsd:element name="Devices">
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element name="GameCube">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="MemSlot" minOccurs="0" maxOccurs="2">
+                                <xsd:complexType>
+                                    <xsd:attribute name="slot" type="MemSlotType" use="required"/>
+                                    <xsd:attribute name="device" default="memcard"
+                                        type="MemSlotDeviceType"/>
+                                    <xsd:attribute default="false" name="enable" type="xsd:boolean"
+                                    />
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="ControllerPort" minOccurs="0" maxOccurs="4">
+                                <xsd:complexType>
+                                    <xsd:all>
+                                        <xsd:element ref="KeyboardController" minOccurs="0"/>
+                                    </xsd:all>
+                                    <xsd:attribute name="port" type="ControllerPortType"
+                                        use="required"/>
+                                    <xsd:attribute default="controller" name="device"
+                                        type="ControllerPortDeviceType"/>
+                                    <xsd:attribute default="true" name="enable" type="xsd:boolean"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- Keyboard: Used for configuring a controller-->
+    <xsd:element name="KeyboardController">
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element name="AKey" type="xsd:hexBinary"/>
+                <xsd:element name="BKey" type="xsd:hexBinary"/>
+                <xsd:element name="XKey" type="xsd:hexBinary"/>
+                <xsd:element name="YKey" type="xsd:hexBinary"/>
+                <xsd:element name="LKey" type="xsd:hexBinary"/>
+                <xsd:element name="RKey" type="xsd:hexBinary"/>
+                <xsd:element name="ZKey" type="xsd:hexBinary"/>
+                <xsd:element name="StartKey" type="xsd:hexBinary"/>
+                <xsd:element name="AnalogUpKey" type="xsd:hexBinary"/>
+                <xsd:element name="AnalogDownKey" type="xsd:hexBinary"/>
+                <xsd:element name="AnalogLeftKey" type="xsd:hexBinary"/>
+                <xsd:element name="AnalogRightKey" type="xsd:hexBinary"/>
+                <xsd:element name="CUpKey" type="xsd:hexBinary"/>
+                <xsd:element name="CDownKey" type="xsd:hexBinary"/>
+                <xsd:element name="CLeftKey" type="xsd:hexBinary"/>
+                <xsd:element name="CRightKey" type="xsd:hexBinary"/>
+                <xsd:element name="DPadUpKey" type="xsd:hexBinary"/>
+                <xsd:element name="DPadDownKey" type="xsd:hexBinary"/>
+                <xsd:element name="DPadLeftKey" type="xsd:hexBinary"/>
+                <xsd:element name="DPadRightKey" type="xsd:hexBinary"/>
+            </xsd:all>
+            <xsd:attribute default="false" name="enable" type="xsd:boolean"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- Patch: Used for patching an address in memory with some data -->
+    <xsd:attributeGroup name="PatchAttributes">
+        <xsd:attribute name="address" type="xsd:hexBinary" use="required"/>
+        <xsd:attribute name="data" type="xsd:hexBinary" use="optional"/>
+        <xsd:attribute name="instr" type="PowerPCInstructionType" use="optional"/>
+        <xsd:attribute name="enable" type="xsd:boolean" default="true" use="optional"/>
+    </xsd:attributeGroup>
+    <xsd:element name="Patch">
+        <xsd:complexType>
+            <xsd:attributeGroup ref="PatchAttributes"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- PowerPCInstruction: Supported PowerPC instructions for XML configurations -->
+    <xsd:attributeGroup name="CoreAttributes">
+        <xsd:attribute name="name" type="ProcessorCoreType" use="required"/>
+    </xsd:attributeGroup>
+    <xsd:attributeGroup name="RendererAttributes"/>
+    <xsd:simpleType name="PowerPCInstructionType">
+        <xsd:restriction base="xsd:string">
+            <!-- BLR: Used for returning from a function -->
+            <xsd:pattern value="[bB][lL][rR]"/>
+            <!-- NOP: Used for skipping an instruction -->
+            <xsd:pattern value="[nN][oO][pP]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- MemSlot: Used for specifying a memory card slot -->
+    <xsd:simpleType name="MemSlotType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[aA]|[bB]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- SlotDeviceType: Devices that can be inserted in a memory card slot -->
+    <xsd:simpleType name="MemSlotDeviceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="memcard"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- ControllerPortType: Used for specifying a controller port -->
+    <xsd:simpleType name="ControllerPortType">
+        <xsd:restriction base="xsd:unsignedShort">
+            <xsd:pattern value="[0-3]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- ControllerPortDeviceType: Devices that can be inserted in a controller port -->
+    <xsd:simpleType name="ControllerPortDeviceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="controller"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- ProcessorType: Supported emulated CPU core types -->
+    <xsd:simpleType name="ProcessorCoreType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="interpreter"/>
+            <xsd:enumeration value="dynarec"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- RendererType: Supported renderer types -->
+    <xsd:simpleType name="RendererType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="opengl_2_0"/>
+            <xsd:enumeration value="opengl_3_3"/>
+            <xsd:enumeration value="directx9"/>
+            <xsd:enumeration value="directx10"/>
+            <xsd:enumeration value="directx11"/>
+            <xsd:enumeration value="software"/>
+            <xsd:enumeration value="hardware"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- ResolutionType: Supported screen resolutions-->
+    <xsd:simpleType name="ResolutionType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="640_480"/>
+            <xsd:enumeration value="800_600"/>
+            <xsd:enumeration value="1024_600"/>
+            <xsd:enumeration value="1024_768"/>
+            <xsd:enumeration value="1152_864"/>
+            <xsd:enumeration value="1280_720"/>
+            <xsd:enumeration value="1280_768"/>
+            <xsd:enumeration value="1280_800"/>
+            <xsd:enumeration value="1280_960"/>
+            <xsd:enumeration value="1280_1024"/>
+            <xsd:enumeration value="1360_768"/>
+            <xsd:enumeration value="1366_768"/>
+            <xsd:enumeration value="1440_900"/>
+            <xsd:enumeration value="1600_900"/>
+            <xsd:enumeration value="1600_1200"/>
+            <xsd:enumeration value="1680_1050"/>
+            <xsd:enumeration value="1920_1080"/>
+            <xsd:enumeration value="1920_1200"/>
+            <xsd:enumeration value="2560_1440"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

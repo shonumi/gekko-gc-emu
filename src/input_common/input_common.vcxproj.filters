@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="src\input_common.h" />
+    <ClInclude Include="src\sdl_keys\sdl_keys.h">
+      <Filter>sdl_keys</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gc_controller.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="sdl_keys">
+      <UniqueIdentifier>{cad3f576-3a5d-4c44-ac83-4f8a71088a0a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\sdl_keys\sdl_keys.cpp">
+      <Filter>sdl_keys</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input_common.cpp" />
+  </ItemGroup>
+</Project>

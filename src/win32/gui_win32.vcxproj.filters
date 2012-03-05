@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="src\debugger">
+      <UniqueIdentifier>{46e99fd8-3198-437e-92cf-0b46ace13ed5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\emu_browser.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emu_config.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emu_dbg.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\debugger\CtrlDisAsmView.cpp">
+      <Filter>src\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="src\debugger\CtrlMemView.cpp">
+      <Filter>src\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="src\debugger\GekkoDbgInterface.cpp">
+      <Filter>src\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emu_ini.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emu.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emu_win.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\emu.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emu_browser.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emu_config.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emu_dbg.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emu_ini.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emu_win.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\debugger\CtrlDisAsmView.h">
+      <Filter>src\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="src\debugger\CtrlMemView.h">
+      <Filter>src\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="src\debugger\DebugInterface.h">
+      <Filter>src\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="src\debugger\GekkoDbgInterface.h">
+      <Filter>src\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="src\debugger\Symbols.h">
+      <Filter>src\debugger</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

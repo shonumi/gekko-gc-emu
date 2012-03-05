@@ -1,0 +1,46 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "src\core\core.vcxproj", "{8AEA7F29-3466-4786-A10D-6A4BD0610977}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "src\common\common.vcxproj", "{DFE335FC-755D-4BAA-8452-94434F8A1EDB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcafe", "src\pcafe\pcafe.vcxproj", "{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "input_common", "src\input_common\input_common.vcxproj", "{E34D07D0-7DE6-4C46-A00D-C20C691789E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug|Win32 = debug|Win32
+		debug-fast|Win32 = debug-fast|Win32
+		release|Win32 = release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977}.debug|Win32.ActiveCfg = Debug|Win32
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977}.debug|Win32.Build.0 = Debug|Win32
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977}.debug-fast|Win32.ActiveCfg = debug-fast|Win32
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977}.debug-fast|Win32.Build.0 = debug-fast|Win32
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977}.release|Win32.ActiveCfg = Release|Win32
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977}.release|Win32.Build.0 = Release|Win32
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB}.debug|Win32.ActiveCfg = Debug|Win32
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB}.debug|Win32.Build.0 = Debug|Win32
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB}.debug-fast|Win32.ActiveCfg = debug-fast|Win32
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB}.debug-fast|Win32.Build.0 = debug-fast|Win32
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB}.release|Win32.ActiveCfg = Release|Win32
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB}.release|Win32.Build.0 = Release|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.debug|Win32.ActiveCfg = Debug|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.debug|Win32.Build.0 = Debug|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.debug-fast|Win32.ActiveCfg = debug-fast|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.debug-fast|Win32.Build.0 = debug-fast|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.release|Win32.ActiveCfg = Release|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.release|Win32.Build.0 = Release|Win32
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4}.debug|Win32.ActiveCfg = Debug|Win32
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4}.debug|Win32.Build.0 = Debug|Win32
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4}.debug-fast|Win32.ActiveCfg = debug-fast|Win32
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4}.debug-fast|Win32.Build.0 = debug-fast|Win32
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4}.release|Win32.ActiveCfg = Release|Win32
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4}.release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

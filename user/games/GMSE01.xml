@@ -1,0 +1,13 @@
+<!-- [GMSE01] Super Mario Sunshine -->
+<?xml version="1.0" encoding="UTF-8"?>
+<SysConfig xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+    xsd:schemaLocation="http://6bit.net/gekko gekko-conf.xsd"
+    xmlns="http://6bit.net/gekko">
+    <Boot>
+        <Patches>
+            <Patch address="803436B4" instr="NOP"/>
+            <Patch address="803375A4" instr="NOP"/>
+            <Patch address="803373B0" instr="NOP"/>
+        </Patches>
+    </Boot>
+</SysConfig>

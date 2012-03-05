@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug-fast|Win32">
+      <Configuration>debug-fast</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8AEA7F29-3466-4786-A10D-6A4BD0610977}</ProjectGuid>
+    <RootNamespace>core</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
+    <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
+    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.\src;..\input_common\src;..\win32\src;..\common\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <CallingConvention>FastCall</CallingConvention>
+      <PreprocessorDefinitions>SINGLETHREADED;GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>.\src;..\input_common\src;..\win32\src;..\common\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <CallingConvention>FastCall</CallingConvention>
+      <PreprocessorDefinitions>SINGLETHREADED;GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>.\src;..\input_common\src;..\win32\src;..\common\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <CallingConvention>FastCall</CallingConvention>
+      <PreprocessorDefinitions>SINGLETHREADED;GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\externals\glew\src\glew.c" />
+    <ClCompile Include="src\boot\apploader.cpp" />
+    <ClCompile Include="src\boot\bootrom.cpp" />
+    <ClCompile Include="src\core.cpp" />
+    <ClCompile Include="src\dvd\dol.cpp" />
+    <ClCompile Include="src\dvd\elf.cpp" />
+    <ClCompile Include="src\dvd\gcm.cpp" />
+    <ClCompile Include="src\dvd\gcm_dump.cpp" />
+    <ClCompile Include="src\dvd\loader.cpp" />
+    <ClCompile Include="src\dvd\realdvd.cpp" />
+    <ClCompile Include="src\hle\hle.cpp" />
+    <ClCompile Include="src\hle\hle_audio.cpp" />
+    <ClCompile Include="src\hle\hle_dsp.cpp" />
+    <ClCompile Include="src\hle\hle_general.cpp" />
+    <ClCompile Include="src\hle\hle_math.cpp" />
+    <ClCompile Include="src\hw\hw.cpp" />
+    <ClCompile Include="src\hw\hw_ai.cpp" />
+    <ClCompile Include="src\hw\hw_cp.cpp" />
+    <ClCompile Include="src\hw\hw_di.cpp" />
+    <ClCompile Include="src\hw\hw_dsp.cpp" />
+    <ClCompile Include="src\hw\hw_exi.cpp" />
+    <ClCompile Include="src\hw\hw_exi_memorycard.cpp" />
+    <ClCompile Include="src\hw\hw_gx.cpp" />
+    <ClCompile Include="src\hw\hw_mi.cpp" />
+    <ClCompile Include="src\hw\hw_pe.cpp" />
+    <ClCompile Include="src\hw\hw_pi.cpp" />
+    <ClCompile Include="src\hw\hw_si.cpp" />
+    <ClCompile Include="src\hw\hw_vi.cpp" />
+    <ClCompile Include="src\memory.cpp" />
+    <ClCompile Include="src\powerpc\cpu_core.cpp" />
+    <ClCompile Include="src\powerpc\cpu_core_regs.cpp" />
+    <ClCompile Include="src\powerpc\disassembler\ppc_disasm.cpp" />
+    <ClCompile Include="src\powerpc\interpreter\cpu_int.cpp" />
+    <ClCompile Include="src\powerpc\interpreter\cpu_int_opcodes.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_fpu.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_jumps.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_loadstore.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_compiler.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_fpu.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_x86.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_regs.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_int.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_memory.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_branch.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_compare.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore_fpu.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math_fpu.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_ps.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp" />
+    <ClCompile Include="src\video\gx_fifo.cpp" />
+    <ClCompile Include="src\video\gx_states.cpp" />
+    <ClCompile Include="src\video\gx_tev.cpp" />
+    <ClCompile Include="src\video\gx_texture.cpp" />
+    <ClCompile Include="src\video\gx_transform.cpp" />
+    <ClCompile Include="src\video\gx_vertex.cpp" />
+    <ClCompile Include="src\video\opengl.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\boot\apploader.h" />
+    <ClInclude Include="src\boot\bootrom.h" />
+    <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\dvd\elf.h" />
+    <ClInclude Include="src\dvd\gcm.h" />
+    <ClInclude Include="src\dvd\loader.h" />
+    <ClInclude Include="src\dvd\realdvd.h" />
+    <ClInclude Include="src\hle\hle.h" />
+    <ClInclude Include="src\hle\hle_crc.h" />
+    <ClInclude Include="src\hle\hle_dsp.h" />
+    <ClInclude Include="src\hle\hle_func.h" />
+    <ClInclude Include="src\hle\hle_general.h" />
+    <ClInclude Include="src\hle\hle_math.h" />
+    <ClInclude Include="src\hw\data\font_ansi.h" />
+    <ClInclude Include="src\hw\data\font_sjis.h" />
+    <ClInclude Include="src\hw\hw.h" />
+    <ClInclude Include="src\hw\hw_ai.h" />
+    <ClInclude Include="src\hw\hw_cp.h" />
+    <ClInclude Include="src\hw\hw_di.h" />
+    <ClInclude Include="src\hw\hw_dsp.h" />
+    <ClInclude Include="src\hw\hw_exi.h" />
+    <ClInclude Include="src\hw\hw_gx.h" />
+    <ClInclude Include="src\hw\hw_mi.h" />
+    <ClInclude Include="src\hw\hw_pe.h" />
+    <ClInclude Include="src\hw\hw_pi.h" />
+    <ClInclude Include="src\hw\hw_si.h" />
+    <ClInclude Include="src\hw\hw_vi.h" />
+    <ClInclude Include="src\memory.h" />
+    <ClInclude Include="src\powerpc\cpu_core.h" />
+    <ClInclude Include="src\powerpc\cpu_core_regs.h" />
+    <ClInclude Include="src\powerpc\cpu_core_regs_layout.h" />
+    <ClInclude Include="src\powerpc\cpu_core_userid.h" />
+    <ClInclude Include="src\powerpc\cpu_opsgroup.h" />
+    <ClInclude Include="src\powerpc\disassembler\ppc_disasm.h" />
+    <ClInclude Include="src\powerpc\interpreter\cpu_int.h" />
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec.h" />
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_assembler.h" />
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h" />
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h" />
+    <ClInclude Include="src\video\gx_fifo.h" />
+    <ClInclude Include="src\video\gx_states.h" />
+    <ClInclude Include="src\video\gx_tev.h" />
+    <ClInclude Include="src\video\gx_texture.h" />
+    <ClInclude Include="src\video\gx_transform.h" />
+    <ClInclude Include="src\video\gx_vertex.h" />
+    <ClInclude Include="src\video\opengl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{dfe335fc-755d-4baa-8452-94434f8a1edb}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

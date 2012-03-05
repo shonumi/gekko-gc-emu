@@ -1,0 +1,34 @@
+<!-- EDIT THIS FILE FOR YOUR USER-SPECIFIC CONFIGURATIONS -->
+<?xml version="1.0" encoding="UTF-8"?>
+<SysConfig xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+    xsd:schemaLocation="http://6bit.net/gekko gekko-conf.xsd"
+    xmlns="http://6bit.net/gekko">
+
+    <!-- General system setting-->
+    <General>
+        <EnableMultiCore>true</EnableMultiCore>
+        <EnableIdleSkipping>true</EnableIdleSkipping>
+        <EnableHLE>true</EnableHLE>
+        <EnableAutoBoot>true</EnableAutoBoot>
+        <EnableCheats>false</EnableCheats>
+        <DefaultBootFile>G:\\Software\\Games\\Nintendo.Gamecube\\sms.gcm</DefaultBootFile>
+
+        <!-- List of search paths for DVD images and bootable roms -->
+        <DVDImagePaths/>
+    </General>
+
+    <!-- Debug settings -->
+    <Debug/>
+
+    <!-- Settings applicable to boot -->
+    <Boot/>
+
+    <!-- Settings applicable to the PowerPC CPU core -->
+    <PowerPC core="interpreter" freq="486"/>
+
+    <!-- Settings applicable to the video core -->
+    <Video renderer="opengl_2_0"/>
+
+    <!-- Settings for all GameCube peripheral devices -->
+    <Devices/>
+</SysConfig>
