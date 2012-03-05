@@ -2,6 +2,7 @@
 // (c) 2005,2008 Gekko Team / Wiimu Project
 
 #include "common.h"
+#include "version.h"
 
 #include "input_common.h"
 
@@ -179,8 +180,8 @@ void OPENGL_SetTitle()
         } else {
             sprintf(str2, "int");
 		}
-		sprintf(str1, "gekko-pcafe (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
-            str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
+		sprintf(str1, "gekko %s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
+            GEKKO_VERSION, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
         SDL_SetWindowTitle(mainwindow, str1);
 	}
 }

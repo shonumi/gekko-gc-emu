@@ -18,5 +18,6 @@
     <ClInclude Include="src\x86_utils.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\xml.h" />
+    <ClInclude Include="src\version.h" />
   </ItemGroup>
 </Project>
