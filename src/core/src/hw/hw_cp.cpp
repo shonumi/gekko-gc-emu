@@ -184,7 +184,7 @@ void CP_Open(void)
 {
     LOG_NOTICE(TCP, "initialized ok");
 
-	ZeroMemory(&CPRegisters, REG_SIZE);
+	memset(&CPRegisters, 0, sizeof(CPRegisters));
 	
 	REGCP32(CP_BOUNDRIGHT) = 640;
 	REGCP32(CP_BOUNDBOTTOM) = 480;

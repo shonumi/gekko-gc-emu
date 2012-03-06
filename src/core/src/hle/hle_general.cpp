@@ -5,7 +5,6 @@
 #include "dvd/realdvd.h"
 #include "hle_func.h"
 #include "hle_general.h"
-#include <windows.h>
 #include <string>
 #include <cassert>
 #include <vector>
@@ -133,16 +132,16 @@ HLE(OSReport)
 	}
 
 
-	strncpy(OutBuff, InBuff, (int)Offset1 - (int)InBuff);
-	OutBuff[(int)Offset1 - (int)InBuff] = 0;
+	strncpy(OutBuff, InBuff, Offset1 - InBuff);
+	OutBuff[Offset1 - InBuff] = 0;
 	while(Offset1)
 	{
 		Offset2 = strstr((Offset1+1), "%");
 		if(Offset2 == 0)
 			Offset2 = &InBuff[strlen(InBuff)];
 
-		strncpy(Temp1, Offset1, (int)Offset2 - (int)Offset1);
-		Temp1[(int)Offset2 - (int)Offset1] = 0;
+		strncpy(Temp1, Offset1, Offset2 - Offset1);
+		Temp1[Offset2 - Offset1] = 0;
 
 		if((Temp1[1] | 0x20) == 's')
 		{
@@ -205,16 +204,16 @@ HLE(DBPrintf)
 	}
 
 
-	strncpy(OutBuff, InBuff, (int)Offset1 - (int)InBuff);
-	OutBuff[(int)Offset1 - (int)InBuff] = 0;
+	strncpy(OutBuff, InBuff, Offset1 - InBuff);
+	OutBuff[Offset1 - InBuff] = 0;
 	while(Offset1)
 	{
 		Offset2 = strstr((Offset1+1), "%");
 		if(Offset2 == 0)
 			Offset2 = &InBuff[strlen(InBuff)];
 
-		strncpy(Temp1, Offset1, (int)Offset2 - (int)Offset1);
-		Temp1[(int)Offset2 - (int)Offset1] = 0;
+		strncpy(Temp1, Offset1, Offset2 - Offset1);
+		Temp1[Offset2 - Offset1] = 0;
 
 		if((Temp1[1] | 0x20) == 's')
 		{
@@ -447,7 +446,7 @@ HLE(DVDOpen)
 	char ext[64];
 	char str[256], *c;
 
-	ZeroMemory(filepath,1024);
+	memset(filepath,0,sizeof(filepath));
 	sprintf(filepath,"%s",&RAM[GPR(3)&RAM_MASK]);
 	printf("DVDOpen: %s\n",filepath);
 
@@ -478,7 +477,7 @@ HLE(DVDOpen)
 	char	filepath[1024];
 	u32		i;
 
-	//ZeroMemory(filepath,1024);
+	//memset(filepath,0,sizeof(filepath));
 
 	//figure out how much to copy and turn around
 	i = 0;
@@ -490,7 +489,7 @@ HLE(DVDOpen)
 
 	u32 dvdfilehandle = 0;
 	dvdfilehandle = dvd::RealDVDOpen(filepath);
-	if(dvdfilehandle==NULL)
+	if(dvdfilehandle==0)
 	{
 		printf("DVDOpen: Error opening %s\n",filepath);
 		GPR(3) = 0;

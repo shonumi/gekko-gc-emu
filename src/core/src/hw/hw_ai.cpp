@@ -131,7 +131,7 @@ void AI_Update(void)
 void AI_Open(void)
 {
     LOG_NOTICE(TAI, "initialized ok");
-	ZeroMemory(&AIRegisters, REG_SIZE);
+	memset(&AIRegisters, 0, sizeof(AIRegisters));
 }
 
 ////////////////////////////////////////////////////////////
