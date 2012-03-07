@@ -6,7 +6,7 @@
 #include "hle/hle.h"
 #include "hle/hle_func.h"
 
-u32 AppLoaderPrint() {
+uintptr_t AppLoaderPrint() {
 	u32	    i;
 	char	msg[1000];
 
