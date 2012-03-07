@@ -119,7 +119,7 @@ public:
 		u8 ret;
 		if(buffer_inram)
 		{
-			u32 ret2 = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret2 = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			ret = Mem_RAM[(ret2+0) ^ 3];
 		}
 		else
@@ -137,7 +137,7 @@ public:
 
 		if(buffer_inram)
 		{
-			u32 ret2 = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret2 = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			ret = (Mem_RAM[(ret2+0) ^ 3] << 8) |
 				  (Mem_RAM[(ret2+1) ^ 3]);
 		}
@@ -155,7 +155,7 @@ public:
 		u32 ret;
 		if(buffer_inram)
 		{
-			ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			ret = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			ret = (Mem_RAM[(ret+0) ^ 3] << 24) |
 				  (Mem_RAM[(ret+1) ^ 3] << 16) |
 				  (Mem_RAM[(ret+2) ^ 3] << 8) |
@@ -173,7 +173,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			*pop1 = Mem_RAM[(ret+0) ^ 3];
 			*pop2 = ((u16)Mem_RAM[(ret+1) ^ 3] << 8) |
 					((u16)Mem_RAM[(ret+2) ^ 3]);
@@ -193,7 +193,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			*pop1 = Mem_RAM[(ret+0) ^ 3];
 			*pop2 = ((u32)Mem_RAM[(ret+1) ^ 3] << 24) |
 					((u32)Mem_RAM[(ret+2) ^ 3] << 16) |
@@ -214,7 +214,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret = (uintptr_t(buffer + ptr_pop)) & RAM_MASK;
 			*pop1 = Mem_RAM[(ret+0) ^ 3];
 			*pop2 = ((u32)Mem_RAM[(ret+1) ^ 3] << 16) |
 					((u32)Mem_RAM[(ret+2) ^ 3] << 8) |
@@ -234,7 +234,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			*pop1 = ((u16)Mem_RAM[(ret+0) ^ 3] << 8) |
 					((u16)Mem_RAM[(ret+1) ^ 3]);
 			*pop2 = ((u32)Mem_RAM[(ret+2) ^ 3] << 24) |
@@ -256,7 +256,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			*pop1 = ((u32)Mem_RAM[(ret+0) ^ 3] << 24) |
 					((u32)Mem_RAM[(ret+1) ^ 3] << 16) |
 					((u32)Mem_RAM[(ret+2) ^ 3] << 8) |
@@ -285,7 +285,7 @@ public:
 	__inline u8 get8(int _start)
 	{
 		if(buffer_inram)
-			return Mem_RAM[(((u32)(u32*)(buffer + ptr_pop + _start)) & RAM_MASK) ^ 3];
+			return Mem_RAM[(((uintptr_t)(buffer + ptr_pop + _start)) & RAM_MASK) ^ 3];
 		else
 			return buffer[(ptr_pop + _start)];
 	}
@@ -297,7 +297,7 @@ public:
 	__inline u16 get16(int _start) {
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop + _start)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop + _start)) & RAM_MASK;
 			return ((u16)Mem_RAM[(ret+0) ^ 3] << 8) |
 				   ((u16)Mem_RAM[(ret+1) ^ 3]);
 		}
@@ -308,7 +308,7 @@ public:
 	__inline u16 get16_noswap(int _start) {
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop + _start)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop + _start)) & RAM_MASK;
 			return ((u16)Mem_RAM[(ret+1) ^ 3] << 8) |
 				   ((u16)Mem_RAM[(ret+0) ^ 3]);
 		}
@@ -322,7 +322,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop + _start)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop + _start)) & RAM_MASK;
 			return ((u32)Mem_RAM[(ret+0) ^ 3] << 24) |
 				   ((u32)Mem_RAM[(ret+1) ^ 3] << 16) |
 				   ((u32)Mem_RAM[(ret+2) ^ 3] << 8)  |
@@ -336,7 +336,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop + _start)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop + _start)) & RAM_MASK;
 			return ((u32)Mem_RAM[(ret+3) ^ 3] << 24) |
 				   ((u32)Mem_RAM[(ret+2) ^ 3] << 16) |
 				   ((u32)Mem_RAM[(ret+1) ^ 3] << 8)  |
@@ -366,7 +366,7 @@ public:
 	{
 		if(buffer_inram)
 		{
-			u32 ret = ((u32)(u32*)(buffer + ptr_pop)) & RAM_MASK;
+			u32 ret = ((uintptr_t)(buffer + ptr_pop)) & RAM_MASK;
 			return &Mem_RAM[ret];
 		}
 		else
