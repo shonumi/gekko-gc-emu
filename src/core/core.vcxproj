@@ -138,7 +138,6 @@
     <ClCompile Include="src\dvd\dol.cpp" />
     <ClCompile Include="src\dvd\elf.cpp" />
     <ClCompile Include="src\dvd\gcm.cpp" />
-    <ClCompile Include="src\dvd\gcm_dump.cpp" />
     <ClCompile Include="src\dvd\loader.cpp" />
     <ClCompile Include="src\dvd\realdvd.cpp" />
     <ClCompile Include="src\hle\hle.cpp" />

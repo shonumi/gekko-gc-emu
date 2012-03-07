@@ -22,6 +22,8 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include <io.h>
+
 #include "common.h"
 #include "realdvd.h"
 #include "powerpc/cpu_core.h"
@@ -36,8 +38,8 @@
 /// Frontend interface for DVD/ROM loading
 namespace dvd {
 
-HANDLE  FileHandle = INVALID_HANDLE_VALUE;
-HANDLE  DumpFileHandle = INVALID_HANDLE_VALUE;
+FILE*   g_file_handle = NULL;
+FILE*   g_dump_file_handle = NULL;
 
 char	g_current_game_name[992];
 char	g_current_game_crc[7];
@@ -64,6 +66,8 @@ u8 GetBnrChecksum(void *banner)
     u8*         buf;
     u32         sum  = 0;
 
+    LOG_NOTICE(TDVD, "GetBnrChecksum");
+
     if(BSWAP32(bnr->id) == DVD_BANNER_ID) // USA/JAP
     {
         buf = (u8 *)bnr;
@@ -84,14 +88,16 @@ u8 GetBnrChecksum(void *banner)
     return (u8)sum;
 }
 
+
 DEFRealDVDRead(GCMDVDRead)
 {
     DWORD			ReadLen;
-    DWORD			WriteLen;
     GCMFileInfo *	GCMFilePtr;
 
+    //LOG_NOTICE(TDVD, "GCMDVDRead");
+
     //if the file handle is invalid then exit
-    if(FileHandle == INVALID_HANDLE_VALUE)
+    if(g_file_handle == NULL)
         return 0;
 
     if(FilePtr == 0)
@@ -107,22 +113,22 @@ DEFRealDVDRead(GCMDVDRead)
         return 0;
 
     //read from the file
-    SetFilePointer(FileHandle, GCMFilePtr->FileData->DiskAddr + GCMFilePtr->CurPos, NULL, FILE_BEGIN);
+    fseek(g_file_handle, GCMFilePtr->FileData->DiskAddr + GCMFilePtr->CurPos, SEEK_SET);
 
     //if the length puts the cursor past the end of the file, then adjust the length
     if((GCMFilePtr->CurPos + Len) > GCMFilePtr->FileData->FileSize)
         Len = GCMFilePtr->FileData->FileSize - GCMFilePtr->CurPos;
 
     //read from the file
-    if(!ReadFile(FileHandle, MemPtr, Len, &ReadLen, 0))
-    {
-        LOG_NOTICE(TDVD, "Reading invalid area of file!\n");
+    ReadLen = fread(MemPtr, 1, Len, g_file_handle);
+    if(Len != ReadLen) {
+        LOG_ERROR(TDVD, "Reading invalid area of file!\n");
         return 0;
     }
 
-    if(DumpGCMBlockReads)
-        WriteFile(DumpFileHandle, MemPtr, Len, &WriteLen, 0);
-
+    if(DumpGCMBlockReads) {
+        fwrite(MemPtr, 1, Len, g_dump_file_handle);
+    }
     //adjust the current pointer
     GCMFilePtr->CurPos += ReadLen;
     return ReadLen;
@@ -133,7 +139,9 @@ DEFRealDVDSeek(GCMDVDSeek)
     GCMFileInfo *	GCMFilePtr;
     long			NewPos;
 
-    if(FileHandle == INVALID_HANDLE_VALUE)
+    //LOG_NOTICE(TDVD, "GCMDVDSeek");
+    
+    if(g_file_handle == NULL)
         return 0;
 
     if(FilePtr == 0)
@@ -169,7 +177,8 @@ DEFRealDVDSeek(GCMDVDSeek)
         NewPos = GCMFilePtr->FileData->FileSize;
 
     //set the file pointer
-    NewPos = SetFilePointer(FileHandle, GCMFilePtr->FileData->DiskAddr + NewPos, NULL, FILE_BEGIN);
+    fseek(g_file_handle, GCMFilePtr->FileData->DiskAddr + NewPos, SEEK_SET);
+    NewPos = ftell(g_file_handle);
 
     //adjust the struct
     NewPos -= GCMFilePtr->FileData->DiskAddr;
@@ -182,20 +191,24 @@ DEFRealDVDClose(GCMDVDClose)
     GCMFileInfo *		GCMFilePtr;
     GCMFileInfo *		OldGCMFilePtr;
 
-    if(FileHandle == INVALID_HANDLE_VALUE)
-        return 0;
+    LOG_NOTICE(TDVD, "GCMDVDClose");
 
-    if(FilePtr == 0)
+    if(g_file_handle == NULL) {
         return 0;
+    }
+
+    if(FilePtr == 0) {
+        return 0;
+    }
 
     //if the special id, update the file handle to the first entry
-    if(FilePtr == REALDVD_LOWLEVEL)
-    {
+    if(FilePtr == REALDVD_LOWLEVEL) {
         //cleanup
-        CloseHandle(FileHandle);
+        fclose(g_file_handle);
 
-        if(DumpGCMBlockReads)
-            CloseHandle(DumpFileHandle);
+        if(DumpGCMBlockReads) {
+            CloseHandle(g_dump_file_handle);
+        }
 
         ResetRealDVD();
 
@@ -216,7 +229,7 @@ DEFRealDVDClose(GCMDVDClose)
         free(LowLevelPtr);
         FST = NULL;
 
-        FileHandle = INVALID_HANDLE_VALUE;
+        g_file_handle = NULL;
         return 0;
     }
     else
@@ -243,7 +256,9 @@ DEFRealDVDGetFileSize(GCMDVDGetFileSize)
 {
     GCMFileInfo *		GCMFilePtr;
 
-    if(FileHandle == INVALID_HANDLE_VALUE)
+    LOG_NOTICE(TDVD, "GCMDVDGetFileSize");
+
+    if(g_file_handle == NULL)
         return 0;
 
     if(FilePtr == 0)
@@ -265,7 +280,9 @@ DEFRealDVDGetPos(GCMDVDGetPos)
 {
     GCMFileInfo *		GCMFilePtr;
 
-    if(FileHandle == INVALID_HANDLE_VALUE)
+    LOG_NOTICE(TDVD, "GCMDVDGetPos");
+
+    if(g_file_handle == NULL)
         return 0;
 
     if(FilePtr == 0)
@@ -287,6 +304,8 @@ GCMFileData *FindFSTEntry(GCMFileData *CurEntry, char *Filename)
 {
     u32				i;
     GCMFileData *	NewEntry;
+
+    LOG_NOTICE(TDVD, "FindFSTEntry");
 
     //if we hit the end of the filename then return the current entry
     if(Filename[0] == 0x00)
@@ -312,6 +331,8 @@ GCMFileData *ChangeDirEntry(GCMFileData *CurEntry, char *Filename)
 {
     u32				i;
     GCMFileData *	NewEntry;
+
+    LOG_NOTICE(TDVD, "ChangeDirEntry");
 
     //if the entry is null, exit
     if(!CurEntry)
@@ -357,6 +378,8 @@ DEFRealDVDChangeDir(GCMDVDChangeDir)
     size_t	i;
     GCMFileData *	NewPath;
 
+    LOG_NOTICE(TDVD, "GCMDVDChangeDir");
+
     //copy the directory passed in
     memset(NewDir, 0, sizeof(NewDir));
     strcpy(NewDir, ChangeDirPath);
@@ -379,6 +402,8 @@ DEFRealDVDOpen(GCMDVDOpen)
     u32				i;
     char *			FindFilename;
     GCMFileData *	GCMOpenDir;
+
+    LOG_NOTICE(TDVD, "GCMDVDOpen");
 
     //copy the filename then split it up on the nulls
     FindFilename = (char *)malloc(strlen(filename) + 2);
@@ -437,6 +462,8 @@ void ParseFSTTree(GCMFileData *FSTEntry, GCMFileData *RootFSTEntry, GCMFST **Cur
     u32				i;
     u32				OldCount;
 
+   // LOG_NOTICE(TDVD, "ParseFSTTree");
+
     FSTEntry->DiskAddr = (*CurEntry)->DiskAddr;
     FSTEntry->Filename = &Filenames[(*CurEntry)->NameOffset & 0x00FFFFFF];
     FSTEntry->Parent = ParentFST;
@@ -466,6 +493,8 @@ void DumpFSTEntry(HANDLE DumpHand, GCMFileData *Entry, u32 FileCount, u32 Level)
     u32		x;
     char	FileBuff[512];
 
+    LOG_NOTICE(TDVD, "DumpFSTEntry");
+
     if(Entry == NULL)
         return;
 
@@ -487,6 +516,8 @@ void DumpFST(char *filename, GCMFileData *Entry)
 {
     HANDLE	DumpHand;
 
+    LOG_NOTICE(TDVD, "DumpFST");
+
     DumpHand = CreateFile(filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
     DumpFSTEntry(DumpHand, Entry->FileList, Entry->FileCount, 0);
     CloseHandle(DumpHand);
@@ -496,6 +527,8 @@ u32 AdjustFSTCounts(GCMFST *CurGCMFSTData, u32 *CurIndex, u32 LastIndex)
 {
     u32	TotalCount = 0;
     u32	OldIndex;
+
+    LOG_NOTICE(TDVD, "AdjustFSTCounts");
 
     //adjust all the counts of the directories to allow easier processing
     for(; *CurIndex < LastIndex;)
@@ -537,15 +570,17 @@ int LoadGCM(char *filename)
     char			Header[SIZE_OF_GCM_HEADER];
 
     //if a file is already open, fail
-    if(FileHandle != INVALID_HANDLE_VALUE) {
+    if(g_file_handle != NULL) {
         return E_ERR;
     }
 
     //open it up
-    FileHandle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, NULL);
-    if(FileHandle == INVALID_HANDLE_VALUE) {
+    g_file_handle = fopen(filename, "rb");
+    if (g_file_handle == NULL) {
+        LOG_ERROR(TDVD, "Failed to open %s!", filename);
         return E_ERR;
     }
+
     if(DumpGCMBlockReads) {
         dumpfilename = (char *)malloc(1024);
 
@@ -562,7 +597,7 @@ int LoadGCM(char *filename)
 
         strcat(dumpfilename, ".dmp");
 
-        DumpFileHandle = CreateFile(dumpfilename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, NULL);
+//       DumpFileHandle = CreateFile(dumpfilename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, NULL);
         free(dumpfilename);
     }
 
@@ -572,14 +607,14 @@ int LoadGCM(char *filename)
     Memory_Open();
 
     //read the first 32 bytes into the root memory area
-    ReadFile(FileHandle, &Mem_RAM[0], 32, &BytesRead, 0);
+    BytesRead = fread(&Mem_RAM[0], 1, 32, g_file_handle);
 
     //get a copy of the CRC into the header
     memcpy(Header, &Mem_RAM[0], 32);
 
-    if(DumpGCMBlockReads) {
-        WriteFile(DumpFileHandle, &Mem_RAM[0], 32, &BytesRead, 0);
-    }
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, &Mem_RAM[0], 32, &BytesRead, 0);
+//    }
 
     //swap the memory around
     for(i = 0; i < (32 >> 2); i++) {
@@ -588,11 +623,11 @@ int LoadGCM(char *filename)
 
     //read the game name, make sure the last byte is null terminated
     //0x400 - 0x20 = 3E0
-    ReadFile(FileHandle, g_current_game_name, 0x3E0, &BytesRead, 0);
+    BytesRead = fread(g_current_game_name, 1, 0x3E0, g_file_handle);
 
-    if(DumpGCMBlockReads) {
-        WriteFile(DumpFileHandle, g_current_game_name, 0x3E0, &BytesRead, 0);
-    }
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, g_current_game_name, 0x3E0, &BytesRead, 0);
+//    }
     core::g_config_manager->ReloadGameConfig(Header);
 
     // Print loading message
@@ -618,25 +653,25 @@ int LoadGCM(char *filename)
     if(Memory_Read8(0x80000003) == (u8)'P') Memory_Write32(0x800000CC, 1);
 
     //read the FST
-    if(SetFilePointer(FileHandle, 0x424, NULL, SEEK_SET) != 0x424)
-    {
-        CloseHandle(FileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+    fseek(g_file_handle, 0x424, SEEK_SET);
+    if (ftell(g_file_handle) != 0x424) {
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         return E_ERR;
     }
 
     //get the FST info header
-    ReadFile(FileHandle, &FSTInfo, sizeof(FSTInfo), &BytesRead, 0);
+    BytesRead = fread(&FSTInfo, 1, sizeof(FSTInfo), g_file_handle);
     if(BytesRead != sizeof(FSTInfo))
     {
-        CloseHandle(FileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         return E_ERR;
     }
 
-    if(DumpGCMBlockReads)
-        WriteFile(DumpFileHandle, &FSTInfo, sizeof(FSTInfo), &BytesRead, 0);
-
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, &FSTInfo, sizeof(FSTInfo), &BytesRead, 0);
+//    }
     //swap the FST info
     FSTInfo.Offset = BSWAP32(FSTInfo.Offset);
     FSTInfo.Size = BSWAP32(FSTInfo.Size);
@@ -646,107 +681,112 @@ int LoadGCM(char *filename)
     Memory_Write32(0x80000038, FSTInfo.MemLocation);
     Memory_Write32(0x8000003C, FSTInfo.MaxSize);
 
-    //seek to the position of the FST + 8 bytes to get the number of files
-    if(SetFilePointer(FileHandle, FSTInfo.Offset + 8, NULL, SEEK_SET) != (FSTInfo.Offset + 8))
-    {
-        CloseHandle(FileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+    fseek(g_file_handle, FSTInfo.Offset + 8, SEEK_SET);
+    if (ftell(g_file_handle) != (FSTInfo.Offset + 8)) {
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         return E_ERR;
     }
 
     //read 4 bytes for the number of files
-    ReadFile(FileHandle, &FileCount, 4, &BytesRead, 0);
+    BytesRead = fread(&FileCount, 1, 4, g_file_handle);
     if(BytesRead != 4)
     {
-        CloseHandle(FileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         return E_ERR;
     }
 
-    if(DumpGCMBlockReads)
-        WriteFile(DumpFileHandle, &FileCount, 4, &BytesRead, 0);
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, &FileCount, 4, &BytesRead, 0);
+//    }
 
     //go back. the first entry is empty but tells the number of files
-    if(SetFilePointer(FileHandle, FSTInfo.Offset, NULL, SEEK_SET) != FSTInfo.Offset)
-    {
-        CloseHandle(FileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+    fseek(g_file_handle, FSTInfo.Offset, SEEK_SET);
+    if (ftell(g_file_handle) != FSTInfo.Offset) {
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         return E_ERR;
     }
 
     //allocate memory for the FST info and filenames
     FileCount = BSWAP32(FileCount);
-    GCMFSTData = (GCMFST *)malloc((FileCount+1) * sizeof(GCMFST));
-    FileNames = (char *)malloc(FSTInfo.Size - (FileCount * sizeof(GCMFST)));
+    int foo = FileCount * sizeof(GCMFST);
+    GCMFSTData = (GCMFST *) malloc((FileCount+1) * sizeof(GCMFST));
+    FileNames = (char *)malloc(FSTInfo.Size - (foo));
     memset(&GCMFSTData[FileCount], 0, sizeof(GCMFST));
 
     //read the data
-    ReadFile(FileHandle, GCMFSTData, FileCount * sizeof(GCMFST), &BytesRead, 0);
-    if(BytesRead != (FileCount * sizeof(GCMFST)))
+    BytesRead = fread(GCMFSTData, 1, foo, g_file_handle);
+    if(BytesRead != (foo))
     {
-        CloseHandle(FileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         return E_ERR;
     }
 
-    if(DumpGCMBlockReads)
-        WriteFile(DumpFileHandle, GCMFSTData, FileCount * sizeof(GCMFST), &BytesRead, 0);
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, GCMFSTData, FileCount * sizeof(GCMFST), &BytesRead, 0);
+//    }
 
     //make a copy of it to memory
-    for(i = 0; i < (BytesRead >> 2); i++)
+    for(i = 0; i < (BytesRead >> 2); i++) {
         Memory_Write32(FSTInfo.MemLocation + (i * 4), *(u32 *)&(((u8 *)GCMFSTData)[i * 4]));
+    }
 
-    for(i = i * 4; i < BytesRead; i++)
+    for(i = i * 4; i < BytesRead; i++) {
         Memory_Write8(FSTInfo.MemLocation + i, *(u32 *)&((u8 *)GCMFSTData)[i]);
+    }
 
     //swap all of the numerical FST data in the GCM data
-    for(i=1; i < FileCount; i++)
-    {
+    for (i = 1; i < FileCount; i++) {
         GCMFSTData[i].DiskAddr = BSWAP32(GCMFSTData[i].DiskAddr);
         GCMFSTData[i].FileSize = BSWAP32(GCMFSTData[i].FileSize);
         GCMFSTData[i].NameOffset = BSWAP32(GCMFSTData[i].NameOffset);
     }
 
     TempData = FSTInfo.Size - (FileCount * sizeof(GCMFST));
-    ReadFile(FileHandle, FileNames, TempData, &BytesRead, 0);
+    //ReadFile(FileHandle, FileNames, TempData, &BytesRead, 0);
+    BytesRead = fread(FileNames, 1, TempData, g_file_handle);
     if(BytesRead != TempData)
     {
-        CloseHandle(FileHandle);
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         free(FileNames);
         free(GCMFSTData);
-        FileHandle = INVALID_HANDLE_VALUE;
         return E_ERR;
     }
 
-    if(DumpGCMBlockReads)
-        WriteFile(DumpFileHandle, FileNames, TempData, &BytesRead, 0);
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, FileNames, TempData, &BytesRead, 0);
+//    }
 
     //copy the filenames
     x = FSTInfo.MemLocation + (FileCount * sizeof(GCMFST));
-    for(i = 0; i < (TempData >> 2); i++)
+    for(i = 0; i < (TempData >> 2); i++) {
         Memory_Write32(x + (i * 4), *(u32 *)&FileNames[i * 4]);
+    }
 
-    for(i = (i * 4); i < FileCount; i++)
+    for(i = (i * 4); i < FileCount; i++) {
         Memory_Write8(x + i, *(u32 *)&FileNames[i]);
+    }
 
-    LOG_NOTICE(TDVD, "FST Data loaded 0x%08X bytes to 0x%08X. File names @ 0x%08X\n", FSTInfo.Size, FSTInfo.MemLocation, FSTInfo.MemLocation + (FileCount * sizeof(GCMFST)));
-
-    //	memcpy(MEMPTR32(FSTInfo.MemLocation + (FileCount * sizeof(GCMFST))), FileNames, TempData);
+    LOG_NOTICE(TDVD, "FST Data loaded 0x%08X bytes to 0x%08X. File names @ 0x%08X\n", 
+        FSTInfo.Size, FSTInfo.MemLocation, FSTInfo.MemLocation + (FileCount * sizeof(GCMFST)));
 
     //make all files uppercase
-    for(i=0; i < TempData; i++)
-    {
-        if(FileNames[i] >= 'a' && FileNames[i] <= 'z') {
+    for (i=0; i < TempData; i++) {
+        if (FileNames[i] >= 'a' && FileNames[i] <= 'z') {
             FileNames[i] &= 0xDF;
         }
     }
 
     FST = (GCMFileData *)malloc(sizeof(GCMFileData));
     if (!FST) {
-        CloseHandle(FileHandle);
+        fclose(g_file_handle);
+        g_file_handle = NULL;
         free(FileNames);
         free(GCMFSTData);
-        FileHandle = INVALID_HANDLE_VALUE;
         return E_ERR;
     }
 
@@ -760,14 +800,17 @@ int LoadGCM(char *filename)
     FST->FileCount = FileCount;
     FST->FileList = (GCMFileData *)malloc(FileCount * sizeof(GCMFileData));
     memset(FST->FileList, 0, FileCount * sizeof(GCMFileData));
-    FST->FileSize = GetFileSize(FileHandle, NULL);
+    size_t pos = ftell(g_file_handle);
+    fseek(g_file_handle, 0L, SEEK_END);
+    FST->FileSize = ftell(g_file_handle);
+    fseek(g_file_handle, pos, SEEK_SET);
     FST->DiskAddr = 0;
     FST->Filename = NULL;
     FST->IsDirectory = 1;
 
-    if(DumpGCMBlockReads) {
-        WriteFile(DumpFileHandle, &FST->FileSize, sizeof(FST->FileSize), &BytesRead, 0);
-    }
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, &FST->FileSize, sizeof(FST->FileSize), &BytesRead, 0);
+//    }
 
     //setup the file count
     i = 0;
@@ -811,19 +854,22 @@ int LoadGCM(char *filename)
     //We only grab the first one....
     if(BannerData) {
         //read the banner
-        SetFilePointer(FileHandle, BannerData->DiskAddr, 0, SEEK_SET);
+        fseek(g_file_handle, BannerData->DiskAddr, SEEK_SET);
         if (BannerData->FileSize == sizeof(Banner)) {
-            ReadFile(FileHandle, Banner, BannerData->FileSize, &BytesRead, 0);
+            BytesRead = fread(Banner, BannerData->FileSize, 1, g_file_handle);
 
-            if(DumpGCMBlockReads)
-                WriteFile(DumpFileHandle, Banner, BannerData->FileSize, &BytesRead, 0);
+//            if(DumpGCMBlockReads) {
+//                WriteFile(DumpFileHandle, Banner, BannerData->FileSize, &BytesRead, 0);
+//            }
 
             BannerCRC = GetBnrChecksum(Banner);
         } else if (BannerData->FileSize > sizeof(Banner) && (BannerData->FileSize - 0x1820) % 0x140 == 0x00) {
-            ReadFile(FileHandle, Banner2, BannerData->FileSize, &BytesRead, 0);
+            //ReadFile(FileHandle, Banner2, BannerData->FileSize, &BytesRead, 0);
+            BytesRead = fread(Banner2, BannerData->FileSize, 1, g_file_handle);
 
-            if(DumpGCMBlockReads)
-                WriteFile(DumpFileHandle, Banner2, BannerData->FileSize, &BytesRead, 0);
+//            if(DumpGCMBlockReads) {
+//                WriteFile(DumpFileHandle, Banner2, BannerData->FileSize, &BytesRead, 0);
+//            }
 
             BannerCRC = GetBnrChecksum(Banner2);
         }
@@ -835,25 +881,24 @@ int LoadGCM(char *filename)
     HLE_GetGameCRC(g_current_game_crc, (u8 *)Header, BannerCRC);
 
     //load up the data for the apploader
-    SetFilePointer(FileHandle, 0x2440, 0, SEEK_SET);
-    ReadFile(FileHandle, AppLoaderHeader, sizeof(AppLoaderHeader), &BytesRead, 0);
+    fseek(g_file_handle, 0x2440, SEEK_SET);
+    BytesRead = fread(AppLoaderHeader, sizeof(AppLoaderHeader), 1, g_file_handle);
 
-    if(DumpGCMBlockReads) {
-        WriteFile(DumpFileHandle, AppLoaderHeader, sizeof(AppLoaderHeader), &BytesRead, 0);
-    }
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, AppLoaderHeader, sizeof(AppLoaderHeader), &BytesRead, 0);
+//    }
 
     //load the image
-    SetFilePointer(FileHandle, 0x2460, 0, SEEK_SET);
-    ReadFile(FileHandle, &Mem_RAM[0x81200000 & RAM_MASK], BSWAP32(AppLoaderHeader[5]), 
-        &BytesRead, 0);
+    fseek(g_file_handle, 0x2460, SEEK_SET);
+    BytesRead = fread(&Mem_RAM[0x81200000 & RAM_MASK], 1, BSWAP32(AppLoaderHeader[5]), g_file_handle);
 
-    if(DumpGCMBlockReads) {
-        WriteFile(DumpFileHandle, &Mem_RAM[0x81200000 & RAM_MASK], BSWAP32(AppLoaderHeader[5]), 
-            &BytesRead, 0);
-    }
+//    if(DumpGCMBlockReads) {
+//        WriteFile(DumpFileHandle, &Mem_RAM[0x81200000 & RAM_MASK], BSWAP32(AppLoaderHeader[5]), 
+//            &BytesRead, 0);
+//    }
 
     //flip the memory around as needed
-    for(i = 0; i < ((BytesRead >> 2) + 1); i++) {
+    for (i = 0; i < ((BytesRead >> 2) + 1); i++) {
         *(u32 *)(&Mem_RAM[(0x81200000 + (i * 4)) & RAM_MASK]) = 
             BSWAP32(*(u32 *)(&Mem_RAM[(0x81200000 + (i * 4)) & RAM_MASK]));
     }
@@ -902,7 +947,7 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer /* 0
     ReadFile(GCMFileHandle, &FSTInfo, sizeof(FSTInfo), &BytesRead, 0);
     if(BytesRead != sizeof(FSTInfo)) {
         CloseHandle(GCMFileHandle);
-        FileHandle = INVALID_HANDLE_VALUE;
+        g_file_handle = NULL;
         return E_ERR;
     }
 

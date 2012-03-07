@@ -61,7 +61,9 @@ int LoadGCM(char *filename);
  * \param filename Filename of ELF binary to load
  * \return 0 on pass, non-zero error code on fail
  */
-int LoadDMP(char *filename);
+// TODO (ShizZy): Deprecated - port gcm_dump to standard file IO, or remove from the project if 
+//                  we no longer need it!
+//int LoadDMP(char *filename); 
 
 /*!
  * \brief Gets info for a GCM (GameCube DVD image)

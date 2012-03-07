@@ -88,12 +88,11 @@ int Init() {
     Init_CRC32_Table();     // Init CRC table
     input_common::Init();   // Init user input plugin
 
-
-    // TODO(ShizZy): FIXME this causes a crash... Why?
     if (common::g_config->powerpc_core() == common::Config::CPU_INTERPRETER) {
         delete cpu;
         cpu = new GekkoCPUInterpreter();
     } else {
+        // TODO(ShizZy): FIXME this causes a crash... Why?
 #ifndef EMU_IGNORE_RECOMPILER
         delete cpu;
         cpu = new GekkoCPURecompiler();

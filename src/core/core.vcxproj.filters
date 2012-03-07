@@ -93,6 +93,62 @@
     <ClCompile Include="src\powerpc\cpu_core_regs.cpp">
       <Filter>powerpc</Filter>
     </ClCompile>
+    <ClCompile Include="src\powerpc\interpreter\cpu_int.cpp">
+      <Filter>powerpc\interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\interpreter\cpu_int_opcodes.cpp">
+      <Filter>powerpc\interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\disassembler\ppc_disasm.cpp">
+      <Filter>powerpc\disassembler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\boot\apploader.cpp">
+      <Filter>boot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\boot\bootrom.cpp">
+      <Filter>boot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dvd\gcm.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dvd\realdvd.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\memory.cpp" />
+    <ClCompile Include="src\video\gx_fifo.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\gx_states.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\gx_tev.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\gx_texture.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\gx_transform.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\gx_vertex.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\opengl.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\externals\glew\src\glew.c">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core.cpp" />
+    <ClCompile Include="src\dvd\dol.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dvd\elf.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dvd\loader.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
     <ClCompile Include="src\powerpc\recompiler\cpu_rec.cpp">
       <Filter>powerpc\recompiler</Filter>
     </ClCompile>
@@ -149,65 +205,6 @@
     </ClCompile>
     <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp">
       <Filter>powerpc\recompiler</Filter>
-    </ClCompile>
-    <ClCompile Include="src\powerpc\interpreter\cpu_int.cpp">
-      <Filter>powerpc\interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="src\powerpc\interpreter\cpu_int_opcodes.cpp">
-      <Filter>powerpc\interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="src\powerpc\disassembler\ppc_disasm.cpp">
-      <Filter>powerpc\disassembler</Filter>
-    </ClCompile>
-    <ClCompile Include="src\boot\apploader.cpp">
-      <Filter>boot</Filter>
-    </ClCompile>
-    <ClCompile Include="src\boot\bootrom.cpp">
-      <Filter>boot</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\gcm.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\gcm_dump.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\realdvd.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\memory.cpp" />
-    <ClCompile Include="src\video\gx_fifo.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\video\gx_states.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\video\gx_tev.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\video\gx_texture.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\video\gx_transform.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\video\gx_vertex.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\video\opengl.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\externals\glew\src\glew.c">
-      <Filter>video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core.cpp" />
-    <ClCompile Include="src\dvd\dol.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\elf.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\loader.cpp">
-      <Filter>dvd</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -289,15 +286,6 @@
     <ClInclude Include="src\powerpc\recompiler\cpu_rec.h">
       <Filter>powerpc\recompiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\recompiler\cpu_rec_assembler.h">
-      <Filter>powerpc\recompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h">
-      <Filter>powerpc\recompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h">
-      <Filter>powerpc\recompiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\powerpc\interpreter\cpu_int.h">
       <Filter>powerpc\interpreter</Filter>
     </ClInclude>
@@ -344,6 +332,15 @@
     </ClInclude>
     <ClInclude Include="src\dvd\loader.h">
       <Filter>dvd</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_assembler.h">
+      <Filter>powerpc\recompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h">
+      <Filter>powerpc\recompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h">
+      <Filter>powerpc\recompiler</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -75,10 +75,14 @@ int LoadBootableFile(char* filename) {
     } else if (E_OK == _stricmp(ext, "gcm") || E_OK == _stricmp(ext, "iso")) {
         LoadGCM(filename);
     } else if (E_OK == _stricmp(ext, "dmp")) {
-        strcpy_s(ext, 256, c - 3);
-        if(E_OK == _stricmp(ext, "gcm.dmp")) {
-            dvd::LoadDMP(filename);
-        }
+
+// TODO (ShizZy): Deprecated - port gcm_dump to standard file IO, or remove from the project if 
+//                  we no longer need it!
+        LOG_ERROR(TDVD, "Support for DMP files has been removed.  If you need it, fix it!");
+        //strcpy_s(ext, 256, c - 3);
+        //if(E_OK == _stricmp(ext, "gcm.dmp")) {
+        //    dvd::LoadDMP(filename);
+        //}
     } else {
         LOG_ERROR(TDVD, "Unsupported DVD/ROM type!\n");
         FileLoaded = 0;

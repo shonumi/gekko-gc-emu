@@ -178,9 +178,6 @@
     <ClInclude Include="src\pcafe.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="pcafe.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="res\icon3_48x48.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
