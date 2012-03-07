@@ -131,6 +131,7 @@
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\crc.cpp" />
     <ClCompile Include="src\log.cpp" />
+    <ClCompile Include="src\misc_utils.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\xml.cpp" />
   </ItemGroup>
@@ -139,6 +140,7 @@
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\crc.h" />
     <ClInclude Include="src\log.h" />
+    <ClInclude Include="src\misc_utils.h" />
     <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\thread.h" />
     <ClInclude Include="src\timer.h" />

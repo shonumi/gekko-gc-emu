@@ -6,6 +6,7 @@
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\xml.cpp" />
     <ClCompile Include="src\config.cpp" />
+    <ClCompile Include="src\misc_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crc.h" />
@@ -19,5 +20,6 @@
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\xml.h" />
     <ClInclude Include="src\version.h" />
+    <ClInclude Include="src\misc_utils.h" />
   </ItemGroup>
 </Project>
