@@ -135,7 +135,7 @@ GekkoCPUInterpreter::~GekkoCPUInterpreter()
 	for(;;)
 	{
 		if(GetAsyncKeyState(VK_RETURN)) break;
-		Sleep(1000);
+		SDL_Delay(1000);
 	}
 #endif
 

@@ -460,7 +460,7 @@ GekkoCPURecompiler::~GekkoCPURecompiler()
 	}
 
 	for(;;)
-		Sleep(1000);
+		SDL_Delay(1000);
 #endif
 }
 

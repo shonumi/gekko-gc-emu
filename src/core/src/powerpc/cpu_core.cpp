@@ -419,7 +419,7 @@ GekkoF GekkoCPU::ComparePipeData(u32 LastAddress)
 	{
 		for(;PipeHandleData[0] != 0x01 && PipeHandleData[0] != 0xFE;)
 		{
-			Sleep(0);
+			SDL_Delay(0);
 			if(PipeHandleData[0] == 0xFF)
 			{
 				HandleSpecialPipeData();
@@ -438,7 +438,7 @@ GekkoF GekkoCPU::ComparePipeData(u32 LastAddress)
 				printf("CPU Compare waiting on server for sync\n");
 				for(;PipeHandleData[0] != 0xFE;)
 				{
-					Sleep(5);
+					SDL_Delay(5);
 				}
 				HandleSpecialPipeData();
 				return;
@@ -490,7 +490,7 @@ GekkoF GekkoCPU::ComparePipeData(u32 LastAddress)
 		//bad, return an invalid pointer
 		PipeHandleData[0] = 0x03;
 
-		for(;PipeHandleData[0] != 0x01;){Sleep(0);}
+		for(;PipeHandleData[0] != 0x01;){SDL_Delay(0);}
 
 		memcpy(&CompareRegs, &PipeHandleData[1], sizeof(CompareRegs));
 
@@ -614,7 +614,7 @@ GekkoF GekkoCPU::ComparePipeData(u32 LastAddress)
 				PipeHandleData[0] = 0xFE;
 
 				printf("CPU Compare waiting on client for sync\n");
-				for(;PipeHandleData[0] == 0xFE;){Sleep(5);}
+				for(;PipeHandleData[0] == 0xFE;){SDL_Delay(5);}
 
 				if(PipeHandleData[0] != 0x02)
 				{
@@ -673,11 +673,11 @@ GekkoF GekkoCPU::ComparePipeData(u32 LastAddress)
 		StartTime = timeGetTime();
 		for(;PipeHandleData[0] == 0x01;)
 		{
-			Sleep(0);
+			SDL_Delay(0);
 			if((timeGetTime() - StartTime) > 5000)
 			{
 				printf("Waiting on client, IC @ 0x%08X\n", ireg.IC);
-				for(;PipeHandleData[0] == 0x01;){Sleep(0);}
+				for(;PipeHandleData[0] == 0x01;){SDL_Delay(0);}
 			}
 		}
 

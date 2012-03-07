@@ -245,7 +245,7 @@ DWORD WINAPI PlayAFCStream( LPVOID lpParam ) {
 
 		if ((dwStatus & DSBSTATUS_PLAYING)) {
 			do {
-				Sleep(100);
+				SDL_Delay(100);
 				lpDsb->GetCurrentPosition( &curplaycurs, NULL);
 				space = curplaycurs-curwritecurs;
 				if (space<0) space+=PLAYBUFSIZE*2;
