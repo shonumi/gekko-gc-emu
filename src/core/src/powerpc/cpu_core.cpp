@@ -5,7 +5,6 @@
 #include "cpu_core.h"
 #include "cpu_core_regs.h"
 #include "disassembler/ppc_disasm.h"
-#include "emu_win.h"
 #include "hw/hw_vi.h"
 #include "dvd/loader.h"
 
