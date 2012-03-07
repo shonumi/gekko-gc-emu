@@ -64,13 +64,14 @@
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
     <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl\win32;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
     <TargetName>gekko-$(ProjectName)</TargetName>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
     <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl\win32;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)</TargetName>
+    <TargetName>gekko-$(ProjectName)_df</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -124,6 +125,15 @@
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
+    <CustomBuildStep>
+      <Command>python $(SolutionDir)\scripts\update_version_h.py</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Updating version.h header...</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>.</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
     <ClCompile>

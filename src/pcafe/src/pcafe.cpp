@@ -44,7 +44,6 @@
 int __cdecl main(int argc, char **argv)
 {
     u32 tight_loop;
-
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
     char program_dir[MAX_PATH];
