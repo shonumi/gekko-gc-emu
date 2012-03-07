@@ -6,20 +6,18 @@
 #include "hle/hle.h"
 #include "hle/hle_func.h"
 
-void AppLoaderPrint()
-{
-	u32	i;
-	char	Msg[1000];
+u32 AppLoaderPrint() {
+	u32	    i;
+	char	msg[1000];
 
-	for(i = 0; ; i++)
-	{
-		Msg[i] = Memory_Read8(ireg_GPR(3) + i);
-		if(!Msg[i])
+	for(i = 0; ; i++) {
+		msg[i] = Memory_Read8(ireg_GPR(3) + i);
+		if(!msg[i]) {
 			break;
+        }
 	}
-
-	//print a message from the apploader
-	LOG_NOTICE(TBOOT, Msg, ireg_GPR(4), ireg_GPR(5), ireg_GPR(6));
+	LOG_NOTICE(TBOOT, msg, ireg_GPR(4), ireg_GPR(5), ireg_GPR(6));
+    return 0;
 }
 
 bool Boot_AppLoader(u32 *AppHeader)
