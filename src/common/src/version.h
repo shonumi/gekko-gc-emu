@@ -25,7 +25,7 @@
 #ifndef COMMON_VERSION_
 #define COMMON_VERSION_
 
-#define GEKKO_VERSION "0.31-" GEKKO_SVN_REV
-#define GEKKO_SVN_REV "dirty"
+#define __BUILD__ "dirty"
+#define GEKKO_VERSION "0.31-" __BUILD__
 
 #endif // COMMON_VERSION
