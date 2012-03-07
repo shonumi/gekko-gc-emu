@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "misc_utils.h"
 #include "loader.h"
 #include "powerpc/cpu_core.h"
 
@@ -36,11 +37,9 @@ int LoadBootableFile(char* filename) {
     char *PipeData;
     u32 FileLoaded = 1;
 
-    std::ifstream ifile(filename);
-    if (!ifile) {
+    if (!common::FileExists(filename)) {
         return E_ERR;
     }
-    ifile.close();
 
     c = strrchr(filename, '/');
     if (c) {
@@ -56,7 +55,7 @@ int LoadBootableFile(char* filename) {
     c = strrchr(str, '.');
     if (c) {
         strcpy_s(ext2, 64, c + 1);
-        _strlwr_s(ext2, 64);
+        common::LowerStr(ext2);
         ext = ext2;
     }
     if(cpu->IsCPUCompareActive() == 2)
@@ -65,7 +64,7 @@ int LoadBootableFile(char* filename) {
         PipeData[0] = 'F';
         memcpy(&PipeData[1], filename, strlen(filename) + 1);
         cpu->SendPipeData(PipeData, strlen(filename) + 2);
-        Sleep(1000);
+        SDL_Delay(1000);
         free(PipeData);
     }
     if (E_OK == _stricmp(ext, "dol")) {

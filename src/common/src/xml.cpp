@@ -28,6 +28,7 @@
 #include <rapidxml.hpp>
 
 #include "common.h"
+#include "misc_utils.h"
 #include "config.h"
 #include "log.h"
 
@@ -131,7 +132,7 @@ void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_nam
     strcpy_s(node_name_str, 8, node_name);
 
     // TODO: not available on Unix
-    _strlwr_s(node_name_str, 8);
+    common::LowerStr(node_name_str);
     
     // Parse all search patches in the Patches node
     rapidxml::xml_node<> *sub_node = node->first_node(node_name);
@@ -183,7 +184,7 @@ void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_nam
                     // Convert to lowercase
                     strcpy_s(instr_str, 4, attr->value());
                     // TODO: not available on Unix
-                    _strlwr_s(instr_str, 4);
+                    common::LowerStr(instr_str);
 
                     // Convert instruction to equivalent PPC bytecode
                     //  TODO(ShizZy): Pull this out to the PowerPC modules at some point
@@ -258,7 +259,7 @@ void ParsePowerPCNode(rapidxml::xml_node<> *node, Config& config) {
         // Convert to lowercase
         strcpy_s(core_str, 12, attr->value());
         // TODO: not available on Unix
-        _strlwr_s(core_str, 12);
+        common::LowerStr(core_str);
 
         // Use interpreter core
         if (E_OK == _stricmp(core_str, "interpreter")) {
