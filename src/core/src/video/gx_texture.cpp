@@ -240,9 +240,9 @@ void gx_texture::add(gx_texture_data _tx)
                 for(dy = 0; dy < 8; dy++)
                     for(dx = 0; dx < 8; dx+=2, src8++)
                     {
-						val = ((17 * (*(u8 *)((u32)src8 ^ 3) & 0x0f)) * 0x00010101) | 0xFF000000;
+						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x00010101) | 0xFF000000;
 						dst32[(width * (y + dy) + x + dx + 1)] = val;
-						val = ((17 * (*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4) * 0x00010101) | 0xFF000000;
+						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x00010101) | 0xFF000000;
 						dst32[(width * (y + dy) + x + dx)] = val;
 						/*
 						dst8[(width * (y + dy) + x + dx + 1) * 4] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
@@ -273,7 +273,7 @@ void gx_texture::add(gx_texture_data _tx)
                 for(dy = 0; dy < 4; dy++)
                     for(dx = 0; dx < 8; dx++)
                     {
-						val = ((*(u8 *)((u32)src8 ^ 3)) * 0x00010101) | 0xFF000000;
+						val = ((*(u8 *)((uintptr_t)src8 ^ 3)) * 0x00010101) | 0xFF000000;
 						dst32[(width * (y + dy) + x + dx)] = val;
 						/*
 						dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
@@ -300,7 +300,7 @@ void gx_texture::add(gx_texture_data _tx)
                 for(dy = 0; dy < 4; dy++)
                     for(dx = 0; dx < 8; dx++, src8++)
                     {
-						val = ((17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4)) << 24);
+						val = ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
 						dst32[(width * (y + dy) + x + dx)] = val;
 
 						/*
@@ -327,7 +327,7 @@ void gx_texture::add(gx_texture_data _tx)
                 for(dy = 0; dy < 4; dy++)
                     for(dx = 0; dx < 4; dx++, src8+=2)
 					{
-						val = (((u32)*(u8 *)(((u32)src8 + 1) ^ 3)) * 0x00010101) | ((u32)*(u8 *)((u32)src8 ^ 3) << 24);
+						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
 						dst32[(width * (y + dy) + x + dx)] = val;
 						/*
 						dst8[(width * (y + dy) + x + dx) * 4 + 3] = *(u8 *)((u32)src8 ^ 3);
@@ -457,20 +457,20 @@ void gx_texture::add(gx_texture_data _tx)
 
 							or something similar
 						*/
-						tmp[width * (y + dy) + x + 0] = (*(u8 *)((u32)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 1] = (*(u8 *)((u32)src8 ^ 3) & 0x0f);
+						tmp[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
 						src8++;
 
-						tmp[width * (y + dy) + x + 2] = (*(u8 *)((u32)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 3] = (*(u8 *)((u32)src8 ^ 3) & 0x0f);
+						tmp[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
 						src8++;
 
-						tmp[width * (y + dy) + x + 4] = (*(u8 *)((u32)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 5] = (*(u8 *)((u32)src8 ^ 3) & 0x0f);
+						tmp[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
 						src8++;
 
-						tmp[width * (y + dy) + x + 6] = (*(u8 *)((u32)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 7] = (*(u8 *)((u32)src8 ^ 3) & 0x0f);
+						tmp[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
 						src8++;
 					}
 
@@ -482,17 +482,17 @@ void gx_texture::add(gx_texture_data _tx)
 			for(y = 0; y < _tx.height; y += 4)
 				for(x = 0; x < width; x += 8)
 				{
-					*(u32 *)&tmp[width * (y + 0) + x] = BSWAP32(*(u32 *)((u32)src8));
-					*(u32 *)&tmp[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((u32)src8 + 4));
+					*(u32 *)&tmp[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
+					*(u32 *)&tmp[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
 
-					*(u32 *)&tmp[width * (y + 1) + x] = BSWAP32(*(u32 *)((u32)src8 + 8));
-					*(u32 *)&tmp[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((u32)src8 + 12));
+					*(u32 *)&tmp[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
+					*(u32 *)&tmp[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
 
-					*(u32 *)&tmp[width * (y + 2) + x] = BSWAP32(*(u32 *)((u32)src8 + 16));
-					*(u32 *)&tmp[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((u32)src8 + 20));
+					*(u32 *)&tmp[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
+					*(u32 *)&tmp[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
 
-					*(u32 *)&tmp[width * (y + 3) + x] = BSWAP32(*(u32 *)((u32)src8 + 24));
-					*(u32 *)&tmp[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((u32)src8 + 28));
+					*(u32 *)&tmp[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
+					*(u32 *)&tmp[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
 					src8+=32;
 				}
 			break;
