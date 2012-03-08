@@ -4,6 +4,7 @@ project(gekko)
 
 # silence some spam
 add_definitions(-Wno-attributes)
+add_definitions(-DSINGLETHREADED)
 
 # dependency checking
 include(FindSDL REQUIRED)
