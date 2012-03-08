@@ -11,7 +11,7 @@
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
         <EnableCheats>false</EnableCheats>
-        <DefaultBootFile>G:\Software\Games\Nintendo.Gamecube\ww-demo.gcm</DefaultBootFile>
+        <DefaultBootFile/>
 
         <!-- List of search paths for DVD images and bootable roms -->
         <DVDImagePaths/>
