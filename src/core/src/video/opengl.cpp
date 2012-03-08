@@ -2,7 +2,6 @@
 // (c) 2005,2008 Gekko Team / Wiimu Project
 
 #include "common.h"
-#include "version.h"
 
 #include "input_common.h"
 
