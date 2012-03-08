@@ -1,3 +1,4 @@
+#include "common.h"
 #include "cpu_rec.h"
 
 //0x20 is the temp PPC register. I can either offset all x86 entries by 1, pain in the neck, or
@@ -277,7 +278,8 @@ u32 __cdecl GekkoCPURecompiler::ProcessRecPPCCacheSpecial(RecInstruction *Instru
 
 GekkoRecCacheOp(ADD)
 {
-	_asm
+#ifdef USE_INLINE_ASM_X86
+    _asm
 	{
 		mov eax, Instruction
 		mov ebx, eax
@@ -297,10 +299,14 @@ GekkoRecCacheOp(ADD)
 		setz CRKnown[2]
 		mov [ecx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(SUB)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -322,10 +328,14 @@ GekkoRecCacheOp(SUB)
 		mov [ecx+eax*8], edx
 	}
 	//PPCRegVals[Instruction->OutReg].KnownValue -= Instruction->InVal;
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(XOR)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -347,10 +357,14 @@ GekkoRecCacheOp(XOR)
 		mov [ecx+eax*8], edx
 	}
 //	PPCRegVals[Instruction->OutReg].KnownValue ^= Instruction->InVal;
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(OR)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -372,10 +386,14 @@ GekkoRecCacheOp(OR)
 		mov [ecx+eax*8], edx
 	}
 //	PPCRegVals[Instruction->OutReg].KnownValue |= Instruction->InVal;
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(AND)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -397,6 +415,9 @@ GekkoRecCacheOp(AND)
 		mov [ecx+eax*8], edx
 	}
 //	PPCRegVals[Instruction->OutReg].KnownValue &= Instruction->InVal;
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(MOVE)
@@ -406,6 +427,7 @@ GekkoRecCacheOp(MOVE)
 
 GekkoRecCacheOp(NOT)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -425,10 +447,14 @@ GekkoRecCacheOp(NOT)
 		mov [edx+eax*8], ebx
 	}
 	//PPCRegVals[Instruction->OutReg].KnownValue = !Instruction->InVal;
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(NEG)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -448,6 +474,9 @@ GekkoRecCacheOp(NEG)
 		mov [edx+eax*8], ebx
 	}
 	//PPCRegVals[Instruction->OutReg].KnownValue = -Instruction->InVal;
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(UPDATECR0)
@@ -498,6 +527,7 @@ GekkoRecCacheOp(COMPLIMENTCARRY)
 
 GekkoRecCacheOp(ROL)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -514,10 +544,14 @@ GekkoRecCacheOp(ROL)
 		setz CRKnown[2]
 		mov [ebx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(ROR)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -534,10 +568,14 @@ GekkoRecCacheOp(ROR)
 		setz CRKnown[2]
 		mov [ebx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(SHL)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -562,10 +600,14 @@ GekkoRecCacheOp(SHL)
 		setz CRKnown[2]
 		mov [ebx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(SHR)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -590,10 +632,14 @@ GekkoRecCacheOp(SHR)
 		setz CRKnown[2]
 		mov [ebx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(SAL)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -618,10 +664,14 @@ GekkoRecCacheOp(SAL)
 		setz CRKnown[2]
 		mov [ebx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(SAR)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -646,10 +696,14 @@ GekkoRecCacheOp(SAR)
 		setz CRKnown[2]
 		mov [ebx+eax*8], edx
 	}
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoRecCacheOp(SMUL)
 {
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov eax, Instruction
@@ -665,5 +719,8 @@ GekkoRecCacheOp(SMUL)
 		setg CRKnown[1]
 		setz CRKnown[2]
 		mov [ebx+ecx*8], eax
-	}
+    }	
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }

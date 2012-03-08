@@ -2730,7 +2730,7 @@ GekkoRecIntOp(PS_MSUB)
 
 GekkoRecIntOp(PS_MUL)
 {
-#if 1//#ifdef USE_INLINE_ASM
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov edx, [GekkoCPU::opcode]

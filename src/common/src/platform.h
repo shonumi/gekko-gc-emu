@@ -36,13 +36,6 @@
 #define PLATFORM_ANDROID 4
 #define PLATFORM_IOS 5
 
-/// Enumeration for defining the supported architectures
-enum EmuArchtecture {
-    ARCHITECTURE_NULL = 0,  ///< Emulator is built with an unknown architecture
-    ARCHITECTURE_X86,       ///< Emulator is built for x86 (32-bit) systems
-    ARCHITECTURE_X64,       ///< Emulator is built for x64 (64-bit) systems
-};
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform detection
 extern char *kGekkoOS;
@@ -66,9 +59,9 @@ extern char *kGekkoOS;
 #endif
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__alpha__) || defined(__ia64__)
-#  define EMU_ARCHITECTURE ARCHITECTURE_X64
+#define EMU_ARCHITECTURE_X64
 #else
-#  define EMU_ARCHITECTURE ARCHITECTURE_X86
+#define EMU_ARCHITECTURE_X86
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -322,7 +322,7 @@ GekkoCPURecompiler::GekkoCPURecompiler()
 	//setup the unhandled exception for memory writes
 	GetSystemInfo(&SysInfo);
 	PageSize = SysInfo.dwPageSize;
-	SetUnhandledExceptionFilter(GekkoCPURecompiler::UnhandledException);
+	void* var = SetUnhandledExceptionFilter(GekkoCPURecompiler::UnhandledException);
 
 	//setup our page table entry
 	CompiledTablePages = (u32 *)RecompileAlloc(((32 * 1024 * 1024) / PageSize) * 4);
@@ -369,6 +369,8 @@ LONG __stdcall GekkoCPURecompiler::UnhandledException(EXCEPTION_POINTERS *Except
 	DWORD	OldFlags;
 	u32		MemAddr;
 
+    printf("\n!!!!!!!!!!!!!!!!!!!!!UNHANDLED EXCEPTION!!!!!!!!!!!!!!!!!!!!!!!\n");
+
 	if(ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
 	{
 		//verify the exception is inside our area, otherwise we do not want to handle it
@@ -391,12 +393,14 @@ LONG __stdcall GekkoCPURecompiler::UnhandledException(EXCEPTION_POINTERS *Except
 		{
 			//continue execution, div is probably being used incorrectly and result is undefined
 			//figure out if the div command is 2 or 6 bytes then skip the command itself
+#ifdef EMU_ARCHITECTURE_X86
 			OldFlags = ExceptionInfo->ContextRecord->Eip;
 			MemAddr = *(u32 *)OldFlags;
 			if((MemAddr & 0x0000C000) == 0x00)
 				ExceptionInfo->ContextRecord->Eip += 6;
 			else
 				ExceptionInfo->ContextRecord->Eip += 2;
+#endif
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 		else
@@ -755,6 +759,7 @@ GekkoF GekkoCPURecompiler::DoBranchChecks()
 	LastFinishedOp = ireg.PC;
 
 	//if we are debugging, backup the registers
+#ifdef USE_INLINE_ASM_X86
 	if(PipeIsClient)
 	{
 		//if we are paused then something went wrong, print out some debug info
@@ -784,6 +789,9 @@ GekkoF GekkoCPURecompiler::DoBranchChecks()
 			jnz CopyMemory
 		};
 	}
+#else
+    #pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoF GekkoCPURecompiler::CheckMemoryWriteInternal(u32 Addr, u32 Size)

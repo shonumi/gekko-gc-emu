@@ -420,6 +420,7 @@ GekkoF GekkoCPURecompiler::InitRecompileMemory()
 
 	LOG_NOTICE(TPOWERPC, "DynaRec Memory Location: 0x%08X\n", StartMem);
 
+#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		jmp InitEnd
@@ -485,6 +486,9 @@ GekkoF GekkoCPURecompiler::InitRecompileMemory()
 			nop
 		InitEnd:
 	};
+#else
+#pragma todo("IMPLEMENT me on x64 for recompiler")
+#endif
 }
 
 GekkoF GekkoCPURecompiler::ReleaseRecompileMemory()

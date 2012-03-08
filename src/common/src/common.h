@@ -29,6 +29,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Preprocessor stuff
+
 #define GEKKO_QUOTE_INPLACE(x) # x
 #define GEKKO_QUOTE(x) GEKKO_QUOTE_INPLACE(x)
 #define __FILE__LINE__ __FILE__ "(" GEKKO_QUOTE(__LINE__) ") : "
@@ -37,22 +38,23 @@
 #if EMU_PLATFORM == PLATFORM_WINDOWS
 
 // All inline assembly is x86 right now!
-#  if EMU_ARCHITECTURE == ARCHITECTURE_X86
-#    define USE_INLINE_ASM_X86
-#  endif
+#ifdef EMU_ARCHITECTURE_X86
+#define USE_INLINE_ASM_X86
+#endif // EMU_ARCHITECTURE_X86
 
-#  pragma warning( disable : 4786 )	//disable the truncated 255 character limit warning for debug identifiers
-#  ifdef LEAK_DETECT
-		//#pragma message("leak-hunting enabled")
-#    define _CRTDBG_MAP_ALLOC
-#    define _INC_MALLOC
-#    include <stdlib.h>
-#    include <crtdbg.h>
-#  endif
-#  define TODO( x )  message( __FILE__LINE__" TODO :   " #x "\n" )
-#  define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" ) 
-#endif
+#pragma warning( disable : 4786 )	//disable the truncated 255 character limit warning for debug identifiers
 
+#ifdef LEAK_DETECT
+#define _CRTDBG_MAP_ALLOC
+#define _INC_MALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif // LEAK_DETECT
+
+#define TODO( x )  message( __FILE__LINE__" TODO :   " #x "\n" )
+#define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" ) 
+
+#endif // PLATFORM_WINDOWS
 
 #define E_OK					0
 #define E_ERR					1
