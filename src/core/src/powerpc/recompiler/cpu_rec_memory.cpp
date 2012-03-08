@@ -489,7 +489,7 @@ GekkoF GekkoCPURecompiler::InitRecompileMemory()
 
 GekkoF GekkoCPURecompiler::ReleaseRecompileMemory()
 {
-	HANDLE	MemDump;
+	//HANDLE	MemDump;
 	DWORD	BytesOut;
 	char	DumpFile[100];
 
@@ -566,16 +566,17 @@ GekkoF GekkoCPURecompiler::CheckMemory()
 GekkoF GekkoCPURecompiler::DumpMemoryLayout()
 {
 	RecompileMemBlock	*CurBlock;
-	HANDLE				FileHandle;
+	//HANDLE				FileHandle;
 	char				DumpData[1024];
 	DWORD				BytesWritten;
 
-	FileHandle = CreateFile("memory layout.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+	/*FileHandle = CreateFile("memory layout.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if(FileHandle == INVALID_HANDLE_VALUE)
 	{
 		printf("Unable to create memory layout file!\n");
 		return;
-	}
+	}*/return; // removeme when fixed
 
 	CurBlock = StartMem;
 	while(CurBlock)
@@ -586,18 +587,20 @@ GekkoF GekkoCPURecompiler::DumpMemoryLayout()
 		else
 			strcat(DumpData, "FREE\n");
 
-		WriteFile(FileHandle, DumpData, strlen(DumpData), &BytesWritten, 0);
+        // TODO(ShizZy): Make cross platform 2012-03-07
+		//WriteFile(FileHandle, DumpData, strlen(DumpData), &BytesWritten, 0);
 
 		CurBlock = CurBlock->PtrNext;
 	}
 
-	CloseHandle(FileHandle);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+	//CloseHandle(FileHandle);
 	printf("Dumped memory layout\n");
 }
 
 GekkoF GekkoCPURecompiler::DumpMemoryDLL()
 {
-	HANDLE					FileHandle;
+	//HANDLE					FileHandle;
 	DWORD					BytesWritten;
 	IMAGE_NT_HEADERS32		PEHeader;
 	IMAGE_DOS_HEADER		DOSHeader;
@@ -605,12 +608,12 @@ GekkoF GekkoCPURecompiler::DumpMemoryDLL()
 
 	//This function will take the memory block and dump it into a dll format
 	//The purpose of this is for loading with something like Intel VTune to allow disassembly
-	FileHandle = CreateFile("gekko memory dump.dll", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+	/*FileHandle = CreateFile("gekko memory dump.dll", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if(FileHandle == INVALID_HANDLE_VALUE)
 	{
 		printf("Unable to create memory layout file!\n");
 		return;
-	}
+	}*/ return; //removeme when fixed
 
 	memset(&DOSHeader, 0, sizeof(DOSHeader));
 	memset(&PEHeader, 0, sizeof(PEHeader));
@@ -651,13 +654,14 @@ GekkoF GekkoCPURecompiler::DumpMemoryDLL()
 	SectionHeader.Misc.VirtualSize = RECOMPILEMEM_SIZE;
 	SectionHeader.Characteristics = IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_EXECUTE;
 
-	WriteFile(FileHandle, &DOSHeader, sizeof(DOSHeader), &BytesWritten, 0);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+	/*WriteFile(FileHandle, &DOSHeader, sizeof(DOSHeader), &BytesWritten, 0);
 	WriteFile(FileHandle, &PEHeader.Signature, 4, &BytesWritten, 0);
 	WriteFile(FileHandle, &PEHeader.FileHeader, IMAGE_SIZEOF_FILE_HEADER, &BytesWritten, 0);
 	WriteFile(FileHandle, &PEHeader.OptionalHeader, sizeof(PEHeader.OptionalHeader), &BytesWritten, 0);
 	WriteFile(FileHandle, &SectionHeader, sizeof(SectionHeader), &BytesWritten, 0);
 	SetFilePointer(FileHandle, 0x1000, 0, 0);
 	WriteFile(FileHandle, StartMem, RECOMPILEMEM_SIZE, &BytesWritten, 0);
-	CloseHandle(FileHandle);
+	CloseHandle(FileHandle);*/
 	printf("Dumped dynarec memory to dll binary\n");
 }

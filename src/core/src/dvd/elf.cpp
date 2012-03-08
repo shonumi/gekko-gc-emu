@@ -273,7 +273,7 @@ bool ELF_LoadSection(FILE* f, u32 srcaddr, u32 dstaddr, u32 len)
 
     return true;
 }
-#ifdef WIN32
+#if EMU_PLATFORM == PLATFORM_WINDOWS
 u32 ELF_CountFilesWindows(char *CurPath, u32 *FileIndex, u32 *FileNameIndex)
 {
     WIN32_FIND_DATA	FileData;
@@ -444,11 +444,8 @@ u32 ELF_CreateFileStructure(char *ELFFileName)
     FileCount = 0;
     FileNameLen = 0;
 
-#ifdef WIN32
+#if EMU_PLATFORM == PLATFORM_WINDOWS
     TotalFileSize = ELF_CountFilesWindows(FilePath, &FileCount, &FileNameLen);
-#else
-#pragma error("ELF_CreateFileStructure not modified for this OS!");
-#endif
 
     //verify our total file size is less than 1.39gb (leaving room for headers/etc on a dvd image)
     if(TotalFileSize > (1024*1024*1024*1.39))
@@ -461,6 +458,9 @@ u32 ELF_CreateFileStructure(char *ELFFileName)
         //set the start position of data at 10mb
         TotalFileSize = 10*1024*1024;
     }
+#else
+    TotalFileSize = 10*1024*1024;
+#endif
 
     //setup our memory positions for the data, need to count a root entry
     DataSize = (sizeof(GCMFST) * (FileCount+1));

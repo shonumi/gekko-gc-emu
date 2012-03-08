@@ -6,7 +6,7 @@
 #include "hle/hle.h"
 #include "hle/hle_func.h"
 
-uintptr_t AppLoaderPrint() {
+void AppLoaderPrint() {
 	u32	    i;
 	char	msg[1000];
 
@@ -17,7 +17,6 @@ uintptr_t AppLoaderPrint() {
         }
 	}
 	LOG_NOTICE(TBOOT, msg, ireg_GPR(4), ireg_GPR(5), ireg_GPR(6));
-    return 0;
 }
 
 bool Boot_AppLoader(u32 *AppHeader)

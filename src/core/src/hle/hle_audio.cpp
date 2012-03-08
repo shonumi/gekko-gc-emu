@@ -289,7 +289,7 @@ DWORD WINAPI PlayAFCStream( LPVOID lpParam ) {
 	return 0;*/
 }
 
-HANDLE stream;
+//HANDLE stream;
 
 u32 streamfilehandle = 0;
 

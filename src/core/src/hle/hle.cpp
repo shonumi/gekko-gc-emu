@@ -636,8 +636,9 @@ void HLE_FindFuncsAndGenerateCRCs()
         }
     }
 
-    HANDLE	fHandle = CreateFile("e:\\gekko\\memcrc-mismatch.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-    HANDLE	fHandle2 = CreateFile("e:\\gekko\\memcrc-found.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+    //HANDLE	fHandle = CreateFile("e:\\gekko\\memcrc-mismatch.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    //HANDLE	fHandle2 = CreateFile("e:\\gekko\\memcrc-found.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
     char	fData[1024];
     DWORD	dataOut;
     long	TotalFound, FoundMatch, MismatchFound, FoundNoMap;
@@ -659,12 +660,14 @@ void HLE_FindFuncsAndGenerateCRCs()
         {
             MismatchFound++;
             sprintf(fData, "0x%08X:\t%s\t0x%08X/0x%08X\t0x%08X\n", rFunction.address, rFunction.funcName.c_str(), rFunction.funcSize, rFunction.DetectedSize, rFunction.CRC);
-            WriteFile(fHandle, fData, strlen(fData), &dataOut, 0);
+            // TODO(ShizZy): Make cross platform 2012-03-07
+            //WriteFile(fHandle, fData, strlen(fData), &dataOut, 0);
         }
         else
         {
             sprintf(fData, "%s\t%08X\t%08X\n", rFunction.funcName.c_str(), rFunction.DetectedSize, rFunction.CRC);
-            WriteFile(fHandle2, fData, strlen(fData), &dataOut, 0);
+            // TODO(ShizZy): Make cross platform 2012-03-07
+            //WriteFile(fHandle2, fData, strlen(fData), &dataOut, 0);
             FoundMatch++;
         }
 
@@ -672,8 +675,9 @@ void HLE_FindFuncsAndGenerateCRCs()
         itr++;
     }
 
-    CloseHandle(fHandle);
-    CloseHandle(fHandle2);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+    //CloseHandle(fHandle);
+    //CloseHandle(fHandle2);
     LOG_NOTICE(THLE, "HLE CRC Stats:");
     LOG_NOTICE(THLE, "\t%d total found", TotalFound);
     LOG_NOTICE(THLE, "\t%d found with map", TotalFound - FoundNoMap);

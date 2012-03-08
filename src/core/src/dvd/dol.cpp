@@ -100,7 +100,6 @@ DEFRealDVDOpen(DOLDVDOpen)
 
 DEFRealDVDGetFileSize(DOLDVDGetFileSize)
 {
-    //return GetFileSize((HANDLE)FilePtr, NULL);
     u32		LastPos;
     u32		FileSize;
     LastPos = ftell((FILE *)FilePtr);

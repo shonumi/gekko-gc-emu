@@ -487,6 +487,8 @@ void ParseFSTTree(GCMFileData *FSTEntry, GCMFileData *RootFSTEntry, GCMFST **Cur
         FSTEntry->FileSize = (*CurEntry)->FileSize;
 }
 
+/*
+TODO(ShizZy): Make cross platform 2012-03-07
 void DumpFSTEntry(HANDLE DumpHand, GCMFileData *Entry, u32 FileCount, u32 Level)
 {
     u32		i;
@@ -522,6 +524,7 @@ void DumpFST(char *filename, GCMFileData *Entry)
     DumpFSTEntry(DumpHand, Entry->FileList, Entry->FileCount, 0);
     CloseHandle(DumpHand);
 }
+*/
 
 u32 AdjustFSTCounts(GCMFST *CurGCMFSTData, u32 *CurIndex, u32 LastIndex)
 {
@@ -911,7 +914,9 @@ int LoadGCM(char *filename)
     return E_OK;
 }
 
-int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer /* 0x1960 bytes */, void *Header /* 0x440 bytes */)
+/* 
+TODO(ShizZy): Make cross platform 2012-03-07
+int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header)
 {
     GCMFSTHeader	FSTInfo;
     DWORD			BytesRead;
@@ -1015,5 +1020,6 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer /* 0
     }
     return E_OK;
 }
+*/
 
 } // namespace

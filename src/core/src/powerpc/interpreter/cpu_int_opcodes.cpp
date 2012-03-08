@@ -167,7 +167,7 @@ GekkoIntOp(DUMP_OPS)
 	u32 Rs;
 	u32 CurOpBegin, CurOpEnd;
 	u32 i;
-	HANDLE FileHandle;
+	//HANDLE FileHandle;
 	DWORD	WriteBytes;
 	char OutData[256];
 	pause = true;
@@ -178,7 +178,8 @@ GekkoIntOp(DUMP_OPS)
 	printf("WARNING: CPU Interpreter: Tripped Opcode 0\n");
 	printf("CPU Paused. Last %dk ops being dumped to %s\n", CPU_OPSTORE_COUNT / 1000, dumpfilename);
 
-	FileHandle = CreateFile(dumpfilename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+	/*FileHandle = CreateFile(dumpfilename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if(FileHandle == INVALID_HANDLE_VALUE)
 	{
 		printf("Error writing to %s\n", dumpfilename);
@@ -188,7 +189,7 @@ GekkoIntOp(DUMP_OPS)
 
     WriteFile(FileHandle, dvd::g_current_game_name, strlen(dvd::g_current_game_name), &WriteBytes, 0);
 	WriteFile(FileHandle, "\r\n", 2, &WriteBytes, 0);
-
+    */return; //removeme when fixed
 	for(Rs = 0; Rs < (CPU_OPSTORE_COUNT * 64); Rs++)
 	{
 //		GekkoCPUInterpreter::LastOldStack[Rs] = BSWAP32(GekkoCPUInterpreter::LastOldStack[Rs]);
@@ -204,7 +205,8 @@ GekkoIntOp(DUMP_OPS)
 		{
 			DisassembleGekko(opcodeStr, operandStr, LastOps[CurOp], LastOpsPC[CurOp], &target);
 			sprintf(OutData, "0x%08X %08X %s %s  LR: %08X  SRR0: %08X\r\n", LastOpsPC[CurOp], LastOps[CurOp], opcodeStr, operandStr, LastNewLR[CurOp], LastNewSRR0[CurOp]);
-			WriteFile(FileHandle, OutData, strlen(OutData), &WriteBytes, 0);
+			// TODO(ShizZy): Make cross platform 2012-03-07
+            //WriteFile(FileHandle, OutData, strlen(OutData), &WriteBytes, 0);
 			for(Rs = 0; Rs < 32; Rs+=4)
 			{
 				sprintf(OutData, "  R%02d: %08X  R%02d: %08X  R%02d: %08X  R%02d: %08X\r\n", \
@@ -212,9 +214,11 @@ GekkoIntOp(DUMP_OPS)
 					Rs+1, LastNewR[(CurOp * 32) + Rs + 1], \
 					Rs+2, LastNewR[(CurOp * 32) + Rs + 2], \
 					Rs+3, LastNewR[(CurOp * 32) + Rs + 3]);
-				WriteFile(FileHandle, OutData, strlen(OutData), &WriteBytes, 0);
+				// TODO(ShizZy): Make cross platform 2012-03-07
+                //WriteFile(FileHandle, OutData, strlen(OutData), &WriteBytes, 0);
 			}
-			WriteFile(FileHandle, "\r\n", 2, &WriteBytes, 0);
+            // TODO(ShizZy): Make cross platform 2012-03-07
+			//WriteFile(FileHandle, "\r\n", 2, &WriteBytes, 0);
 			for(Rs = 0; Rs < 64; Rs += 8)
 			{
 				sprintf(OutData, "  %08X %08X %08X %08X %08X %08X %08X %08X\r\n", \
@@ -226,15 +230,18 @@ GekkoIntOp(DUMP_OPS)
 					LastNewStack[(CurOp * 64) + Rs + 5], \
 					LastNewStack[(CurOp * 64) + Rs + 6], \
 					LastNewStack[(CurOp * 64) + Rs + 7]);
-				WriteFile(FileHandle, OutData, strlen(OutData), &WriteBytes, 0);
+				// TODO(ShizZy): Make cross platform 2012-03-07
+                //WriteFile(FileHandle, OutData, strlen(OutData), &WriteBytes, 0);
 			}
-			WriteFile(FileHandle, "\r\n", 2, &WriteBytes, 0);
+            // TODO(ShizZy): Make cross platform 2012-03-07
+			//WriteFile(FileHandle, "\r\n", 2, &WriteBytes, 0);
 		}
 
 		CurOpBegin = 0;
 		CurOpEnd = LastOpEntry;
 	}
-	CloseHandle(FileHandle);
+    // TODO(ShizZy): Make cross platform 2012-03-07
+	//CloseHandle(FileHandle);
 	printf("Finished opcode 0 dump to %s\n", dumpfilename);
 }
 

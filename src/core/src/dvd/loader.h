@@ -72,8 +72,8 @@ int LoadGCM(char *filename);
  * \param BannerBuffer Pointer to GCM banner (reference)
  * \todo This should eventually be in its own GCM utilities library
  */
-int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, /* 0x1960 bytes */
-    void *Header /* 0x440 bytes */);
+// TODO(ShizZy): Make cross platform 2012-03-07
+// int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header);
 
 extern char g_current_game_name[992];   ///< Currently loaded game name
 extern char g_current_game_crc[7];      ///< Currently loaded game checksum
