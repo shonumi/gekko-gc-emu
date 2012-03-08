@@ -6,11 +6,11 @@
 
     <!-- General system setting-->
     <General>
-        <EnableMultiCore>true</EnableMultiCore>
-        <EnableIdleSkipping>true</EnableIdleSkipping>
+        <EnableMultiCore>false</EnableMultiCore> <!-- Not implemented -->
+        <EnableIdleSkipping>false</EnableIdleSkipping> <!-- Not implemented -->
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
-        <EnableCheats>false</EnableCheats>
+        <EnableCheats>false</EnableCheats> <!-- Not implemented -->
         <DefaultBootFile/>
         <DVDImagePaths/>
     </General>
@@ -25,7 +25,7 @@
 
     <!-- Settings applicable to boot -->
     <Boot>
-        <EnableIPL>false</EnableIPL>
+        <EnableIPL>false</EnableIPL> <!-- Not implemented -->
         <Patches/>
         <Cheats/>
     </Boot>
@@ -39,24 +39,24 @@
     <!-- Settings applicable to the video core -->
     <Video renderer="opengl_2_0">
 
-        <EnableFullscreen>true</EnableFullscreen>
-        <WindowResolution>1024_768</WindowResolution>
-        <FullscreenResolution>1440_900</FullscreenResolution>
+        <EnableFullscreen>true</EnableFullscreen> <!-- Not implemented -->
+        <WindowResolution>1024_768</WindowResolution> <!-- Not implemented -->
+        <FullscreenResolution>1440_900</FullscreenResolution> <!-- Not implemented -->
 
         <!-- OpenGL 2.0 renderer -->
         <Renderer name="opengl_2_0">
-            <EnableWireframe>false</EnableWireframe>
-            <EnableShaders>true</EnableShaders>
-            <EnableTextures>false</EnableTextures>
-            <EnableTextureDumping>false</EnableTextureDumping>
-            <EnableForceAlpha>false</EnableForceAlpha>
-            <AntiAliasingMode>0</AntiAliasingMode>
-            <AnistropicFilteringMode>0</AnistropicFilteringMode>
+            <EnableWireframe>false</EnableWireframe> <!-- Not implemented -->
+            <EnableShaders>true</EnableShaders> <!-- Not implemented -->
+            <EnableTextures>false</EnableTextures> <!-- Not implemented -->
+            <EnableTextureDumping>false</EnableTextureDumping> <!-- Not implemented -->
+            <EnableForceAlpha>false</EnableForceAlpha> <!-- Not implemented -->
+            <AntiAliasingMode>0</AntiAliasingMode> <!-- Not implemented -->
+            <AnistropicFilteringMode>0</AnistropicFilteringMode> <!-- Not implemented -->
         </Renderer>
 
         <!-- OpenGL 3.2 renderer -->
-        <Renderer name="opengl_3_3">
-            <EnableWireframe>false</EnableWireframe>
+        <Renderer name="opengl_3_3"> <!-- Not implemented -->
+            <EnableWireframe>false</EnableWireframe> <!-- Not implemented -->
         </Renderer>
     </Video>
 
@@ -64,7 +64,7 @@
     <Devices>
         <GameCube>
             <!-- Standard memory card example -->
-            <MemSlot slot="a" device="memcard" enable="false"/>
+            <MemSlot slot="a" device="memcard" enable="false"/> <!-- Not implemented -->
 
             <!-- Standard controller example -->
             <ControllerPort port="0" device="controller" enable="true">
@@ -87,13 +87,13 @@
                     <!-- Default: Enter -->
                     <StartKey>13</StartKey>
                     <!-- Default: Up Arrow -->
-                    <AnalogUpKey>1073741906</AnalogUpKey>
+                    <AnalogUpKey>273</AnalogUpKey>
                     <!-- Default: Down Arrow -->
-                    <AnalogDownKey>1073741905</AnalogDownKey>
+                    <AnalogDownKey>274</AnalogDownKey>
                     <!-- Default: Left Arrow -->
-                    <AnalogLeftKey>1073741904</AnalogLeftKey>
+                    <AnalogLeftKey>276</AnalogLeftKey>
                     <!-- Default: Right Arrow -->
-                    <AnalogRightKey>1073741903</AnalogRightKey>
+                    <AnalogRightKey>275</AnalogRightKey>
                     <!-- Default: "I" key -->
                     <CUpKey>105</CUpKey>
                     <!-- Default: "K" key -->

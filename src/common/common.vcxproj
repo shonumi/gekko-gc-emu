@@ -77,7 +77,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <CallingConvention>FastCall</CallingConvention>
-      <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl-1.2.15\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -103,7 +103,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
-      <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl-1.2.15\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -131,7 +131,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
-      <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl-1.2.15\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>

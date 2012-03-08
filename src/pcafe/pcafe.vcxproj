@@ -56,13 +56,13 @@
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>gekko-$(ProjectName)_d</TargetName>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl\win32;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl\win32;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
     <TargetName>gekko-$(ProjectName)</TargetName>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
@@ -70,7 +70,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl\win32;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
     <TargetName>gekko-$(ProjectName)_df</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -80,7 +80,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <CallingConvention>FastCall</CallingConvention>
@@ -88,7 +88,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl2.lib;common.lib;input_common.lib;core.lib;imm32.lib;MSVCRT.lib;libcpmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;MSVCRT.lib;libcpmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib;MSVCRTD.lib;libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -101,7 +101,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -118,7 +118,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl2.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>
@@ -144,7 +144,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -161,7 +161,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl2.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>

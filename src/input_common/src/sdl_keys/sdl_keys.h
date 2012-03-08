@@ -46,7 +46,7 @@ private:
      * \param key SDL key pressed or released
      * \param state GCController::GCButtonState we're setting
      */
-    void SDLKeys::SetControllerStatus(int channel, SDL_Keycode key, GCController::GCButtonState state);
+    void SDLKeys::SetControllerStatus(int channel, u16 key, GCController::GCButtonState state);
 
     DISALLOW_COPY_AND_ASSIGN(SDLKeys);
 };

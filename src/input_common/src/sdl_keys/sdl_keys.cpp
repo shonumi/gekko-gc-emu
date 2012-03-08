@@ -22,7 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#include <SDL_keycode.h>
+#include <SDL.h>
 
 #include "common.h"
 #include "config.h"
@@ -34,7 +34,7 @@
 namespace input_common {
 
 /// Sets the controller status from the keyboard using SDL
-void SDLKeys::SetControllerStatus(int channel, SDL_Keycode key,
+void SDLKeys::SetControllerStatus(int channel, u16 key,
         GCController::GCButtonState state) {
     // Buttons
     if (key == common::g_config->controller_ports(channel).keys.start_key_code) {
