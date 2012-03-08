@@ -37,6 +37,7 @@ struct opengl
 
 extern opengl gl;
 
+void OPENGL_SetTitle(char*);
 void OPENGL_DrawFramebuffer();
 void OPENGL_Initialize();
 void OPENGL_Kill();

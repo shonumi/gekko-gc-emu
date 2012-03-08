@@ -23,6 +23,13 @@ SDL_Window *mainwindow;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+char g_window_title[256];
+
+// Set the window title
+void OPENGL_SetTitle(char* title) {
+    sprintf_s(g_window_title, 256, "%s", title); 
+}
+
 void OPENGL_DrawFramebuffer()
 {
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 640,480, GL_RGBA, GL_UNSIGNED_BYTE, vi.fb_data);
@@ -182,8 +189,8 @@ void OPENGL_SetTitle()
         } else {
             sprintf(str2, "int");
 		}
-		sprintf(str1, "gekko %s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
-            GEKKO_VERSION, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
+		sprintf(str1, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
+            g_window_title, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
 #ifdef USE_SDL2
         SDL_SetWindowTitle(mainwindow, str1);
 #else
@@ -261,7 +268,7 @@ void OPENGL_Create()
         fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
         exit(1);
     }
-    SDL_WM_SetCaption("gekko", NULL);
+    SDL_WM_SetCaption(g_window_title, NULL);
 
 #endif
 

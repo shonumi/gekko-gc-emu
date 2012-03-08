@@ -64,7 +64,8 @@
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
     <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
     <TargetName>gekko-$(ProjectName)</TargetName>
-    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -91,6 +92,15 @@
       <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;MSVCRT.lib;libcpmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib;MSVCRTD.lib;libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
+    <CustomBuildStep>
+      <Outputs>
+      </Outputs>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir)\$(ProjectDir)\src\version.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -126,14 +136,20 @@
       <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
-      <Command>python $(SolutionDir)\scripts\update_version_h.py</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Updating version.h header...</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>.</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
     <ClCompile>
@@ -168,6 +184,15 @@
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
+    <CustomBuildStep>
+      <Outputs>
+      </Outputs>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir)\$(ProjectDir)\src\version.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">
@@ -186,6 +211,7 @@
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\pcafe.h" />
+    <ClInclude Include="src\version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\icon3_48x48.ico" />

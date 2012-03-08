@@ -31,6 +31,7 @@
 #include "dvd/loader.h"
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
+#include "video/opengl.h"
 
 #include "pcafe.h"
 
@@ -56,6 +57,8 @@ int __cdecl main(int argc, char **argv)
 			break;
 		}
 	}
+
+    OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
     common::ConfigManager config_manager;
     config_manager.set_program_dir(program_dir, MAX_PATH);
     config_manager.ReloadConfig(NULL);
