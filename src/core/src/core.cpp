@@ -92,12 +92,13 @@ int Init() {
         delete cpu;
         cpu = new GekkoCPUInterpreter();
     } else {
-        // TODO(ShizZy): FIXME this causes a crash... Why?
 #ifndef EMU_IGNORE_RECOMPILER
         delete cpu;
         cpu = new GekkoCPURecompiler();
-#endif
+#else
         LOG_ERROR(TCORE, "Recompiler removed from this build - Please switch your configuration to the interpreter!\n");
+        return E_ERR;
+#endif
     }
 	SetState(SYS_IDLE);
     g_started = false;
