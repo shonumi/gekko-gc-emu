@@ -92,6 +92,10 @@ int Init() {
         delete cpu;
         cpu = new GekkoCPUInterpreter();
     } else {
+#if (EMU_ARCHITECTURE != ARCHITECTURE_86)
+        LOG_ERROR(TCORE, "Recompiler only x86 - Please switch your configuration to the interpreter!\n");
+        return E_ERR;
+#else
 #ifndef EMU_IGNORE_RECOMPILER
         delete cpu;
         cpu = new GekkoCPURecompiler();
@@ -99,6 +103,7 @@ int Init() {
         LOG_ERROR(TCORE, "Recompiler removed from this build - Please switch your configuration to the interpreter!\n");
         return E_ERR;
 #endif
+#endif // EMU_ARCHITECTURE == ARCHITECTURE_X64
     }
 	SetState(SYS_IDLE);
     g_started = false;

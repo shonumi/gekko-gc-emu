@@ -7,6 +7,7 @@
 #include "powerpc/disassembler/ppc_disasm.h"
 #include "powerpc/cpu_core_regs.h"
 #include "hw/hw_cp.h"
+#include "hle/hle.h"
 
 #include "emu_dbg.h"
 
@@ -187,9 +188,8 @@ GekkoRecIntOp(HLE)
 {
 	u32	x;
 
-	typedef void(*EXECUTEFUNCTIONHLE)(void);
-	EXECUTEFUNCTIONHLE ExecuteFunctionHLE;
-	ExecuteFunctionHLE = (EXECUTEFUNCTIONHLE)HLE_PC;
+	HLEFuncPtr ExecuteFunctionHLE;
+    ExecuteFunctionHLE = g_hle_func_table[HLE_PC & (MAX_HLE_FUNCTIONS-1)];
 
 	for(x = 0; x < 32; x++)
 		ireg.CR = (ireg.CR << 1) | CR[x];

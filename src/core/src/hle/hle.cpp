@@ -53,17 +53,17 @@ u32 hle_op_mask[] =
 typedef struct _HLEPatchFuncType
 {
     char *FuncName;
-    u32	 FuncPtr;
+    uintptr_t	 FuncPtr;
 } HLEPatchFuncType;
 
 HLEPatchFuncType	HLEPatchFuncs[] =
 {
-    {"ignore", (u32)HLE_PTR(ignore)},
-    {"ignore_return_true", (u32)HLE_PTR(ignore_return_true)},
-    {"ignore_return_false", (u32)HLE_PTR(ignore_return_false)},
-    {"osreport", (u32)HLE_PTR(OSReport)},
-    {"dbprintf", (u32)HLE_PTR(DBPrintf)},
-    {"ospanic", (u32)HLE_PTR(OSPanic)},
+    {"ignore", (uintptr_t)HLE_PTR(ignore)},
+    {"ignore_return_true", (uintptr_t)HLE_PTR(ignore_return_true)},
+    {"ignore_return_false", (uintptr_t)HLE_PTR(ignore_return_false)},
+    {"osreport", (uintptr_t)HLE_PTR(OSReport)},
+    {"dbprintf", (uintptr_t)HLE_PTR(DBPrintf)},
+    {"ospanic", (uintptr_t)HLE_PTR(OSPanic)},
     {0, 0}
 };
 
@@ -109,13 +109,17 @@ void HLE_ExecuteLowLevel(void)				// hack ~ShizZy
     //	cpu->pPC = (u32*)&RAM[ireg.PC & RAM_MASK];
 }
 
-void HLE_PatchFunction(u32 addr, u32 functionPTR)
+void HLE_PatchFunction(u32 addr, uintptr_t functionPTR)
 {
     if(functionPTR)
     {
         Memory_Write32(addr,(3<<26));
         Memory_Write32(addr+4,0x4E800020);
-        Memory_Write32(addr+8,functionPTR);
+
+        g_hle_func_table[g_hle_count] = (HLEFuncPtr)functionPTR;
+        Memory_Write32(addr+8, g_hle_count++);
+
+        LOG_NOTICE(THLE, "Patching function with address %08x", functionPTR);
     }
 }
 

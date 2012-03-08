@@ -34,6 +34,7 @@ static inline int IsSSE2Supported() {
     u32	sse2_res;
 	u32	res;
 
+#ifdef USE_INLINE_ASM
     _asm {
         //lets see if we can execute CPUID by seeing if we can flip the 21st bit
         //of the flags register
@@ -83,6 +84,9 @@ static inline int IsSSE2Supported() {
         return E_ERR;
     }
     return E_OK;
+#else
+    return E_ERR;
+#endif
 }
 
 }

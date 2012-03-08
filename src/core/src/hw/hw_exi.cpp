@@ -345,7 +345,7 @@ void EXI_Update(void)
 		MemCard_Update();
 */
 
-#ifndef USE_INLINE_ASM
+#ifndef USE_INLINE_ASM_X86
 	//generate the final mask
 	exi.FinalINTMask = (exi.csrINTMask[0] & exi.csr[0]) |
 						(exi.csrINTMask[1] & exi.csr[1]) |

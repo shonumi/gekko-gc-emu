@@ -6,6 +6,8 @@
 #include "hle/hle.h"
 #include "hle/hle_func.h"
 
+
+
 void AppLoaderPrint() {
 	u32	    i;
 	char	msg[1000];
@@ -19,6 +21,17 @@ void AppLoaderPrint() {
 	LOG_NOTICE(TBOOT, msg, ireg_GPR(4), ireg_GPR(5), ireg_GPR(6));
 }
 
+/* TODO(ShizZy): This is hacky shit to get portability.... Move to HLE and clean up! 2012-03-08*/
+#define HLE_VALIDATEREGLAYOUT_ADDR    0x00000001
+#define HLE_APPLOADERPRINT_ADDR       0x00000002
+HLEFuncPtr g_hle_func_table[MAX_HLE_FUNCTIONS] = {
+    NULL,
+    ValidateRegLayout,  // 0x0001
+    AppLoaderPrint,     // 0x0002
+};
+u16 g_hle_count = 3;
+/* End this shit*** */
+
 bool Boot_AppLoader(u32 *AppHeader)
 {
 	u32		i;
@@ -27,14 +40,14 @@ bool Boot_AppLoader(u32 *AppHeader)
 	{
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)ValidateRegLayout,	//Ptr for validate register layout
+		HLE_VALIDATEREGLAYOUT_ADDR, //Ptr for validate register layout
 		0x3E208131,			//addis r17, 0, 0x8131
 		0x3A310000,			//addi r17, r17, 0x0000 - filled in
 		0x388D0000,			//addi r4, r13, 0
 		0x38710000,			//addi r3, r17, 0		//boot string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8, Skip the ptr value (hle calls are 3 ops)
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x3C608130,			//addis r3, 0, 0x8130		//start loop
 		0x38630004,			//addi r3, r3, 4
 		0x38830004,			//addi r4, r3, 4
@@ -46,7 +59,7 @@ bool Boot_AppLoader(u32 *AppHeader)
 		0x38710021,			//addi r3, r17, 0x21		//complete string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x3C608130,			//addis r3, 0, 0x8130
 		0x3C804E80,			//addis r4, 0, 0x4E80
 		0x38840020,			//addi r4, r4, 0x0020
@@ -57,7 +70,7 @@ bool Boot_AppLoader(u32 *AppHeader)
 		0x38710000,			//addi r3, r17, 0		//boot string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x3C608130,			//addis r3, 0, 0x8130
 		0x7C8903A6,			//mtspr 9, r4
 		0x4E800421,			//bcctr 20, 0
@@ -65,12 +78,12 @@ bool Boot_AppLoader(u32 *AppHeader)
 		0x38710021,			//addi r3, r17, 0x21		//complete string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x388F0000,			//addi r4, r15, 0
 		0x38710000,			//addi r3, r17, 0		//boot string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x3C608130,			//addis r3, 0, 0x8130		//start loop
 		0x38630004,			//addi r3, r3, 4
 		0x38830004,			//addi r4, r3, 4
@@ -99,26 +112,26 @@ bool Boot_AppLoader(u32 *AppHeader)
 		0x3871004F,			//addi r3, r17, 0x4F	//dvd string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x2C120000,			//cmpi cr0, 0, r18, 0
 		0x4082FF88,			//bc 4, 2, -0x78			//loop if r17 != 0
 		0x388F0000,			//addi r4, r15, 0
 		0x38710021,			//addi r3, r17, 0x21		//complete string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x38900000,			//addi r4, r16, 0
 		0x38710000,			//addi r3, r17, 0		//boot string
 		0x0C000000,			//HLE Call
 		0x48000008,			//b 8
-		(DWORD)AppLoaderPrint,	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 		0x7E0903A6,			//mtspr 9, r16
 		0x4E800421,			//bcctr 20, 0
 		0x3A430000,			//addi r18, r3, 0		//copy r3
 		0x3871001F,			//addi r3, r17, 0x1F		//complete string
 		0x0C000000,			//HLE Call
 		0x48000000,			//b 0
-		(DWORD)AppLoaderPrint	//Ptr for Printf
+		HLE_APPLOADERPRINT_ADDR,    //Ptr for Printf
 	};
 
 	char BootMsgs[] = "Booting Apploader function %08X\n\0Completed booting of Apploader function %08X\n\0AppLoader: %d bytes loaded to %08X from dvd offset %08X\n\0";
@@ -140,7 +153,7 @@ bool Boot_AppLoader(u32 *AppHeader)
 	set_ireg_MSR(ireg_MSR() & ~MSR_BIT_EE);
 
 	set_ireg_GPR(13, BSWAP32(AppHeader[4]));
-	for(i=0; i < (sizeof(AppLoaderDump) / 4); i++)
+    for(i=0; i < (sizeof(AppLoaderDump) / 4); i++)
 		Memory_Write32(0x81310000 + (i * 4), AppLoaderDump[i]);
 
 	for(i = 0; i <= sizeof(BootMsgs); i++)
@@ -157,15 +170,10 @@ bool Boot_AppLoader(u32 *AppHeader)
 
 		if(ireg_PC() == (0x81310000 + sizeof(AppLoaderDump) - 8))
 		{
-//			if(cpu->opcode == AppLoaderDump[(sizeof(AppLoaderDump) / 4) - 2])
-			{
-				break;
-			}
+		    break;
 		}
 
 		OldPC = ireg_PC();
-#pragma todo("do we need this WIN_Msg??")		
-		//WIN_Msg();
 	}
 
 	//enable the hardware interrupts
@@ -174,8 +182,6 @@ bool Boot_AppLoader(u32 *AppHeader)
 	//set the PC as to where we are running
 	set_ireg_PC(ireg_GPR(18));
 	set_ireg_GPR(3, ireg_GPR(18));
-//	cpu->pPC = MEMPTR32(ireg_PC());
 
-	LOG_NOTICE(TBOOT, "Apploader initialized at entry point %08X ok",ireg_PC());
 	return true;
 }

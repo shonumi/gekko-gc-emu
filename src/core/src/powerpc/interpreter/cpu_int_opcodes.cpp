@@ -5,6 +5,7 @@
 #include "common.h"
 #include "cpu_int.h"
 #include "hw/hw_cp.h"
+#include "hle/hle.h"
 #include "dvd/realdvd.h"
 #include "dvd/loader.h"
 #include "powerpc/cpu_core_regs.h"
@@ -247,9 +248,12 @@ GekkoIntOp(DUMP_OPS)
 
 GekkoIntOp(HLE)
 {
-	typedef void(*EXECUTEFUNCTIONHLE)(void);
-	EXECUTEFUNCTIONHLE ExecuteFunctionHLE;
-	ExecuteFunctionHLE = (EXECUTEFUNCTIONHLE)Memory_Read32(ireg.PC+8);
+    u32 hle_addr;
+	HLEFuncPtr ExecuteFunctionHLE;
+
+    hle_addr = Memory_Read32(ireg.PC+8);
+
+    ExecuteFunctionHLE = (HLEFuncPtr)g_hle_func_table[hle_addr & (MAX_HLE_FUNCTIONS-1)];
 	ExecuteFunctionHLE();
 }
 

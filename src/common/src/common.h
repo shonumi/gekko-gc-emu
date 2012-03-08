@@ -35,8 +35,12 @@
 #define GEKKO_TODO(x) __FILE__LINE__ x "\n"
 
 #if EMU_PLATFORM == PLATFORM_WINDOWS
-//#  define LEAK_DETECT
-#  define USE_INLINE_ASM
+
+// All inline assembly is x86 right now!
+#  if EMU_ARCHITECTURE == ARCHITECTURE_X86
+#    define USE_INLINE_ASM_X86
+#  endif
+
 #  pragma warning( disable : 4786 )	//disable the truncated 255 character limit warning for debug identifiers
 #  ifdef LEAK_DETECT
 		//#pragma message("leak-hunting enabled")

@@ -72,16 +72,20 @@ void LogGeneric(LogLevel level, LogType type, const char *file, int line, bool a
     
     va_list arg;
     va_start(arg, fmt);
+
+    if (type >= NUMBER_OF_LOGS) {
+        LOG_ERROR(TCOMMON, "Unknown logger type %d", type);
+        return;
+    }
     
     // Format the log message
     if (append) {
         sprintf_s(msg, kMaxMsgLength, "%s", fmt);
     } else {
-        char time_str[16];
-        u32 time_elapsed = common::GetTimeElapsed();
-        common::TicksToFormattedString(time_elapsed, time_str);
-	    sprintf_s(msg, kMaxMsgLength, "%s %c[%s]\t%s", time_str, level_to_char[(int)level],
-            g_logs[type]->name(), fmt);
+        // char time_str[16];
+        // u32 time_elapsed = common::GetTimeElapsed();
+        // common::TicksToFormattedString(time_elapsed, time_str);
+        sprintf_s(msg, kMaxMsgLength, "%c[%s] %s", level_to_char[(int)level], g_logs[type]->name(), fmt);
     }
 
     // If the last message didn't have a line break, print one
@@ -102,7 +106,9 @@ void Crash() {
     LOG_CRASH(TCOMMON, "*** SYSTEM CRASHED ***\n");
     LOG_CRASH(TCOMMON, "Fatal error, system could not recover.\n");
 #ifdef _MSC_VER
+#ifdef USE_INLINE_ASM
     __asm int 3
+#endif
 #elif defined(__GNUC__)
     asm("int $3");
 #else

@@ -64,11 +64,18 @@ typedef struct _OSCallFormat
 extern OSCallFormat oscall[900];
 extern bool DisableHLEPatches;
 
+#define MAX_HLE_FUNCTIONS 0x10000
+
+typedef void(*HLEFuncPtr)(void);
+
+extern HLEFuncPtr g_hle_func_table[MAX_HLE_FUNCTIONS];
+extern u16 g_hle_count;
+
 ////////////////////////////////////////////////////////////
 
 struct Function
 {
-	u32 address;
+	uintptr_t address;
     u32 funcSize;
 	u32 DetectedSize;
 	u32 CRC;

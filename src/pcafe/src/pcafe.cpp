@@ -129,8 +129,7 @@ int __cdecl main(int argc, char **argv)
                 CPULoopDone:
                 };
 #else
-                // Single threaded mode (Currently only mode properly supported).
-                for(int loop = 0; loop < 10000 && !cpu->pause && emu.status == EMU_RUNNING; ++i) {
+                for(tight_loop = 0; tight_loop < 10000; ++tight_loop) {
                     cpu->execStep();
                 }
 #endif

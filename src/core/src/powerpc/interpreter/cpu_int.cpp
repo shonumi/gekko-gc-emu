@@ -228,6 +228,8 @@ GekkoF GekkoCPUInterpreter::Open(u32 entry_point)
 	if(PipeHandle)
 	{
 		//if we are debugging, backup the registers
+
+#ifdef USE_INLINE_ASM_X86
 		if(PipeIsClient)
 		{
 			_asm
@@ -246,6 +248,7 @@ GekkoF GekkoCPUInterpreter::Open(u32 entry_point)
 				jnz CopyMemory
 			};
 		}
+#endif
 	}
 }
 
@@ -309,7 +312,7 @@ GekkoF GekkoCPUInterpreter::Halt(void)
 
 GekkoIntOp(Ops_Group4XO0)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov ecx, edx
@@ -335,7 +338,7 @@ GekkoIntOp(Ops_Group4XO0)
 
 GekkoIntOp(Ops_Group4)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov ecx, edx
@@ -362,7 +365,7 @@ GekkoIntOp(Ops_Group4)
 
 GekkoIntOp(Ops_Group19)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov ecx, edx
@@ -389,7 +392,7 @@ GekkoIntOp(Ops_Group19)
 
 GekkoIntOp(Ops_Group31)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov ecx, edx
@@ -416,7 +419,7 @@ GekkoIntOp(Ops_Group31)
 
 GekkoIntOp(Ops_Group59)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		//edx is the opcode
@@ -444,7 +447,7 @@ GekkoIntOp(Ops_Group59)
 
 GekkoIntOp(Ops_Group63XO0)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov ecx, edx
@@ -471,7 +474,7 @@ GekkoIntOp(Ops_Group63XO0)
 
 GekkoIntOp(Ops_Group63)
 {
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	_asm
 	{
 		mov ecx, edx
@@ -553,7 +556,7 @@ GekkoF GekkoCPUInterpreter::ExecuteInstruction(void)
 //	if(ireg.PC == 0x8025214C)
 //		_asm{int 3};
 
-#if(0) //#ifdef USE_INLINE_ASM
+#if(0) //#ifdef USE_INLINE_ASM_X86
 	//eliminate extra memory hits
 
 	_asm
@@ -720,6 +723,7 @@ SkipFlipperUpdate:
 		LastFinishedOp = ireg.PC;
 
 		//if we are debugging, backup the registers
+#ifdef USE_INLINE_ASM_X86
 		if(PipeIsClient)
 		{
 			_asm
@@ -738,6 +742,7 @@ SkipFlipperUpdate:
 				jnz CopyMemory
 			};
 		}
+#endif
 	}
 }
 
