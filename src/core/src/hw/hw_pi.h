@@ -44,9 +44,9 @@ void __fastcall PI_Fifo_Write8(u32 addr, u32 data);
 void __fastcall PI_Fifo_Write16(u32 addr, u32 data);
 void __fastcall PI_Fifo_Write32(u32 addr, u32 data);
 
-extern inline u32		PI_CheckForInterrupts();
-extern inline void	PI_RequestInterrupt(u32 mask);
-extern inline void	PI_ClearInterrupt(u32 mask);
+u32		PI_CheckForInterrupts();
+void	PI_RequestInterrupt(u32 mask);
+void	PI_ClearInterrupt(unsigned int mask);
 void	PI_Open(void);
 void	PI_Update(void);
 

@@ -41,7 +41,7 @@ void __fastcall PI_Fifo_Write32(u32 addr, u32 data)
     PI_FIFO_WRITE_POINTER+=4;
 }
 
-inline u32 PI_CheckForInterrupts(void)
+u32 PI_CheckForInterrupts(void)
 {
 	// If the status register has the right mask register bit set,
 	// and external interrupts are enabled in MSR,
@@ -54,14 +54,14 @@ inline u32 PI_CheckForInterrupts(void)
 	return 1;
 }
 
-inline void PI_RequestInterrupt(u32 mask)
+void PI_RequestInterrupt(u32 mask)
 {
 	// Turn on an IRQ bit in the status register.
 	REGPI32(PI_INTSR) |= mask;
 	PIInterrupt = REGPI32(PI_INTSR) & REGPI32(PI_INTMR);
 }
 
-inline void PI_ClearInterrupt(u32 mask)
+void PI_ClearInterrupt(unsigned int mask)
 {
 	// Turn off an IRQ bit in the status register
 	REGPI32(PI_INTSR) &= ~mask;
