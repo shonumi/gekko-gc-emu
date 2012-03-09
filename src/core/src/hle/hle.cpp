@@ -355,9 +355,9 @@ void HLE_ScanForPatches()
 
 ////////////////////////////////////////////////////////////
 
-BOOL HLE_Map_LoadFile(char * filename) // Code Warrior Only
+bool HLE_Map_LoadFile(char * filename) // Code Warrior Only
 {
-    BOOL    started = FALSE;
+    bool    started = false;
     char    buf[1024], token1[256];
     FILE    *mapfile;
 
@@ -375,8 +375,8 @@ BOOL HLE_Map_LoadFile(char * filename) // Code Warrior Only
         fgets(buf, 1024, mapfile);
         sscanf(buf, "%s", token1);
 
-        if(!strcmp(buf, ".init section layout\n")) { started = TRUE; continue; }
-        if(!strcmp(buf, ".text section layout\n")) { started = TRUE; continue; }
+        if(!strcmp(buf, ".init section layout\n")) { started = true; continue; }
+        if(!strcmp(buf, ".text section layout\n")) { started = true; continue; }
         if(!strcmp(buf, ".data section layout\n")) break;
 
 #define IFIS(str) if(!strcmp(token1, #str)) continue;
@@ -386,7 +386,7 @@ BOOL HLE_Map_LoadFile(char * filename) // Code Warrior Only
         IFIS(UNUSED);
 
         if(token1[strlen(token1) - 1] == ']') continue;
-        if(started == FALSE) continue;
+        if(started == false) continue;
 
         if(sscanf(buf, "  %08x %08x %08x  %i %s", 
             &moduleOffset, &procSize, &procAddr,
@@ -412,9 +412,9 @@ BOOL HLE_Map_LoadFile(char * filename) // Code Warrior Only
 
 void HLE_Map_OpenFile(void)
 {
-    static OPENFILENAME ofn;
+    OPENFILENAME ofn;
 
-    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize		= sizeof(OPENFILENAME);
     ofn.hwndOwner		= NULL; // wnd.hWnd;
     ofn.lpstrFile		= mf.path;
