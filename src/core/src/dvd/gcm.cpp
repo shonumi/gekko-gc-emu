@@ -22,7 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#include <io.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "realdvd.h"
@@ -207,7 +207,7 @@ DEFRealDVDClose(GCMDVDClose)
         fclose(g_file_handle);
 
         if(DumpGCMBlockReads) {
-            CloseHandle(g_dump_file_handle);
+            fclose(g_dump_file_handle);
         }
 
         ResetRealDVD();
@@ -454,7 +454,7 @@ DEFRealDVDOpen(GCMDVDOpen)
     FilePtrs = GCMFilePtr;
 
     //return the pointer as the file ID
-    return (u32)GCMFilePtr;
+    return (uintptr_t)GCMFilePtr;
 }
 
 void ParseFSTTree(GCMFileData *FSTEntry, GCMFileData *RootFSTEntry, GCMFST **CurEntry, char *Filenames, u32 *Count, GCMFileData *ParentFST)
@@ -568,7 +568,6 @@ int LoadGCM(char *filename)
     char			BannerFilename[] = "OPENING.BNR\0\0";
     u8				BannerCRC = 0x00;
     GCMFileData *	BannerData;
-    char *			dumpfilename;
     char *			FileSlash;
     char			Header[SIZE_OF_GCM_HEADER];
 
@@ -585,7 +584,7 @@ int LoadGCM(char *filename)
     }
 
     if(DumpGCMBlockReads) {
-        dumpfilename = (char *)malloc(1024);
+        char dumpfilename[MAX_PATH];
 
         if(strlen(DumpDirectory)) {
             strcpy(dumpfilename, DumpDirectory);
@@ -600,8 +599,7 @@ int LoadGCM(char *filename)
 
         strcat(dumpfilename, ".dmp");
 
-//       DumpFileHandle = CreateFile(dumpfilename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, NULL);
-        free(dumpfilename);
+        g_dump_file_handle = fopen(dumpfilename, "w+");
     }
 
     //setup the MSR
@@ -615,9 +613,10 @@ int LoadGCM(char *filename)
     //get a copy of the CRC into the header
     memcpy(Header, &Mem_RAM[0], 32);
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, &Mem_RAM[0], 32, &BytesRead, 0);
-//    }
+    }
 
     //swap the memory around
     for(i = 0; i < (32 >> 2); i++) {
@@ -628,9 +627,10 @@ int LoadGCM(char *filename)
     //0x400 - 0x20 = 3E0
     BytesRead = fread(g_current_game_name, 1, 0x3E0, g_file_handle);
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, g_current_game_name, 0x3E0, &BytesRead, 0);
-//    }
+    }
     core::g_config_manager->ReloadGameConfig(Header);
 
     // Print loading message
@@ -672,9 +672,10 @@ int LoadGCM(char *filename)
         return E_ERR;
     }
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, &FSTInfo, sizeof(FSTInfo), &BytesRead, 0);
-//    }
+    }
     //swap the FST info
     FSTInfo.Offset = BSWAP32(FSTInfo.Offset);
     FSTInfo.Size = BSWAP32(FSTInfo.Size);
@@ -700,9 +701,10 @@ int LoadGCM(char *filename)
         return E_ERR;
     }
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, &FileCount, 4, &BytesRead, 0);
-//    }
+    }
 
     //go back. the first entry is empty but tells the number of files
     fseek(g_file_handle, FSTInfo.Offset, SEEK_SET);
@@ -728,9 +730,10 @@ int LoadGCM(char *filename)
         return E_ERR;
     }
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, GCMFSTData, FileCount * sizeof(GCMFST), &BytesRead, 0);
-//    }
+    }
 
     //make a copy of it to memory
     for(i = 0; i < (BytesRead >> 2); i++) {
@@ -760,9 +763,10 @@ int LoadGCM(char *filename)
         return E_ERR;
     }
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, FileNames, TempData, &BytesRead, 0);
-//    }
+    }
 
     //copy the filenames
     x = FSTInfo.MemLocation + (FileCount * sizeof(GCMFST));
@@ -811,9 +815,10 @@ int LoadGCM(char *filename)
     FST->Filename = NULL;
     FST->IsDirectory = 1;
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, &FST->FileSize, sizeof(FST->FileSize), &BytesRead, 0);
-//    }
+    }
 
     //setup the file count
     i = 0;
@@ -861,18 +866,20 @@ int LoadGCM(char *filename)
         if (BannerData->FileSize == sizeof(Banner)) {
             BytesRead = fread(Banner, BannerData->FileSize, 1, g_file_handle);
 
-//            if(DumpGCMBlockReads) {
+            if(DumpGCMBlockReads) {
+// TODO
 //                WriteFile(DumpFileHandle, Banner, BannerData->FileSize, &BytesRead, 0);
-//            }
+            }
 
             BannerCRC = GetBnrChecksum(Banner);
         } else if (BannerData->FileSize > sizeof(Banner) && (BannerData->FileSize - 0x1820) % 0x140 == 0x00) {
             //ReadFile(FileHandle, Banner2, BannerData->FileSize, &BytesRead, 0);
             BytesRead = fread(Banner2, BannerData->FileSize, 1, g_file_handle);
 
-//            if(DumpGCMBlockReads) {
+            if(DumpGCMBlockReads) {
+// TODO
 //                WriteFile(DumpFileHandle, Banner2, BannerData->FileSize, &BytesRead, 0);
-//            }
+            }
 
             BannerCRC = GetBnrChecksum(Banner2);
         }
@@ -887,18 +894,20 @@ int LoadGCM(char *filename)
     fseek(g_file_handle, 0x2440, SEEK_SET);
     BytesRead = fread(AppLoaderHeader, sizeof(AppLoaderHeader), 1, g_file_handle);
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, AppLoaderHeader, sizeof(AppLoaderHeader), &BytesRead, 0);
-//    }
+    }
 
     //load the image
     fseek(g_file_handle, 0x2460, SEEK_SET);
     BytesRead = fread(&Mem_RAM[0x81200000 & RAM_MASK], 1, BSWAP32(AppLoaderHeader[5]), g_file_handle);
 
-//    if(DumpGCMBlockReads) {
+    if(DumpGCMBlockReads) {
+// TODO
 //        WriteFile(DumpFileHandle, &Mem_RAM[0x81200000 & RAM_MASK], BSWAP32(AppLoaderHeader[5]), 
 //            &BytesRead, 0);
-//    }
+    }
 
     //flip the memory around as needed
     for (i = 0; i < ((BytesRead >> 2) + 1); i++) {
