@@ -2,7 +2,6 @@
 #include "dvd/realdvd.h"
 #include "hle_func.h"
 #include "hle_general.h"
-#include <windows.h>
 #include <string>
 #include <cassert>
 #include <vector>
@@ -158,8 +157,10 @@ unsigned short afccoef[16][2] =
 {0xfc00,0},
 {0xf800,0}};
 
-BOOL audioIsDone;
+bool audioIsDone;
 
+// TODO
+#if 0
 DWORD WINAPI PlayAFCStream( LPVOID lpParam ) {
 	short decodebuf[DECODEBUFSIZE];
 	u8 buf[DECODEBUFSIZE/32*18];
@@ -290,6 +291,7 @@ DWORD WINAPI PlayAFCStream( LPVOID lpParam ) {
 }
 
 //HANDLE stream;
+#endif
 
 u32 streamfilehandle = 0;
 
