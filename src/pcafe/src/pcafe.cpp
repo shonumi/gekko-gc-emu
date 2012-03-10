@@ -48,15 +48,10 @@ int __cdecl main(int argc, char **argv)
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
     char program_dir[MAX_PATH];
-    strcpy_s(program_dir, MAX_PATH, argv[0]);
-	for(int i=strlen(program_dir);i>0;i--)
-	{
-		if(program_dir[i - 1]=='\\') 
-		{
-			program_dir[i]='\0';
-			break;
-		}
-	}
+    _getcwd(program_dir, MAX_PATH-1);
+    size_t cwd_len = strlen(program_dir);
+    program_dir[cwd_len] = '/';
+    program_dir[cwd_len+1] = '\0';
 
     OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
     common::ConfigManager config_manager;
