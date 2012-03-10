@@ -106,7 +106,7 @@ void Crash() {
     LOG_CRASH(TCOMMON, "*** SYSTEM CRASHED ***\n");
     LOG_CRASH(TCOMMON, "Fatal error, system could not recover.\n");
 #ifdef _MSC_VER
-#ifdef USE_INLINE_ASM
+#ifdef USE_INLINE_ASM_X86
     __asm int 3
 #endif
 #elif defined(__GNUC__)
