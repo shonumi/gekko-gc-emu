@@ -52,7 +52,7 @@ u32 hle_op_mask[] =
 
 typedef struct _HLEPatchFuncType
 {
-    char *FuncName;
+    char FuncName[64];
     uintptr_t	 FuncPtr;
 } HLEPatchFuncType;
 
@@ -151,7 +151,6 @@ void HLE_DetectFunctions()
     u32			FuncSize;
     u32			FuncCRC;
     u32			FuncPatch;
-    Function	NewFunc;
     u32			FuncsFound;
     u32			TotalFuncs;
     u32			x;
@@ -176,13 +175,14 @@ void HLE_DetectFunctions()
             FuncSize = HLE_DetectFunctionSize(Addr);
             FuncCRC = HLE_GenerateFunctionCRC(Addr, FuncSize);
 
-            memset(&NewFunc, 0, sizeof(NewFunc));
-
             //see if the value exists
-            NewFunc.address = Addr;
-            NewFunc.CRC = FuncCRC;
-            NewFunc.DetectedSize = FuncSize;
-            maps[Addr] = NewFunc;
+            Function& NewFunc = maps[Addr];
+            NewFunc.address = 0;
+            NewFunc.funcSize = 0;
+            NewFunc.DetectedSize = 0;
+            NewFunc.CRC = 0;
+            NewFunc.funcName.clear();
+            NewFunc.fileName.clear();
             funcAddresses.insert(pair<u32, u32>(FuncCRC, Addr));
 
             Addr += FuncSize - 4;
@@ -206,7 +206,7 @@ void HLE_DetectFunctions()
     */
     u32 HLECount = 0;
 
-    while(HLE_CRCs[HLECount].FuncName != 0)
+    while(HLE_CRCs[HLECount].FuncName != NULL)
     {
         memcpy(procName, HLE_CRCs[HLECount].FuncName, strlen(HLE_CRCs[HLECount].FuncName) + 1);
         procSize = HLE_CRCs[HLECount].FuncSize;
@@ -252,7 +252,7 @@ void HLE_DetectFunctions()
     */
 
     HLECount = 0;
-    while(HLE_CRCPatch[HLECount].FuncName != 0)
+    while(HLE_CRCPatch[HLECount].FuncName != NULL)
     {
         memcpy(procName, HLE_CRCPatch[HLECount].FuncName, strlen(HLE_CRCPatch[HLECount].FuncName) + 1);
         procSize = HLE_CRCPatch[HLECount].FuncSize;
@@ -412,6 +412,7 @@ bool HLE_Map_LoadFile(char * filename) // Code Warrior Only
 
 void HLE_Map_OpenFile(void)
 {
+#if 0
     OPENFILENAME ofn;
 
     memset(&ofn, 0, sizeof(ofn));
@@ -430,6 +431,7 @@ void HLE_Map_OpenFile(void)
         HLE_Map_LoadFile(mf.path);
 
     HLE_FindFuncsAndGenerateCRCs();
+#endif
 }
 
 void HLE_MapSetDebugSymbol(u32 add, std::string name)

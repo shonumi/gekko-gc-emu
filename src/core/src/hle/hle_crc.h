@@ -3,7 +3,7 @@
 
 struct HLEData
 {
-	char *	FuncName;
+	const char* 	FuncName;
 	u32		FuncSize;
 	u32		FuncHash;
 };
@@ -755,15 +755,15 @@ HLEData HLE_CRCs[] =
 {"DBInitInterrupts",0x00000054,0xE35C8320},
 {"DBInitComm",0x00000078,0x6D77FFD3},
 {"Hu_IsStub",0x00000008,0x0D03BE43},
-{0,0,0}
+{NULL,0,0}
 };
 
 struct HLEPatchData
 {
-	char *	FuncName;
+	const char *	FuncName;
 	u32		FuncSize;
 	u32		FuncHash;
-	char *	PatchFuncName;
+	char 	PatchFuncName[128];
 };
 
 HLEPatchData HLE_CRCPatch[] =
@@ -779,5 +779,5 @@ HLEPatchData HLE_CRCPatch[] =
 {"OSReport",0x00000080,0x4F6A6158,""},
 {"OSPanic",0x00000138,0xAD2C6116,""},
 {"DBPrintf",0x00000050,0xB59B4703,""},
-{0,0,0}
+{NULL,0,0}
 };
