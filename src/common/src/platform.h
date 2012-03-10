@@ -98,6 +98,8 @@ extern char *kGekkoOS;
 #define stricmp(str1, str2) strcasecmp(str1, str2)
 #define _stricmp(str1, str2) strcasecmp(str1, str2)
 #define _snprintf snprintf
+#define _getcwd getcwd
+#define _tzset tzset
 
 // TODO: EXCEPTION_POINTERS wasn't defined anywhere...
 typedef void EXCEPTION_POINTERS;
