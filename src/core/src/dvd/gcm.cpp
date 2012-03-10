@@ -531,8 +531,6 @@ u32 AdjustFSTCounts(GCMFST *CurGCMFSTData, u32 *CurIndex, u32 LastIndex)
     u32	TotalCount = 0;
     u32	OldIndex;
 
-    LOG_NOTICE(TDVD, "AdjustFSTCounts");
-
     //adjust all the counts of the directories to allow easier processing
     for(; *CurIndex < LastIndex;)
     {
