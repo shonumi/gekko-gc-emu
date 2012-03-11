@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="debugger">
+      <UniqueIdentifier>{1b8f77c1-61e8-4a9f-95f8-8d1c53015ad8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\disasm.cpp">
+      <Filter>debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gekko_regs.cpp">
+      <Filter>debugger</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MOC Include="src\main.hxx" />
+    <MOC Include="src\disasm.hxx">
+      <Filter>debugger</Filter>
+    </MOC>
+    <MOC Include="src\gekko_regs.hxx">
+      <Filter>debugger</Filter>
+    </MOC>
+  </ItemGroup>
+  <ItemGroup>
+    <UIC Include="src\main.ui" />
+    <UIC Include="src\gekko_regs.ui">
+      <Filter>debugger</Filter>
+    </UIC>
+    <UIC Include="src\disasm.ui">
+      <Filter>debugger</Filter>
+    </UIC>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\version.h" />
+  </ItemGroup>
+</Project>

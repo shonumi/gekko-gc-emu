@@ -146,7 +146,7 @@
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>gekko-$(ProjectName)_d</TargetName>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;F:\gekko-trunk\externals\glew-1.6.0\lib;F:\gekko-trunk\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -159,7 +159,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;F:\gekko-trunk\externals\glew-1.6.0\lib;F:\gekko-trunk\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
     <TargetName>gekko-$(ProjectName)</TargetName>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
@@ -241,7 +241,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir)\$(ProjectDir)\src\version.h</Command>
+      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -290,7 +290,6 @@
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>FastCall</CallingConvention>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -298,7 +297,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32.lib;GLFW.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;video_core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;GLFW.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;video_core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>

@@ -19,6 +19,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "video_core", "src\video_cor
 		{DFE335FC-755D-4BAA-8452-94434F8A1EDB} = {DFE335FC-755D-4BAA-8452-94434F8A1EDB}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gekko_qt", "src\gekko_qt\gekko_qt.vcxproj", "{A587F714-490F-407A-9E36-7AB7FA0D7BAB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8AEA7F29-3466-4786-A10D-6A4BD0610977} = {8AEA7F29-3466-4786-A10D-6A4BD0610977}
+		{6678D1A3-33A6-48A9-878B-48E5D2903D27} = {6678D1A3-33A6-48A9-878B-48E5D2903D27}
+		{E34D07D0-7DE6-4C46-A00D-C20C691789E4} = {E34D07D0-7DE6-4C46-A00D-C20C691789E4}
+		{DFE335FC-755D-4BAA-8452-94434F8A1EDB} = {DFE335FC-755D-4BAA-8452-94434F8A1EDB}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|Win32 = debug|Win32
@@ -133,6 +141,21 @@ Global
 		{6678D1A3-33A6-48A9-878B-48E5D2903D27}.release-x64|Win32.Build.0 = release-x64|Win32
 		{6678D1A3-33A6-48A9-878B-48E5D2903D27}.release-x64|x64.ActiveCfg = release-x64|x64
 		{6678D1A3-33A6-48A9-878B-48E5D2903D27}.release-x64|x64.Build.0 = release-x64|x64
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug|Win32.ActiveCfg = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug|Win32.Build.0 = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug|x64.ActiveCfg = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug-fast|Win32.ActiveCfg = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug-fast|Win32.Build.0 = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug-fast|x64.ActiveCfg = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug-fast-x64|Win32.ActiveCfg = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug-fast-x64|Win32.Build.0 = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.debug-fast-x64|x64.ActiveCfg = Debug|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.release|Win32.ActiveCfg = Release|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.release|Win32.Build.0 = Release|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.release|x64.ActiveCfg = Release|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.release-x64|Win32.ActiveCfg = Release|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.release-x64|Win32.Build.0 = Release|Win32
+		{A587F714-490F-407A-9E36-7AB7FA0D7BAB}.release-x64|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
