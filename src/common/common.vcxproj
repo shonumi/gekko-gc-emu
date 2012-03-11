@@ -395,6 +395,7 @@
       <CallingConvention>FastCall</CallingConvention>
       <AdditionalIncludeDirectories>$(SolutionDir)\externals\sdl-1.2.15\include;$(SolutionDir)\externals\rapidxml-1.13</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PreprocessorDefinitions>DEBUG;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
