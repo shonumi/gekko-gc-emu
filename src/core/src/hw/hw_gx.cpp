@@ -7,12 +7,19 @@
 #include "hw_gx.h"
 #include "hw_pi.h"
 #include "hw_pe.h"
+
 #include "video/opengl.h"
 #include "video/gx_fifo.h"
 #include "video/gx_vertex.h"
 #include "video/gx_states.h"
 #include "video/gx_vertex.h"
 #include "video/gx_tev.h"
+
+#include "video_core.h"
+
+#ifdef USE_NEW_VIDEO_CORE
+#include "fifo.h"
+#endif
 
 BPMemory bp;
 CPMemory cp;
@@ -28,6 +35,8 @@ u32 xfmem[0x800];
 
 void GX_BPLoad(u8 _addr, u32 _value)
 {
+    //LOG_NOTICE(TGP, "BP_LOAD [%02x] = %08x", _addr, _value);
+
 	// write data to bp memory
 	bp.mem[_addr] = _value;
 
@@ -190,6 +199,7 @@ void GX_BPLoad(u8 _addr, u32 _value)
 
 void GX_CPLoad(u8 _addr, u32 _value)
 {
+    //LOG_NOTICE(TGP, "CP_LOAD [%02x] = %08x", _addr, _value);
 	// write data to cp memory
 	cp.mem[_addr] = _value;
 }
@@ -265,6 +275,7 @@ void GX_XFLoadIndexed(u8 _n, u16 _index, u8 _length, u16 _addr)
 
 void __fastcall GX_Fifo_Write8(u32 addr, u32 data)
 {
+#ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::fifo.put8(data);
 
 	if(gx_fifo::check_size()) 
@@ -272,12 +283,18 @@ void __fastcall GX_Fifo_Write8(u32 addr, u32 data)
 		gx_fifo::command_parser(&gx_fifo::fifo);
 		gx_fifo::fifo.recirculate();
 	}
+#else
+    gp::FifoSynchronize();
+    gp::FifoPush8((u8)data);
+    
+#endif
 
 	PE_Update();
 }
 
 void __fastcall GX_Fifo_Write16(u32 addr, u32 data)
 {
+#ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::fifo.put16(data);
 
 	if(gx_fifo::check_size()) 
@@ -285,12 +302,18 @@ void __fastcall GX_Fifo_Write16(u32 addr, u32 data)
 		gx_fifo::command_parser(&gx_fifo::fifo);
 		gx_fifo::fifo.recirculate();
 	}
+#else
+    gp::FifoSynchronize();
+    gp::FifoPush16((u16)data);
+    
+#endif
 
 	PE_Update();
 }
 
 void __fastcall GX_Fifo_Write32(u32 addr, u32 data)
 {
+#ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::fifo.put32(data);
 
 	if((data == 0x45000002) && ((gx_fifo::fifo.lastcmd() & 0xf8) == 0x60))
@@ -304,6 +327,15 @@ void __fastcall GX_Fifo_Write32(u32 addr, u32 data)
 		gx_fifo::command_parser(&gx_fifo::fifo);
 		gx_fifo::fifo.recirculate();
 	}
+#else
+    gp::FifoSynchronize();
+    gp::FifoPush32(data);
+
+	if((data == 0x45000002)) {
+	    GX_PE_FINISH = 1;
+	}
+    
+#endif
 
 	PE_Update();
 }
@@ -336,6 +368,10 @@ void GX_Open(void)
 	gx_fifo::initialize();
 	gx_vertex::initialize();
 	gx_states::initialize();
+
+#ifdef USE_NEW_VIDEO_CORE
+    video_core::Init();
+#endif
 
 	// initialize OpenGL
 	//OPENGL_Create(NULL);

@@ -39,6 +39,8 @@
 #include "video/gx_fifo.h"
 #include "dvd/loader.h"
 
+#include "video_core.h"
+
 namespace core {
 
 common::Config*         g_config;
@@ -62,6 +64,9 @@ void SetConfigManager(common::ConfigManager* config_manager) {
 /// Start the core
 void Start() {
     SetState(SYS_RUNNING);
+#ifdef USE_NEW_VIDEO_CORE
+    video_core::Start();
+#endif // USE_NEW_VIDEO_CORE
 }
 
 /// Kill the core
@@ -112,7 +117,9 @@ int Init() {
 	SetState(SYS_IDLE);
     g_started = false;
 	
+#ifndef USE_NEW_VIDEO_CORE
     OPENGL_Create();
+#endif // !USE_NEW_VIDEO_CORE
 
     return E_OK;
 }
