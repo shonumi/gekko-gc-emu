@@ -32,7 +32,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Logging Macros
 
-#if defined(_DEBUG) || defined(LOGGING)
+#if defined(DEBUG) || defined(LOGGING)
 /// Debug mode, show all logs
 #define MAX_LOG_LEVEL logger::LDEBUG
 #else
@@ -67,10 +67,11 @@
 /// Use this for printing general information to the logger
 #define LOG_INFO(type, ...) _LOG_GENERIC(logger::LINFO, logger::type, __VA_ARGS__)
 
+#if defined(DEBUG) || defined(LOGGING)
+
 /// Use this for printing a debug message to the logger
 #define LOG_DEBUG(type, ...) _LOG_GENERIC(logger::LDEBUG, logger::type, __VA_ARGS__)
 
-#if defined(_DEBUG) || defined(LOGGING)
 /// Used for debug-mode assertions
 #define _ASSERT_DBG(_type_, _cond_) \
     if (!(_cond_)) { \
@@ -88,6 +89,7 @@
 #else
 #define _ASSERT_DBG(_type_, _cond_, ...)
 #define _ASSERT_DBG_MSG(_type_, _cond_, ...)
+#define LOG_DEBUG(type, ...) 
 #endif 
 
 /// Used for general purpose assertions, CRITICAL operations only
