@@ -4,25 +4,18 @@
 #include "common.h"
 #include "config.h"
 
-#include "core.h"
-#include "dvd/loader.h"
-#include "dvd/gcm.h"
-#include "powerpc/cpu_core.h"
-#include "hw/hw.h"
-#include "video/opengl.h"
-
 #include "disasm.hxx"
 #include "gekko_regs.hxx"
 #include "image_info.hxx"
 
+#include "bootmanager.h"
+
+#include "core.h"
+#include "dvd/loader.h"
+#include "dvd/gcm.h"
 #include "version.h"
 
-#define APP_NAME        "gekko"
-#define APP_VERSION     "0.31-" VERSION
-#define APP_TITLE       APP_NAME " " APP_VERSION
-#define COPYRIGHT       "Copyright (C) 2005-2012 Gekko Team"
-
-GMainWindow::GMainWindow()
+GMainWindow::GMainWindow() : emu_thread(NULL)
 {
     QString sPath = QDir::currentPath();
     file_browser_model = new QFileSystemModel(this);
@@ -47,115 +40,57 @@ GMainWindow::GMainWindow()
     addDockWidget(Qt::LeftDockWidgetArea, gekko_regs);
 
     // setup connections
+    connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
     connect(ui.treeView, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnFileBrowserDoubleClicked(const QModelIndex&)));
-	connect(ui.treeView, SIGNAL(clicked(const QModelIndex&)), this, SLOT(OnFileBrowserClicked(const QModelIndex&)));
+    connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
+}
+
+GMainWindow::~GMainWindow()
+{
+    delete emu_thread;
+}
+
+void GMainWindow::BootGame(const char* filename)
+{
+	emu_thread = new EmuThread(filename);
+	emu_thread->start();
+}
+
+void GMainWindow::OnMenuLoadImage()
+{
+	QString filename = QFileDialog::getOpenFileName(this, tr("Load Image"), QString(), QString());
+	if (filename.size())
+		BootGame(filename.toLatin1().data());
 }
 
 void GMainWindow::OnStartGame()
 {
-    u32 tight_loop;
-    LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
-
-    char program_dir[MAX_PATH];
-    _getcwd(program_dir, MAX_PATH-1);
-    size_t cwd_len = strlen(program_dir);
-    program_dir[cwd_len] = '/';
-    program_dir[cwd_len+1] = '\0';
-
-    OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
-    common::ConfigManager config_manager;
-    config_manager.set_program_dir(program_dir, MAX_PATH);
-    config_manager.ReloadConfig(NULL);
-    core::SetConfigManager(&config_manager);
-
-    if (E_OK != core::Init()) {
-        LOG_ERROR(TMASTER, "core initialization failed, exiting...");
-        core::Kill();
-        exit(1);
-    }
-
-#ifdef USE_INLINE_ASM
-    // If using asm, see if this computer can process
-    LOG_INFO(TMASTER, "compiled with inline assembly... ");
-    if (E_OK == common::IsSSE2Supported()) {
-        LOG_APPEND(LINFO, TMASTER, "SSE2 found\n");
-    } else {
-        LOG_ERROR(TMASTER, "compiled with inline assembly, but your CPU architecture does not "
-            "support SSE2, exiting...");
-        core::Kill();
-        exit(1);
-    }
-#endif
-
-    // Load a game or die...
-    if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
-        if (common::g_config->enable_auto_boot()) {
-            core::Start();
-        } else {
-            LOG_ERROR(TMASTER, "Autoboot required in no-GUI mode... Exiting!\n");
-        }
-    } else {
-        LOG_ERROR(TMASTER, "Failed to load a bootable file... Exiting!\n");
-        exit(E_ERR);
-    }
-
-    while(core::SYS_DIE != core::g_state) {
-        if (core::SYS_RUNNING == core::g_state) {
-            if(!cpu->is_on) {
-            cpu->Start(); // Initialize and start CPU.
-            } else {
-#ifdef USE_INLINE_ASM
-                _asm {
-                    mov tight_loop, 10000
-
-                ContinueCPULoop:
-                    mov ecx, cpu
-                    cmp GekkoCPU::pause, 0
-                    jne CPULoopDone
-                    mov edx, [ecx] //call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    cmp core::g_state, 2 // 2 is core::SYS_RUNNING
-                    jne CPULoopDone
-                    sub tight_loop, 1
-                    jnz ContinueCPULoop
-                CPULoopDone:
-                };
-#else
-                for(tight_loop = 0; tight_loop < 10000; ++tight_loop) {
-                    cpu->execStep();
-                }
-#endif
-            }
-        } else if (core::SYS_HALTED == core::g_state) {
-            core::Stop();
-        }
-    }
-    core::Kill();
-//        return E_OK;
+	if (!ui.treeView->selectionModel()->hasSelection())
+	{
+		BootGame(common::g_config->default_boot_file());
+	}
+	else
+	{
+        BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
+	}
 }
 
 void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
 {
-    // TODO: Sometimes, trying to access a directory with lacking read permissions will break stuff (you'll end up in an empty directory with now way to cd back to parent directory)
     if (!file_browser_model->isDir(index))
-        return;
-
-    QString new_path = file_browser_model->filePath(index);
-    file_browser_model->setRootPath(new_path);
-    ui.treeView->setRootIndex(file_browser_model->index(new_path));
+    {
+		// Start emulation
+        BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
+    }
+    else
+    {
+		// Change directory
+        // TODO: Sometimes, trying to access a directory with lacking read permissions will break stuff (you'll end up in an empty directory with now way to cd back to parent directory)
+        QString new_path = file_browser_model->filePath(index);
+        file_browser_model->setRootPath(new_path);
+        ui.treeView->setRootIndex(file_browser_model->index(new_path));
+    }
 }
 
 // TODO: Doesn't belong here! Clean up and separate from GUI code
@@ -236,17 +171,15 @@ static QPixmap BrowserAddBanner(u8 *banner)
 }
 #endif
 
-void GMainWindow::OnFileBrowserClicked(const QModelIndex& index)
+void GMainWindow::OnFileBrowserSelectionChanged()
 {
 // TODO: Make ReadGCMInfo cross platform...
 #if 0
 // TODO: Causes instability?
-	if (file_browser_model->isDir(index))
-		return;
-
 	unsigned long size;
 	u8 banner[0x1960];
 	u8 header[0x440];
+	QModelIndex index = ui.treeView->selectionModel()->currentIndex();
 	if (dvd::ReadGCMInfo(file_browser_model->filePath(index).toLatin1().data(), &size, (void*)banner, (void*)header) != E_OK)
 		return;
 
@@ -263,6 +196,18 @@ int __cdecl main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     GMainWindow main_window;
+
+
+    char program_dir[MAX_PATH];
+    _getcwd(program_dir, MAX_PATH-1);
+    size_t cwd_len = strlen(program_dir);
+    program_dir[cwd_len] = '/';
+    program_dir[cwd_len+1] = '\0';
+
+    common::ConfigManager config_manager;
+    config_manager.set_program_dir(program_dir, MAX_PATH);
+    config_manager.ReloadConfig(NULL);
+    core::SetConfigManager(&config_manager);
 
     main_window.show();
     return app.exec();

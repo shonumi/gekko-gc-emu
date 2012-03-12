@@ -14,6 +14,7 @@
       <Filter>debugger</Filter>
     </ClCompile>
     <ClCompile Include="src\image_info.cpp" />
+    <ClCompile Include="src\bootmanager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\main.hxx" />
@@ -37,5 +38,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />
+    <ClInclude Include="src\bootmanager.h" />
   </ItemGroup>
 </Project>

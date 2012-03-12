@@ -4,6 +4,7 @@
 
 class QFileSystemModel;
 class GImageInfo;
+class EmuThread;
 
 class GMainWindow : public QMainWindow
 {
@@ -19,11 +20,16 @@ class GMainWindow : public QMainWindow
 
 public:
     GMainWindow();
+    ~GMainWindow();
+
+private:
+	void BootGame(const char* filename);
 
 private slots:
     void OnStartGame();
+	void OnMenuLoadImage();
     void OnFileBrowserDoubleClicked(const QModelIndex&);
-    void OnFileBrowserClicked(const QModelIndex&);
+	void OnFileBrowserSelectionChanged();
 
 signals:
 //    UpdateUIState();
@@ -32,4 +38,6 @@ private:
     Ui::MainWindow ui;
     QFileSystemModel* file_browser_model;
 	GImageInfo* image_info;
+
+	EmuThread* emu_thread;
 };

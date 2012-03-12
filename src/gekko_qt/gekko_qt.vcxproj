@@ -90,6 +90,7 @@
     </MOC>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\bootmanager.cpp" />
     <ClCompile Include="src\disasm.cpp" />
     <ClCompile Include="src\gekko_regs.cpp" />
     <ClCompile Include="src\image_info.cpp" />
@@ -110,6 +111,7 @@
     <UIC Include="src\main.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\bootmanager.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
