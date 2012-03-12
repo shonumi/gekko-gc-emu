@@ -176,13 +176,16 @@ void HLE_DetectFunctions()
             FuncCRC = HLE_GenerateFunctionCRC(Addr, FuncSize);
 
             //see if the value exists
-            Function& NewFunc = maps[Addr];
-            NewFunc.address = 0;
+            Function NewFunc;
+
             NewFunc.funcSize = 0;
-            NewFunc.DetectedSize = 0;
-            NewFunc.CRC = 0;
-            NewFunc.funcName.clear();
-            NewFunc.fileName.clear();
+            NewFunc.address = Addr;
+            NewFunc.CRC = FuncCRC;
+            NewFunc.DetectedSize = FuncSize;
+
+            NewFunc.DetectedSize = FuncSize;
+            maps[Addr] = NewFunc;
+
             funcAddresses.insert(pair<u32, u32>(FuncCRC, Addr));
 
             Addr += FuncSize - 4;
