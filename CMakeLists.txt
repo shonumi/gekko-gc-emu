@@ -7,8 +7,16 @@ add_definitions(-Wno-attributes)
 add_definitions(-DSINGLETHREADED)
 
 # dependency checking
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 include(FindSDL REQUIRED)
 include(FindOpenGL REQUIRED)
+include(FindGLFW REQUIRED)
+
+if(NOT GLFW_FOUND)
+    message(FATAL_ERROR "glfw not found")
+else()
+    include_directories(${GLFW_INCLUDE_DIRS})
+endif()
 
 option(DISABLE_QT4 "Disable Qt4 GUI" OFF)
 if(NOT DISABLE_QT4)
@@ -31,6 +39,7 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # internal includes
 include_directories(src/common/src)
 include_directories(src/core/src)
+include_directories(src/video_core/src)
 include_directories(src/input_common/src)
 include_directories(src/win32/src)
 
