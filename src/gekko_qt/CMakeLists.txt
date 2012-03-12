@@ -1,17 +1,20 @@
 set(SRCS
             src/bootmanager.cpp
+            src/callstack.cpp
             src/disasm.cpp
             src/gekko_regs.cpp
             src/image_info.cpp
             src/main.cpp)
 
 qt4_wrap_ui(UI_HDRS
+                    src/callstack.ui
                     src/disasm.ui
                     src/gekko_regs.ui
                     src/image_info.ui
                     src/main.ui)
 
 qt4_wrap_cpp(MOC_SRCS
+                        src/callstack.hxx
                         src/disasm.hxx
                         src/gekko_regs.hxx
                         src/image_info.hxx

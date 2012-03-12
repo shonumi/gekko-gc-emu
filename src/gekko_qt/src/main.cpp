@@ -4,6 +4,7 @@
 #include "common.h"
 #include "config.h"
 
+#include "callstack.hxx"
 #include "disasm.hxx"
 #include "gekko_regs.hxx"
 #include "image_info.hxx"
@@ -38,6 +39,9 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
 
     GGekkoRegsView* gekko_regs = new GGekkoRegsView(this);
     addDockWidget(Qt::LeftDockWidgetArea, gekko_regs);
+
+    GCallstackView* callstack = new GCallstackView(this);
+    addDockWidget(Qt::BottomDockWidgetArea, callstack);
 
     // setup connections
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));

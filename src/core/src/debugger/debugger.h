@@ -24,7 +24,9 @@
 
 #ifndef CORE_DEBUGGER_H_
 #define CORE_DEBUGGER_H_
-#include <lzo/lzoconf.h>
+
+#include <vector>
+#include "common.h"
 
 namespace Debugger
 {
@@ -34,6 +36,8 @@ struct CallstackEntry
     std::string name;
     u32 addr;
 };
+typedef std::vector<CallstackEntry> Callstack;
+typedef Callstack::iterator CallstackIterator;
 
 /**
  * Get call stack of current PC. Needs to be called when CPU is paused.
@@ -42,7 +46,7 @@ struct CallstackEntry
  * @return true on success; false on failure (e.g. function called when CPU was paused)
  * @warning not thread safe!
  */
-bool GetCallstack(std::vector<CallstackEntry>& out);
+bool GetCallstack(Callstack& out);
 
 /**
  * Sets a CPU breakpoint.
@@ -77,21 +81,23 @@ bool IsBreakpoint(u32 addr);
  */
 void CPUStepped();
 
-typedef void (*CPUSteppedCallback)();
+typedef void (*CPUSteppedCallback)(void*);
 
 /**
  * Adds a callback function to be called whenever CPUStepped() is called.
- * 
+ *
+ * @param func pointer to callback function
+ * @param data optional data pointer to be passed whenever the function gets called (e.g. this-pointer for class methods)
  * @warning Don't forget unregistering the function via UnregisterCPUStepCallback
  */
-void RegisterCPUStepCallback(CPUSteppedCallback);
+void RegisterCPUStepCallback(CPUSteppedCallback func, void* data);
 
 /**
  * Removes a callback function from the CPUStepped() observer list
  */
-void UnregisterCPUStepCallback(CPUSteppedCallback);
+void UnregisterCPUStepCallback(CPUSteppedCallback func);
 
 
 } // namespace Debugger
 
-#endif // CORE_CORE_H_
+#endif // CORE_DEBUGGER_H_
