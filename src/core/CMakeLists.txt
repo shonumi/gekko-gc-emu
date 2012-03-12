@@ -2,6 +2,7 @@ set(SRCS	src/core.cpp
 			src/memory.cpp
 			src/boot/apploader.cpp
 			src/boot/bootrom.cpp
+            src/debugger/debugger.cpp
 			src/dvd/dol.cpp
 			src/dvd/elf.cpp
 			src/dvd/gcm.cpp
