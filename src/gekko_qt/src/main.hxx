@@ -1,5 +1,10 @@
 #include <QMainWindow>
 
+#include "ui_main.h"
+
+class QFileSystemModel;
+class GImageInfo;
+
 class GMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -17,7 +22,14 @@ public:
 
 private slots:
     void OnStartGame();
+    void OnFileBrowserDoubleClicked(const QModelIndex&);
+    void OnFileBrowserClicked(const QModelIndex&);
 
 signals:
 //    UpdateUIState();
+
+private:
+    Ui::MainWindow ui;
+    QFileSystemModel* file_browser_model;
+	GImageInfo* image_info;
 };

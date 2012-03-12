@@ -77,7 +77,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;sdl.lib;common.lib;input_common.lib;core.lib;video_core.lib;QtCore4.lib;QtGui4.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib libcpmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <UIC>
       <QtUicExt>.h</QtUicExt>
@@ -85,20 +85,28 @@
     <UIC>
       <QtUicPrefix>src/ui_</QtUicPrefix>
     </UIC>
+    <MOC>
+      <QtKeywords>false</QtKeywords>
+    </MOC>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\disasm.cpp" />
     <ClCompile Include="src\gekko_regs.cpp" />
+    <ClCompile Include="src\image_info.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\disasm.hxx" />
     <MOC Include="src\gekko_regs.hxx" />
-    <MOC Include="src\main.hxx" />
+    <MOC Include="src\image_info.hxx" />
+    <MOC Include="src\main.hxx">
+      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</QtKeywords>
+    </MOC>
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\disasm.ui" />
     <UIC Include="src\gekko_regs.ui" />
+    <UIC Include="src\image_info.ui" />
     <UIC Include="src\main.ui" />
   </ItemGroup>
   <ItemGroup>

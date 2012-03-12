@@ -13,6 +13,7 @@
     <ClCompile Include="src\gekko_regs.cpp">
       <Filter>debugger</Filter>
     </ClCompile>
+    <ClCompile Include="src\image_info.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\main.hxx" />
@@ -22,6 +23,7 @@
     <MOC Include="src\gekko_regs.hxx">
       <Filter>debugger</Filter>
     </MOC>
+    <MOC Include="src\image_info.hxx" />
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\main.ui" />
@@ -31,6 +33,7 @@
     <UIC Include="src\disasm.ui">
       <Filter>debugger</Filter>
     </UIC>
+    <UIC Include="src\image_info.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />
