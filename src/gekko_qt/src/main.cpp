@@ -30,8 +30,8 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     ui.treeView->hideColumn(2); // drive
     ui.treeView->hideColumn(3); // date
 
-	image_info = new GImageInfo(this);
-	addDockWidget(Qt::RightDockWidgetArea, image_info);
+    image_info = new GImageInfo(this);
+    addDockWidget(Qt::RightDockWidgetArea, image_info);
 
     GDisAsmView* disasm = new GDisAsmView(this);
     addDockWidget(Qt::TopDockWidgetArea, disasm);
