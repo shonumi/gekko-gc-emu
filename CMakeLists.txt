@@ -36,6 +36,7 @@ endif()
 include_directories(${SDL_INCLUDE_DIR})
 include_directories(externals/rapidxml-1.13)
 include_directories(${OPENGL_INCLUDE_DIR})
+include_directories(externals/glm-0.9.3.1)
     
 # internal includes
 include_directories(src/common/src)

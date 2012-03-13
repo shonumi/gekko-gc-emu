@@ -42,7 +42,7 @@ public:
     virtual void SwapBuffers();
 
     /// Sets the renderer depthrange, znear and zfar
-    virtual void RendererBase::SetDepthRange(double znear, double zfar);
+    virtual void SetDepthRange(double znear, double zfar);
 
     /*! 
      * \brief Set the window text of the renderer
