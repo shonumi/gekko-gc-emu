@@ -43,6 +43,10 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     GCallstackView* callstack = new GCallstackView(this);
     addDockWidget(Qt::BottomDockWidgetArea, callstack);
 
+    QSettings settings("Gekko team", "Gekko");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("state").toByteArray());
+
     // setup connections
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
@@ -191,6 +195,16 @@ void GMainWindow::OnFileBrowserSelectionChanged()
 	image_info->SetBanner(pm_banner);
 #endif
 }
+
+void GMainWindow::closeEvent(QCloseEvent* event)
+{
+    QSettings settings("Gekko team", "Gekko");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("state", saveState());
+
+    QWidget::closeEvent(event);
+}
+
 
 #ifdef main
 #undef main

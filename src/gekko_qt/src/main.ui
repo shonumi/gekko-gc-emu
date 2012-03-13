@@ -17,6 +17,9 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QTreeView" name="treeView">
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
       <property name="rootIsDecorated">
        <bool>false</bool>
       </property>
@@ -33,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>735</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

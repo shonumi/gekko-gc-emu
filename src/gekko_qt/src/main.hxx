@@ -23,13 +23,14 @@ public:
     ~GMainWindow();
 
 private:
-	void BootGame(const char* filename);
+    void BootGame(const char* filename);
+    void closeEvent(QCloseEvent* event);
 
 private slots:
     void OnStartGame();
-	void OnMenuLoadImage();
+    void OnMenuLoadImage();
     void OnFileBrowserDoubleClicked(const QModelIndex&);
-	void OnFileBrowserSelectionChanged();
+    void OnFileBrowserSelectionChanged();
 
 signals:
 //    UpdateUIState();
@@ -37,7 +38,7 @@ signals:
 private:
     Ui::MainWindow ui;
     QFileSystemModel* file_browser_model;
-	GImageInfo* image_info;
+    GImageInfo* image_info;
 
-	EmuThread* emu_thread;
+    EmuThread* emu_thread;
 };
