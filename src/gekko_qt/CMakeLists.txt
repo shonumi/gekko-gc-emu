@@ -4,7 +4,8 @@ set(SRCS
             src/disasm.cpp
             src/gekko_regs.cpp
             src/image_info.cpp
-            src/main.cpp)
+            src/main.cpp
+            src/ramview.cpp)
 
 qt4_wrap_ui(UI_HDRS
                     src/callstack.ui
@@ -18,7 +19,8 @@ qt4_wrap_cpp(MOC_SRCS
                         src/disasm.hxx
                         src/gekko_regs.hxx
                         src/image_info.hxx
-                        src/main.hxx)
+                        src/main.hxx
+                        src/ramview.hxx)
 
 # add uic results to include directories
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

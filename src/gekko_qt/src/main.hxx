@@ -3,6 +3,7 @@
 #include "ui_main.h"
 
 class QFileSystemModel;
+class GRamView;
 class GImageInfo;
 class EmuThread;
 
@@ -39,6 +40,8 @@ private:
     Ui::MainWindow ui;
     QFileSystemModel* file_browser_model;
     GImageInfo* image_info;
+
+    GRamView* ram_edit;
 
     EmuThread* emu_thread;
 };

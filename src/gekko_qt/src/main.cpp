@@ -1,4 +1,5 @@
 #include <QtGui>
+#include "qhexedit.h"
 #include "main.hxx"
 
 #include "common.h"
@@ -8,6 +9,7 @@
 #include "disasm.hxx"
 #include "gekko_regs.hxx"
 #include "image_info.hxx"
+#include "ramview.hxx"
 
 #include "bootmanager.h"
 
@@ -27,7 +29,7 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     file_browser_model->setFilter(QDir::Dirs | QDir::Files | QDir::Drives | QDir::NoDot);
     file_browser_model->setRootPath(sPath);
     ui.treeView->setRootIndex(file_browser_model->index(sPath));
-	ui.treeView->sortByColumn(0, Qt::AscendingOrder);
+    ui.treeView->sortByColumn(0, Qt::AscendingOrder);
     ui.treeView->hideColumn(2); // drive
     ui.treeView->hideColumn(3); // date
 
@@ -43,6 +45,13 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     GCallstackView* callstack = new GCallstackView(this);
     addDockWidget(Qt::BottomDockWidgetArea, callstack);
 
+    // TODO: Doesn't get saved?
+    QDockWidget* dock_ramedit = new QDockWidget(this);
+    ram_edit = new GRamView(dock_ramedit);
+    dock_ramedit->setWidget(ram_edit);
+    dock_ramedit->setWindowTitle(tr("Memory viewer"));
+    addDockWidget(Qt::TopDockWidgetArea, dock_ramedit);
+
     QSettings settings("Gekko team", "Gekko");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
@@ -52,6 +61,9 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
     connect(ui.treeView, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnFileBrowserDoubleClicked(const QModelIndex&)));
     connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
+
+    // TODO: Enable this?
+//    setUnifiedTitleAndToolBarOnMac(true);
 }
 
 GMainWindow::~GMainWindow()
@@ -61,39 +73,39 @@ GMainWindow::~GMainWindow()
 
 void GMainWindow::BootGame(const char* filename)
 {
-	emu_thread = new EmuThread(filename);
-	emu_thread->start();
+    emu_thread = new EmuThread(filename);
+    emu_thread->start();
 }
 
 void GMainWindow::OnMenuLoadImage()
 {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Load Image"), QString(), QString());
-	if (filename.size())
-		BootGame(filename.toLatin1().data());
+    QString filename = QFileDialog::getOpenFileName(this, tr("Load Image"), QString(), QString());
+    if (filename.size())
+       BootGame(filename.toLatin1().data());
 }
 
 void GMainWindow::OnStartGame()
 {
-	if (!ui.treeView->selectionModel()->hasSelection())
-	{
-		BootGame(common::g_config->default_boot_file());
-	}
-	else
-	{
+    if (!ui.treeView->selectionModel()->hasSelection())
+    {
+        BootGame(common::g_config->default_boot_file());
+    }
+    else
+    {
         BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
-	}
+    }
 }
 
 void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
 {
     if (!file_browser_model->isDir(index))
     {
-		// Start emulation
+        // Start emulation
         BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
     }
     else
     {
-		// Change directory
+        // Change directory
         // TODO: Sometimes, trying to access a directory with lacking read permissions will break stuff (you'll end up in an empty directory with now way to cd back to parent directory)
         QString new_path = file_browser_model->filePath(index);
         file_browser_model->setRootPath(new_path);
