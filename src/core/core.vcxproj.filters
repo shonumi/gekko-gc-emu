@@ -139,9 +139,6 @@
     <ClCompile Include="src\video\opengl.cpp">
       <Filter>video</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\externals\glew\src\glew.c">
-      <Filter>video</Filter>
-    </ClCompile>
     <ClCompile Include="src\core.cpp" />
     <ClCompile Include="src\dvd\dol.cpp">
       <Filter>dvd</Filter>
