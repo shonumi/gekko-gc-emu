@@ -921,8 +921,8 @@ int LoadGCM(char *filename)
     return E_OK;
 }
 
- 
-//TODO(ShizZy): Make cross platform 2012-03-07
+/* 
+TODO(ShizZy): Make cross platform 2012-03-07
 int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header)
 {
     GCMFSTHeader	FSTInfo;
@@ -1027,6 +1027,6 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, voi
     }
     return E_OK;
 }
-
+*/
 
 } // namespace

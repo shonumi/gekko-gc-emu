@@ -354,8 +354,8 @@ void VI_Update(void)
 //			if(cfg.enb_framebuffer)
 //			{
 //   			VI_YCbCr2RGB();
-              OPENGL_DrawFramebuffer();
-              OPENGL_Render();
+//              OPENGL_DrawFramebuffer();
+//              OPENGL_Render();
 //            }
 		}
 	}

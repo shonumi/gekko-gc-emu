@@ -73,7 +73,7 @@ int LoadGCM(char *filename);
  * \todo This should eventually be in its own GCM utilities library
  */
 // TODO(ShizZy): Make cross platform 2012-03-07
-int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header);
+// int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header);
 
 extern char g_current_game_name[992];   ///< Currently loaded game name
 extern char g_current_game_crc[7];      ///< Currently loaded game checksum
