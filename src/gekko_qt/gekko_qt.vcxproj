@@ -38,7 +38,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;$(IncludePath)</IncludePath>
+    <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;$(IncludePath)</IncludePath>
     <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
@@ -71,7 +71,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include;%QTDIR%\include\Qt</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include;$(SolutionDir)\externals\qhexedit</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -80,8 +80,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;sdl.lib;common.lib;input_common.lib;core.lib;video_core.lib;QtCore4.lib;QtGui4.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <UIC>
       <QtUicExt>.h</QtUicExt>
@@ -94,12 +92,17 @@
     </MOC>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\externals\qhexedit\commands.cpp" />
+    <ClCompile Include="..\..\externals\qhexedit\qhexedit.cpp" />
+    <ClCompile Include="..\..\externals\qhexedit\qhexedit_p.cpp" />
+    <ClCompile Include="..\..\externals\qhexedit\xbytearray.cpp" />
     <ClCompile Include="src\bootmanager.cpp" />
     <ClCompile Include="src\callstack.cpp" />
     <ClCompile Include="src\disasm.cpp" />
     <ClCompile Include="src\gekko_regs.cpp" />
     <ClCompile Include="src\image_info.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\ramview.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\callstack.hxx" />
@@ -109,6 +112,7 @@
     <MOC Include="src\main.hxx">
       <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</QtKeywords>
     </MOC>
+    <MOC Include="src\ramview.hxx" />
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\callstack.ui" />
@@ -118,6 +122,10 @@
     <UIC Include="src\main.ui" />
   </ItemGroup>
   <ItemGroup>
+    <MOC Include="..\..\externals\qhexedit\commands.h" />
+    <MOC Include="..\..\externals\qhexedit\qhexedit.h" />
+    <MOC Include="..\..\externals\qhexedit\qhexedit_p.h" />
+    <MOC Include="..\..\externals\qhexedit\xbytearray.h" />
     <ClInclude Include="src\bootmanager.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>

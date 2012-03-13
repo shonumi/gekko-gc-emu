@@ -1,8 +1,8 @@
 #include <QDockWidget>
 #include "ui_disasm.h"
 
-#include "common.h"
-
+//#include "common.h"
+typedef unsigned int u32;
 class QStandardItemModel;
 
 class GDisAsmView : public QDockWidget
