@@ -33,6 +33,10 @@
 #include <GL/glew.h>
 #include <GL/glfw.h>
 
+#include <glm/glm.hpp>  
+//#include <glm/gtc/matrix_projection.hpp>  
+#include <glm/gtc/matrix_transform.hpp> 
+
 GLuint g_position_buffer;
 GLuint g_color0_buffer;
 GLuint g_color1_buffer;
@@ -108,24 +112,20 @@ void RendererGL3::SwapBuffers() {
     glfwSwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT);
 
-#if EMU_PLATFORM == PLATFORM_WINDOWS
 	static u32 swaps = 0, last = 0;
 	static float fps = 0;
-	u32 t = GetTickCount ();
+
+	u32 t = SDL_GetTicks();
 	swaps++;
 		
 	if(t - last > 1000) {
+        char title[100];
 		fps = (float) swaps / (0.001 * (t - last));
-		
 		swaps = 0;
 		last = t;
-
-		char str1[100];
-
-		sprintf(str1, "gekko-glfw - %03.02f fps", fps);
-        glfwSetWindowTitle(str1);
+		sprintf(title, "gekko-glfw - %03.02f fps", fps);
+        glfwSetWindowTitle(title);
 	}
-#endif
 }
 
 /*! 

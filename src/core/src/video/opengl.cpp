@@ -164,7 +164,7 @@ void OPENGL_SetTitle()
 {
 	static u32 swaps = 0, last = 0;
 	static float fps = 0;
-	u32 t = GetTickCount ();
+	u32 t = SDL_GetTicks();
 	static u64 opcount = 0;
 	s64 ops = 0;
 	f32 mips = 0;
