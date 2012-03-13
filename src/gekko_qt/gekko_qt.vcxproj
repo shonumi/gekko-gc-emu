@@ -89,6 +89,7 @@
     </UIC>
     <MOC>
       <QtKeywords>false</QtKeywords>
+      <QtCommandLine>/I"$(SolutionDir)\src\common\src" /I"$(SolutionDir)\src\core\src" /I"$(SolutionDir)\externals\glew-1.6.0\include" /I"$(SolutionDir)\externals\sdl-1.2.15\include" /I"$(SolutionDir)\externals\qhexedit"</QtCommandLine>
     </MOC>
   </ItemDefinitionGroup>
   <ItemGroup>
