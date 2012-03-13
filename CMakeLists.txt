@@ -26,6 +26,7 @@ if(NOT DISABLE_QT4)
     if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND)
         include(${QT_USE_FILE})
         include_directories(${QT_INCLUDES})
+        include_directories(externals/qhexedit)
     else()
         message("Qt4 libraries not found! Disabling Qt4 GUI")
     endif()
@@ -35,7 +36,7 @@ endif()
 include_directories(${SDL_INCLUDE_DIR})
 include_directories(externals/rapidxml-1.13)
 include_directories(${OPENGL_INCLUDE_DIR})
-
+    
 # internal includes
 include_directories(src/common/src)
 include_directories(src/core/src)
@@ -44,4 +45,7 @@ include_directories(src/input_common/src)
 include_directories(src/win32/src)
 
 # process subdirectories
+if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND AND NOT DISABLE_QT4)
+    add_subdirectory(externals/qhexedit)
+endif()
 add_subdirectory(src)
