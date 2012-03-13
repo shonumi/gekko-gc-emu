@@ -15,6 +15,9 @@
     </ClCompile>
     <ClCompile Include="src\image_info.cpp" />
     <ClCompile Include="src\bootmanager.cpp" />
+    <ClCompile Include="src\callstack.cpp">
+      <Filter>debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\main.hxx" />
@@ -25,6 +28,9 @@
       <Filter>debugger</Filter>
     </MOC>
     <MOC Include="src\image_info.hxx" />
+    <MOC Include="src\callstack.hxx">
+      <Filter>debugger</Filter>
+    </MOC>
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\main.ui" />
@@ -35,6 +41,9 @@
       <Filter>debugger</Filter>
     </UIC>
     <UIC Include="src\image_info.ui" />
+    <UIC Include="src\callstack.ui">
+      <Filter>debugger</Filter>
+    </UIC>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />

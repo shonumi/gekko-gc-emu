@@ -560,6 +560,7 @@
     <ClCompile Include="src\boot\apploader.cpp" />
     <ClCompile Include="src\boot\bootrom.cpp" />
     <ClCompile Include="src\core.cpp" />
+    <ClCompile Include="src\debugger\debugger.cpp" />
     <ClCompile Include="src\dvd\dol.cpp" />
     <ClCompile Include="src\dvd\elf.cpp" />
     <ClCompile Include="src\dvd\gcm.cpp" />
@@ -620,6 +621,7 @@
     <ClInclude Include="src\boot\apploader.h" />
     <ClInclude Include="src\boot\bootrom.h" />
     <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\debugger\debugger.h" />
     <ClInclude Include="src\dvd\elf.h" />
     <ClInclude Include="src\dvd\gcm.h" />
     <ClInclude Include="src\dvd\loader.h" />

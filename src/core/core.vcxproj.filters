@@ -31,6 +31,9 @@
     <Filter Include="video">
       <UniqueIdentifier>{362c54fa-dd35-40e6-bbe0-b2f71089c3c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="debugger">
+      <UniqueIdentifier>{dc22d90a-68bd-4df6-b160-93edf06322e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\hw\hw.cpp">
@@ -206,6 +209,9 @@
     <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp">
       <Filter>powerpc\recompiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\debugger\debugger.cpp">
+      <Filter>debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\hw\hw.h">
@@ -341,6 +347,9 @@
     </ClInclude>
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h">
       <Filter>powerpc\recompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\debugger\debugger.h">
+      <Filter>debugger</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
