@@ -4,3 +4,16 @@ GImageInfo::GImageInfo(QWidget* parent) : QDockWidget(parent)
 {
 	ui.setupUi(this);
 }
+
+void GImageInfo::SetBanner(const QPixmap& banner)
+{
+    // NOTE: We need to make sure not to pass the elusive reference as a permanent pixmap,
+    //       thus we're storing an own pixmap
+    this->banner = banner;
+	ui.label_banner->setPixmap(this->banner);
+}
+
+void GImageInfo::SetName(const char* name)
+{
+	ui.line_name->setText(QString::fromLatin1(name));
+}

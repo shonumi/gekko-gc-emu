@@ -27,8 +27,9 @@
 
 #include "common.h"
 
+#define GCM_HEADER_MAGIC_WORD           0xC2339F3D
 #define GCMFILEID	                    0x314D4347
-#define SIZE_OF_GCM_HEADER				0x440
+#define SIZE_OF_GCM_HEADER				sizeof(GCMHeader) // 0x440
 #define SIZE_OF_GCM_BANNER				0x1960
 
 #define DVD_BANNER_FILENAME				"opening.bnr"
@@ -42,11 +43,11 @@
 namespace dvd {
 
 //info about the files in the GCM
+#pragma pack(1)
 typedef struct {
     u32		NameOffset;
     u32		DiskAddr;
     u32		FileSize;
-
 } GCMFST;
 
 typedef struct {
@@ -54,7 +55,41 @@ typedef struct {
     u32		Size;
     u32		MaxSize;
     u32		MemLocation;
+
+    void ToggleEndianness();
 } GCMFSTHeader;
+
+typedef struct
+{
+    union
+    {
+        struct {
+            u32	console_id : 8;
+            u32 gamecode : 16;
+            u32 country_code : 8;
+        };
+        u32 hex;
+    } game_code;
+    u16 maker_code;
+    u8 disk_id;
+    u8 version;
+    u8 audio_streaming;
+    u8 stream_buffer_size;
+    u8 padding[0x12];
+    u32 dvd_magic_word; // 0xc2339f3d
+    u8 game_name [0x3e0];
+    u32 debug_monitor_offset; // ?
+    u32 debug_monitor_load_addr; // ?
+    u8 padding2[0x18];
+    u32 main_dol_offset;
+    GCMFSTHeader fst_header;
+    u32 user_length; // ?
+    u8 unknown[4];
+    u8 padding3[4];
+
+    /* used to convert raw data returned by file I/O functions to little endian */
+    void ToggleEndianness();
+} GCMHeader;
 
 /// Our data about the FST
 typedef struct _GCMFileData {
@@ -103,6 +138,7 @@ typedef struct {
         u8  comment[128];
     } comments[6];
 } DVDBanner2;
+#pragma pack()
 
 //all filenames in the FST
 extern char *FileNames;

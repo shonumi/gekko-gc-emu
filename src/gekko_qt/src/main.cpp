@@ -20,19 +20,21 @@
 
 GMainWindow::GMainWindow() : emu_thread(NULL)
 {
-    QString sPath = QDir::currentPath();
-    file_browser_model = new QFileSystemModel(this);
-
     ui.setupUi(this);
 
-    ui.treeView->setModel(file_browser_model);
+    // TODO: Make drives show up as well...
+    QString sPath = QDir::currentPath();
+    file_browser_model = new QFileSystemModel(this);
     file_browser_model->setFilter(QDir::Dirs | QDir::Files | QDir::Drives | QDir::NoDot);
     file_browser_model->setRootPath(sPath);
+
+    ui.treeView->setModel(file_browser_model);
     ui.treeView->setRootIndex(file_browser_model->index(sPath));
     ui.treeView->sortByColumn(0, Qt::AscendingOrder);
     ui.treeView->hideColumn(2); // drive
     ui.treeView->hideColumn(3); // date
 
+    // create custom widgets
     image_info = new GImageInfo(this);
     addDockWidget(Qt::RightDockWidgetArea, image_info);
 
@@ -52,6 +54,7 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     dock_ramedit->setWindowTitle(tr("Memory viewer"));
     addDockWidget(Qt::TopDockWidgetArea, dock_ramedit);
 
+    // restore UI state
     QSettings settings("Gekko team", "Gekko");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
@@ -124,28 +127,22 @@ void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
 }
 
 // TODO: Doesn't belong here! Clean up and separate from GUI code
-#if 0
+#if EMU_PLATFORM == PLATFORM_WINDOWS
 #define PACKRGB555(r, g, b)				(u16)((((r)&0xf8)<<7)|(((g)&0xf8)<<2)|(((b)&0xf8)>>3))
 #define PACKRGB565(r, g, b)				(u16)((((r)&0xf8)<<8)|(((g)&0xfc)<<3)|(((b)&0xf8)>>3))
 
-static QPixmap BrowserAddBanner(u8 *banner)
+static void BrowserAddBanner(u8 *banner, QPixmap& out_pixmap)
 {
     int			width = DVD_BANNER_WIDTH;
     int			height = DVD_BANNER_HEIGHT;
     int			bcount = width * height * 3;
     int			tiles  = (DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT) / 16;    
     u8			*imageA, *ptrA;
-    f64			rgb[3];
-    u16			*tile = (u16*)banner, *ptrA16;
+    u16			*tile = (u16*)banner;
     u32			r, g, b, a;
     int			row = 0, col = 0, pos;
 
-    imageA = (u8 *)malloc(bcount);
-
-    DWORD backcol = GetSysColor(COLOR_WINDOW);
-    rgb[0] = (f64)GetRValue(backcol);
-    rgb[1] = (f64)GetGValue(backcol);
-    rgb[2] = (f64)GetBValue(backcol);
+    imageA = new u8[bcount];
 
     // Convert RGB5A3 -> RGBA
     for(int i=0; i<tiles; i++, tile+=16)
@@ -167,17 +164,12 @@ static QPixmap BrowserAddBanner(u8 *banner)
             }
             else
             {
-                r = (p & 0x0f00) >> 8;
-                g = (p & 0x00f0) >> 4;
-                b = (p & 0x000f);
-                a = (p & 0x7000) >> 12;
-
                 r = g = b = 0;
+                a = (p & 0x7000) >> 12;
             }
 
             pos = 3 * ((row + j) * width + (col + k));
 
-            ptrA16 = (u16 *)&imageA[pos];
             ptrA   = &imageA[pos];
 
             p = PACKRGB565(r, g, b);
@@ -195,26 +187,29 @@ static QPixmap BrowserAddBanner(u8 *banner)
         }
     }
 
-    QPixmap pm_banner = QPixmap::fromImage(QImage(imageA, 96, 32, QImage::Format_RGB888));
-    free(imageA);
-    return pm_banner;
+    out_pixmap.convertFromImage(QImage(imageA, 96, 32, QImage::Format_RGB888));
+    delete[] imageA;
 }
 #endif
 
 void GMainWindow::OnFileBrowserSelectionChanged()
 {
 // TODO: Make ReadGCMInfo cross platform...
-#if 0
-// TODO: Causes instability?
-	unsigned long size;
-	u8 banner[0x1960];
-	u8 header[0x440];
-	QModelIndex index = ui.treeView->selectionModel()->currentIndex();
-	if (dvd::ReadGCMInfo(file_browser_model->filePath(index).toLatin1().data(), &size, (void*)banner, (void*)header) != E_OK)
-		return;
+#if EMU_PLATFORM == PLATFORM_WINDOWS
+    unsigned long size;
+    u8 banner[0x1960];
+    dvd::GCMHeader header;
+    QModelIndex index = ui.treeView->selectionModel()->currentIndex(); // TODO: this doesn't quite work..
+	if (dvd::ReadGCMInfo(file_browser_model->filePath(index).toLatin1().data(), &size, (void*)banner, &header) != E_OK)
+    {
+        image_info->SetBanner(QPixmap());
+        return;
+    }
 
-	QPixmap pm_banner = BrowserAddBanner(banner);
-	image_info->SetBanner(pm_banner);
+    // TODO: Banner loading is broken.. colors are messed up
+    QPixmap pm_banner;
+    BrowserAddBanner(&banner[0x20], pm_banner);
+    image_info->SetBanner(pm_banner);
 #endif
 }
 

@@ -25,6 +25,8 @@
 #ifndef CORE_DVD_LOADER_H_
 #define CORE_DVD_LOADER_H_
 
+#include "gcm.h"
+
 /// Frontend interface for DVD/ROM loading
 namespace dvd {
 
@@ -67,14 +69,14 @@ int LoadGCM(char *filename);
 //int LoadDMP(char *filename); 
 
 /*!
- * \brief Gets info for a GCM (GameCube DVD image)
+ * \brief Gets info for a GCM (GameCube DVD image).
  * \param filename Filename of GCM
  * \param filesize Filesize of GCM (reference)
  * \param BannerBuffer Pointer to GCM banner (reference)
  * \todo This should eventually be in its own GCM utilities library
+ * \todo This shouldn't be fastcall (gekko-qt workaround)
  */
-// TODO(ShizZy): Make cross platform 2012-03-07
-// int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header);
+int EMU_FASTCALL ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header);
 
 extern char g_current_game_name[992];   ///< Currently loaded game name
 extern char g_current_game_crc[7];      ///< Currently loaded game checksum

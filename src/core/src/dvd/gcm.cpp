@@ -58,6 +58,27 @@ GCMFileData *	GCMCurDir;
 u32		DumpGCMBlockReads = 0;
 char	DumpDirectory[1024] = ".";
 
+
+void GCMFSTHeader::ToggleEndianness()
+{
+    Offset = BSWAP32(Offset);
+    Size = BSWAP32(Size);
+    MaxSize = BSWAP32(MaxSize);
+    MemLocation = BSWAP32(MemLocation);
+}
+
+void GCMHeader::ToggleEndianness()
+{
+    game_code.hex = BSWAP32(game_code.hex);
+    maker_code = BSWAP16(maker_code);
+    dvd_magic_word = BSWAP32(dvd_magic_word);
+    debug_monitor_offset = BSWAP32(debug_monitor_offset);
+    debug_monitor_load_addr = BSWAP32(debug_monitor_load_addr);
+    main_dol_offset = BSWAP32(main_dol_offset);
+    fst_header.ToggleEndianness();
+    user_length = BSWAP32(user_length);
+}
+
 /// Gets the banner checksum
 u8 GetBnrChecksum(void *banner)
 {
@@ -921,11 +942,10 @@ int LoadGCM(char *filename)
     return E_OK;
 }
 
-/* 
-TODO(ShizZy): Make cross platform 2012-03-07
-int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, void *Header)
+// TODO(ShizZy): Make cross platform 2012-03-07
+#if EMU_PLATFORM == PLATFORM_WINDOWS
+int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header)
 {
-    GCMFSTHeader	FSTInfo;
     DWORD			BytesRead;
     u32				TempData;
     u32				FileCount;
@@ -947,29 +967,24 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, voi
     *filesize = GetFileSize(GCMFileHandle, NULL);
 
     //read the header
-    ReadFile(GCMFileHandle, Header, 0x440, &BytesRead, 0);
-
-    //read the FST
-    if(SetFilePointer(GCMFileHandle, 0x424, NULL, SEEK_SET) != 0x424) {
-        CloseHandle(GCMFileHandle);
+    if (ReadFile(GCMFileHandle, Header, sizeof(GCMHeader), &BytesRead, 0) != TRUE)
         return E_ERR;
-    }
 
-    //get the FST info header
-    ReadFile(GCMFileHandle, &FSTInfo, sizeof(FSTInfo), &BytesRead, 0);
-    if(BytesRead != sizeof(FSTInfo)) {
-        CloseHandle(GCMFileHandle);
-        g_file_handle = NULL;
+    Header->ToggleEndianness();
+
+    if (BytesRead != 0x440)
         return E_ERR;
-    }
 
-    //swap the FST info
-    FSTInfo.Offset = BSWAP32(FSTInfo.Offset) + 8;		//adjust for the 8 header bytes
-    FSTInfo.Size = BSWAP32(FSTInfo.Size) - 8;			//adjust for the 8 header bytes
-    FSTInfo.MaxSize = BSWAP32(FSTInfo.MaxSize) - 8;
+    if (((GCMHeader*)Header)->dvd_magic_word != GCM_HEADER_MAGIC_WORD)
+        return E_ERR;
+
+    // TODO(neobrain): I don't like this..
+    Header->fst_header.Offset += 8;		//adjust for the 8 header bytes
+    Header->fst_header.Size -= 8;			//adjust for the 8 header bytes
+    Header->fst_header.MaxSize -= 8;
 
     //seek to the position of the FST plus 8 bytes
-    if(SetFilePointer(GCMFileHandle, FSTInfo.Offset, NULL, SEEK_SET) != FSTInfo.Offset) {
+    if(SetFilePointer(GCMFileHandle, Header->fst_header.Offset, NULL, SEEK_SET) != Header->fst_header.Offset) {
         CloseHandle(GCMFileHandle);
         return E_ERR;
     }
@@ -985,7 +1000,7 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, voi
     //GCM's count the first 8 bytes + 4 byte file count as a file record. Remove it
     FileCount = BSWAP32(FileCount) - 1;
     GCMFSTData = (GCMFST *)malloc((FileCount+1) * sizeof(GCMFST));
-    FileNames = (char *)malloc(FSTInfo.Size - (FileCount * sizeof(GCMFST)));
+    FileNames = (char *)malloc(Header->fst_header.Size - (FileCount * sizeof(GCMFST)));
     memset(&GCMFSTData[FileCount], 0, sizeof(GCMFST));
 
     //read the data
@@ -996,7 +1011,7 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, voi
     }
 
     //get the filenames
-    TempData = FSTInfo.Size - (FileCount * sizeof(GCMFST));
+    TempData = Header->fst_header.Size - (FileCount * sizeof(GCMFST));
     ReadFile(GCMFileHandle, FileNames, TempData, &BytesRead, 0);
 
     //make all files uppercase
@@ -1027,6 +1042,7 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, voi
     }
     return E_OK;
 }
-*/
+#endif
+
 
 } // namespace

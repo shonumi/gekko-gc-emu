@@ -8,16 +8,11 @@ class GImageInfo : public QDockWidget
 public:
 	GImageInfo(QWidget* parent = NULL);
 
-	void SetBanner(const QPixmap& banner)
-	{
-		ui.label_banner->setPixmap(banner);
-	}
-
-	void SetName(const char* name)
-	{
-		ui.line_name->setText(QString::fromLatin1(name));
-	}
+	void SetBanner(const QPixmap& banner);
+	void SetName(const char* name);
 
 private:
 	Ui::ImageInfo ui;
+
+    QPixmap banner;
 };
