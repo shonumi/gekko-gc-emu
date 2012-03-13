@@ -32,8 +32,9 @@ namespace dvd {
  * \brief Loads a bootable file (ROM/DVD image) to be ran by the emulator
  * \param filename Filename of ROM/DVD image to load
  * \return 0 on pass, non-zero error code on fail
+ * \todo EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
  */
-int LoadBootableFile(char* filename);
+int EMU_FASTCALL LoadBootableFile(char* filename);
 
 /*!
  * \brief Load a DOL (GameCube binary file)

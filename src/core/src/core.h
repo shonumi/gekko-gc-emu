@@ -55,20 +55,25 @@ void SetState(SystemState state);
 /*!
  * \brief Set the system configuration manager
  * \param config_manager Pointer to common::ConfigManager instance to set the config manager to
+ * \todo shouldn't be fastcall (gekko-qt workaround)
  */
-void SetConfigManager(common::ConfigManager* config_manager);
+void EMU_FASTCALL SetConfigManager(common::ConfigManager* config_manager);
 
 /// Start the core
-void Start();
+// TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
+void EMU_FASTCALL Start();
 
 /// Kill the core
-void Kill();
+// TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
+void EMU_FASTCALL Kill();
 
 /// Stop the core
-void Stop();
+// TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
+void EMU_FASTCALL Stop();
 
 /// Initialize the core
-int Init();
+// TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
+int EMU_FASTCALL Init();
 
 extern common::ConfigManager*   g_config_manager;           ///< Global system configuration manager
 extern SystemState              g_state;                    ///< State of the emulator

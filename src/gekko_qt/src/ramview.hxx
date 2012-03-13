@@ -1,4 +1,5 @@
 #include "qhexedit.h"
+#include "platform.h"
 
 class GRamView : public QHexEdit
 {
@@ -7,5 +8,5 @@ class GRamView : public QHexEdit
 public:
     GRamView(QWidget* parent = NULL);
 
-    static void OnCPUStep(void* object);
+    static void EMU_FASTCALL OnCPUStep(void* object);
 };

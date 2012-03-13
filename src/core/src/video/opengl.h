@@ -37,7 +37,8 @@ struct opengl
 
 extern opengl gl;
 
-void OPENGL_SetTitle(char*);
+// TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
+void EMU_FASTCALL OPENGL_SetTitle(char*);
 void OPENGL_DrawFramebuffer();
 void OPENGL_Initialize();
 void OPENGL_Kill();

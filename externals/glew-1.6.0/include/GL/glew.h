@@ -15466,7 +15466,8 @@ GLEWAPI GLboolean glewContextIsSupported (const GLEWContext* ctx, const char* na
 
 #else /* GLEW_MX */
 
-GLEWAPI GLenum glewInit ();
+// TODO: workaround until VC projects only use fastcall where necessary
+GLEWAPI GLenum __cdecl glewInit ();
 GLEWAPI GLboolean glewIsSupported (const char* name);
 #define glewIsExtensionSupported(x) glewIsSupported(x)
 
