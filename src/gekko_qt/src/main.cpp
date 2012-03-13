@@ -45,8 +45,8 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     GCallstackView* callstack = new GCallstackView(this);
     addDockWidget(Qt::BottomDockWidgetArea, callstack);
 
-    // TODO: Doesn't get saved?
     QDockWidget* dock_ramedit = new QDockWidget(this);
+    dock_ramedit->setObjectName("RamViewer");
     ram_edit = new GRamView(dock_ramedit);
     dock_ramedit->setWidget(ram_edit);
     dock_ramedit->setWindowTitle(tr("Memory viewer"));
@@ -55,6 +55,16 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     QSettings settings("Gekko team", "Gekko");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
+
+    // menu items
+    QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));
+    filebrowser_menu->addAction(image_info->toggleViewAction());
+
+    QMenu* debug_menu = ui.menu_View->addMenu(tr("Debugging"));
+    debug_menu->addAction(disasm->toggleViewAction());
+    debug_menu->addAction(gekko_regs->toggleViewAction());
+    debug_menu->addAction(callstack->toggleViewAction());
+    debug_menu->addAction(dock_ramedit->toggleViewAction());
 
     // setup connections
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
@@ -210,6 +220,8 @@ void GMainWindow::OnFileBrowserSelectionChanged()
 
 void GMainWindow::closeEvent(QCloseEvent* event)
 {
+    // Save window layout
+    // NOTE: For manually created objects, you'll need to assign names via setObjectName for this to work 
     QSettings settings("Gekko team", "Gekko");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
