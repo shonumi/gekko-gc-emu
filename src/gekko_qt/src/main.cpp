@@ -203,6 +203,9 @@ void GMainWindow::OnFileBrowserSelectionChanged()
 	if (dvd::ReadGCMInfo(file_browser_model->filePath(index).toLatin1().data(), &size, (void*)banner, &header) != E_OK)
     {
         image_info->SetBanner(QPixmap());
+        image_info->SetName(QString());
+        image_info->SetId(QString());
+        image_info->SetDeveloper(QString());
         return;
     }
 
@@ -210,6 +213,11 @@ void GMainWindow::OnFileBrowserSelectionChanged()
     QPixmap pm_banner;
     BrowserAddBanner(&banner[0x20], pm_banner);
     image_info->SetBanner(pm_banner);
+
+    // TODO: Support SHIFT-JIS ...
+    image_info->SetName(QString::fromLatin1((char*)&banner[0x1860]));
+//    image_info->SetId(QString::fromLatin1(???)); // TODO
+    image_info->SetDeveloper(QString::fromLatin1((char*)&banner[0x18a0]));
 #endif
 }
 

@@ -13,7 +13,17 @@ void GImageInfo::SetBanner(const QPixmap& banner)
 	ui.label_banner->setPixmap(this->banner);
 }
 
-void GImageInfo::SetName(const char* name)
+void GImageInfo::SetName(const QString& name)
 {
-	ui.line_name->setText(QString::fromLatin1(name));
+	ui.line_name->setText(name);
+}
+
+void GImageInfo::SetId(const QString& id)
+{
+    ui.line_gameid->setText(id);
+}
+
+void GImageInfo::SetDeveloper(const QString& developer)
+{
+    ui.line_developer->setText(developer);
 }

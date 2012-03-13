@@ -9,7 +9,9 @@ public:
 	GImageInfo(QWidget* parent = NULL);
 
 	void SetBanner(const QPixmap& banner);
-	void SetName(const char* name);
+	void SetName(const QString& name);
+    void SetId(const QString& id);
+    void SetDeveloper(const QString& developer);
 
 private:
 	Ui::ImageInfo ui;
