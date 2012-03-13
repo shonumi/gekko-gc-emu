@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Gekko</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>src/pcafe/res/icon3_64x64.ico</normaloff>src/pcafe/res/icon3_64x64.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
