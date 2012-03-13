@@ -51,6 +51,9 @@
 #define CP_MATIDX_REG_A					g_cp_regs.mem[0x30]
 #define CP_MATIDX_REG_B					g_cp_regs.mem[0x40]
 
+// Address reference (used for XF)
+#define CP_IDX_ADDR(idx, n)				(g_cp_regs.mem[0xac + n] + idx * g_cp_regs.mem[0xbc + n])
+
 // midx: matrix indexes
 // index for position/normal matrix	
 #define MIDX_POS						(CP_MATIDX_REG_A & 0x3f)	

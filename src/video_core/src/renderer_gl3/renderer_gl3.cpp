@@ -24,8 +24,6 @@
 
 #include "common.h"
 
-//#include <vector>
-
 #include "input_common.h"
 
 #include "vertex_loader.h"
@@ -33,7 +31,6 @@
 #include "renderer_gl3.h"
 
 #include <GL/glew.h>
-#include <GL/wglew.h>
 #include <GL/glfw.h>
 
 GLuint g_position_buffer;
@@ -88,24 +85,30 @@ void RendererGL3::DrawPrimitive() {
     //printf("RendererGL3::DrawPrimitive()\n");
 }
 
+
+/// Sets the renderer viewport location, width, and height
+void RendererGL3::SetViewport(int x, int y, int width, int height) {
+    glViewport(x, ((480 - (y + height))), width, height);
+}
+
+/// Sets the renderer depthrange, znear and zfar
+void RendererGL3::SetDepthRange(double znear, double zfar) {
+    glDepthRange(znear, zfar);
+}
+
+/// Sets the projection matrix
+/*void RendererGL3::SetProjection(f32* mtx) {
+	glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf((GLfloat*)mtx);
+	glMatrixMode(GL_MODELVIEW);
+}*/
+
 /// Swap buffers (render frame)
-void RendererGL3::SwapBuffers() {
-	
+void RendererGL3::SwapBuffers() {	
     glfwSwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT);
-    //input_common::g_user_input->PollEvent();
-    //printf("RendererGL3::SwapBuffers()\n");
 
-    glfwGetKey( GLFW_KEY_ESC );
-    glfwGetWindowParam( GLFW_OPENED );
-
-
-
-
-
-
-
-
+#if EMU_PLATFORM == PLATFORM_WINDOWS
 	static u32 swaps = 0, last = 0;
 	static float fps = 0;
 	u32 t = GetTickCount ();
@@ -122,6 +125,7 @@ void RendererGL3::SwapBuffers() {
 		sprintf(str1, "gekko-glfw - %03.02f fps", fps);
         glfwSetWindowTitle(str1);
 	}
+#endif
 }
 
 /*! 

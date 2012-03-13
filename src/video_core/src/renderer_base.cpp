@@ -36,9 +36,19 @@ void RendererBase::DrawPrimitive() {
     printf("RendererBase::DrawPrimitive()\n");
 }
 
+/// Sets the render viewport location, width, and height
+void RendererBase::SetViewport(int x, int y, int width, int height) {
+    printf("RendererBase::SetViewport()\n");
+}
+
 /// Swap buffers (render frame)
 void RendererBase::SwapBuffers() {
     printf("RendererBase::SwapBuffers()\n");
+}
+
+/// Sets the renderer depthrange, znear and zfar
+void RendererBase::SetDepthRange(double znear, double zfar) {
+    printf("RendererBase::SetDepthRange()\n");
 }
 
 /*! 

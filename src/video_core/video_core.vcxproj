@@ -50,6 +50,7 @@
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
     <ClCompile Include="src\video_core.cpp" />
+    <ClCompile Include="src\xf_mem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
@@ -59,6 +60,7 @@
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h" />
     <ClInclude Include="src\vertex_loader.h" />
     <ClInclude Include="src\video_core.h" />
+    <ClInclude Include="src\xf_mem.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6678D1A3-33A6-48A9-878B-48E5D2903D27}</ProjectGuid>

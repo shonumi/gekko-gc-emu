@@ -38,6 +38,9 @@ public:
 
     void DrawPrimitive();
 
+    void SetViewport(int x, int y, int width, int height);
+    void SetDepthRange(double znear, double zfar);
+
     void SwapBuffers();
     void SetWindowText(const char* text);
     void SetWindowSize(int width, int height);
@@ -50,7 +53,6 @@ private:
 
     int resolution_width_;
     int resolution_height_;
-
 
     DISALLOW_COPY_AND_ASSIGN(RendererGL3);
 };
