@@ -1,6 +1,8 @@
 #include <QDockWidget>
 #include "ui_disasm.h"
 
+#include "common.h"
+
 class QStandardItemModel;
 
 class GDisAsmView : public QDockWidget
@@ -15,8 +17,12 @@ public slots:
     void OnSetBreakpoint();
 
 private:
+    int SelectedRow();
+    u32 SelectedAddress();
+
     Ui::DockWidget disasm_ui;
     QStandardItemModel* model;
 
+    u32 base_addr;
 //    QList<u32> breakpoints;
 };
