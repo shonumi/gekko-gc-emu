@@ -11,7 +11,7 @@
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
         <EnableCheats>false</EnableCheats> <!-- Not implemented -->
-        </DefaultBootFile>
+        <DefaultBootFile></DefaultBootFile>
         <DVDImagePaths/>
     </General>
 
