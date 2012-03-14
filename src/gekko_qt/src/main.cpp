@@ -126,71 +126,63 @@ void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
     }
 }
 
-// TODO: Doesn't belong here! Clean up and separate from GUI code
-#if EMU_PLATFORM == PLATFORM_WINDOWS
-#define PACKRGB555(r, g, b)				(u16)((((r)&0xf8)<<7)|(((g)&0xf8)<<2)|(((b)&0xf8)>>3))
-#define PACKRGB565(r, g, b)				(u16)((((r)&0xf8)<<8)|(((g)&0xfc)<<3)|(((b)&0xf8)>>3))
-
-static void BrowserAddBanner(u8 *banner, QPixmap& out_pixmap)
+static inline u32 DeccoreRGB5A3(u16 _data)
 {
-    int			width = DVD_BANNER_WIDTH;
-    int			height = DVD_BANNER_HEIGHT;
-    int			bcount = width * height * 3;
-    int			tiles  = (DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT) / 16;    
-    u8			*imageA, *ptrA;
-    u16			*tile = (u16*)banner;
-    u32			r, g, b, a;
-    int			row = 0, col = 0, pos;
+    u8 r, g, b, a;
 
-    imageA = new u8[bcount];
-
-    // Convert RGB5A3 -> RGBA
-    for(int i=0; i<tiles; i++, tile+=16)
+    if(_data & SIGNED_BIT16) // rgb5
     {
-        for(int j=0; j<4; j++)
-        for(int k=0; k<4; k++)
-        {
-            u16 p;
+        r = (u8)(255.0f * (((_data >> 10) & 0x1f) / 32.0f));
+        g = (u8)(255.0f * (((_data >> 5) & 0x1f) / 32.0f));
+        b = (u8)(255.0f * ((_data & 0x1f) / 32.0f));
+        a = 0xff;	
+    }else{ // rgb4a3
+        r = 17 * ((_data >> 8) & 0xf);
+        g = 17 * ((_data >> 4) & 0xf);
+        b = 17 * (_data & 0xf);
+        a = (u8)(255.0f * (((_data >> 12) & 7) / 8.0f));
+    }
+    return (a << 24) | (r << 16) | (g << 8) | b;
+}
 
-            p = tile[j * 4 + k];
-            if(p >> 15)
-            {
-                r = (p & 0x7c00) >> 10;
-                g = (p & 0x03e0) >> 5;
-                b = (p & 0x001f);
-                r = (u8)((r << 3) | (r >> 2));
-                g = (u8)((g << 3) | (g >> 2));
-                b = (u8)((b << 3) | (b >> 2));
-            }
-            else
-            {
-                r = g = b = 0;
-                a = (p & 0x7000) >> 12;
-            }
+void DecodeBanner(u8* src, u8* dst, int w, int h) {
+    u32 *dst32 = (u32*)dst;
+    u16	*src16 = ((u16*)src);
+    u32	*src32 = ((u32*)src);
+    int	x, y, dx, dy, i = 0, j = 0;
+    int width = (w + 3) & ~3;
 
-            pos = 3 * ((row + j) * width + (col + k));
-
-            ptrA   = &imageA[pos];
-
-            p = PACKRGB565(r, g, b);
-
-            *ptrA++ = (u8)r;
-            *ptrA++ = (u8)g;
-            *ptrA++ = (u8)b;
-        }
-
-        col += 4;
-        if(col == DVD_BANNER_WIDTH)
-        {
-            col = 0;
-            row += 4;
-        }
+    for (i=0; i < w*h/2; i++) {
+        src32[i] = BSWAP32(src32[i]);
     }
 
-    out_pixmap.convertFromImage(QImage(imageA, 96, 32, QImage::Format_RGB888));
+    for(y = 0; y < h; y += 4) {
+        for(x = 0; x < width; x += 4) {
+            for(dy = 0; dy < 4; dy++) {
+                for(dx = 0; dx < 4; dx++) {
+                    // memory is not already swapped.. use this to grab high word first
+                    j ^= 1;
+                    // decode color
+                    dst32[width * (y + dy) + x + dx] = DeccoreRGB5A3((*((u16*)(src16 + j))));
+                    dst32[width * (y + dy) + x + dx] |= 0xff000000; // Remove this for alpha (looks sh**)
+                    // only increment every other time otherwise you get address doubles
+                    if(!j) src16 += 2;
+                }
+            }
+        }
+    }
+}
+
+static void BrowserAddBanner(u8 *banner, QPixmap& out_pixmap)
+{   
+    u8			*imageA;
+    imageA = (u8*)malloc(DVD_BANNER_WIDTH*DVD_BANNER_HEIGHT*4);
+    DecodeBanner(banner, imageA, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
+
+    out_pixmap.convertFromImage(QImage(imageA, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, 
+        QImage::Format_ARGB32));
     delete[] imageA;
 }
-#endif
 
 void GMainWindow::OnFileBrowserSelectionChanged()
 {
