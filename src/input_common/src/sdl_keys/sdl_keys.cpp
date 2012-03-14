@@ -54,33 +54,33 @@ void SDLKeys::SetControllerStatus(int channel, u16 key,
         
     // Analog stick
     } else if (key == common::g_config->controller_ports(channel).keys.analog_up_key_code) {
-        g_controller_state[channel]->set_analog_stick_status(GCController::GC_CONTROLLER_UP, state);
+        g_controller_state[channel]->set_analog_stick_status(GCController::STICK_UP, state);
     } else if (key == common::g_config->controller_ports(channel).keys.analog_down_key_code) {
-        g_controller_state[channel]->set_analog_stick_status(GCController::GC_CONTROLLER_DOWN, state);
+        g_controller_state[channel]->set_analog_stick_status(GCController::STICK_DOWN, state);
     } else if (key == common::g_config->controller_ports(channel).keys.analog_left_key_code) {
-        g_controller_state[channel]->set_analog_stick_status(GCController::GC_CONTROLLER_LEFT, state);
+        g_controller_state[channel]->set_analog_stick_status(GCController::STICK_LEFT, state);
     } else if (key == common::g_config->controller_ports(channel).keys.analog_right_key_code) {
-        g_controller_state[channel]->set_analog_stick_status(GCController::GC_CONTROLLER_RIGHT, state);
+        g_controller_state[channel]->set_analog_stick_status(GCController::STICK_RIGHT, state);
 
     // C stick
     } else if (key == common::g_config->controller_ports(channel).keys.c_up_key_code) {
-        g_controller_state[channel]->set_c_stick_status(GCController::GC_CONTROLLER_UP, state);
+        g_controller_state[channel]->set_c_stick_status(GCController::STICK_UP, state);
     } else if (key == common::g_config->controller_ports(channel).keys.c_down_key_code) {
-        g_controller_state[channel]->set_c_stick_status(GCController::GC_CONTROLLER_DOWN, state);
+        g_controller_state[channel]->set_c_stick_status(GCController::STICK_DOWN, state);
     } else if (key == common::g_config->controller_ports(channel).keys.c_left_key_code) {
-        g_controller_state[channel]->set_c_stick_status(GCController::GC_CONTROLLER_LEFT, state);
+        g_controller_state[channel]->set_c_stick_status(GCController::STICK_LEFT, state);
     } else if (key == common::g_config->controller_ports(channel).keys.c_right_key_code) {
-        g_controller_state[channel]->set_c_stick_status(GCController::GC_CONTROLLER_RIGHT, state);
+        g_controller_state[channel]->set_c_stick_status(GCController::STICK_RIGHT, state);
 
     // D-pad
     } else if (key == common::g_config->controller_ports(channel).keys.dpad_up_key_code) {
-        g_controller_state[channel]->set_dpad_status(GCController::GC_CONTROLLER_UP, state);
+        g_controller_state[channel]->set_dpad_status(GCController::STICK_UP, state);
     } else if (key == common::g_config->controller_ports(channel).keys.dpad_down_key_code) {
-        g_controller_state[channel]->set_dpad_status(GCController::GC_CONTROLLER_DOWN, state);
+        g_controller_state[channel]->set_dpad_status(GCController::STICK_DOWN, state);
     } else if (key == common::g_config->controller_ports(channel).keys.dpad_left_key_code) {
-        g_controller_state[channel]->set_dpad_status(GCController::GC_CONTROLLER_LEFT, state);
+        g_controller_state[channel]->set_dpad_status(GCController::STICK_LEFT, state);
     } else if (key == common::g_config->controller_ports(channel).keys.dpad_right_key_code) {
-        g_controller_state[channel]->set_dpad_status(GCController::GC_CONTROLLER_RIGHT, state);
+        g_controller_state[channel]->set_dpad_status(GCController::STICK_RIGHT, state);
     }  
 }
 
@@ -93,11 +93,11 @@ void SDLKeys::PollEvent() {
 
         // Handle controller button press events
         case SDL_KEYDOWN:
-            SetControllerStatus(0, keyevent.key.keysym.sym, GCController::GC_CONTROLLER_PRESSED);
+            SetControllerStatus(0, keyevent.key.keysym.sym, GCController::PRESSED);
             break;
         // Handle controller button release events
         case SDL_KEYUP:
-            SetControllerStatus(0, keyevent.key.keysym.sym, GCController::GC_CONTROLLER_RELEASED);
+            SetControllerStatus(0, keyevent.key.keysym.sym, GCController::RELEASED);
             break;
         }
     }
@@ -107,8 +107,9 @@ void SDLKeys::ShutDown() {
 }
 
 /// Any initialization goes here...
-void SDLKeys::Init() {
+bool SDLKeys::Init() {
     LOG_NOTICE(TJOYPAD, "\"SDL keys\" input plugin initialized ok");
+    return true;
 }
 
 

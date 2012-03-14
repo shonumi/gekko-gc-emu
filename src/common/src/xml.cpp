@@ -411,6 +411,36 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
             port_config.keys.dpad_right_key_code = 
                 GetXMLElementAsInt(keyboard_node, "DPadRightKey");
         }
+
+        // Parse joypad configuration
+        rapidxml::xml_node<> *joypad_node = elem->first_node("JoypadController");
+        if (joypad_node) {
+            port_config.pads.enable = (E_OK == _stricmp(attr->value(), "true")) ? true : false;
+            port_config.pads.a_key_code = GetXMLElementAsInt(joypad_node, "AKey");
+            port_config.pads.b_key_code = GetXMLElementAsInt(joypad_node, "BKey");
+            port_config.pads.x_key_code = GetXMLElementAsInt(joypad_node, "XKey");
+            port_config.pads.y_key_code = GetXMLElementAsInt(joypad_node, "YKey");
+            port_config.pads.l_key_code = GetXMLElementAsInt(joypad_node, "LKey");
+            port_config.pads.r_key_code = GetXMLElementAsInt(joypad_node, "RKey");
+            port_config.pads.z_key_code = GetXMLElementAsInt(joypad_node, "ZKey");
+            port_config.pads.start_key_code = GetXMLElementAsInt(joypad_node, "StartKey");
+            port_config.pads.analog_up_key_code = GetXMLElementAsInt(joypad_node, "AnalogUpKey");
+            port_config.pads.analog_down_key_code = 
+                GetXMLElementAsInt(joypad_node, "AnalogDownKey");
+            port_config.pads.analog_left_key_code = 
+                GetXMLElementAsInt(joypad_node, "AnalogLeftKey");
+            port_config.pads.analog_right_key_code = 
+                GetXMLElementAsInt(joypad_node, "AnalogRightKey");
+            port_config.pads.c_up_key_code = GetXMLElementAsInt(joypad_node, "CUpKey");
+            port_config.pads.c_down_key_code = GetXMLElementAsInt(joypad_node, "CDownKey");
+            port_config.pads.c_left_key_code = GetXMLElementAsInt(joypad_node, "CLeftKey");
+            port_config.pads.c_right_key_code = GetXMLElementAsInt(joypad_node, "CRightKey");
+            port_config.pads.dpad_up_key_code = GetXMLElementAsInt(joypad_node, "DPadUpKey");
+            port_config.pads.dpad_down_key_code = GetXMLElementAsInt(joypad_node, "DPadDownKey");
+            port_config.pads.dpad_left_key_code = GetXMLElementAsInt(joypad_node, "DPadLeftKey");
+            port_config.pads.dpad_right_key_code = 
+                GetXMLElementAsInt(joypad_node, "DPadRightKey");
+        }
         config.set_controller_ports(port, port_config);
     }
 }

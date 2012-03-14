@@ -77,11 +77,38 @@ public:
         int dpad_right_key_code;
     } KeyboardController;
 
+    /// Struct used for defining a joypad configuration for a GameCube controller
+    /// We'll make another struct in case the user wants seperate joypad config
+    typedef struct {
+        bool enable;                ///< Is the joypad configation enabled?
+        int a_key_code;
+        int b_key_code;
+        int x_key_code;
+        int y_key_code;
+        int l_key_code;
+        int r_key_code;
+        int z_key_code;
+        int start_key_code;
+        int analog_up_key_code;
+        int analog_down_key_code;
+        int analog_left_key_code;
+        int analog_right_key_code;
+        int c_up_key_code;
+        int c_down_key_code;
+        int c_left_key_code;
+        int c_right_key_code;
+        int dpad_up_key_code;
+        int dpad_down_key_code;
+        int dpad_left_key_code;
+        int dpad_right_key_code;
+    } JoypadController;
+
     /// Struct used for configuring what is inserted in a controller port
     typedef struct {
         u8 device;                  ///< Controller port device (0 - controller)
         bool enable;                ///< Enable (plugged in?)
         KeyboardController keys;    ///< Keyboard configuration for controller (if used)
+        JoypadController pads;      ///< Joypad configuration for controller (if used)
     } ControllerPort;
 
     /// Enum for supported CPU types

@@ -11,7 +11,7 @@
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
         <EnableCheats>false</EnableCheats> <!-- Not implemented -->
-        <DefaultBootFile/>
+        <DefaultBootFile></DefaultBootFile>
         <DVDImagePaths/>
     </General>
 
@@ -31,7 +31,7 @@
     </Boot>
 
     <!-- Settings applicable to the PowerPC CPU core -->
-    <PowerPC core="dynarec" freq="486">
+    <PowerPC core="interpreter" freq="486">
         <Core name="interpreter"/>
         <Core name="dynarec"/>
     </PowerPC>
@@ -69,7 +69,7 @@
             <!-- Standard controller example -->
             <ControllerPort port="0" device="controller" enable="true">
                 <!-- Keyboard configuration example - codes are in ASCII decimal -->
-                <KeyboardController enable="true">
+                <KeyboardController enable="false">
                     <!-- Default: "X" key -->
                     <AKey>120</AKey>
                     <!-- Default: "Z" key -->
@@ -111,6 +111,35 @@
                     <!-- Default: "H" key -->
                     <DPadRightKey>104</DPadRightKey>
                 </KeyboardController>
+
+                <!-- Joypad configuration example - codes based on pad syms -->
+		<!-- See "Joypad Configuration" Wiki entry on Google Code page -->
+                <JoypadController enable="true">
+                    <!-- Button Joypad Config -->
+                    <AKey>101</AKey>
+                    <BKey>100</BKey>
+                    <XKey>102</XKey>
+                    <YKey>103</YKey>
+                    <LKey>104</LKey>
+                    <RKey>105</RKey>
+                    <ZKey>106</ZKey>
+                    <StartKey>109</StartKey>
+                    <!-- Analog Joypad Config -->
+                    <AnalogUpKey>202</AnalogUpKey>
+                    <AnalogDownKey>203</AnalogDownKey>
+                    <AnalogLeftKey>200</AnalogLeftKey>
+                    <AnalogRightKey>201</AnalogRightKey>
+                    <!-- C Stick Joypad Config -->
+                    <CUpKey>206</CUpKey>
+                    <CDownKey>207</CDownKey>
+                    <CLeftKey>204</CLeftKey>
+                    <CRightKey>205</CRightKey>
+                    <!-- DPad Joypad Config -->
+                    <DPadUpKey>210</DPadUpKey>
+                    <DPadDownKey>211</DPadDownKey>
+                    <DPadLeftKey>208</DPadLeftKey>
+                    <DPadRightKey>209</DPadRightKey>
+                </JoypadController>
             </ControllerPort>
         </GameCube>
     </Devices>

@@ -260,7 +260,7 @@ void SI_ReadKeys(int _channel)
 {
 sec_0:
     // Analog Stick Y Axis Up
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::GC_CONTROLLER_UP))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_UP))) {
         si.pad[_channel].aY = A_HIGH;
         goto sec_1;
     }else{
@@ -268,7 +268,7 @@ sec_0:
     }
 
     // Analog Stick Y Axis Down
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::GC_CONTROLLER_DOWN))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_DOWN))) {
         si.pad[_channel].aY = A_LOW;
     }else{
         si.pad[_channel].aY = A_NEUTRAL;
@@ -276,7 +276,7 @@ sec_0:
 
 sec_1:
     // Analog Stick X Axis Left				
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::GC_CONTROLLER_LEFT))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_LEFT))) {
         si.pad[_channel].aX = A_LOW;
         goto sec_2;
     }else{
@@ -284,7 +284,7 @@ sec_1:
     }
 
     // Analog Stick X Axis Right
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::GC_CONTROLLER_RIGHT))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_RIGHT))) {
         si.pad[_channel].aX = A_HIGH;
     }else{
         si.pad[_channel].aX = A_NEUTRAL;
@@ -292,7 +292,7 @@ sec_1:
 
 sec_2:
     // C Stick Y Axis Up
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::GC_CONTROLLER_UP))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_UP))) {
         si.pad[_channel].cY = A_HIGH;
         goto sec_3;
     }else{
@@ -300,7 +300,7 @@ sec_2:
     }
 
     // C Stick Y Axis Down
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::GC_CONTROLLER_DOWN))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_DOWN))) {
         si.pad[_channel].cY = A_LOW;
     }else{
         si.pad[_channel].cY = A_NEUTRAL;
@@ -308,7 +308,7 @@ sec_2:
 
 sec_3:
     // C Stick X Axis Left
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::GC_CONTROLLER_LEFT))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_LEFT))) {
         si.pad[_channel].cX = A_LOW;
         goto sec_4;
     }else{
@@ -316,7 +316,7 @@ sec_3:
     }
 
     // C Stick X Axis Right
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::GC_CONTROLLER_RIGHT))) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_RIGHT))) {
         si.pad[_channel].cX = A_HIGH;
     }else{
         si.pad[_channel].cX = A_NEUTRAL;

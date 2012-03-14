@@ -1,10 +1,10 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    sdl_keys.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-03
- * \brief   Implementation of a SDL keyboard GC controller interface
+ * \file    sdl_joypads.h
+ * \author  Shonumi <shonumi@gmail.com>
+ * \date    2012-03-12
+ * \brief   Implementation of a SDL joypad GC controller interface
  *
  * \section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -22,18 +22,18 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#ifndef INPUT_COMMON_SDL_KEYS_
-#define INPUT_COMMON_SDL_KEYS_
+#ifndef INPUT_COMMON_SDL_JOYPADS_
+#define INPUT_COMMON_SDL_JOYPADS_
 
 #include "common.h"
 #include "input_common.h"
 
 namespace input_common {
 
-class SDLKeys  : virtual public InputBase {
+class SDLJoypads  : virtual public InputBase {
 public:
-    SDLKeys() {};
-    ~SDLKeys() {};
+    SDLJoypads() {};
+    ~SDLJoypads() {};
 
     bool Init();
     void PollEvent();
@@ -41,16 +41,25 @@ public:
 
 private:
     /*!
-     * \brief Sets the controller status from the keyboard using SDL
+     * \brief Sets the controller status from the joystick using SDL
      * \param channel Channel of controller to set status of (0-3)
-     * \param key SDL key pressed or released
+     * \param map Joypad input that was activated or released
      * \param state GCController::GCButtonState we're setting
      */
-    void SetControllerStatus(int channel, u16 key, GCController::GCButtonState state);
+    void SetControllerStatus(int channel, int pad, GCController::GCButtonState state);
 
-    DISALLOW_COPY_AND_ASSIGN(SDLKeys);
+    /*!
+     * \brief Checks whether joystick is in dead zone or not
+     * \param value Integer from jaxis.value
+     * \return true if in dead zone, false otherwise
+     */
+    static inline bool DeadZone(int val);
+
+    SDL_Joystick *jpad;
+
+    DISALLOW_COPY_AND_ASSIGN(SDLJoypads);
 };
 
 } // namepsace
 
-#endif //INPUT_COMMON_SDL_KEYS_
+#endif //INPUT_COMMON_SDL_JOYPADS_

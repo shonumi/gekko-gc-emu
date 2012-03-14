@@ -25,6 +25,7 @@
 #include "input_common.h"
 #include "gc_controller.h"
 #include "sdl_keys/sdl_keys.h"
+#include "sdl_joypads/sdl_joypads.h"
 
 namespace input_common {
 
@@ -37,8 +38,9 @@ InputBase::InputBase() {
 InputBase::~InputBase() {
 }
 
-void InputBase::Init() {
+bool InputBase::Init() {
     printf("InputBase::Init()\n");
+    return true;
 }
 
 void InputBase::PollEvent() {
@@ -56,9 +58,16 @@ void EMU_FASTCALL Init() {
         g_controller_state[i] = new GCController();
     }
     delete g_user_input;
-    g_user_input = new SDLKeys(); // We only have one plugin right now, so use that!
 
-    LOG_NOTICE(TJOYPAD, "initialized ok");
+    //Try to init joypads first
+    g_user_input = new SDLJoypads();
+
+    //If that fails, fallback on keyboard input
+    if(!g_user_input->Init()) {
+        delete g_user_input;
+        g_user_input = new SDLKeys();
+        g_user_input->Init();
+    }
 }
 
 } // namespace

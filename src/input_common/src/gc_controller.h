@@ -28,7 +28,7 @@
 #include "common.h"
 
 /// Macro for checking if a button is pressed
-#define IS_GCBUTTON_PRESSED(val)  (val == input_common::GCController::GC_CONTROLLER_PRESSED)
+#define IS_GCBUTTON_PRESSED(val)  (val == input_common::GCController::PRESSED)
 
 namespace input_common {
 
@@ -38,38 +38,38 @@ public:
     /// Used for contoller button state
     typedef enum {
         GC_CONTROLLER_NULL = 0,     ///< Undefined state
-        GC_CONTROLLER_RELEASED,     ///< Controller button is pressed
-        GC_CONTROLLER_PRESSED       ///< COntroller button is released
+        RELEASED,                   ///< Controller button is pressed
+        PRESSED                     ///< COntroller button is released
     } GCButtonState;
 
     typedef enum {
-        GC_CONTROLLER_UP = 0,       ///< Up direction on controller stick/dpad
-        GC_CONTROLLER_DOWN,         ///< Down direction on controller stick/dpad
-        GC_CONTROLLER_LEFT,         ///< Left direction on controller stick/dpad
-        GC_CONTROLLER_RIGHT,        ///< Right direction on controller stick/dpad
+        STICK_UP = 0,               ///< Up direction on controller stick/dpad
+        STICK_DOWN,                 ///< Down direction on controller stick/dpad
+        STICK_LEFT,                 ///< Left direction on controller stick/dpad
+        STICK_RIGHT,                ///< Right direction on controller stick/dpad
         NUM_OF_DIRECTIONS           ///< Number of directions - should be last
     } GCControllerDirection;
 
     GCController() {
-        a_status_ = GC_CONTROLLER_RELEASED;
-        b_status_ = GC_CONTROLLER_RELEASED;
-        x_status_ = GC_CONTROLLER_RELEASED;
-        y_status_ = GC_CONTROLLER_RELEASED;
-        l_status_ = GC_CONTROLLER_RELEASED;
-        r_status_ = GC_CONTROLLER_RELEASED;
-        start_status_ = GC_CONTROLLER_RELEASED;
-        analog_stick_status_[GC_CONTROLLER_UP] = GC_CONTROLLER_RELEASED;
-        analog_stick_status_[GC_CONTROLLER_DOWN] = GC_CONTROLLER_RELEASED;
-        analog_stick_status_[GC_CONTROLLER_LEFT] = GC_CONTROLLER_RELEASED;
-        analog_stick_status_[GC_CONTROLLER_RIGHT] = GC_CONTROLLER_RELEASED;
-        c_stick_status_[GC_CONTROLLER_UP] = GC_CONTROLLER_RELEASED;
-        c_stick_status_[GC_CONTROLLER_DOWN] = GC_CONTROLLER_RELEASED;
-        c_stick_status_[GC_CONTROLLER_LEFT] = GC_CONTROLLER_RELEASED;
-        c_stick_status_[GC_CONTROLLER_RIGHT] = GC_CONTROLLER_RELEASED;
-        dpad_status_[GC_CONTROLLER_UP] = GC_CONTROLLER_RELEASED;
-        dpad_status_[GC_CONTROLLER_DOWN] = GC_CONTROLLER_RELEASED;
-        dpad_status_[GC_CONTROLLER_LEFT] = GC_CONTROLLER_RELEASED;
-        dpad_status_[GC_CONTROLLER_RIGHT] = GC_CONTROLLER_RELEASED;
+        a_status_ = RELEASED;
+        b_status_ = RELEASED;
+        x_status_ = RELEASED;
+        y_status_ = RELEASED;
+        l_status_ = RELEASED;
+        r_status_ = RELEASED;
+        start_status_ = RELEASED;
+        analog_stick_status_[STICK_UP] = RELEASED;
+        analog_stick_status_[STICK_DOWN] = RELEASED;
+        analog_stick_status_[STICK_LEFT] = RELEASED;
+        analog_stick_status_[STICK_RIGHT] = RELEASED;
+        c_stick_status_[STICK_UP] = RELEASED;
+        c_stick_status_[STICK_DOWN] = RELEASED;
+        c_stick_status_[STICK_LEFT] = RELEASED;
+        c_stick_status_[STICK_RIGHT] = RELEASED;
+        dpad_status_[STICK_UP] = RELEASED;
+        dpad_status_[STICK_DOWN] = RELEASED;
+        dpad_status_[STICK_LEFT] = RELEASED;
+        dpad_status_[STICK_RIGHT] = RELEASED;
     }
     ~GCController() { }
 
