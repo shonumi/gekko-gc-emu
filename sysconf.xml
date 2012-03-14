@@ -11,7 +11,7 @@
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
         <EnableCheats>false</EnableCheats> <!-- Not implemented -->
-        <DefaultBootFile></DefaultBootFile>
+        </DefaultBootFile>
         <DVDImagePaths/>
     </General>
 
@@ -31,7 +31,7 @@
     </Boot>
 
     <!-- Settings applicable to the PowerPC CPU core -->
-    <PowerPC core="interpreter" freq="486">
+    <PowerPC core="dynarec" freq="486">
         <Core name="interpreter"/>
         <Core name="dynarec"/>
     </PowerPC>
@@ -64,7 +64,7 @@
     <Devices>
         <GameCube>
             <!-- Standard memory card example -->
-            <MemSlot slot="a" device="memcard" enable="false"/> <!-- Not implemented -->
+            <MemSlot slot="a" device="memcard" enable="true"/> <!-- Not implemented -->
 
             <!-- Standard controller example -->
             <ControllerPort port="0" device="controller" enable="true">
