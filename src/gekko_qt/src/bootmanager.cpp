@@ -11,6 +11,7 @@
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
 #include "video/opengl.h"
+#include "debugger/debugger.h"
 
 #include "version.h"
 
@@ -118,15 +119,15 @@ void EmuThread::run()
                 };
 #else
                 for(tight_loop = 0; tight_loop < 10000; ++tight_loop) {
-                    // TODO: if debugger enabled...
-                    while (!exec_cpu_step && !cpu_running);
-                    cpu->execStep();
-
                     if (!cpu_running)
                     {
                         emit CPUStepped();
                         exec_cpu_step = false;
+                        cpu->step = true;
+                        while (!exec_cpu_step && !cpu_running);
                     }
+                    cpu->execStep();
+                    cpu->step = false;
                 }
 #endif
             }
