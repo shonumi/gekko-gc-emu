@@ -22,8 +22,8 @@ optable		GekkoCPU::GekkoCPUOpsGroup63XO0Table[0x400];
 optable		GekkoCPU::GekkoCPUOpsGroup63Table[0x20];
 optable		GekkoCPU::GekkoCPUOpset[0x40];
 
-HANDLE		GekkoCPU::PipeHandle;
-u8 *		GekkoCPU::PipeHandleData;
+void*		GekkoCPU::PipeHandle;
+u8*		    GekkoCPU::PipeHandleData;
 u32			GekkoCPU::PipeIsClient;
 
 //f32			GekkoCPU::ldScale[64];
@@ -670,11 +670,10 @@ GekkoF GekkoCPU::ComparePipeData(u32 LastAddress)
 
 		PipeHandleData[0] = 0x01;
 
-		StartTime = timeGetTime();
+		StartTime = SDL_GetTicks();
 		for(;PipeHandleData[0] == 0x01;)
 		{
-			SDL_Delay(0);
-			if((timeGetTime() - StartTime) > 5000)
+			if((SDL_GetTicks() - StartTime) > 5000)
 			{
 				printf("Waiting on client, IC @ 0x%08X\n", ireg.IC);
 				for(;PipeHandleData[0] == 0x01;){SDL_Delay(0);}
