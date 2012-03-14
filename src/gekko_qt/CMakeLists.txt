@@ -15,6 +15,7 @@ qt4_wrap_ui(UI_HDRS
                     src/main.ui)
 
 qt4_wrap_cpp(MOC_SRCS
+                        src/bootmanager.hxx
                         src/callstack.hxx
                         src/disasm.hxx
                         src/gekko_regs.hxx
