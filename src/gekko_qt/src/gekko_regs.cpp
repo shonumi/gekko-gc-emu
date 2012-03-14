@@ -57,14 +57,10 @@ GGekkoRegsView::GGekkoRegsView(QWidget* parent) : QDockWidget(parent)
         child->setFlags(child_flags);
         spr->addChild(child);
     }
-
-    connect(gekko_regs_ui.button_update, SIGNAL(clicked()), this, SLOT(OnUpdate()));
 }
 
-void GGekkoRegsView::OnUpdate()
+void GGekkoRegsView::OnCPUStepped()
 {
-    // TODO: not thread safe...
-
     // TODO: Order correct?
 //    for (int i = 0; i < 32; ++i)
 //        fpr->child(i)->setText(1, QString("0x%1%2").arg(ireg.fpr[i].ps0, 16, 16, QLatin1Char('0')).arg(ireg.fpr[i].ps1, 16, 16, QLatin1Char('0')));

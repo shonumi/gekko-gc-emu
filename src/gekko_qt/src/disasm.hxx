@@ -13,8 +13,12 @@ public:
     GDisAsmView(QWidget* parent = NULL);
 
 public slots:
-    void OnUpdate();
     void OnSetBreakpoint();
+    void OnStep();
+    void OnPause();
+    void OnContinue();
+
+    void OnCPUStepped();
 
 private:
     int SelectedRow();
@@ -24,5 +28,4 @@ private:
     QStandardItemModel* model;
 
     u32 base_addr;
-//    QList<u32> breakpoints;
 };

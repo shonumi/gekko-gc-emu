@@ -11,7 +11,8 @@ class GCallstackView : public QDockWidget
 public:
     GCallstackView(QWidget* parent = 0);
 
-    static void EMU_FASTCALL OnCPUStep(void* object);
+public slots:
+    void OnCPUStepped();
 
 private:
     Ui::CallStack ui;

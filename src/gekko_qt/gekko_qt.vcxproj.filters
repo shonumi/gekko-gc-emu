@@ -64,6 +64,7 @@
     <MOC Include="src\disasm.hxx">
       <Filter>debugger</Filter>
     </MOC>
+    <MOC Include="src\bootmanager.hxx" />
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\main.ui" />
@@ -80,6 +81,5 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />
-    <ClInclude Include="src\bootmanager.h" />
   </ItemGroup>
 </Project>

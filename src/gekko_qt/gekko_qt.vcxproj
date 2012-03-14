@@ -106,6 +106,7 @@
     <ClCompile Include="src\ramview.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <MOC Include="src\bootmanager.hxx" />
     <MOC Include="src\callstack.hxx" />
     <MOC Include="src\disasm.hxx" />
     <MOC Include="src\gekko_regs.hxx" />
@@ -127,7 +128,6 @@
     <MOC Include="..\..\externals\qhexedit\qhexedit.h" />
     <MOC Include="..\..\externals\qhexedit\qhexedit_p.h" />
     <MOC Include="..\..\externals\qhexedit\xbytearray.h" />
-    <ClInclude Include="src\bootmanager.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

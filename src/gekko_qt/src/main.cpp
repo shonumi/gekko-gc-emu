@@ -11,14 +11,15 @@
 #include "image_info.hxx"
 #include "ramview.hxx"
 
-#include "bootmanager.h"
+#include "bootmanager.hxx"
 
 #include "core.h"
 #include "dvd/loader.h"
 #include "dvd/gcm.h"
 #include "version.h"
 
-GMainWindow::GMainWindow() : emu_thread(NULL)
+
+GMainWindow::GMainWindow()
 {
     ui.setupUi(this);
 
@@ -49,7 +50,7 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
 
     QDockWidget* dock_ramedit = new QDockWidget(this);
     dock_ramedit->setObjectName("RamViewer");
-    ram_edit = new GRamView(dock_ramedit);
+    GRamView* ram_edit = new GRamView(dock_ramedit);
     dock_ramedit->setWidget(ram_edit);
     dock_ramedit->setWindowTitle(tr("Memory viewer"));
     addDockWidget(Qt::TopDockWidgetArea, dock_ramedit);
@@ -69,11 +70,18 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
     debug_menu->addAction(callstack->toggleViewAction());
     debug_menu->addAction(dock_ramedit->toggleViewAction());
 
+    EmuThread::Init();
+
     // setup connections
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
     connect(ui.treeView, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnFileBrowserDoubleClicked(const QModelIndex&)));
     connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
+
+    // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views before the CPU continues
+    connect(EmuThread::GetInstance(), SIGNAL(CPUStepped()), ram_edit, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
+    connect(EmuThread::GetInstance(), SIGNAL(CPUStepped()), disasm, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
+    connect(EmuThread::GetInstance(), SIGNAL(CPUStepped()), gekko_regs, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
 
     // TODO: Enable this?
 //    setUnifiedTitleAndToolBarOnMac(true);
@@ -81,13 +89,13 @@ GMainWindow::GMainWindow() : emu_thread(NULL)
 
 GMainWindow::~GMainWindow()
 {
-    delete emu_thread;
+    EmuThread::Shutdown();
 }
 
 void GMainWindow::BootGame(const char* filename)
 {
-    emu_thread = new EmuThread(filename);
-    emu_thread->start();
+    EmuThread::GetInstance()->SetFilename(filename);
+    EmuThread::GetInstance()->start();
 }
 
 void GMainWindow::OnMenuLoadImage()

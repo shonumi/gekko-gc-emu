@@ -1,9 +1,11 @@
-#include "bootmanager.h"
+#include "bootmanager.hxx"
 
 #include "common.h"
 #include "config.h"
 
 #include "core.h"
+#include "memory.h"
+#include "debugger/debugger.h"
 #include "dvd/loader.h"
 #include "dvd/gcm.h"
 #include "powerpc/cpu_core.h"
@@ -17,7 +19,28 @@
 #define APP_TITLE       APP_NAME " " APP_VERSION
 #define COPYRIGHT       "Copyright (C) 2005-2012 Gekko Team"
 
-EmuThread::EmuThread(const char* filename)
+static EmuThread* emu_thread = NULL;
+
+void EmuThread::Init()
+{
+    emu_thread = new EmuThread;
+}
+
+void EmuThread::Shutdown()
+{
+    delete emu_thread;
+}
+
+EmuThread* EmuThread::GetInstance()
+{
+    return emu_thread;
+}
+
+EmuThread::EmuThread() : exec_cpu_step(false), cpu_running(true)
+{
+}
+
+void EmuThread::SetFilename(const char* filename)
 {
     strcpy(this->filename, filename);
 }
@@ -95,7 +118,15 @@ void EmuThread::run()
                 };
 #else
                 for(tight_loop = 0; tight_loop < 10000; ++tight_loop) {
+                    // TODO: if debugger enabled...
+                    while (!exec_cpu_step && !cpu_running);
                     cpu->execStep();
+
+                    if (!cpu_running)
+                    {
+                        emit CPUStepped();
+                        exec_cpu_step = false;
+                    }
                 }
 #endif
             }

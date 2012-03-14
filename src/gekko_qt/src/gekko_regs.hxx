@@ -10,8 +10,8 @@ class GGekkoRegsView : public QDockWidget
 public:
     GGekkoRegsView(QWidget* parent = NULL);
 
-private slots:
-    void OnUpdate();
+public slots:
+    void OnCPUStepped();
 
 private:
     QTreeWidget* tree;
