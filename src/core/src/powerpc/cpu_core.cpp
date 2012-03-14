@@ -231,6 +231,7 @@ GekkoCPU::~GekkoCPU()
 	if(hGekkoThread)
 		this->Halt();
 
+#if EMU_PLATFORM == PLATFORM_WINDOWS
 	if(PipeHandle)	//if(PipeHandle != INVALID_HANDLE_VALUE)
 	{
 		UnmapViewOfFile(PipeHandleData);
@@ -241,6 +242,7 @@ GekkoCPU::~GekkoCPU()
 			UnmapViewOfFile(PipeHandle);	//DisconnectNamedPipe(PipeHandle);
 */
 	}
+#endif
 
 	hGekkoThread = NULL;
 }
@@ -287,6 +289,7 @@ GekkoF GekkoCPU::execStep()
 
 GekkoF GekkoCPU::StartPipe(u32 IsClient)
 {
+#if EMU_PLATFORM == PLATFORM_WINDOWS
 	if(IsClient)
 	{
         PipeHandle = OpenFileMapping(FILE_MAP_READ | FILE_MAP_WRITE,FALSE,"GekkoCPURecompile");
@@ -339,6 +342,9 @@ GekkoF GekkoCPU::StartPipe(u32 IsClient)
 		printf("CPU Compare waiting on game to load\n");
 		ComparePipeData(0);
 	}
+#else
+    LOG_ERROR(TPOWERPC, "CPU StartPipe feature not implemented on your platform!");
+#endif
 }
 
 GekkoF GekkoCPU::DumpInternalData(u32 DumpPC, u32 DumpLen)
