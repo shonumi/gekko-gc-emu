@@ -4,6 +4,7 @@
 
 class QFileSystemModel;
 class GImageInfo;
+class GRenderWindow;
 
 class GMainWindow : public QMainWindow
 {
@@ -38,4 +39,6 @@ private:
     Ui::MainWindow ui;
     QFileSystemModel* file_browser_model;
     GImageInfo* image_info;
+
+    GRenderWindow* render_window;
 };

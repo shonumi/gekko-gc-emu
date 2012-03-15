@@ -4,13 +4,14 @@
 #include "common.h"
 
 class QStandardItemModel;
+class EmuThread;
 
 class GDisAsmView : public QDockWidget
 {
     Q_OBJECT
 
 public:
-    GDisAsmView(QWidget* parent = NULL);
+    GDisAsmView(QWidget* parent, EmuThread& emu_thread);
 
 public slots:
     void OnSetBreakpoint();
@@ -28,4 +29,6 @@ private:
     QStandardItemModel* model;
 
     u32 base_addr;
+
+    EmuThread& emu_thread;
 };

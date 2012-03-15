@@ -6,9 +6,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO: pcafe build broken...
+//#define GLWIN_USE_SDL1
+//#define GLWIN_USE_SDL2
+#define GLWIN_USE_QT4
 
-#include "SDL.h"
-//#include "SDL_opengl.h"
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -43,7 +45,13 @@ void OPENGL_DrawFramebuffer();
 void OPENGL_Initialize();
 void OPENGL_Kill();
 void OPENGL_Render();
+
+#ifdef GLWIN_USE_QT4
+class GRenderWindow;
+void OPENGL_Create(GRenderWindow*);
+#else
 void OPENGL_Create();
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // EOF

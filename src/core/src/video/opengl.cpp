@@ -1,3 +1,4 @@
+// TODO: Should probably move this file to GUI frontends
 // opengl.cpp
 // (c) 2005,2008 Gekko Team / Wiimu Project
 
@@ -14,11 +15,18 @@
 #include "gx_tev.h"
 #include "gx_texture.h"
 
-opengl gl;
-
-#ifdef USE_SDL2
+#ifdef GLWIN_USE_SDL2
+#include "SDL.h"
+//#include "SDL_opengl.h"
 SDL_Window *mainwindow;
+#elif defined(GLWIN_USE_SDL1)
+#include "SDL.h"
+#elif defined(GLWIN_USE_QT4)
+#include "../../src/gekko_qt/src/bootmanager.hxx"
+static GRenderWindow* s_render_window;
 #endif
+
+opengl gl;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -157,6 +165,9 @@ void OPENGL_Kill()
 		gl.hdc = NULL;										
 	}*/
 
+#ifdef GLWIN_USE_QT4
+    s_render_window->doneCurrent();
+#endif
 	gl.opened = false;
 }
 
@@ -190,10 +201,14 @@ void OPENGL_SetTitle()
 		}
 		sprintf(str1, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
             g_window_title, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
-#ifdef USE_SDL2
+
+#ifdef GLWIN_USE_SDL2
         SDL_SetWindowTitle(mainwindow, str1);
-#else
+#elif defined(GLWIN_USE_SDL1)
         SDL_WM_SetCaption(str1, NULL);
+#elif defined(GLWIN_USE_QT4)
+        // TODO: Uhm... Is this safe?
+        s_render_window->setWindowTitle(str1);
 #endif
 	}
 }
@@ -201,18 +216,25 @@ void OPENGL_SetTitle()
 void OPENGL_Render()
 {
 	glFlush();
-#ifdef USE_SDL2
+#ifdef GLWIN_USE_SDL2
     SDL_GL_SwapWindow(mainwindow);
-#else
+#elif defined(GLWIN_USE_SDL1)
     SDL_GL_SwapBuffers();
+#elif defined(GLWIN_USE_QT4)
+    s_render_window->swapBuffers();
 #endif
+
     input_common::g_user_input->PollEvent();
     OPENGL_SetTitle();
 }
 
+#ifdef GLWIN_USE_QT4
+void OPENGL_Create(GRenderWindow* render_window)
+#else
 void OPENGL_Create()
+#endif
 {
-#ifdef USE_SDL2
+#ifdef GLWIN_USE_SDL2
     SDL_GLContext maincontext; /* Our opengl context handle */
 
 	OPENGL_Kill();
@@ -237,7 +259,7 @@ void OPENGL_Create()
     /* This makes our buffer swap syncronized with the monitor's vertical refresh */
     SDL_GL_SetSwapInterval(1);
 
-#else
+#elif defined(GLWIN_USE_SDL1)
 
     const SDL_VideoInfo* video;
 
@@ -269,8 +291,10 @@ void OPENGL_Create()
     }
     SDL_WM_SetCaption(g_window_title, NULL);
 
+#elif defined(GLWIN_USE_QT4)
+    s_render_window = render_window;
+    s_render_window->makeCurrent();
 #endif
-
 
 	glewInit(); // library
 

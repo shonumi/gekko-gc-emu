@@ -12,7 +12,7 @@
 
 #include "powerpc/interpreter/cpu_int.h"
 
-GDisAsmView::GDisAsmView(QWidget* parent) : QDockWidget(parent), base_addr(0)
+GDisAsmView::GDisAsmView(QWidget* parent, EmuThread& emu_thread) : QDockWidget(parent), base_addr(0), emu_thread(emu_thread)
 {
     disasm_ui.setupUi(this);
 
@@ -46,18 +46,18 @@ void GDisAsmView::OnSetBreakpoint()
 
 void GDisAsmView::OnStep()
 {
-    EmuThread::GetInstance()->SetCpuRunning(false);
-    EmuThread::GetInstance()->ExecStep();
+    emu_thread.SetCpuRunning(false);
+    emu_thread.ExecStep();
 }
 
 void GDisAsmView::OnPause()
 {
-    EmuThread::GetInstance()->SetCpuRunning(false);
+    emu_thread.SetCpuRunning(false);
 }
 
 void GDisAsmView::OnContinue()
 {
-    EmuThread::GetInstance()->SetCpuRunning(true);
+    emu_thread.SetCpuRunning(true);
 }
 
 void GDisAsmView::OnCPUStepped()
@@ -79,7 +79,7 @@ void GDisAsmView::OnCPUStepped()
 
         // NOTE: out3 (nextInstAddr) seems to be bugged, better don't use it...
         DisassembleGekko(out1, out2, opcode, curInstAddr, &out3);
-        model->setItem(counter, 0, new QStandardItem(QString("0x%1->0x%2").arg((uint)curInstAddr, 8, 16, QLatin1Char('0')).arg((uint)out3, 8, 16, QLatin1Char('0'))));
+        model->setItem(counter, 0, new QStandardItem(QString("0x%1").arg((uint)curInstAddr, 8, 16, QLatin1Char('0'))));
         model->setItem(counter, 1, new QStandardItem(QString(out1)));
         model->setItem(counter, 2, new QStandardItem(QString(out2)));
 

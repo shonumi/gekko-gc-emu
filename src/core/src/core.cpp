@@ -118,7 +118,8 @@ int Init() {
     g_started = false;
 	
 #ifndef USE_NEW_VIDEO_CORE
-    OPENGL_Create();
+    // TODO: Fix for Qt4 render window...
+//    OPENGL_Create();
 #endif // !USE_NEW_VIDEO_CORE
 
     return E_OK;

@@ -1,6 +1,7 @@
+#include "common.h"
+#include "video/opengl.h"
 #include "bootmanager.hxx"
 
-#include "common.h"
 #include "config.h"
 
 #include "core.h"
@@ -10,7 +11,6 @@
 #include "dvd/gcm.h"
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
-#include "video/opengl.h"
 #include "debugger/debugger.h"
 
 #include "version.h"
@@ -20,24 +20,7 @@
 #define APP_TITLE       APP_NAME " " APP_VERSION
 #define COPYRIGHT       "Copyright (C) 2005-2012 Gekko Team"
 
-static EmuThread* emu_thread = NULL;
-
-void EmuThread::Init()
-{
-    emu_thread = new EmuThread;
-}
-
-void EmuThread::Shutdown()
-{
-    delete emu_thread;
-}
-
-EmuThread* EmuThread::GetInstance()
-{
-    return emu_thread;
-}
-
-EmuThread::EmuThread() : exec_cpu_step(false), cpu_running(true)
+EmuThread::EmuThread(GRenderWindow* render_window) : exec_cpu_step(false), cpu_running(true), render_window(render_window)
 {
 }
 
@@ -58,6 +41,7 @@ void EmuThread::run()
         core::Kill();
         exit(1);
     }
+    OPENGL_Create(render_window);
 
 #ifdef USE_INLINE_ASM
     // If using asm, see if this computer can process
@@ -135,5 +119,64 @@ void EmuThread::run()
             core::Stop();
         }
     }
+    OPENGL_Kill();
     core::Kill();
+}
+
+void EmuThread::Stop()
+{
+    if (!isRunning())
+    {
+        LOG_INFO(TMASTER, "EmuThread::Stop called while emu thread wasn't running, returning...");
+        return;
+    }
+
+    core::g_state = core::SYS_DIE;
+
+    wait(1000);
+    if (isRunning())
+    {
+        LOG_WARNING(TMASTER, "EmuThread still running, terminating...");
+        terminate();
+        wait(1000);
+        if (isRunning())
+            LOG_WARNING(TMASTER, "EmuThread STILL running, something is wrong here...");
+    }
+    LOG_INFO(TMASTER, "EmuThread stopped");
+}
+
+
+GRenderWindow::GRenderWindow(QWidget* parent): QGLWidget(parent), emu_thread(this)
+{
+    setAutoBufferSwap(false);
+    resize(640, 480); // TODO...
+}
+
+GRenderWindow::~GRenderWindow()
+{
+    emu_thread.Stop();
+}
+
+void GRenderWindow::paintEvent(QPaintEvent* )
+{
+    // Overloaded to prevent the GUI thread from stealing GL context
+    // Handled in EmuThread instead
+
+}
+
+void GRenderWindow::resizeEvent(QResizeEvent* )
+{
+    // Overloaded to prevent the GUI thread from stealing GL context
+    // Handled in EmuThread instead
+}
+
+void GRenderWindow::closeEvent(QCloseEvent* event)
+{
+    emu_thread.Stop();
+    QGLWidget::closeEvent(event);
+}
+
+EmuThread& GRenderWindow::GetEmuThread()
+{
+    return emu_thread;
 }

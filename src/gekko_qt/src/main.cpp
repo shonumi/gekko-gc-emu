@@ -22,6 +22,7 @@
 GMainWindow::GMainWindow()
 {
     ui.setupUi(this);
+    statusBar()->hide();
 
     // TODO: Make drives show up as well...
     QString sPath = QDir::currentPath();
@@ -35,11 +36,14 @@ GMainWindow::GMainWindow()
     ui.treeView->hideColumn(2); // drive
     ui.treeView->hideColumn(3); // date
 
+    render_window = new GRenderWindow;
+    render_window->hide();
+
     // create custom widgets
     image_info = new GImageInfo(this);
     addDockWidget(Qt::RightDockWidgetArea, image_info);
 
-    GDisAsmView* disasm = new GDisAsmView(this);
+    GDisAsmView* disasm = new GDisAsmView(this, render_window->GetEmuThread());
     addDockWidget(Qt::TopDockWidgetArea, disasm);
 
     GGekkoRegsView* gekko_regs = new GGekkoRegsView(this);
@@ -59,6 +63,7 @@ GMainWindow::GMainWindow()
     QSettings settings("Gekko team", "Gekko");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
+    render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
 
     // menu items
     QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));
@@ -70,8 +75,6 @@ GMainWindow::GMainWindow()
     debug_menu->addAction(callstack->toggleViewAction());
     debug_menu->addAction(dock_ramedit->toggleViewAction());
 
-    EmuThread::Init();
-
     // setup connections
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
@@ -79,9 +82,9 @@ GMainWindow::GMainWindow()
     connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
 
     // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views before the CPU continues
-    connect(EmuThread::GetInstance(), SIGNAL(CPUStepped()), ram_edit, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
-    connect(EmuThread::GetInstance(), SIGNAL(CPUStepped()), disasm, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
-    connect(EmuThread::GetInstance(), SIGNAL(CPUStepped()), gekko_regs, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
+    connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), ram_edit, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
+    connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), disasm, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
+    connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), gekko_regs, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
 
     // TODO: Enable this?
 //    setUnifiedTitleAndToolBarOnMac(true);
@@ -89,13 +92,15 @@ GMainWindow::GMainWindow()
 
 GMainWindow::~GMainWindow()
 {
-    EmuThread::Shutdown();
+    delete render_window;
 }
 
 void GMainWindow::BootGame(const char* filename)
 {
-    EmuThread::GetInstance()->SetFilename(filename);
-    EmuThread::GetInstance()->start();
+    render_window->doneCurrent(); // make sure EmuThread can access GL context
+    render_window->GetEmuThread().SetFilename(filename);
+    render_window->GetEmuThread().start();
+    render_window->show();
 }
 
 void GMainWindow::OnMenuLoadImage()
@@ -194,8 +199,6 @@ static void BrowserAddBanner(u8 *banner, QPixmap& out_pixmap)
 
 void GMainWindow::OnFileBrowserSelectionChanged()
 {
-// TODO: Make ReadGCMInfo cross platform...
-#if EMU_PLATFORM == PLATFORM_WINDOWS
     unsigned long size;
     u8 banner[0x1960];
     dvd::GCMHeader header;
@@ -218,7 +221,6 @@ void GMainWindow::OnFileBrowserSelectionChanged()
     image_info->SetName(QString::fromLatin1((char*)&banner[0x1860]));
 //    image_info->SetId(QString::fromLatin1(???)); // TODO
     image_info->SetDeveloper(QString::fromLatin1((char*)&banner[0x18a0]));
-#endif
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event)
@@ -228,6 +230,10 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     QSettings settings("Gekko team", "Gekko");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
+
+    settings.setValue("geometryRenderWindow", render_window->saveGeometry());
+
+    render_window->close();
 
     QWidget::closeEvent(event);
 }
@@ -239,6 +245,7 @@ void GMainWindow::closeEvent(QCloseEvent* event)
 
 int __cdecl main(int argc, char* argv[])
 {
+    QApplication::setAttribute(Qt::AA_X11InitThreads);
     QApplication app(argc, argv);
     GMainWindow main_window;
 

@@ -64,6 +64,7 @@ int __cdecl main(int argc, char **argv)
         core::Kill();
         exit(1);
     }
+    OPENGL_Create();
 
 #ifdef USE_INLINE_ASM
 	// If using asm, see if this computer can process
@@ -133,6 +134,7 @@ int __cdecl main(int argc, char **argv)
             core::Stop();
         }
     }
+    OPENGL_Kill();
     core::Kill();
 
 	return E_OK;
