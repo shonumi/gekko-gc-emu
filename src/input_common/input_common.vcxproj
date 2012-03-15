@@ -333,10 +333,12 @@
   <ItemGroup>
     <ClInclude Include="src\gc_controller.h" />
     <ClInclude Include="src\input_common.h" />
+    <ClInclude Include="src\sdl_joypads\sdl_joypads.h" />
     <ClInclude Include="src\sdl_keys\sdl_keys.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\input_common.cpp" />
+    <ClCompile Include="src\sdl_joypads\sdl_joypads.cpp" />
     <ClCompile Include="src\sdl_keys\sdl_keys.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

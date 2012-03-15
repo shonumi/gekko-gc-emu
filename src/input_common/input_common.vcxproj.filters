@@ -6,10 +6,16 @@
       <Filter>sdl_keys</Filter>
     </ClInclude>
     <ClInclude Include="src\gc_controller.h" />
+    <ClInclude Include="src\sdl_joypads\sdl_joypads.h">
+      <Filter>sdl_joypads</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="sdl_keys">
       <UniqueIdentifier>{cad3f576-3a5d-4c44-ac83-4f8a71088a0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sdl_joypads">
+      <UniqueIdentifier>{6c62cfdf-3c56-4b77-89c6-c4afe9b46ffd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -17,5 +23,8 @@
       <Filter>sdl_keys</Filter>
     </ClCompile>
     <ClCompile Include="src\input_common.cpp" />
+    <ClCompile Include="src\sdl_joypads\sdl_joypads.cpp">
+      <Filter>sdl_joypads</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
