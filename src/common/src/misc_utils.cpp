@@ -35,8 +35,10 @@ void LowerStr(char* str) {
 
 /// Make a string uppercase
 void UpperStr(char* str) {
-    for (int i = 0; str[i]; i++) {
-        str[i] = toupper(str[ i ]);
+    for (int i=0; i < strlen(str); i++) {
+        if(str[i] >= 'a' && str[i] <= 'z') {
+            str[i] &= 0xDF;
+        }
     }
 }
 
@@ -48,6 +50,15 @@ bool FileExists(char* filename) {
     }
     ifile.close();
     return true;
+}
+
+/// Gets the size of a file
+size_t FileSize(FILE* file) {
+    size_t pos = ftell(file);
+    fseek(file, 0L, SEEK_END);
+    size_t res = ftell(file);
+    fseek(file, pos, SEEK_SET);
+    return res;
 }
 
 } // namespace

@@ -45,4 +45,11 @@ void UpperStr(char* str);
  */
 bool FileExists(char* filename);
 
+/*!
+ * \brief Gets the size of a file
+ * \param file Pointer to file to get size of
+ * \return true Size of file, in bytes
+ */
+size_t FileSize(FILE* file);
+
 } // namespace
