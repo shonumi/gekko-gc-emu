@@ -942,107 +942,135 @@ int LoadGCM(char *filename)
     return E_OK;
 }
 
-// TODO(ShizZy): Make cross platform 2012-03-07
-#if EMU_PLATFORM == PLATFORM_WINDOWS
 int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header)
 {
-    DWORD			BytesRead;
-    u32				TempData;
-    u32				FileCount;
+    GCMFSTHeader	gcm_fst_info;
+    u32 			read_count;
+    u32				gcm_file_count;
     u32				i;
-    GCMFST *		GCMFSTData;
-    HANDLE			GCMFileHandle;
+    u32				x;
+    GCMFST *		gcm_fst_data;
+    char*           file_names;
+    FILE*           file_handle;
+    u8*             header_data[0x1000];
 
-    if(!BannerBuffer || !Header) {
+    // Open file up
+    file_handle = fopen(filename, "rb");
+    if (file_handle == NULL) {
         return E_ERR;
     }
 
-    //open it up
-    GCMFileHandle = CreateFile(filename, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, NULL);
-    if(GCMFileHandle == INVALID_HANDLE_VALUE) {
+    // Read the first 32 bytes into the root memory area
+    read_count = fread(header_data, 1, 32, file_handle);
+
+    // Swap the memory around
+    for (i = 0; i < (32 >> 2); i++) {
+        *(u32 *)(&header_data[i * 4]) = BSWAP32(*(u32 *)(&header_data[i * 4]));
+    }
+
+    // Read the FST
+    fseek(file_handle, 0x424, SEEK_SET);
+    if (ftell(file_handle) != 0x424) {
+        fclose(file_handle);
+        file_handle = NULL;
         return E_ERR;
     }
 
-    //read the size
-    *filesize = GetFileSize(GCMFileHandle, NULL);
-
-    //read the header
-    if (ReadFile(GCMFileHandle, Header, sizeof(GCMHeader), &BytesRead, 0) != TRUE)
-        return E_ERR;
-
-    Header->ToggleEndianness();
-
-    if (BytesRead != 0x440)
-        return E_ERR;
-
-    if (((GCMHeader*)Header)->dvd_magic_word != GCM_HEADER_MAGIC_WORD)
-        return E_ERR;
-
-    // TODO(neobrain): I don't like this..
-    Header->fst_header.Offset += 8;		//adjust for the 8 header bytes
-    Header->fst_header.Size -= 8;			//adjust for the 8 header bytes
-    Header->fst_header.MaxSize -= 8;
-
-    //seek to the position of the FST plus 8 bytes
-    if(SetFilePointer(GCMFileHandle, Header->fst_header.Offset, NULL, SEEK_SET) != Header->fst_header.Offset) {
-        CloseHandle(GCMFileHandle);
+    // Get the FST info header
+    read_count = fread(&gcm_fst_info, 1, sizeof(gcm_fst_info), file_handle);
+    if (read_count != sizeof(gcm_fst_info))
+    {
+        fclose(file_handle);
+        file_handle = NULL;
         return E_ERR;
     }
 
-    //read 4 bytes for the number of files
-    ReadFile(GCMFileHandle, &FileCount, 4, &BytesRead, 0);
-    if(BytesRead != 4) {
-        CloseHandle(GCMFileHandle);
+    // Swap the FST info
+    gcm_fst_info.Offset = BSWAP32(gcm_fst_info.Offset);
+    gcm_fst_info.Size = BSWAP32(gcm_fst_info.Size);
+    gcm_fst_info.MaxSize = BSWAP32(gcm_fst_info.MaxSize);
+    gcm_fst_info.MemLocation = BSWAP32(gcm_fst_info.MemLocation) + RAM_24MB - (4*1024*1024);	//last 4 megs of mem
+
+    fseek(file_handle, gcm_fst_info.Offset + 8, SEEK_SET);
+    if (ftell(file_handle) != (gcm_fst_info.Offset + 8)) {
+        fclose(file_handle);
+        file_handle = NULL;
         return E_ERR;
     }
 
-    //allocate memory for the FST info and filenames
-    //GCM's count the first 8 bytes + 4 byte file count as a file record. Remove it
-    FileCount = BSWAP32(FileCount) - 1;
-    GCMFSTData = (GCMFST *)malloc((FileCount+1) * sizeof(GCMFST));
-    FileNames = (char *)malloc(Header->fst_header.Size - (FileCount * sizeof(GCMFST)));
-    memset(&GCMFSTData[FileCount], 0, sizeof(GCMFST));
-
-    //read the data
-    ReadFile(GCMFileHandle, GCMFSTData, FileCount * sizeof(GCMFST), &BytesRead, 0);
-    if(BytesRead != (FileCount * sizeof(GCMFST))) {
-        CloseHandle(GCMFileHandle);
+    // Read 4 bytes for the number of files
+    read_count = fread(&gcm_file_count, 1, 4, file_handle);
+    if (read_count != 4) {
+        fclose(file_handle);
+        file_handle = NULL;
         return E_ERR;
     }
 
-    //get the filenames
-    TempData = Header->fst_header.Size - (FileCount * sizeof(GCMFST));
-    ReadFile(GCMFileHandle, FileNames, TempData, &BytesRead, 0);
-
-    //make all files uppercase
-    for(i=0; i < TempData; i++) {
-        if(FileNames[i] >= 'a' && FileNames[i] <= 'z')
-            FileNames[i] &= 0xDF;
+    // Go back. the first entry is empty but tells the number of files
+    fseek(file_handle, gcm_fst_info.Offset, SEEK_SET);
+    if (ftell(file_handle) != gcm_fst_info.Offset) {
+        fclose(file_handle);
+        file_handle = NULL;
+        return E_ERR;
     }
 
-    //seek thru the files for opening.bnr
-    for(i=0; i < FileCount; i++) {
-        if(strcmp(&FileNames[BSWAP32(GCMFSTData[i].NameOffset) & 0xFFFFFF], "OPENING.BNR") == 0) {
-            //found the entry, read it's data and exit
-            SetFilePointer(GCMFileHandle, BSWAP32(GCMFSTData[i].DiskAddr), NULL, SEEK_SET);
-            ReadFile(GCMFileHandle, BannerBuffer, 0x1960, &BytesRead, 0);
+    // Allocate memory for the FST info and filenames
+    gcm_file_count = BSWAP32(gcm_file_count);
+    int foo = gcm_file_count * sizeof(GCMFST);
+    gcm_fst_data = (GCMFST*)malloc((gcm_file_count+1) * sizeof(GCMFST));
+    file_names = (char*)malloc(gcm_fst_info.Size - (foo));
+
+    // Read the data
+    read_count = fread(gcm_fst_data, 1, foo, file_handle);
+    if (read_count != (foo))
+    {
+        fclose(file_handle);
+        file_handle = NULL;
+        return E_ERR;
+    }
+
+    // Swap all of the numerical FST data in the GCM data
+    for (i = 1; i < gcm_file_count; i++) {
+        gcm_fst_data[i].DiskAddr = BSWAP32(gcm_fst_data[i].DiskAddr);
+        gcm_fst_data[i].FileSize = BSWAP32(gcm_fst_data[i].FileSize);
+        gcm_fst_data[i].NameOffset = BSWAP32(gcm_fst_data[i].NameOffset);
+    }
+    int file_names_size = gcm_fst_info.Size - (gcm_file_count * sizeof(GCMFST));
+    read_count = fread(file_names, 1, file_names_size, file_handle);
+    if (read_count != file_names_size)
+    {
+        fclose(file_handle);
+        file_handle = NULL;
+        free(FileNames);
+        free(gcm_fst_data);
+        return E_ERR;
+    }
+
+    // Seek thru the files for opening.bnr
+    for (i=0; i < gcm_file_count; i++) {
+        common::UpperStr(&file_names[(gcm_fst_data[i].NameOffset) & 0xFFFFFF]);
+        if (strcmp(&file_names[(gcm_fst_data[i].NameOffset) & 0xFFFFFF], "OPENING.BNR") == 0) {
+            // Found the entry, read it's data and exit
+            fseek(file_handle, (gcm_fst_data[i].DiskAddr), SEEK_SET);
+            read_count = fread(BannerBuffer, 0x1960, 1, file_handle);
             break;
         }
     }
+    // Get the file size
+    *filesize = common::FileSize(file_handle);
 
-    //close the file
-    CloseHandle(GCMFileHandle);
+    // Close file handle
+    fclose(file_handle);
 
-    free(FileNames);
-    free(GCMFSTData);
+    // Free dynamically allocated data
+    free(file_names);
+    free(gcm_fst_data);
 
     //return if we found opening.bnr
-    if (i >= FileCount) {
+    if (i >= gcm_file_count) {
         return E_ERR;
     }
     return E_OK;
 }
-#endif
-
 
 } // namespace
