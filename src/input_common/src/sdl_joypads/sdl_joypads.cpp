@@ -37,7 +37,6 @@ namespace input_common {
 void SDLJoypads::SetControllerStatus(int channel, int pad,
         GCController::GCButtonState state) {
     // Buttons
-    // ALL Values are hardcoded, just until the config file gets set up
     if (pad == common::g_config->controller_ports(channel).pads.start_key_code) {
         g_controller_state[channel]->set_start_status(state);
     } else if (pad == common::g_config->controller_ports(channel).pads.a_key_code) {
@@ -52,6 +51,8 @@ void SDLJoypads::SetControllerStatus(int channel, int pad,
         g_controller_state[channel]->set_l_status(state);
     } else if (pad == common::g_config->controller_ports(channel).pads.r_key_code) {
         g_controller_state[channel]->set_r_status(state);
+    } else if (pad == common::g_config->controller_ports(channel).pads.z_key_code) {
+        g_controller_state[channel]->set_z_status(state);
         
     // Analog stick
     } else if (pad == common::g_config->controller_ports(channel).pads.analog_up_key_code) {
@@ -82,8 +83,62 @@ void SDLJoypads::SetControllerStatus(int channel, int pad,
         g_controller_state[channel]->set_dpad_status(GCController::STICK_LEFT, state);
     } else if (pad == common::g_config->controller_ports(channel).pads.dpad_right_key_code) {
         g_controller_state[channel]->set_dpad_status(GCController::STICK_RIGHT, state);
-    }  
-   
+    }   
+}
+
+/// Gets the controller status from the joypad using SDL
+GCController::GCButtonState SDLJoypads::GetControllerStatus(int channel, int pad) {
+    // Buttons
+    if (pad == common::g_config->controller_ports(channel).pads.start_key_code) {
+        return g_controller_state[channel]->start_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.a_key_code) {
+        return g_controller_state[channel]->a_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.b_key_code) {
+        return g_controller_state[channel]->b_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.x_key_code) {
+        return g_controller_state[channel]->x_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.y_key_code) {
+        return g_controller_state[channel]->y_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.l_key_code) {
+        return g_controller_state[channel]->l_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.r_key_code) {
+        return g_controller_state[channel]->r_status();
+    } else if (pad == common::g_config->controller_ports(channel).pads.z_key_code) {
+        return g_controller_state[channel]->z_status();
+        
+    // Analog stick
+    } else if (pad == common::g_config->controller_ports(channel).pads.analog_up_key_code) {
+        return g_controller_state[channel]->analog_stick_status(GCController::STICK_UP);
+    } else if (pad == common::g_config->controller_ports(channel).pads.analog_down_key_code) {
+       return g_controller_state[channel]->analog_stick_status(GCController::STICK_DOWN);
+    } else if (pad == common::g_config->controller_ports(channel).pads.analog_left_key_code) {
+        return g_controller_state[channel]->analog_stick_status(GCController::STICK_LEFT);
+    } else if (pad == common::g_config->controller_ports(channel).pads.analog_right_key_code) {
+        return g_controller_state[channel]->analog_stick_status(GCController::STICK_RIGHT);
+
+    // C stick
+    } else if (pad == common::g_config->controller_ports(channel).pads.c_up_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_UP);
+    } else if (pad == common::g_config->controller_ports(channel).pads.c_down_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_DOWN);
+    } else if (pad == common::g_config->controller_ports(channel).pads.c_left_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_LEFT);
+    } else if (pad == common::g_config->controller_ports(channel).pads.c_right_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_RIGHT); 
+
+    // D-pad
+    } else if (pad == common::g_config->controller_ports(channel).pads.dpad_up_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_UP);
+    } else if (pad == common::g_config->controller_ports(channel).pads.dpad_down_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_DOWN);
+    } else if (pad == common::g_config->controller_ports(channel).pads.dpad_left_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_LEFT);
+    } else if (pad == common::g_config->controller_ports(channel).pads.dpad_right_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_RIGHT);
+    }
+
+    // Return GC_CONTROLLER_NULL if unmapped pad
+    return GCController::GC_CONTROLLER_NULL;   
 }
 
 /// Checks whether joystick is in dead zone or not
@@ -118,120 +173,19 @@ void SDLJoypads::PollEvent() {
             pad += joyevent.jbutton.button;
             SetControllerStatus(0, pad, GCController::RELEASED);
             break;
-        // Handle joystick axis motion events - PITA :/
+        // Handle joystick axis motion events - Super simplified :)
         case SDL_JOYAXISMOTION:
             pad = 200;
             pad += (joyevent.jaxis.axis * 2);
-            if(joyevent.jaxis.value > 0) { pad += 1; }
-            
             int val = joyevent.jaxis.value; 
 
-            // Check for Up Analog
-            if((g_controller_state[0]->analog_stick_status(GCController::STICK_UP) == GCController::RELEASED)
-                && (pad == common::g_config->controller_ports(0).pads.analog_up_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->analog_stick_status(GCController::STICK_UP) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_up_key_code) && (DeadZone(val))){
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
+            if(val > 0) { pad += 1; }
 
-            // Check for Down Analog
-            if((g_controller_state[0]->analog_stick_status(GCController::STICK_DOWN) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_down_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->analog_stick_status(GCController::STICK_DOWN) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_down_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED); 
-            }
-
-            // Check for Left Analog
-            if((g_controller_state[0]->analog_stick_status(GCController::STICK_LEFT) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_left_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->analog_stick_status(GCController::STICK_LEFT) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_left_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Right Analog
-            if((g_controller_state[0]->analog_stick_status(GCController::STICK_RIGHT) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_right_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->analog_stick_status(GCController::STICK_RIGHT) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.analog_right_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-            
-            // Check for Up C Stick
-            if((g_controller_state[0]->c_stick_status(GCController::STICK_UP) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_up_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->c_stick_status(GCController::STICK_UP) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_up_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED); 
-            }
-
-            // Check for Down C Stick
-            if((g_controller_state[0]->c_stick_status(GCController::STICK_DOWN) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_down_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->c_stick_status(GCController::STICK_DOWN) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_down_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Left C Stick
-            if((g_controller_state[0]->c_stick_status(GCController::STICK_LEFT) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_left_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->c_stick_status(GCController::STICK_LEFT) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_left_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Right C Stick
-            if((g_controller_state[0]->c_stick_status(GCController::STICK_RIGHT) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_right_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->c_stick_status(GCController::STICK_RIGHT) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.c_right_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Up D-Pad
-            if((g_controller_state[0]->dpad_status(GCController::STICK_UP) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_up_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->dpad_status(GCController::STICK_UP) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_up_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Down D-Pad
-            if((g_controller_state[0]->dpad_status(GCController::STICK_DOWN) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_down_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->dpad_status(GCController::STICK_DOWN) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_down_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Left D-pad
-            if((g_controller_state[0]->dpad_status(GCController::STICK_LEFT) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_left_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->dpad_status(GCController::STICK_LEFT) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_left_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
-            }
-
-            // Check for Right D-Pad
-            if((g_controller_state[0]->dpad_status(GCController::STICK_RIGHT) == GCController::RELEASED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_right_key_code) && (!DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((g_controller_state[0]->dpad_status(GCController::STICK_RIGHT) == GCController::PRESSED) 
-                && (pad == common::g_config->controller_ports(0).pads.dpad_right_key_code) && (DeadZone(val))) {
-                    SetControllerStatus(0, pad, GCController::RELEASED);
+            // Check for joy axis input on corresponding pads
+            if((GetControllerStatus(0, pad) == GCController::RELEASED) && (!DeadZone(val))) {
+                SetControllerStatus(0, pad, GCController::PRESSED);
+            } else if((GetControllerStatus(0, pad) == GCController::PRESSED) && (DeadZone(val))) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
             }
             break;
         }
@@ -249,13 +203,13 @@ bool SDLJoypads::Init() {
 
     jpad = NULL;
     jpad = SDL_JoystickOpen(0);
-    
+
     //Check to see if joypad was not opened
     if(jpad == NULL) {
-        LOG_NOTICE(TJOYPAD, "\"SDL joypad\" input plugin NOT initialized ok");
+        LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin not initialized");
         return false;
     } else if(jpad != NULL) {
-        LOG_NOTICE(TJOYPAD, "\"SDL joypad\" input plugin initialized ok");
+        LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin initialized ok");
         return true;
     }
 }

@@ -43,10 +43,17 @@ private:
     /*!
      * \brief Sets the controller status from the joystick using SDL
      * \param channel Channel of controller to set status of (0-3)
-     * \param map Joypad input that was activated or released
+     * \param pad Joypad input that was activated or released
      * \param state GCController::GCButtonState we're setting
      */
     void SetControllerStatus(int channel, int pad, GCController::GCButtonState state);
+
+    /*!
+     * \brief Gets the controller status from the joystick using SDL
+     * \param channel Channel of controller to set status of (0-3)
+     * \param pad Joypad input that needs to be checked
+     */
+    GCController::GCButtonState GetControllerStatus(int channel, int pad);
 
     /*!
      * \brief Checks whether joystick is in dead zone or not

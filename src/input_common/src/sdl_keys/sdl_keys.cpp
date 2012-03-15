@@ -51,6 +51,8 @@ void SDLKeys::SetControllerStatus(int channel, u16 key,
         g_controller_state[channel]->set_l_status(state);
     } else if (key == common::g_config->controller_ports(channel).keys.r_key_code) {
         g_controller_state[channel]->set_r_status(state);
+    } else if (key == common::g_config->controller_ports(channel).keys.z_key_code) {
+        g_controller_state[channel]->set_z_status(state);
         
     // Analog stick
     } else if (key == common::g_config->controller_ports(channel).keys.analog_up_key_code) {
