@@ -31,6 +31,7 @@ private slots:
     void OnMenuLoadImage();
     void OnFileBrowserDoubleClicked(const QModelIndex&);
     void OnFileBrowserSelectionChanged();
+    void SetupEmuWindowMode();
 
 signals:
 //    UpdateUIState();

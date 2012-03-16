@@ -81,6 +81,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <addaction name="actionSingle_Window_Mode"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -127,10 +128,16 @@
     <string>About Gekko</string>
    </property>
   </action>
+  <action name="actionSingle_Window_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Single Window Mode</string>
+   </property>
+  </action>
  </widget>
- <resources>
-  <include location="GM4P01.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>action_Exit</sender>

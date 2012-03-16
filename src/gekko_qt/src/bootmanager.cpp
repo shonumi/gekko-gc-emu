@@ -1,3 +1,5 @@
+#include <QHBoxLayout>
+
 #include "common.h"
 #include "video/opengl.h"
 #include "bootmanager.hxx"
@@ -34,7 +36,7 @@ void EmuThread::run()
     u32 tight_loop;
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
-    render_window->makeCurrent();
+    render_window->MakeCurrent();
     OPENGL_SetWindow(render_window);
     OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
 
@@ -121,7 +123,7 @@ void EmuThread::run()
         }
     }
     OPENGL_Kill();
-    render_window->doneCurrent();
+    render_window->DoneCurrent();
     core::Kill();
 }
 
@@ -148,39 +150,45 @@ void EmuThread::Stop()
 }
 
 
-GRenderWindow::GRenderWindow(QWidget* parent): QGLWidget(parent), emu_thread(this)
+/*
+ * This class overrides paintEvent and resizeEvent to prevent the GUI thread from stealing GL context.
+ * The corresponding functionality is handled in EmuThread instead
+ */
+class GGLWidgetInternal : public QGLWidget
 {
-    setAutoBufferSwap(false);
-    resize(640, 480); // TODO...
+public:
+    GGLWidgetInternal(GRenderWindow* parent) : QGLWidget(parent)
+    {
+        setAutoBufferSwap(false);
+    }
+
+    void paintEvent(QPaintEvent*) {}
+    void resizeEvent(QResizeEvent*) {}
+};
+
+
+EmuThread& GRenderWindow::GetEmuThread()
+{
+    return emu_thread;
+}
+
+GRenderWindow::GRenderWindow(QWidget* parent) : QWidget(parent), emu_thread(this)
+{
+    // TODO: Enable layout code once core supports a different EmuWindow size than 640x480
+    child = new GGLWidgetInternal(this);
+//    QBoxLayout* layout = new QHBoxLayout(this);
+    resize(640, 480);
+    child->resize(640, 480);
+    child->show();
+//    layout->addWidget(child);
+//    layout->setMargin(0);
+//    setLayout(layout);
+    BackupGeometry();
 }
 
 GRenderWindow::~GRenderWindow()
 {
     emu_thread.Stop();
-}
-
-void GRenderWindow::paintEvent(QPaintEvent* )
-{
-    // Overloaded to prevent the GUI thread from stealing GL context
-    // Handled in EmuThread instead
-
-}
-
-void GRenderWindow::resizeEvent(QResizeEvent* )
-{
-    // Overloaded to prevent the GUI thread from stealing GL context
-    // Handled in EmuThread instead
-}
-
-void GRenderWindow::closeEvent(QCloseEvent* event)
-{
-    emu_thread.Stop();
-    QGLWidget::closeEvent(event);
-}
-
-EmuThread& GRenderWindow::GetEmuThread()
-{
-    return emu_thread;
 }
 
 void GRenderWindow::SetTitle(const char* title)
@@ -190,5 +198,50 @@ void GRenderWindow::SetTitle(const char* title)
 
 void GRenderWindow::SwapBuffers()
 {
-    swapBuffers();
+    child->makeCurrent();
+    child->swapBuffers();
+}
+
+void GRenderWindow::closeEvent(QCloseEvent* event)
+{
+    emu_thread.Stop();
+    QWidget::closeEvent(event);
+}
+
+void GRenderWindow::MakeCurrent()
+{
+    child->makeCurrent();
+}
+
+void GRenderWindow::DoneCurrent()
+{
+    child->doneCurrent();
+}
+
+void GRenderWindow::BackupGeometry()
+{
+    geometry = ((QGLWidget*)this)->saveGeometry();
+}
+
+void GRenderWindow::RestoreGeometry()
+{
+    // We don't want to back up the geometry here (obviously)
+    QWidget::restoreGeometry(geometry);
+}
+
+void GRenderWindow::restoreGeometry(const QByteArray& geometry)
+{
+    // Make sure users of this class don't need to deal with backing up the geometry themselves
+    QWidget::restoreGeometry(geometry);
+    BackupGeometry();
+}
+
+QByteArray GRenderWindow::saveGeometry()
+{
+    // If we are a top-level widget, store the current geometry
+    // otherwise, store the last backup
+    if (parent() == NULL)
+        return ((QGLWidget*)this)->saveGeometry();
+    else
+        return geometry;
 }

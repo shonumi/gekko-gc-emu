@@ -4,6 +4,7 @@
 #include "video/emuwindow.h"
 
 class GRenderWindow;
+
 class EmuThread : public QThread
 {
     Q_OBJECT
@@ -49,6 +50,7 @@ public slots:
 
 private:
     friend class GRenderWindow;
+
     EmuThread(GRenderWindow* render_window);
 
     char filename[MAX_PATH];
@@ -68,24 +70,31 @@ signals:
     void CPUStepped();
 };
 
-class GRenderWindow : public QGLWidget, public EmuWindow
+class GRenderWindow : public QWidget, public EmuWindow
 {
-    Q_OBJECT
-
 public:
     GRenderWindow(QWidget* parent = NULL);
     ~GRenderWindow();
 
-    EmuThread& GetEmuThread();
-    void paintEvent(QPaintEvent*);
-    void resizeEvent(QResizeEvent*);
     void closeEvent(QCloseEvent*);
-    QSize sizeHint() { return QSize(640, 480); } // TODO: Is this necessary?
 
     // EmuWindow implementation
     void SwapBuffers();
     void SetTitle(const char* title);
+    void MakeCurrent();
+    void DoneCurrent();
+
+    void BackupGeometry();
+    void RestoreGeometry();
+    void restoreGeometry(const QByteArray& geometry); // overridden
+    QByteArray saveGeometry(); // overridden
+
+    EmuThread& GetEmuThread();
 
 private:
+    QGLWidget* child;
+
     EmuThread emu_thread;
+
+    QByteArray geometry;
 };

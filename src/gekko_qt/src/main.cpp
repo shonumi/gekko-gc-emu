@@ -59,12 +59,6 @@ GMainWindow::GMainWindow()
     dock_ramedit->setWindowTitle(tr("Memory viewer"));
     addDockWidget(Qt::TopDockWidgetArea, dock_ramedit);
 
-    // restore UI state
-    QSettings settings("Gekko team", "Gekko");
-    restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("state").toByteArray());
-    render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
-
     // menu items
     QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));
     filebrowser_menu->addAction(image_info->toggleViewAction());
@@ -75,9 +69,16 @@ GMainWindow::GMainWindow()
     debug_menu->addAction(callstack->toggleViewAction());
     debug_menu->addAction(dock_ramedit->toggleViewAction());
 
+    // restore UI state
+    QSettings settings("Gekko team", "Gekko");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("state").toByteArray());
+    render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
+
     // setup connections
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
+    connect(ui.actionSingle_Window_Mode, SIGNAL(triggered(bool)), this, SLOT(SetupEmuWindowMode()));
     connect(ui.treeView, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnFileBrowserDoubleClicked(const QModelIndex&)));
     connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
 
@@ -92,14 +93,17 @@ GMainWindow::GMainWindow()
 
 GMainWindow::~GMainWindow()
 {
-    delete render_window;
+    // will get automatically deleted otherwise
+    if (render_window->parent() == NULL)
+        delete render_window;
 }
 
 void GMainWindow::BootGame(const char* filename)
 {
-    render_window->doneCurrent(); // make sure EmuThread can access GL context
+    render_window->DoneCurrent(); // make sure EmuThread can access GL context
     render_window->GetEmuThread().SetFilename(filename);
     render_window->GetEmuThread().start();
+    SetupEmuWindowMode();
     render_window->show();
 }
 
@@ -127,7 +131,8 @@ void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
     if (!file_browser_model->isDir(index))
     {
         // Start emulation
-        BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
+        if (!render_window->GetEmuThread().isRunning())
+            BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
     }
     else
     {
@@ -223,6 +228,31 @@ void GMainWindow::OnFileBrowserSelectionChanged()
     image_info->SetDeveloper(QString::fromLatin1((char*)&banner[0x18a0]));
 }
 
+void GMainWindow::SetupEmuWindowMode()
+{
+    if (!render_window->GetEmuThread().isRunning())
+        return;
+
+    bool enable = ui.actionSingle_Window_Mode->isChecked();
+    if (enable && render_window->parent() == NULL) // switch to single window mode
+    {
+        render_window->BackupGeometry();
+        ui.treeView->hide();
+        ui.horizontalLayout->addWidget(render_window);
+        render_window->setVisible(true);
+        render_window->DoneCurrent();
+    }
+    else if (!enable && render_window->parent() != NULL) // switch to multiple windows mode
+    {
+        ui.horizontalLayout->removeWidget(render_window);
+        ui.treeView->show();
+        render_window->setParent(NULL);
+        render_window->setVisible(true);
+        render_window->DoneCurrent();
+        render_window->RestoreGeometry();
+    }
+}
+
 void GMainWindow::closeEvent(QCloseEvent* event)
 {
     // Save window layout
@@ -230,8 +260,8 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     QSettings settings("Gekko team", "Gekko");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
-
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
+    // TODO: Save "single window mode" check state
 
     render_window->close();
 
