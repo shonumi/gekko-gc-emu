@@ -42,12 +42,12 @@ u8 Mem_RAM[RAM2_SIZE]; // Ram2 64mb (Wii)
 #include "hw/hw_cp.h"
 
 //dummy value incase a read is done to an invalid area to limit code in the dynarec
-static u32 __fastcall Read0Mem(u32 Addr)
+static u32 EMU_FASTCALL Read0Mem(u32 Addr)
 {
 	return 0;
 }
 
-typedef u32(__fastcall *HWRead32Ptr)(u32 Addr);
+typedef u32(EMU_FASTCALL *HWRead32Ptr)(u32 Addr);
 static HWRead32Ptr	HWRead32[0x100] =
 {
 	//0x00
@@ -124,7 +124,7 @@ void Memory_Close(void)
 // Memory Reads
 //
 
-u8 __fastcall Memory_Read8(u32 addr)
+u8 EMU_FASTCALL Memory_Read8(u32 addr)
 {
 //	if (addr >= 0x90000000 && addr < 0x94000000) // MEM 2 (Wii)
 //		return Mem_RAM2[(addr ^ 3) & RAM2_MASK];
@@ -155,7 +155,7 @@ u8 __fastcall Memory_Read8(u32 addr)
 
 //
 
-u16 __fastcall Memory_Read16(u32 addr)
+u16 EMU_FASTCALL Memory_Read16(u32 addr)
 {
 /*	if (addr >= 0x90000000 && addr < 0x94000000) // MEM 2 (Wii)
 	{
@@ -202,7 +202,7 @@ u16 __fastcall Memory_Read16(u32 addr)
 
 //
 
-u32 __fastcall Memory_Read32(u32 addr)
+u32 EMU_FASTCALL Memory_Read32(u32 addr)
 {
 /*	if (addr >= 0x90000000 && addr < 0x94000000) // MEM 2 (Wii)
 	{
@@ -253,7 +253,7 @@ u32 __fastcall Memory_Read32(u32 addr)
 
 //
 
-u64 __fastcall Memory_Read64(u32 addr)
+u64 EMU_FASTCALL Memory_Read64(u32 addr)
 {
 	addr &= RAM_MASK;
 	return ((u64)(*(u32 *)(&Mem_RAM[addr])) << 32) |
@@ -265,7 +265,7 @@ u64 __fastcall Memory_Read64(u32 addr)
 // Memory Writes
 //
 
-void __fastcall Memory_Write8(u32 addr, u32 data)
+void EMU_FASTCALL Memory_Write8(u32 addr, u32 data)
 {
 /*	if(((addr ^ 3) & RAM_MASK) == (0x803C4BDC & RAM_MASK))
 	{
@@ -306,7 +306,7 @@ void __fastcall Memory_Write8(u32 addr, u32 data)
 
 //
 
-void __fastcall Memory_Write16(u32 addr, u32 data)
+void EMU_FASTCALL Memory_Write16(u32 addr, u32 data)
 {
 /*	if((((addr & RAM_MASK) <= (0x803C4BDC & RAM_MASK)) && (((addr & RAM_MASK)+1) >= (0x803C4BDC & RAM_MASK))))
 	{
@@ -362,7 +362,7 @@ void __fastcall Memory_Write16(u32 addr, u32 data)
 
 //
 
-void __fastcall Memory_Write32(u32 addr, u32 data)
+void EMU_FASTCALL Memory_Write32(u32 addr, u32 data)
 {
 /*	if((((addr & RAM_MASK) <= (0x803C4BDC & RAM_MASK)) && (((addr & RAM_MASK)+3) >= (0x803C4BDC & RAM_MASK))))
 	{
@@ -423,7 +423,7 @@ void __fastcall Memory_Write32(u32 addr, u32 data)
 
 //
 
-void __fastcall Memory_Write64(u32 addr, u64 data)
+void EMU_FASTCALL Memory_Write64(u32 addr, u64 data)
 {
 	addr &= RAM_MASK;
 	*(u32 *)(&Mem_RAM[addr]) = (u32)(data >> 32);

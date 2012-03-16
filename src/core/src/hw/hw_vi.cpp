@@ -45,18 +45,18 @@ u8		VIRegisters[REG_SIZE];
 // Desc: Read/Write from/to VI Hardware
 //
 
-u8 __fastcall VI_Read8(u32 addr)
+u8 EMU_FASTCALL VI_Read8(u32 addr)
 {
 	printf("~Flipper: Undefined VI_Read8: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall VI_Write8(u32 addr, u32 data)
+void EMU_FASTCALL VI_Write8(u32 addr, u32 data)
 {
 	printf("~Flipper: Undefined VI_Write8: %08X := %08X !\n", addr, data);
 }
 
-u16 __fastcall VI_Read16(u32 addr)
+u16 EMU_FASTCALL VI_Read16(u32 addr)
 {
 	switch(addr)
 	{
@@ -117,7 +117,7 @@ u16 __fastcall VI_Read16(u32 addr)
 	}
 }
 
-void __fastcall VI_Write16(u32 addr, u32 data)
+void EMU_FASTCALL VI_Write16(u32 addr, u32 data)
 {
 	switch(addr)
 	{
@@ -167,7 +167,7 @@ void __fastcall VI_Write16(u32 addr, u32 data)
 	}
 }
 
-u32 __fastcall VI_Read32(u32 addr)
+u32 EMU_FASTCALL VI_Read32(u32 addr)
 {
 	switch(addr)
 	{
@@ -191,7 +191,7 @@ u32 __fastcall VI_Read32(u32 addr)
 	}
 }
 
-void __fastcall VI_Write32(u32 addr, u32 data)
+void EMU_FASTCALL VI_Write32(u32 addr, u32 data)
 {
 	switch(addr)
 	{

@@ -123,12 +123,12 @@ void SI_Open(void);
 void SI_Poll(void);
 void SI_ProcessCommand(void);
 
-u8		__fastcall	SI_Read8(u32 addr);
-void	__fastcall	SI_Write8(u32 addr, u32 data);
-u16		__fastcall	SI_Read16(u32 addr);
-void	__fastcall	SI_Write16(u32 addr, u32 data);
-u32		__fastcall	SI_Read32(u32 addr);
-void	__fastcall	SI_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	SI_Read8(u32 addr);
+void	EMU_FASTCALL	SI_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	SI_Read16(u32 addr);
+void	EMU_FASTCALL	SI_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	SI_Read32(u32 addr);
+void	EMU_FASTCALL	SI_Write32(u32 addr, u32 data);
 
 //
 

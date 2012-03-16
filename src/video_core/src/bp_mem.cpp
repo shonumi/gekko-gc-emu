@@ -48,8 +48,7 @@ void BPRegisterWrite(u8 addr, u32 data) {
     g_bp_regs.mem[addr] = data;
 
     // adjust gx globals accordingly
-    switch(addr)
-    {
+    switch(addr) {
     case 0x0: // GEN_MODE
         //gx_states::set_cullmode();
         //gx_tev::active_stages = bp.genmode.ntev + 1;
@@ -226,6 +225,11 @@ void BPRegisterWrite(u8 addr, u32 data) {
         LOG_DEBUG(TGP, "BP-> TEV_KSEL_x");
         break;
     }
+}
+
+/// Initialize BP
+void BPInit() {
+    memset(&g_bp_regs, 0, sizeof(g_bp_regs));
 }
 
 } // namespace

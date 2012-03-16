@@ -55,29 +55,29 @@ inline static u32 SI_PadGetWord_Lo(int _pad)
 // Desc: Read/Write from/to SI Hardware
 //
 
-u8 __fastcall SI_Read8(u32 addr)
+u8 EMU_FASTCALL SI_Read8(u32 addr)
 {
     LOG_ERROR(TSI, "Undefined SI_Read8: %08X!\n", addr);
     return 0;
 }
 
-void __fastcall SI_Write8(u32 addr, u32 data)
+void EMU_FASTCALL SI_Write8(u32 addr, u32 data)
 {
     LOG_ERROR(TSI, "Undefined SI_Write8: %08X := %08X !\n", addr, data);
 }
 
-u16 __fastcall SI_Read16(u32 addr)
+u16 EMU_FASTCALL SI_Read16(u32 addr)
 {
     LOG_ERROR(TSI, "Undefined SI_Read16: %08X!\n", addr);
     return 0;
 }
 
-void __fastcall SI_Write16(u32 addr, u32 data)
+void EMU_FASTCALL SI_Write16(u32 addr, u32 data)
 {
     LOG_ERROR(TSI, "Undefined SI_Write16: %08X := %08X !\n", addr, data);
 }
 
-u32 __fastcall SI_Read32(u32 addr)
+u32 EMU_FASTCALL SI_Read32(u32 addr)
 {
     switch(addr)
     {
@@ -128,7 +128,7 @@ u32 __fastcall SI_Read32(u32 addr)
     }
 }
 
-void __fastcall SI_Write32(u32 addr, u32 data)
+void EMU_FASTCALL SI_Write32(u32 addr, u32 data)
 {
     switch(addr)
     {

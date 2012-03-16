@@ -124,18 +124,18 @@ void AudioRam_DMA(u32 _type, u32 _maddr, u32 _aaddr, u32 _size)
 // Desc: Read/Write from/to DSP Hardware
 //
 
-u8 __fastcall DSP_Read8(u32 addr)
+u8 EMU_FASTCALL DSP_Read8(u32 addr)
 {
 	printf("~Flipper: Undefined DSP_Read8: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall DSP_Write8(u32 addr, u32 data)
+void EMU_FASTCALL DSP_Write8(u32 addr, u32 data)
 {
 	printf("~Flipper: Undefined DSP_Write8: %08X := %08X !\n", addr, data);
 }
 
-u16 __fastcall DSP_Read16(u32 addr)
+u16 EMU_FASTCALL DSP_Read16(u32 addr)
 {
 	switch(addr)
 	{
@@ -202,7 +202,7 @@ u16 __fastcall DSP_Read16(u32 addr)
 	}
 }
 
-void __fastcall DSP_Write16(u32 addr, u32 data)
+void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 {
 	switch(addr)
 	{
@@ -313,7 +313,7 @@ void __fastcall DSP_Write16(u32 addr, u32 data)
 	}
 }
 
-u32 __fastcall DSP_Read32(u32 addr)
+u32 EMU_FASTCALL DSP_Read32(u32 addr)
 {
 	LOG_ERROR(TDSP, "~Flipper: DSP_Read32: %08X (PC=%08x)!\n", addr, ireg_PC());
 	switch(addr)
@@ -329,7 +329,7 @@ u32 __fastcall DSP_Read32(u32 addr)
 	}
 }
 
-void __fastcall DSP_Write32(u32 addr, u32 data)
+void EMU_FASTCALL DSP_Write32(u32 addr, u32 data)
 {
 	//DisplayError("~Flipper: DSP_Write32: %08X (PC=%08x)!\n", addr, ireg_PC());
 	

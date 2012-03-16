@@ -50,11 +50,11 @@
 #define XF_TEX_EMBOSS_LIGHT(n)          ((XF_TEX(n) >> 15) & 0x7)		
 
 // xf: transformation memory reference
-#define XF_POSITION_MATRIX			&*(f32*)&g_tf_mem[(gx_vertex::pm_index * 4)];
-#define XF_GEOMETRY_MATRIX			&*(f32*)&g_tf_mem[(MIDX_POS * 4)];									
-#define XF_TEX_MATRIX(n)			&*(f32*)&g_tf_mem[(gx_vertex::tm_index[n] * 4)];
-#define XF_TEXTURE_MATRIX03(n)		&*(f32*)&g_tf_mem[(MIDX_TEX03(n) * 4)];
-#define XF_TEXTURE_MATRIX47(n)		&*(f32*)&g_tf_mem[(MIDX_TEX47(n) * 4)];
+#define XF_POSITION_MATRIX			&*(f32*)&gp::g_tf_mem[(gx_vertex::pm_index * 4)];
+#define XF_GEOMETRY_MATRIX			&*(f32*)&gp::g_tf_mem[(MIDX_POS * 4)];									
+#define XF_TEX_MATRIX(n)			&*(f32*)&gp::g_tf_mem[(gx_vertex::tm_index[n] * 4)];
+#define XF_TEXTURE_MATRIX03(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX03(n) * 4)];
+#define XF_TEXTURE_MATRIX47(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX47(n) * 4)];
 
 // xf: register reference
 #define XF_VIEWPORT_SCALE_X			g_xf_regs.mem[0x1a]
@@ -75,6 +75,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
+
+namespace gp {
 
 // texture inrow source
 //		Specifies location of incoming textures in vertex (row specific) 
@@ -149,45 +151,44 @@ typedef struct {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // XF Registers
 
+/// XF memory uniion
 union XFMemory{
     struct{
-        u32             pad0[0x9];
-        XFNumColors     numcolors;
-        XFColorChannel  ambient[0x2];
-        XFColorChannel  material[0x2];
-        XFColorControl  colorcontrol[0x2];
-        u32             pad1[0xf0];
+        u32             pad0[0x9];          ///< Padding - unused
+        XFNumColors     numcolors;          ///< Number of colors
+        XFColorChannel  ambient[0x2];       ///< Ambient color channels
+        XFColorChannel  material[0x2];      ///< Material color channels
+        XFColorControl  colorcontrol[0x2];  ///< Color control
+        u32             pad1[0xf0];         ///< Padding - unused
     };
-
-    u32 mem[0x100];
+    u32 mem[0x100];                         ///< Addressable memory
 };
 
-extern u32      g_tf_mem[0x800];    ///< Transformation memory
-extern XFMemory g_xf_regs;          ///< XF registers
+extern u32      g_tf_mem[0x800];            ///< Transformation memory
+extern XFMemory g_xf_regs;                  ///< XF registers
+extern f32      g_projection_matrix[16];    ///< Decoded projection matrix
+extern f32      g_position_matrix[16];      ///< Decoded position matrix
+extern f32      g_view_matrix[16];          ///< Decoded view matrix
 
-/*
-// vector routines
-void vec_scale(void);
-void vec_multiply(void);
-void vec_copy(void);
+/*! 
+ * \brief Write data into a XF register
+ * \param length Length of write (in 32-bit words)
+ * \param addr Starting addres to write to
+ * \param regs Register data to write
+ */
+void XFRegisterWrite(u16 length, u16 addr, u32* regs);
 
-// transform 2d vertex position (software)
-void gx_tf_pos_xy(f32* d, f32 *v);		
-// transform 3d vertex position (software)
-void gx_tf_pos_xyz(f32* d, f32 *v);	
-// transform vertex (hardware accelerated)
-void gx_tf_pos_hardware(void);				
-// transform texture coordinate (2d)
-void gx_tf_tex_st(f32* d, f32 *v, u8 _indexed, u8 n);	
-// transform texture coordinate (3d - projected)
-void gx_tf_tex_stq(f32* d, f32 *v, u8 _indexed, u8 n);		
+/*! 
+ * \brief Write data into a XF register indexed-form
+ * \param n CP index address
+ * \param length Length of write (in 32-bit words)
+ * \param addr Starting addres to write to
+ */
+void XFLoadIndexed(u8 n, u16 index, u8 length, u16 addr);
 
-// transformation
-void tex_gen(int _n);
+/// Initialize XF
+void XFInit();
 
-// namespace
-void initialize(void);
-void destroy(void);
-*/
+} // namespace
 
 #endif // VIDEO_CORE_XF_MEM_

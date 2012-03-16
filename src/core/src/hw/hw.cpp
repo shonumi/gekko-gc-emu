@@ -74,7 +74,7 @@ void Flipper_Close(void)
 // Desc: Write 8bit Data to Flipper Hardware
 //
 
-void __fastcall Flipper_Write8(u32 addr, u32 data)
+void EMU_FASTCALL Flipper_Write8(u32 addr, u32 data)
 {
 	if(HARDWARE_ADDR == GX_Fifo)
 		CP_WPAR_Write8(addr, data);
@@ -105,7 +105,7 @@ void __fastcall Flipper_Write8(u32 addr, u32 data)
 // Desc: Write 16bit Data to Flipper Hardware
 //
 
-void __fastcall Flipper_Write16(u32 addr, u32 data)
+void EMU_FASTCALL Flipper_Write16(u32 addr, u32 data)
 {
 	if(HARDWARE_ADDR == GX_Fifo)
 		CP_WPAR_Write16(addr, data);
@@ -136,7 +136,7 @@ void __fastcall Flipper_Write16(u32 addr, u32 data)
 // Desc: Write 32bit Data to Flipper Hardware
 //
 
-void __fastcall Flipper_Write32(u32 addr, u32 data)
+void EMU_FASTCALL Flipper_Write32(u32 addr, u32 data)
 {
 	if(HARDWARE_ADDR == GX_Fifo)
 		CP_WPAR_Write32(addr, data);
@@ -169,7 +169,7 @@ void __fastcall Flipper_Write32(u32 addr, u32 data)
 // Desc: Read 8bit Data from Flipper Hardware
 //
 
-u8 __fastcall Flipper_Read8(u32 addr)
+u8 EMU_FASTCALL Flipper_Read8(u32 addr)
 {
 	switch(HARDWARE_ADDR)
 	{
@@ -194,7 +194,7 @@ u8 __fastcall Flipper_Read8(u32 addr)
 // Desc: Read 16bit Data from Flipper Hardware
 //
 
-u16 __fastcall Flipper_Read16(u32 addr)
+u16 EMU_FASTCALL Flipper_Read16(u32 addr)
 {
 	switch(HARDWARE_ADDR)
 	{
@@ -219,7 +219,7 @@ u16 __fastcall Flipper_Read16(u32 addr)
 // Desc: Read 32bit Data from Flipper Hardware
 //
 
-u32 __fastcall Flipper_Read32(u32 addr)
+u32 EMU_FASTCALL Flipper_Read32(u32 addr)
 {
 	switch(HARDWARE_ADDR)
 	{

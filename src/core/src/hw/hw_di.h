@@ -74,11 +74,11 @@ extern sDI hw_di;
 void DI_Open(void);
 void DI_Close(void);
 
-u8		__fastcall	DI_Read8(u32 addr);
-void	__fastcall	DI_Write8(u32 addr, u32 data);
-u16		__fastcall	DI_Read16(u32 addr);
-void	__fastcall	DI_Write16(u32 addr, u32 data);
-u32		__fastcall	DI_Read32(u32 addr);
-void	__fastcall	DI_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	DI_Read8(u32 addr);
+void	EMU_FASTCALL	DI_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	DI_Read16(u32 addr);
+void	EMU_FASTCALL	DI_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	DI_Read32(u32 addr);
+void	EMU_FASTCALL	DI_Write32(u32 addr, u32 data);
 
 #endif

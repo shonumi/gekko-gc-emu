@@ -11,7 +11,7 @@
 //
 
 
-int EMU_FASTCALL DisassembleGekko(
+int DisassembleGekko(
     char *opcodeStr, 
     char *operandStr, 
     u32 opcode, 

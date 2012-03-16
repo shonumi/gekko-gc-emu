@@ -40,9 +40,9 @@ extern u8 PIRegisters[REG_SIZE];
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void __fastcall PI_Fifo_Write8(u32 addr, u32 data);
-void __fastcall PI_Fifo_Write16(u32 addr, u32 data);
-void __fastcall PI_Fifo_Write32(u32 addr, u32 data);
+void EMU_FASTCALL PI_Fifo_Write8(u32 addr, u32 data);
+void EMU_FASTCALL PI_Fifo_Write16(u32 addr, u32 data);
+void EMU_FASTCALL PI_Fifo_Write32(u32 addr, u32 data);
 
 u32		PI_CheckForInterrupts();
 void	PI_RequestInterrupt(u32 mask);
@@ -52,12 +52,12 @@ void	PI_Update(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-u8		__fastcall	PI_Read8(u32 addr);
-void	__fastcall	PI_Write8(u32 addr, u32 data);
-u16		__fastcall	PI_Read16(u32 addr);
-void	__fastcall	PI_Write16(u32 addr, u32 data);
-u32		__fastcall	PI_Read32(u32 addr);
-void	__fastcall	PI_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	PI_Read8(u32 addr);
+void	EMU_FASTCALL	PI_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	PI_Read16(u32 addr);
+void	EMU_FASTCALL	PI_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	PI_Read32(u32 addr);
+void	EMU_FASTCALL	PI_Write32(u32 addr, u32 data);
 
 //
 

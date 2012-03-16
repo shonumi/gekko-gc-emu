@@ -72,12 +72,12 @@ extern u32 dspCSRDSPInt;
 void DSP_Open(void);
 void DSP_Update(void);
 
-u8		__fastcall	DSP_Read8(u32 addr);
-void	__fastcall	DSP_Write8(u32 addr, u32 data);
-u16		__fastcall	DSP_Read16(u32 addr);
-void	__fastcall	DSP_Write16(u32 addr, u32 data);
-u32		__fastcall	DSP_Read32(u32 addr);
-void	__fastcall	DSP_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	DSP_Read8(u32 addr);
+void	EMU_FASTCALL	DSP_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	DSP_Read16(u32 addr);
+void	EMU_FASTCALL	DSP_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	DSP_Read32(u32 addr);
+void	EMU_FASTCALL	DSP_Write32(u32 addr, u32 data);
 
 //
 

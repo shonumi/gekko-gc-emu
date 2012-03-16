@@ -67,12 +67,12 @@ void MemCard_Update();
 u32 MemCard_InterruptSet(u32 Channel);
 void MemCard_Transfer(u32 addr);
 
-u8		__fastcall	EXI_Read8(u32 addr);
-void	__fastcall	EXI_Write8(u32 addr, u32 data);
-u16		__fastcall	EXI_Read16(u32 addr);
-void	__fastcall	EXI_Write16(u32 addr, u32 data);
-u32		__fastcall	EXI_Read32(u32 addr);
-void	__fastcall	EXI_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	EXI_Read8(u32 addr);
+void	EMU_FASTCALL	EXI_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	EXI_Read16(u32 addr);
+void	EMU_FASTCALL	EXI_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	EXI_Read32(u32 addr);
+void	EMU_FASTCALL	EXI_Write32(u32 addr, u32 data);
 
 //
 

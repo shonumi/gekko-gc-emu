@@ -34,9 +34,8 @@ namespace dvd {
  * \brief Loads a bootable file (ROM/DVD image) to be ran by the emulator
  * \param filename Filename of ROM/DVD image to load
  * \return 0 on pass, non-zero error code on fail
- * \todo EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
  */
-int EMU_FASTCALL LoadBootableFile(char* filename);
+int LoadBootableFile(char* filename);
 
 /*!
  * \brief Load a DOL (GameCube binary file)
@@ -74,9 +73,8 @@ int LoadGCM(char *filename);
  * \param filesize Filesize of GCM (reference)
  * \param BannerBuffer Pointer to GCM banner (reference)
  * \todo This should eventually be in its own GCM utilities library
- * \todo This shouldn't be fastcall (gekko-qt workaround)
  */
-int EMU_FASTCALL ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header);
+int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header);
 
 extern char g_current_game_name[992];   ///< Currently loaded game name
 extern char g_current_game_crc[7];      ///< Currently loaded game checksum

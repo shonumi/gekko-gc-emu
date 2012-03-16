@@ -173,31 +173,31 @@ EXIFunc EXI_Transfer[8*3] =
 // Desc: Read/Write from/to EXI Hardware
 //
 
-u8 __fastcall EXI_Read8(u32 addr)
+u8 EMU_FASTCALL EXI_Read8(u32 addr)
 {
 	printf("~Flipper: Undefined EXI_Read8: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall EXI_Write8(u32 addr, u32 data)
+void EMU_FASTCALL EXI_Write8(u32 addr, u32 data)
 {
 	printf("~Flipper: Undefined EXI_Write8: %08X := %08X !\n", addr, data);
 	return;
 }
 
-u16 __fastcall EXI_Read16(u32 addr)
+u16 EMU_FASTCALL EXI_Read16(u32 addr)
 {
 	printf("~Flipper: Undefined EXI_Read16: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall EXI_Write16(u32 addr, u32 data)
+void EMU_FASTCALL EXI_Write16(u32 addr, u32 data)
 {
 	printf("~Flipper: Undefined EXI_Write16: %08X := %08X !\n", addr, data);
 	return;
 }
 
-u32 __fastcall EXI_Read32(u32 addr)
+u32 EMU_FASTCALL EXI_Read32(u32 addr)
 {
 	//printf(".EXI Read32: addr %08X\n", addr);
 	switch(addr)
@@ -239,7 +239,7 @@ u32 __fastcall EXI_Read32(u32 addr)
 	}
 }
 
-void __fastcall EXI_Write32(u32 addr, u32 data)
+void EMU_FASTCALL EXI_Write32(u32 addr, u32 data)
 {
 	u32		CRVal=0;
 	u32		Device;

@@ -39,14 +39,17 @@
 
 namespace gp {
 
-u32         g_tf_mem[0x800];    ///< Transformation memory
-XFMemory    g_xf_regs;          ///< XF registers
+u32         g_tf_mem[0x800];            ///< Transformation memory
+XFMemory    g_xf_regs;                  ///< XF registers
+f32         g_projection_matrix[16];    ///< Decoded projection matrix
+f32         g_position_matrix[16];      ///< Decoded position matrix
+f32         g_view_matrix[16];          ///< Decoded view matrix
 
 /// Write data into a XF register
-void XFRegisterWrite(u16 length, u16 addr, u32 regs[64]) {
+void XFRegisterWrite(u16 length, u16 addr, u32* regs) {
     int i;
 
-    // write data to xf memory/registers
+    // Write data to xf memory/registers
     switch((addr & XF_ADDR_MASK) >> 8) {
     case 0x00:
     case 0x01:
@@ -59,13 +62,12 @@ void XFRegisterWrite(u16 length, u16 addr, u32 regs[64]) {
         for (i = 0; i < length; i++){		
             ((f32*)g_tf_mem)[addr + i] = toFLOAT(regs[i]);
         }
-
         break;
 
     case 0x10: // registers
         u8 maddr = (addr & 0xff);
         for (i = 0; i <length; i++) {
-            g_xf_regs.mem[maddr + i] =regs[i];
+            g_xf_regs.mem[maddr + i] = regs[i];
         }
 
         switch(maddr) {
@@ -99,23 +101,24 @@ void XFRegisterWrite(u16 length, u16 addr, u32 regs[64]) {
 
 	        // Set orthographic mode...
 	        if(XF_PROJECTION_ORTHOGRAPHIC) { 
-		        mtx[0]._u32 = XF_PROJECTION_A;
-		        mtx[5]._u32 = XF_PROJECTION_C;
-		        mtx[10]._u32 = XF_PROJECTION_E;
-		        mtx[12]._u32 = XF_PROJECTION_B;
-		        mtx[13]._u32 = XF_PROJECTION_D;
-		        mtx[14]._u32 = XF_PROJECTION_F;
-		        mtx[15]._f32 = 1.0f;
+		        g_projection_matrix[0] = toFLOAT(XF_PROJECTION_A);
+		        g_projection_matrix[5] = toFLOAT(XF_PROJECTION_C);
+		        g_projection_matrix[10] = toFLOAT(XF_PROJECTION_E);
+		        g_projection_matrix[12] = toFLOAT(XF_PROJECTION_B);
+		        g_projection_matrix[13] = toFLOAT(XF_PROJECTION_D);
+		        g_projection_matrix[14] = toFLOAT(XF_PROJECTION_F);
+		        g_projection_matrix[15] = 1.0f;
 	        // Set perspective mode
 	        }else{ 
-		        mtx[0]._u32 = XF_PROJECTION_A;
-		        mtx[5]._u32 = XF_PROJECTION_C;
-		        mtx[8]._u32 = XF_PROJECTION_B;
-		        mtx[9]._u32 = XF_PROJECTION_D;
-		        mtx[10]._u32 = XF_PROJECTION_E;
-		        mtx[11]._f32 = -1.0f;
-		        mtx[14]._u32 = XF_PROJECTION_F;
+		        g_projection_matrix[0] = toFLOAT(XF_PROJECTION_A);
+		        g_projection_matrix[5] = toFLOAT(XF_PROJECTION_C);
+		        g_projection_matrix[8] = toFLOAT(XF_PROJECTION_B);
+		        g_projection_matrix[9] = toFLOAT(XF_PROJECTION_D);
+		        g_projection_matrix[10] = toFLOAT(XF_PROJECTION_E);
+		        g_projection_matrix[11] = -1.0f;
+		        g_projection_matrix[14] = toFLOAT(XF_PROJECTION_F);
 	        }
+
             break;
         }
         break;
@@ -127,6 +130,13 @@ void XFLoadIndexed(u8 n, u16 index, u8 length, u16 addr) {
     for (int i = 0; i < length; i++) {
         g_tf_mem[addr + i] = Memory_Read32(CP_IDX_ADDR(index, n) + (i * 4));
     }
+}
+
+/// Initialize XF
+void XFInit() {
+    memset(g_tf_mem, 0, sizeof(g_tf_mem));
+    memset(&g_xf_regs, 0, sizeof(g_xf_regs));
+    memset(g_projection_matrix, 0, sizeof(g_projection_matrix));
 }
 
 } // namespace

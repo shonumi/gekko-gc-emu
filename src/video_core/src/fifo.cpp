@@ -34,9 +34,9 @@
 #include "video_core.h"
 #include "vertex_loader.h"
 #include "fifo.h"
-
 #include "bp_mem.h"
 #include "cp_mem.h"
+#include "xf_mem.h"
 
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
@@ -290,12 +290,12 @@ GP_OPCODE(LOAD_XF_REG) {
 	u32 temp    = FIFO_POP32();
 	u16 length  = (temp >> 16) + 1;
     u16 addr    = temp & 0xFFFF;
-	//u32 regs[64];
+    u32 regs[64];
 
 	for(int i = 0; i < length; i++) {
-        FIFO_POP32();
+        regs[i] = FIFO_POP32();
     }
-	//GX_XFLoad(length, addr, regs);
+    XFRegisterWrite(length, addr, regs);
     LOG_DEBUG(TGP, "Called LOAD_XF_REG: length = %d addr = %04x", length, addr);
 }
 
@@ -497,15 +497,15 @@ void FifoInit() {
 	GP_SETOP(GP_OPMASK(GP_DRAW_POINTS), GPOPCODE_DRAW_POINTS);
 
     VertexLoaderInit();
-
-    LOG_NOTICE(TGP, "FIFO initialized ok");   
+    BPInit();
+    CPInit();
+    XFInit();
 }
 
 /// Shutdown GP FIFO
 void FifoShutdown() {
     SDL_DestroyMutex(g_fifo_synch_mutex);
     SDL_DestroyMutex(g_fifo_write_ptr_mutex);
-
     VertexLoaderShutdown();
 }
 

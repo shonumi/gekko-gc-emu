@@ -253,7 +253,7 @@ GP_OPCODE (DRAW_POINTS)
 // MAIN FIFO CONTROL
 
 // parse a fifo command
-void __fastcall gx_fifo::command_parser(cgxlist * gxlist)
+void EMU_FASTCALL gx_fifo::command_parser(cgxlist * gxlist)
 {
 	cmd = gxlist->pop8();
 	vat = cmd & 0x7;
@@ -262,7 +262,7 @@ void __fastcall gx_fifo::command_parser(cgxlist * gxlist)
 }
 
 // execute a fifo command
-u8 __fastcall gx_fifo::check_size()
+u8 EMU_FASTCALL gx_fifo::check_size()
 {
 	static u32 LastRequiredSize = -1;
 
@@ -369,7 +369,7 @@ u8 __fastcall gx_fifo::check_size()
 }
 
 // execute a display list
-void __fastcall gx_fifo::call_displaylist(u32 _addr, u32 _size)
+void EMU_FASTCALL gx_fifo::call_displaylist(u32 _addr, u32 _size)
 {
 	cgxlist dl;
 	u32 maddr = _addr & 0xffff;

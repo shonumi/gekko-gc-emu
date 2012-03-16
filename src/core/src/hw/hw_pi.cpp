@@ -23,19 +23,19 @@ u32		PIInterrupt;
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-void __fastcall PI_Fifo_Write8(u32 addr, u32 data)
+void EMU_FASTCALL PI_Fifo_Write8(u32 addr, u32 data)
 {
 	Memory_Write8(PI_FIFO_WRITE_POINTER, data);
     PI_FIFO_WRITE_POINTER++;
 }
 
-void __fastcall PI_Fifo_Write16(u32 addr, u32 data)
+void EMU_FASTCALL PI_Fifo_Write16(u32 addr, u32 data)
 {
 	Memory_Write16(PI_FIFO_WRITE_POINTER, data);
     PI_FIFO_WRITE_POINTER+=2;
 }
 
-void __fastcall PI_Fifo_Write32(u32 addr, u32 data)
+void EMU_FASTCALL PI_Fifo_Write32(u32 addr, u32 data)
 {
 	Memory_Write32(PI_FIFO_WRITE_POINTER, data);
     PI_FIFO_WRITE_POINTER+=4;
@@ -73,18 +73,18 @@ void PI_ClearInterrupt(unsigned int mask)
 // Desc: Read/Write from/to PI Hardware
 //
 
-u8 __fastcall PI_Read8(u32 addr)
+u8 EMU_FASTCALL PI_Read8(u32 addr)
 {
 	LOG_ERROR(TPI, "Undefined PI_Read8: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall PI_Write8(u32 addr, u32 data)
+void EMU_FASTCALL PI_Write8(u32 addr, u32 data)
 {
 	LOG_ERROR(TPI, "Undefined PI_Write8: %08X := %08X !\n", addr, data);
 }
 
-u16 __fastcall PI_Read16(u32 addr)
+u16 EMU_FASTCALL PI_Read16(u32 addr)
 {
 	switch(addr)
 	{
@@ -107,7 +107,7 @@ u16 __fastcall PI_Read16(u32 addr)
 	}
 }
 
-void __fastcall PI_Write16(u32 addr, u32 data)
+void EMU_FASTCALL PI_Write16(u32 addr, u32 data)
 {
 	switch(addr)
 	{
@@ -135,7 +135,7 @@ void __fastcall PI_Write16(u32 addr, u32 data)
 	}
 }
 
-u32 __fastcall PI_Read32(u32 addr)
+u32 EMU_FASTCALL PI_Read32(u32 addr)
 {
 	switch(addr)
 	{
@@ -152,7 +152,7 @@ u32 __fastcall PI_Read32(u32 addr)
 	}
 }
 
-void __fastcall PI_Write32(u32 addr, u32 data)
+void EMU_FASTCALL PI_Write32(u32 addr, u32 data)
 {
 	switch(addr)
 	{

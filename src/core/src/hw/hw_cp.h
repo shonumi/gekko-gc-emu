@@ -67,7 +67,7 @@ extern u8 CPRegisters[REG_SIZE];
 
 #define CP_WPAR_MASK            0xfff0
 
-typedef void					(__fastcall *wwpar)(u32 addr, u32 data);
+typedef void					(EMU_FASTCALL *wwpar)(u32 addr, u32 data);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -86,12 +86,12 @@ void CP_Update(u32 _addr);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-u8		__fastcall	CP_Read8(u32 addr);
-void	__fastcall	CP_Write8(u32 addr, u32 data);
-u16		__fastcall	CP_Read16(u32 addr);
-void	__fastcall	CP_Write16(u32 addr, u32 data);
-u32		__fastcall	CP_Read32(u32 addr);
-void	__fastcall	CP_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	CP_Read8(u32 addr);
+void	EMU_FASTCALL	CP_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	CP_Read16(u32 addr);
+void	EMU_FASTCALL	CP_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	CP_Read32(u32 addr);
+void	EMU_FASTCALL	CP_Write32(u32 addr, u32 data);
 
 extern wwpar CP_WPAR_Write8;
 extern wwpar CP_WPAR_Write16;

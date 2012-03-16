@@ -40,4 +40,9 @@ void CPRegisterWrite(u8 addr, u32 data) {
     g_cp_regs.mem[addr] = data;
 }
 
+/// Initialize CP
+void CPInit() {
+    memset(&g_cp_regs, 0, sizeof(g_cp_regs));
+}
+
 } // namespace

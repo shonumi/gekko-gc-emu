@@ -25,6 +25,9 @@
 #ifndef VIDEO_CORE_RENDERER_GL3_H_
 #define VIDEO_CORE_RENDERER_GL3_H_
 
+#include <GL/glew.h>
+#include <GL/glfw.h>
+
 #include "common.h"
 #include "renderer_base.h"
 
@@ -53,6 +56,8 @@ private:
 
     int resolution_width_;
     int resolution_height_;
+
+    GLuint shader_id_;
 
     DISALLOW_COPY_AND_ASSIGN(RendererGL3);
 };

@@ -27,11 +27,10 @@
 #include "input_common.h"
 
 #include "vertex_loader.h"
+#include "cp_mem.h"
+#include "xf_mem.h"
 
 #include "renderer_gl3.h"
-
-#include <GL/glew.h>
-#include <GL/glfw.h>
 
 #include <glm/glm.hpp>  
 //#include <glm/gtc/matrix_projection.hpp>  
@@ -46,10 +45,51 @@ void RendererGL3::DrawPrimitive() {
 
     int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer) * 4;
     int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
+    
+    f32* pmtx = XF_GEOMETRY_MATRIX;
+    f32 pmtx44[16];
+
+    //glm::mat4 Model      = glm::mat4(1.0f);
+
+    int i = 0, j = 0, k = 15;
+
+	// convert 4x3 ode to gl 4x4
+	pmtx44[0]  = pmtx[0]; pmtx44[1]  = pmtx[4]; pmtx44[2]  = pmtx[8]; pmtx44[3]  = 0;
+	pmtx44[4]  = pmtx[1]; pmtx44[5]  = pmtx[5]; pmtx44[6]  = pmtx[9]; pmtx44[7]  = 0;
+	pmtx44[8]  = pmtx[2]; pmtx44[9]  = pmtx[6]; pmtx44[10] = pmtx[10];pmtx44[11] = 0;
+	pmtx44[12] = pmtx[3]; pmtx44[13] = pmtx[7]; pmtx44[14] = pmtx[11]; pmtx44[15] = 1;
+
+
+/*
+    glm::mat4 Projection      = glm::mat4(1.0f);
+
+    i = 0, j = 0, k = 0;
+
+    for (i=3;i>=0;i--) {
+        for (j=3;j>=0;j--) {
+            Projection[j][i] = gp::g_projection_matrix[k];
+            k++;
+        }
+    }*/
+
+    // Update XF matrices
+    GLuint m_id = glGetUniformLocation(shader_id_, "projectionMatrix");
+    glUniformMatrix4fv(m_id, 1, GL_FALSE, &gp::g_projection_matrix[0]);
+    //m_id = glGetUniformLocation(shader_id_, "viewMatrix");
+    //glUniformMatrix4fv(m_id, 1, GL_FALSE, &identity[0][0]);
+
+
+    m_id = glGetUniformLocation(shader_id_, "modelMatrix");
+    glUniformMatrix4fv(m_id, 1, GL_FALSE, &pmtx44[0]);
+
+    
+
+
+
+
+
 
     glEnableVertexAttribArray(0);
-
-
 
     glBindBuffer(GL_ARRAY_BUFFER, g_position_buffer);
     glBufferData(GL_ARRAY_BUFFER, position_buffer_size, gp::g_position_burst_buffer, GL_DYNAMIC_DRAW);
@@ -112,20 +152,42 @@ void RendererGL3::SwapBuffers() {
     glfwSwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT);
 
+
+
 	static u32 swaps = 0, last = 0;
-	static float fps = 0;
+	//static int fps = 0;
 
 	u32 t = SDL_GetTicks();
 	swaps++;
 		
-	if(t - last > 1000) {
+	if(t - last > 500) {
         char title[100];
-		fps = (float) swaps / (0.001 * (t - last));
+		f32 fps = 1000.0f * swaps / (t - last);
 		swaps = 0;
 		last = t;
-		sprintf(title, "gekko-glfw - %03.02f fps", fps);
+		sprintf(title, "gekko-glfw - %02.02f fps", fps);
         glfwSetWindowTitle(title);
 	}
+
+    /*
+// setup code
+
+    static u32 startclock = SDL_GetTicks();
+    u32 deltaclock = 0;
+    u32 currentFPS = 0;
+
+// actual fps calculation inside loop
+
+    deltaclock = SDL_GetTicks() - startclock;
+    startclock = SDL_GetTicks();
+		
+    if (deltaclock != 0) {
+        char title[100];
+        currentFPS = 1000 / deltaclock;
+        sprintf(title, "gekko-glfw - %d fps", currentFPS);
+        glfwSetWindowTitle(title);
+    }*/
+  
 }
 
 /*! 
@@ -149,71 +211,7 @@ void RendererGL3::ShutDown() {
     printf("RendererGL3::Init()\n");
 }
 
-void InitShaders(void)
-{
-	GLuint p, f, v;
-
-	char vs[1024] = "#version 130\n" \
-                    "layout(location = 0) in vec3 Position;\n" \
-                    "void main() {\n" \
-                    "    gl_Position.xyz = Position;\n" \
-                    "}";
-        
-    char fs[1024] = "#version 130\n" \
-                    "out vec3 color;\n" \
-                    "void main() {\n" \
-                    "    color = vec3(1,0,0);\n" \
-                    "}\n";
-
-	v = glCreateShader(GL_VERTEX_SHADER);
-	f = glCreateShader(GL_FRAGMENT_SHADER);	
-
-	// load shaders & get length of each
-	GLint vlen;
-	GLint flen;
-	//vs = loadFile("minimal.vert",vlen);
-	//fs = loadFile("minimal.frag",flen);
-
-	const char * vv = vs;
-	const char * ff = fs;
-
-	glShaderSource(v, 1, &vv,&vlen);
-	glShaderSource(f, 1, &ff,&flen);
-
-	GLint compiled;
-
-	glCompileShader(v);
-	glGetShaderiv(v, GL_COMPILE_STATUS, &compiled);
-	if (!compiled)
-	{
-		LOG_ERROR(TGP, "Vertex shader not compiled.");
-		//printShaderInfoLog(v);
-	} 
-
-	glCompileShader(f);
-	glGetShaderiv(f, GL_COMPILE_STATUS, &compiled);
-	if (!compiled)
-	{
-		LOG_ERROR(TGP, "Fragment shader not compiled.");
-		//printShaderInfoLog(f);
-	} 
-
-	p = glCreateProgram();
-
-	glBindAttribLocation(p,0, "in_Position");
-	glBindAttribLocation(p,1, "in_Color");
-
-	glAttachShader(p,v);
-	glAttachShader(p,f);
-
-	glLinkProgram(p);
-	glUseProgram(p);
-
-//	delete [] vs; // dont forget to free allocated memory
-//	delete [] fs; // we allocated this in the loadFile function...
-}
-
-
+/// Generate vertex and fragment shader programs
 GLuint GenerateShader(const char * vertex_shader,const char * fragment_shader){
     // Create the shaders
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -223,33 +221,21 @@ GLuint GenerateShader(const char * vertex_shader,const char * fragment_shader){
     glShaderSource(VertexShaderID, 1, &vertex_shader , NULL);
     glCompileShader(VertexShaderID);
  
-    // Check Vertex Shader
-    //glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-    //glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
- 
     // Compile Fragment Shader
     glShaderSource(FragmentShaderID, 1, &fragment_shader , NULL);
     glCompileShader(FragmentShaderID);
  
-    // Check Fragment Shader
-    //glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-    //glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-
     // Link the program
-    //fprintf(stdout, "Linking program\n");
-    GLuint ProgramID = glCreateProgram();
-    glAttachShader(ProgramID, VertexShaderID);
-    glAttachShader(ProgramID, FragmentShaderID);
-    glLinkProgram(ProgramID);
+    GLuint program_id = glCreateProgram();
+    glAttachShader(program_id, VertexShaderID);
+    glAttachShader(program_id, FragmentShaderID);
+    glLinkProgram(program_id);
  
-    // Check the program
-    //glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-    //glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-
+    // Cleanup
     glDeleteShader(VertexShaderID);
     glDeleteShader(FragmentShaderID);
  
-    return ProgramID;
+    return program_id;
 }
 
 /// Initialize the renderer and create a window
@@ -294,23 +280,13 @@ void RendererGL3::Init() {
         exit(E_ERR);
 	}
 
-
-
-
-
-
-
-
-
-
-
     // This will identify our vertex buffer
    // GLuint vertexbuffer;
  
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &g_position_buffer);
     glGenBuffers(1, &g_color0_buffer);
-    glGenBuffers(1, &g_color1_buffer);
+    //glGenBuffers(1, &g_color1_buffer);
  
     // The following commands will talk about our 'vertexbuffer' buffer
   //  glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer);
@@ -332,54 +308,52 @@ void RendererGL3::Init() {
 
     */
 
-	char vs[1024] = "#version 130\n" \
-                    "layout(location = 0) in vec3 Position;\n" \
+	char vs[1024] = "#version 330\n" \
+                    "layout(location = 0) in vec3 position;\n" \
                     "layout(location = 1) in vec3 vertexColor;\n" \
                     "out vec3 fragmentColor;\n" \
+                    "uniform mat4 projectionMatrix;\n" \
+                    "uniform mat4 modelMatrix;\n" \
                     "void main() {\n" \
-                    "    gl_Position.xyz = Position;\n" \
+                    "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
                     "    fragmentColor = vertexColor;\n" \
                     "}";
-        
-    char fs[1024] = "#version 130\n" \
+ 
+    char fs[1024] = "#version 330\n" \
                     "in vec3 fragmentColor;\n" \
                     "out vec3 color;\n" \
                     "void main() {\n" \
                     "    color = fragmentColor;\n" \
                     "}\n";
 
-    GLuint programID = GenerateShader(vs, fs);
-    glUseProgram(programID);
-    //InitShaders();
+    shader_id_ = GenerateShader(vs, fs);
+    glUseProgram(shader_id_);
+
+    glm::mat4 identity  = glm::mat4(1.0f);  // Changes for each model !
+    glm::mat4 proj = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+
+// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+glm::mat4 Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+// Camera matrix
+glm::mat4 View       = glm::lookAt(
+    glm::vec3(4,3,3), // Camera is at (4,3,3), in World Space
+    glm::vec3(0,0,0), // and looks at the origin
+    glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+);
+// Model matrix : an identity matrix (model will be at the origin)
+glm::mat4 Model      = glm::mat4(1.0f);  // Changes for each model !
+// Our ModelViewProjection : multiplication of our 3 matrices
+glm::mat4 MVP        = Projection * View * Model; // Remember, matrix multiplication is the other way around
+    
+    
+    GLuint proj_id = glGetUniformLocation(shader_id_, "projectionMatrix");
+    glUniformMatrix4fv(proj_id, 1, GL_FALSE, &identity[0][0]);
 
 
-    //do{
-     //   glClear(GL_COLOR_BUFFER_BIT);
 
-        // Draw nothing, see you in tutorial 2 !
-         // 1rst attribute buffer : vertices
-        /*glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-           0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-           3,                  // size
-           GL_FLOAT,           // type
-           GL_FALSE,           // normalized?
-           0,                  // stride
-           (void*)0            // array buffer offset
-        );
- 
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
- 
-        glDisableVertexAttribArray(0);*/
-
-        
-
-        // Swap buffers
-      //  glfwSwapBuffers();
- 
-    //} // Check if the ESC key was pressed or the window was closed
-    //while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS &&
-    //glfwGetWindowParam( GLFW_OPENED ) );
+   // GLuint view_id = glGetUniformLocation(shader_id_, "viewMatrix");
+   // glUniformMatrix4fv(view_id, 1, GL_FALSE, &Model[0][0]);
+    
+    GLuint model_id = glGetUniformLocation(shader_id_, "modelMatrix");
+    glUniformMatrix4fv(model_id, 1, GL_FALSE, &identity[0][0]);
 }

@@ -45,31 +45,27 @@ typedef Callstack::iterator CallstackIterator;
  * @param out vector of call stack entries (first element = topmost entry)
  * @return true on success; false on failure (e.g. function called when CPU was paused)
  * @warning not thread safe!
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-bool EMU_FASTCALL GetCallstack(Callstack& out);
+bool GetCallstack(Callstack& out);
 
 /**
  * Sets a CPU breakpoint.
  *
  * @param addr CPU instruction address to break at.
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-void EMU_FASTCALL SetBreakpoint(u32 addr);
+void SetBreakpoint(u32 addr);
 
 /**
  * Unsets a CPU breakpoint
  *
  * @param addr breakpoint address
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-void EMU_FASTCALL UnsetBreakpoint(u32 addr);
+void UnsetBreakpoint(u32 addr);
 
 /**
  * Unsets all CPU breakpoints
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-void EMU_FASTCALL UnsetAllBreakpoints();
+void UnsetAllBreakpoints();
 
 /**
  * Check if the CPU instruction at the given address is a breakpoint
@@ -77,14 +73,13 @@ void EMU_FASTCALL UnsetAllBreakpoints();
  * @param addr CPU instruction address to check
  * @return true if addr is a breakpoint
  */
-bool EMU_FASTCALL IsBreakpoint(u32 addr);
+bool IsBreakpoint(u32 addr);
 
 /**
  * Called by the CPU whenever an instruction has been executed.
  * Calls the callback functions registered by RegisterCPUStepCallback.
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-void EMU_FASTCALL CPUStepped();
+void CPUStepped();
 
 typedef void (EMU_FASTCALL *CPUSteppedCallback)(void*);
 
@@ -94,15 +89,13 @@ typedef void (EMU_FASTCALL *CPUSteppedCallback)(void*);
  * @param func pointer to callback function
  * @param data optional data pointer to be passed whenever the function gets called (e.g. this-pointer for class methods)
  * @warning Don't forget unregistering the function via UnregisterCPUStepCallback
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-void EMU_FASTCALL RegisterCPUStepCallback(CPUSteppedCallback func, void* data);
+void RegisterCPUStepCallback(CPUSteppedCallback func, void* data);
 
 /**
  * Removes a callback function from the CPUStepped() observer list
- * @todo shouldn't be fastcall (gekko-qt workaround)
  */
-void EMU_FASTCALL UnregisterCPUStepCallback(CPUSteppedCallback func);
+void UnregisterCPUStepCallback(CPUSteppedCallback func);
 
 
 } // namespace Debugger

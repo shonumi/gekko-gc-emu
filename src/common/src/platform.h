@@ -74,7 +74,7 @@ extern char *kGekkoOS;
 #else
 
 #define EMU_FASTCALL __attribute__((fastcall))
-#define __fastcall EMU_FASTCALL
+#define EMU_FASTCALL
 #define __stdcall
 #define __cdecl
 

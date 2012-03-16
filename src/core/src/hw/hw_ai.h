@@ -39,12 +39,12 @@ void AI_Update(void);
 
 ////////////////////////////////////////////////////////////
 
-u8		__fastcall	AI_Read8(u32 addr);
-void	__fastcall	AI_Write8(u32 addr, u32 data);
-u16		__fastcall	AI_Read16(u32 addr);
-void	__fastcall	AI_Write16(u32 addr, u32 data);
-u32		__fastcall	AI_Read32(u32 addr);
-void	__fastcall	AI_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	AI_Read8(u32 addr);
+void	EMU_FASTCALL	AI_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	AI_Read16(u32 addr);
+void	EMU_FASTCALL	AI_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	AI_Read32(u32 addr);
+void	EMU_FASTCALL	AI_Write32(u32 addr, u32 data);
 
 //
 

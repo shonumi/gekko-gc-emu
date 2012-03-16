@@ -24,24 +24,24 @@
 #include "hw/hw_cp.h"
 
 #pragma todo(Research if need to implement CP_WPAR_Write* directly into memory writes)
-static void __fastcall GXCP_Write8(u32 Addr, u32 data)
+static void EMU_FASTCALL GXCP_Write8(u32 Addr, u32 data)
 {
 	CP_WPAR_Write8(Addr, data);
 	return;
 }
 
-static void __fastcall GXCP_Write16(u32 Addr, u32 data)
+static void EMU_FASTCALL GXCP_Write16(u32 Addr, u32 data)
 {
 	CP_WPAR_Write16(Addr, data);
 	return;
 }
 
-static void __fastcall GXCP_Write32(u32 Addr, u32 data)
+static void EMU_FASTCALL GXCP_Write32(u32 Addr, u32 data)
 {
 	CP_WPAR_Write32(Addr, data);
 	return;
 }
-typedef u32(__fastcall *GekkoHWRead32Ptr)(u32 Addr);
+typedef u32(EMU_FASTCALL *GekkoHWRead32Ptr)(u32 Addr);
 static GekkoHWRead32Ptr	GekkoHWRead32[0x100] =
 {
 	//0x00
@@ -94,7 +94,7 @@ static GekkoHWRead32Ptr	GekkoHWRead32[0x100] =
 		0, 0, 0, 0, 0, 0, 0, 0
 };
 
-typedef u16(__fastcall *GekkoHWRead16Ptr)(u32 Addr);
+typedef u16(EMU_FASTCALL *GekkoHWRead16Ptr)(u32 Addr);
 static GekkoHWRead16Ptr	GekkoHWRead16[0x100] =
 {
 	//0x00
@@ -147,7 +147,7 @@ static GekkoHWRead16Ptr	GekkoHWRead16[0x100] =
 		0, 0, 0, 0, 0, 0, 0, 0
 };
 
-typedef u8(__fastcall *GekkoHWRead8Ptr)(u32 Addr);
+typedef u8(EMU_FASTCALL *GekkoHWRead8Ptr)(u32 Addr);
 static GekkoHWRead8Ptr	GekkoHWRead8[0x100] =
 {
 	//0x00
@@ -200,7 +200,7 @@ static GekkoHWRead8Ptr	GekkoHWRead8[0x100] =
 		0, 0, 0, 0, 0, 0, 0, 0
 };
 
-typedef void (__fastcall *GekkoHWWrite32Ptr)(u32 Addr, u32 data);
+typedef void (EMU_FASTCALL *GekkoHWWrite32Ptr)(u32 Addr, u32 data);
 static GekkoHWWrite32Ptr	GekkoHWWrite32[0x100] =
 {
 	//0x00
@@ -253,7 +253,7 @@ static GekkoHWWrite32Ptr	GekkoHWWrite32[0x100] =
 		0, 0, 0, 0, 0, 0, 0, 0
 };
 
-typedef void (__fastcall *GekkoHWWrite16Ptr)(u32 Addr, u32 data);
+typedef void (EMU_FASTCALL *GekkoHWWrite16Ptr)(u32 Addr, u32 data);
 static GekkoHWWrite16Ptr	GekkoHWWrite16[0x100] =
 {
 	//0x00
@@ -306,7 +306,7 @@ static GekkoHWWrite16Ptr	GekkoHWWrite16[0x100] =
 		0, 0, 0, 0, 0, 0, 0, 0
 };
 
-typedef void (__fastcall *GekkoHWWrite8Ptr)(u32 Addr, u32 data);
+typedef void (EMU_FASTCALL *GekkoHWWrite8Ptr)(u32 Addr, u32 data);
 static GekkoHWWrite8Ptr	GekkoHWWrite8[0x100] =
 {
 	//0x00

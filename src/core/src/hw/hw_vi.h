@@ -89,12 +89,12 @@ void VI_Update(void);
 
 void VI_YCbCr2RGB(void);
 
-u8		__fastcall	VI_Read8(u32 addr);
-void	__fastcall	VI_Write8(u32 addr, u32 data);
-u16		__fastcall	VI_Read16(u32 addr);
-void	__fastcall	VI_Write16(u32 addr, u32 data);
-u32		__fastcall	VI_Read32(u32 addr);
-void	__fastcall	VI_Write32(u32 addr, u32 data);
+u8		EMU_FASTCALL	VI_Read8(u32 addr);
+void	EMU_FASTCALL	VI_Write8(u32 addr, u32 data);
+u16		EMU_FASTCALL	VI_Read16(u32 addr);
+void	EMU_FASTCALL	VI_Write16(u32 addr, u32 data);
+u32		EMU_FASTCALL	VI_Read32(u32 addr);
+void	EMU_FASTCALL	VI_Write32(u32 addr, u32 data);
 
 ////////////////////////////////////////////////////////////////////////////////
 

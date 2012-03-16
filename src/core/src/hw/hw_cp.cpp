@@ -29,18 +29,18 @@ wwpar   CP_WPAR_Write32;
 // Desc: Read/Write from/to CP Hardware
 //
 
-u8 __fastcall CP_Read8(u32 addr)
+u8 EMU_FASTCALL CP_Read8(u32 addr)
 {
 	LOG_ERROR(TCP, "Undefined CP_Read8: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall CP_Write8(u32 addr, u32 data)
+void EMU_FASTCALL CP_Write8(u32 addr, u32 data)
 {
 	LOG_ERROR(TCP, "Undefined CP_Write8: %08X := %08X !\n", addr, data);
 }
 
-u16 __fastcall CP_Read16(u32 addr)
+u16 EMU_FASTCALL CP_Read16(u32 addr)
 {
 	switch(addr)
 	{
@@ -80,7 +80,7 @@ u16 __fastcall CP_Read16(u32 addr)
 	}
 }
 
-void __fastcall CP_Write16(u32 addr, u32 data)
+void EMU_FASTCALL CP_Write16(u32 addr, u32 data)
 {
 	switch(addr)
 	{
@@ -139,13 +139,13 @@ void __fastcall CP_Write16(u32 addr, u32 data)
 	}
 }
 
-u32 __fastcall CP_Read32(u32 addr)
+u32 EMU_FASTCALL CP_Read32(u32 addr)
 {
 		LOG_ERROR(TCP, " Undefined CP_Read16: %08X!\n", addr);
 		return 0;
 }
 
-void __fastcall CP_Write32(u32 addr, u32 data)
+void EMU_FASTCALL CP_Write32(u32 addr, u32 data)
 {
 	LOG_ERROR(TCP, "Undefined CP_Write16: %08X := %08X !\n", addr, data);
 	return;

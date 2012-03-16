@@ -39,20 +39,20 @@
 #define GX_SEND_TEXCOORD_ST(i, s, t)	cv->tex[i][0] = (s * _vtx->dqf); cv->tex[i][1] = (t * _vtx->dqf);
 
 // cp: register reference
-#define CP_VCD_LO(idx)					g_cp_regs.mem[0x50 + idx]
-#define CP_VCD_HI(idx)					g_cp_regs.mem[0x60 + idx]
-#define CP_VAT_A						g_cp_regs.mem[0x70 + vat]
-#define CP_VAT_B						g_cp_regs.mem[0x80 + vat]
-#define CP_VAT_C						g_cp_regs.mem[0x90 + vat]
-#define CP_DATA_POS_ADDR(idx)			(g_cp_regs.mem[0xa0] + idx * g_cp_regs.mem[0xb0])
-#define CP_DATA_NRM_ADDR(idx)			(g_cp_regs.mem[0xa1] + idx * g_cp_regs.mem[0xb1])
-#define CP_DATA_COL0_ADDR(idx)			(g_cp_regs.mem[0xa2] + idx * g_cp_regs.mem[0xb2])
-#define CP_DATA_TEX_ADDR(idx, n)		(g_cp_regs.mem[0xa4 + n] + idX * g_cp_regs.mem[0xb4 + n])		
-#define CP_MATIDX_REG_A					g_cp_regs.mem[0x30]
-#define CP_MATIDX_REG_B					g_cp_regs.mem[0x40]
+#define CP_VCD_LO(idx)					gp::g_cp_regs.mem[0x50 + idx]
+#define CP_VCD_HI(idx)					gp::g_cp_regs.mem[0x60 + idx]
+#define CP_VAT_A						gp::g_cp_regs.mem[0x70 + vat]
+#define CP_VAT_B						gp::g_cp_regs.mem[0x80 + vat]
+#define CP_VAT_C						gp::g_cp_regs.mem[0x90 + vat]
+#define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + idx * gp::g_cp_regs.mem[0xb0])
+#define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + idx * gp::g_cp_regs.mem[0xb1])
+#define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.mem[0xa2] + idx * gp::g_cp_regs.mem[0xb2])
+#define CP_DATA_TEX_ADDR(idx, n)		(gp::g_cp_regs.mem[0xa4 + n] + idX * gp::g_cp_regs.mem[0xb4 + n])		
+#define CP_MATIDX_REG_A					gp::g_cp_regs.mem[0x30]
+#define CP_MATIDX_REG_B					gp::g_cp_regs.mem[0x40]
 
 // Address reference (used for XF)
-#define CP_IDX_ADDR(idx, n)				(g_cp_regs.mem[0xac + n] + idx * g_cp_regs.mem[0xbc + n])
+#define CP_IDX_ADDR(idx, n)				(gp::g_cp_regs.mem[0xac + n] + idx * gp::g_cp_regs.mem[0xbc + n])
 
 // midx: matrix indexes
 // index for position/normal matrix	
@@ -201,6 +201,9 @@ extern CPMemory g_cp_regs; ///< CP memory/registers
  * \param data Data (32-bit) to write to register
  */
 void CPRegisterWrite(u8 addr, u32 data);
+
+/// Initialize CP
+void CPInit();
 
 } // namespace
 

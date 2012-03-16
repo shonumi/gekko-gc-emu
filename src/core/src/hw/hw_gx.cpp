@@ -273,7 +273,7 @@ void GX_XFLoadIndexed(u8 _n, u16 _index, u8 _length, u16 _addr)
 // Desc: Read/Write from/to GX Hardware
 //
 
-void __fastcall GX_Fifo_Write8(u32 addr, u32 data)
+void EMU_FASTCALL GX_Fifo_Write8(u32 addr, u32 data)
 {
 #ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::fifo.put8(data);
@@ -292,7 +292,7 @@ void __fastcall GX_Fifo_Write8(u32 addr, u32 data)
 	PE_Update();
 }
 
-void __fastcall GX_Fifo_Write16(u32 addr, u32 data)
+void EMU_FASTCALL GX_Fifo_Write16(u32 addr, u32 data)
 {
 #ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::fifo.put16(data);
@@ -311,7 +311,7 @@ void __fastcall GX_Fifo_Write16(u32 addr, u32 data)
 	PE_Update();
 }
 
-void __fastcall GX_Fifo_Write32(u32 addr, u32 data)
+void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data)
 {
 #ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::fifo.put32(data);
@@ -340,17 +340,17 @@ void __fastcall GX_Fifo_Write32(u32 addr, u32 data)
 	PE_Update();
 }
 
-u8 __fastcall GX_Fifo_Read8(u32 addr)
+u8 EMU_FASTCALL GX_Fifo_Read8(u32 addr)
 {
 	return 0;
 }
 
-u16 __fastcall GX_Fifo_Read16(u32 addr)
+u16 EMU_FASTCALL GX_Fifo_Read16(u32 addr)
 {
 	return 0;
 }
 
-u32 __fastcall GX_Fifo_Read32(u32 addr)
+u32 EMU_FASTCALL GX_Fifo_Read32(u32 addr)
 {
 	return 0;
 }

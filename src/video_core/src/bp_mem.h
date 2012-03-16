@@ -172,6 +172,9 @@ typedef union {
  */
 void BPRegisterWrite(u8 addr, u32 data);
 
+/// Initialize BP
+void BPInit();
+
 } // namespace
 
 #endif // VIDEO_CORE_BP_MEM_H_

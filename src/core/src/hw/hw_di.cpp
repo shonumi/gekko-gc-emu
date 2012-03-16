@@ -124,29 +124,29 @@ void DIProcessCmd()
 // Desc: Read/Write from/to DI Hardware
 //
 
-u8  __fastcall DI_Read8(u32 addr)
+u8  EMU_FASTCALL DI_Read8(u32 addr)
 {
 	LOG_ERROR(TDI, "Undefined DI_Read8: %08X!\n", addr);
 	return 0;
 }
 
-void __fastcall DI_Write8(u32 addr, u32 data)
+void EMU_FASTCALL DI_Write8(u32 addr, u32 data)
 {
 	LOG_ERROR(TDI, "Undefined DI_Write8: %08X := %08X !\n", addr, data);
 }
 
-u16 __fastcall DI_Read16(u32 addr)
+u16 EMU_FASTCALL DI_Read16(u32 addr)
 {
 	LOG_ERROR(TDI, "Undefined DI_Read16: %08X!\n", addr);
 	return 0;
 }
 
-void  __fastcall DI_Write16(u32 addr, u32 data)
+void  EMU_FASTCALL DI_Write16(u32 addr, u32 data)
 {
 	LOG_ERROR(TDI, "Undefined DI_Write16: %08X := %08X !\n", addr, data);
 }
 
-u32  __fastcall DI_Read32(u32 addr)
+u32  EMU_FASTCALL DI_Read32(u32 addr)
 {
 	switch(addr)
 	{
@@ -186,7 +186,7 @@ u32  __fastcall DI_Read32(u32 addr)
 	}
 }
 
-void  __fastcall DI_Write32(u32 addr, u32 data)
+void  EMU_FASTCALL DI_Write32(u32 addr, u32 data)
 {
 	switch(addr)
 	{
