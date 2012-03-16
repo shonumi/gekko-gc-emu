@@ -22,7 +22,7 @@
 #undef GekkoCPUOp
 //#define GekkoCPUOpsGroup2(name)	GekkoCPU::OpData GekkoCPURecompiler::GekkoRecGroupOps##name
 //#define GekkoCPUOp2				GekkoRecInt
-#define GekkoCPUOpsGroup(name)	GekkoCPU::OpData GekkoCPURecompiler::GekkoRecGroupOps##name
+#define GekkoCPUOpsGroup(name)	GekkoCPU::OpData EMU_FASTCALL GekkoCPURecompiler::GekkoRecGroupOps##name
 #define GekkoCPUOp				GekkoRecInt
 
 #define OPTYPE	void EMU_FASTCALL
@@ -421,7 +421,7 @@ public:
 #define Branch_RFI						2
 #define Branch_SC						4
 
-	static void Unknown_Mask(char *Instr, long Mask);
+	static void EMU_FASTCALL Unknown_Mask(char *Instr, long Mask);
 
 	//if ANYONE knows how to #define a #define so i can stop duplicating below
 	//PLEASE tell me - Lightning
@@ -814,15 +814,15 @@ public:
 
 	GekkoF	execStep();
 
-	static GekkoF CompileInstruction();
-	static GekkoF GekkoCPURecompiler::DoBranchChecks();
+	static GekkoF EMU_FASTCALL CompileInstruction();
+	static GekkoF EMU_FASTCALL GekkoCPURecompiler::DoBranchChecks();
 
 	GekkoCPURecompiler();
 	~GekkoCPURecompiler();
-	static GekkoF CheckMemoryWriteInternal(u32 Addr, u32 Size);
+	static GekkoF EMU_FASTCALL CheckMemoryWriteInternal(u32 Addr, u32 Size);
 
-	static GekkoF CompileIL(u32 OldPC, u32 NewPC);
-	static GekkoF AssignRegsAndCompile(PPCRegInfo *X86Regs, PPCRegInfo *FPURegs, u8 *X86Buffer, u32 *BufferSize);
+	static GekkoF EMU_FASTCALL CompileIL(u32 OldPC, u32 NewPC);
+	static GekkoF EMU_FASTCALL AssignRegsAndCompile(PPCRegInfo *X86Regs, PPCRegInfo *FPURegs, u8 *X86Buffer, u32 *BufferSize);
 
 #define X86AssignRegsOp(name)		OPTYPE GekkoCPURecompiler::AssignX86Regs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
 #define X86AssignRegs(name)			GekkoCPURecompiler::AssignX86Regs_PPC##name
@@ -875,11 +875,11 @@ typedef void (EMU_FASTCALL *RecX86FPUAssignRegsPtr)(RecInstruction *Instruction,
 	GekkoF	Start();
 
 	GekkoF Exception(tGekkoException which);
-	static GekkoF Exception_REC(tGekkoException which);
+	static GekkoF EMU_FASTCALL Exception_REC(tGekkoException which);
 
 	u32	GetTicksPerSecond();
 
-	static GekkoF CreateRecInstruction(RecILInstructionPtr Instruction, u32 Out, u32 In, u32 Flags, RecCacheInstructionPtr CachePtr);
+	static GekkoF EMU_FASTCALL CreateRecInstruction(RecILInstructionPtr Instruction, u32 Out, u32 In, u32 Flags, RecCacheInstructionPtr CachePtr);
 #define SetRecInstructionImm(ImmVal)	LastInstruction->X86CmdImmediateVal = ImmVal;
 	static GekkoRecIntOp(DUMP_OPS);
 	static GekkoRecIntOp(PS_ABS);

@@ -29,7 +29,7 @@ static u32 Val1 = 1;
 //the function layout is that the right side is applied to the
 //left. Example, ADD_REG_MEM. Add what is in memory to the register
 
-void GekkoCPURecompiler::Unknown_Mask(char *Instr, long Mask)
+void EMU_FASTCALL GekkoCPURecompiler::Unknown_Mask(char *Instr, long Mask)
 {
 	printf("%s: Unknown Instruction Mask %0.8X\n", Instr, Mask);
 	cpu->pause = true;

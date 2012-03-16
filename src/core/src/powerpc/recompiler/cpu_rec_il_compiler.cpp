@@ -19,12 +19,12 @@ GekkoCPURecompiler::CompiledBlock	GekkoCPURecompiler::CompileBlockNeeded;
 
 GekkoCPURecompiler::CompiledBlock	CompileErrorBlock;
 
-GekkoF CompileErrorFunction()
+GekkoF EMU_FASTCALL CompileErrorFunction()
 {
 	printf("Error during dynarec compile\n");
 }
 
-GekkoF GekkoCPURecompiler::CompileIL(u32 OldPC, u32 NewPC)
+GekkoF EMU_FASTCALL GekkoCPURecompiler::CompileIL(u32 OldPC, u32 NewPC)
 {
 	u8				*X86Buffer;
 	u32				BufferSize;
@@ -403,7 +403,7 @@ GekkoF GekkoCPURecompiler::CompileIL(u32 OldPC, u32 NewPC)
 	NextGetRegID_Val = 0x50;
 }
 
-GekkoCPURecompiler::RecX86FPUAssignRegsPtr GekkoCPURecompiler::RecX86FPUAssignRegs[] =
+GekkoCPURecompiler::RecX86FPUAssignRegsPtr EMU_FASTCALL GekkoCPURecompiler::RecX86FPUAssignRegs[] =
 {
 	//0x00
 	X86AssignRegs(NONE),
@@ -433,7 +433,7 @@ GekkoCPURecompiler::RecX86FPUAssignRegsPtr GekkoCPURecompiler::RecX86FPUAssignRe
 	0
 };
 
-GekkoF GekkoCPURecompiler::AssignRegsAndCompile(PPCRegInfo *X86Regs, PPCRegInfo *FPURegs, u8 *X86Buffer, u32 *BufferSize)
+GekkoF EMU_FASTCALL GekkoCPURecompiler::AssignRegsAndCompile(PPCRegInfo *X86Regs, PPCRegInfo *FPURegs, u8 *X86Buffer, u32 *BufferSize)
 {
 	RecInstruction	*CurInstruction;
 	RecInstruction	*PrevInstruction;

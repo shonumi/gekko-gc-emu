@@ -21,7 +21,7 @@
 // Desc: Update Flipper Hardware
 //
 
-u32 Flipper_Update(void)
+u32 EMU_FASTCALL Flipper_Update(void)
 {
 	static u32 FlipCount = 0;
 

@@ -50,7 +50,7 @@ typedef enum {
  * \brief Sets the system state
  * \param state SystemState type to set state to
  */
-void SetState(SystemState state);
+void EMU_FASTCALL SetState(SystemState state);
 
 /*!
  * \brief Set the system configuration manager

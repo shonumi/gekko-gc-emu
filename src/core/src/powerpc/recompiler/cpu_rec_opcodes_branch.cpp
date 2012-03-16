@@ -12,8 +12,6 @@
 
 #include "cpu_rec.h"
 #include "powerpc/cpu_core_regs.h"
-#include "hle/hle.h"
-#include "hle/hle_func.h"
 
 GekkoRecOp(INT_INSTRUCTION)
 {

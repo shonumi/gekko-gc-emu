@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////
 
 #include "cpu_rec.h"
-#include "dvd/realdvd.h"
 #include "powerpc/disassembler/ppc_disasm.h"
 #include "powerpc/cpu_core_regs.h"
 #include "hw/hw_cp.h"

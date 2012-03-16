@@ -62,7 +62,7 @@ BYTE PatchBytes[] = {0xB8, 0x9A, 0x00, 0x00, 0x00, 0x83, 0x7C, 0x24, 0x08, 0x07,
 BYTE OriginalBytes[5] = {0};
 BYTE PatchJump[5] = {0xE9, 0x00, 0x00, 0x00, 0x00};
 
-bool WriteMemory( BYTE* pTarget, const BYTE* pSource, DWORD Size )
+bool EMU_FASTCALL WriteMemory( BYTE* pTarget, const BYTE* pSource, DWORD Size )
 {
 	DWORD ErrCode = 0;
 

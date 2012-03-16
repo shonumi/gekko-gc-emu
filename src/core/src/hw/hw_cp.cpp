@@ -156,7 +156,7 @@ void EMU_FASTCALL CP_Write32(u32 addr, u32 data)
 // Desc: Update CP Hardware
 //
 
-void CP_Update(u32 _addr)
+void EMU_FASTCALL CP_Update(u32 _addr)
 {
 	if(commandprocessor.wpar_address != _addr)
 	{           

@@ -77,7 +77,8 @@ static u32 GEX_Empty_Handler[] =
 
 void				Flipper_Open(void);
 void				Flipper_Close(void);
-u32					Flipper_Update(void);
+
+u32     EMU_FASTCALL    Flipper_Update(void);
 
 u32		EMU_FASTCALL	Flipper_Read32(u32 addr);
 u16		EMU_FASTCALL	Flipper_Read16(u32 addr);

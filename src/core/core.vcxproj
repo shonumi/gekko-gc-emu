@@ -595,25 +595,64 @@
     <ClCompile Include="src\powerpc\disassembler\ppc_disasm.cpp" />
     <ClCompile Include="src\powerpc\interpreter\cpu_int.cpp" />
     <ClCompile Include="src\powerpc\interpreter\cpu_int_opcodes.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_fpu.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_jumps.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_loadstore.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_compiler.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_fpu.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_x86.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_regs.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_int.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_memory.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_branch.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_compare.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore_fpu.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math_fpu.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_ps.cpp" />
-    <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp" />
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_fpu.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_jumps.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_loadstore.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_compiler.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_fpu.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_x86.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_regs.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_int.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_memory.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_branch.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_compare.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore_fpu.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math_fpu.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_ps.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp">
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+    </ClCompile>
+    <ClCompile Include="src\video\emuwindow_sdl.cpp" />
     <ClCompile Include="src\video\gx_fifo.cpp" />
     <ClCompile Include="src\video\gx_states.cpp" />
     <ClCompile Include="src\video\gx_tev.cpp" />
@@ -663,6 +702,8 @@
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_assembler.h" />
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h" />
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h" />
+    <ClInclude Include="src\video\emuwindow.h" />
+    <ClInclude Include="src\video\emuwindow_sdl.h" />
     <ClInclude Include="src\video\gx_fifo.h" />
     <ClInclude Include="src\video\gx_states.h" />
     <ClInclude Include="src\video\gx_tev.h" />

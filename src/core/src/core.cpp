@@ -49,7 +49,7 @@ SystemState             g_state    = SYS_NULL;  ///< State of the emulator
 bool                    g_started  = false;     ///< Whether or not the emulator has been started
 
 /// Sets the system state
-void SetState(SystemState state) {
+void EMU_FASTCALL SetState(SystemState state) {
     static const char state_labels[9] = "-IRLHSDD";
     g_state = state;
     LOG_DEBUG(TCORE, "g_state = %x [%c]", state, state_labels[state]);
