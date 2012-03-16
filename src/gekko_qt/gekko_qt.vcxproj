@@ -38,14 +38,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;$(IncludePath)</IncludePath>
+    <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;%QTDIR%\include\QtOpenGL;$(IncludePath)</IncludePath>
     <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;$(IncludePath)</IncludePath>
+    <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;%QTDIR%\include\QtOpenGL;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
