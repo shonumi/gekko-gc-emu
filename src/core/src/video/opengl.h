@@ -39,11 +39,11 @@ extern opengl gl;
 class EmuWindow;
 
 // TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
-void OPENGL_SetWindow(EmuWindow* render_window);
+void EMU_FASTCALL OPENGL_SetWindow(EmuWindow* render_window);
 void EMU_FASTCALL OPENGL_SetTitle(char*);
 void OPENGL_DrawFramebuffer();
 void OPENGL_Initialize();
-void OPENGL_Kill();
+void EMU_FASTCALL OPENGL_Kill();
 void OPENGL_Render();
 void OPENGL_Create();
 
