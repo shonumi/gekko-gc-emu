@@ -74,6 +74,7 @@ void Kill() {
     Flipper_Close();
 	dvd::RealDVDClose(-1);
 	delete cpu;
+    cpu = NULL;
 	Memory_Close();
 	gx_fifo::destroy();
 }
@@ -94,7 +95,7 @@ int Init() {
     input_common::Init();   // Init user input plugin
 
     if (common::g_config->powerpc_core() == common::Config::CPU_INTERPRETER) {
-        delete cpu;
+        delete cpu; // TODO: STUPID!
         cpu = new GekkoCPUInterpreter();
     } else {
 
