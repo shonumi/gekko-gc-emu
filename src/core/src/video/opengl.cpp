@@ -14,23 +14,19 @@
 #include "hw/hw_vi.h"
 #include "gx_tev.h"
 #include "gx_texture.h"
-
-#ifdef GLWIN_USE_SDL2
-#include "SDL.h"
-//#include "SDL_opengl.h"
-SDL_Window *mainwindow;
-#elif defined(GLWIN_USE_SDL1)
-#include "SDL.h"
-#elif defined(GLWIN_USE_QT4)
-#include "../../src/gekko_qt/src/bootmanager.hxx"
-static GRenderWindow* s_render_window;
-#endif
+#include "emuwindow.h"
 
 opengl gl;
+static EmuWindow* s_render_window = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 char g_window_title[256];
+
+void OPENGL_SetWindow(EmuWindow* render_window)
+{
+    s_render_window = render_window;
+}
 
 // Set the window title
 void OPENGL_SetTitle(char* title) {
@@ -165,10 +161,7 @@ void OPENGL_Kill()
 		gl.hdc = NULL;										
 	}*/
 
-#ifdef GLWIN_USE_QT4
-    s_render_window->doneCurrent();
-#endif
-	gl.opened = false;
+    gl.opened = false;
 }
 
 void OPENGL_SetTitle()
@@ -202,100 +195,21 @@ void OPENGL_SetTitle()
 		sprintf(str1, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
             g_window_title, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
 
-#ifdef GLWIN_USE_SDL2
-        SDL_SetWindowTitle(mainwindow, str1);
-#elif defined(GLWIN_USE_SDL1)
-        SDL_WM_SetCaption(str1, NULL);
-#elif defined(GLWIN_USE_QT4)
-        // TODO: Uhm... Is this safe?
-        s_render_window->setWindowTitle(str1);
-#endif
+        s_render_window->SetTitle(str1);
 	}
 }
 
 void OPENGL_Render()
 {
-	glFlush();
-#ifdef GLWIN_USE_SDL2
-    SDL_GL_SwapWindow(mainwindow);
-#elif defined(GLWIN_USE_SDL1)
-    SDL_GL_SwapBuffers();
-#elif defined(GLWIN_USE_QT4)
-    s_render_window->swapBuffers();
-#endif
+    glFlush();
+    s_render_window->SwapBuffers();
 
     input_common::g_user_input->PollEvent();
     OPENGL_SetTitle();
 }
 
-#ifdef GLWIN_USE_QT4
-void OPENGL_Create(GRenderWindow* render_window)
-#else
-void OPENGL_Create()
-#endif
+void OPENGL_Create(/*EmuWindow* render_window*/)
 {
-#ifdef GLWIN_USE_SDL2
-    SDL_GLContext maincontext; /* Our opengl context handle */
-
-	OPENGL_Kill();
-
-    if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK    ) != 0 ) {
-	    printf("Unable to initialize SDL: %s\n", SDL_GetError());
-	    return;
-    }
- 
-    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
- 
-    mainwindow = SDL_CreateWindow("gekko", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-            640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-
-    /* Create our opengl context and attach it to our window */
-    maincontext = SDL_GL_CreateContext(mainwindow);
-  
-    /* This makes our buffer swap syncronized with the monitor's vertical refresh */
-    SDL_GL_SetSwapInterval(1);
-
-#elif defined(GLWIN_USE_SDL1)
-
-    const SDL_VideoInfo* video;
-
-    if ( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
-        fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
-        
-    /* Quit SDL properly on exit */
-    atexit(SDL_Quit);
-
-    /* Get the current video information */
-    video = SDL_GetVideoInfo( );
-    if( video == NULL ) {
-        fprintf(stderr, "Couldn't get video information: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    /* Set the minimum requirements for the OpenGL window */
-    SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5 );
-    SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5 );
-    SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 5 );
-    SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
-    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-
-    if( SDL_SetVideoMode( 640, 480, video->vfmt->BitsPerPixel, SDL_OPENGL ) == 0 ) {
-        fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
-        exit(1);
-    }
-    SDL_WM_SetCaption(g_window_title, NULL);
-
-#elif defined(GLWIN_USE_QT4)
-    s_render_window = render_window;
-    s_render_window->makeCurrent();
-#endif
-
 	glewInit(); // library
 
 	if (!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader)
@@ -311,6 +225,7 @@ void OPENGL_Create()
 	gl.opened = true;
 	OPENGL_Initialize();
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // EOF

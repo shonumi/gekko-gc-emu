@@ -6,14 +6,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: pcafe build broken...
-//#define GLWIN_USE_SDL1
-//#define GLWIN_USE_SDL2
-#define GLWIN_USE_QT4
-
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include "types.h"
+#include "platform.h" // TODO: Remove once EMU_FASTCALL isn't needed anymore
 
 #define GP_NAME		"GL_Out"
 
@@ -39,19 +36,16 @@ struct opengl
 
 extern opengl gl;
 
+class EmuWindow;
+
 // TODO: EMU_FASTCALL shouldn't be necessary (gekko-qt workaround)
+void OPENGL_SetWindow(EmuWindow* render_window);
 void EMU_FASTCALL OPENGL_SetTitle(char*);
 void OPENGL_DrawFramebuffer();
 void OPENGL_Initialize();
 void OPENGL_Kill();
 void OPENGL_Render();
-
-#ifdef GLWIN_USE_QT4
-class GRenderWindow;
-void OPENGL_Create(GRenderWindow*);
-#else
 void OPENGL_Create();
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // EOF

@@ -1,6 +1,7 @@
 #include <QThread>
 #include <QGLWidget>
 #include "platform.h"
+#include "video/emuwindow.h"
 
 class GRenderWindow;
 class EmuThread : public QThread
@@ -67,7 +68,7 @@ signals:
     void CPUStepped();
 };
 
-class GRenderWindow : public QGLWidget
+class GRenderWindow : public QGLWidget, public EmuWindow
 {
     Q_OBJECT
 
@@ -80,6 +81,10 @@ public:
     void resizeEvent(QResizeEvent*);
     void closeEvent(QCloseEvent*);
     QSize sizeHint() { return QSize(640, 480); } // TODO: Is this necessary?
+
+    // EmuWindow implementation
+    void SwapBuffers();
+    void SetTitle(const char* title);
 
 private:
     EmuThread emu_thread;

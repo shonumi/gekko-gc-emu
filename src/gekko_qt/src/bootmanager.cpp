@@ -34,6 +34,8 @@ void EmuThread::run()
     u32 tight_loop;
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
+    render_window->makeCurrent();
+    OPENGL_SetWindow(render_window);
     OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
 
     if (E_OK != core::Init()) {
@@ -41,7 +43,6 @@ void EmuThread::run()
         core::Kill();
         exit(1);
     }
-    OPENGL_Create(render_window);
 
 #ifdef USE_INLINE_ASM
     // If using asm, see if this computer can process
@@ -120,6 +121,7 @@ void EmuThread::run()
         }
     }
     OPENGL_Kill();
+    render_window->doneCurrent();
     core::Kill();
 }
 
@@ -179,4 +181,14 @@ void GRenderWindow::closeEvent(QCloseEvent* event)
 EmuThread& GRenderWindow::GetEmuThread()
 {
     return emu_thread;
+}
+
+void GRenderWindow::SetTitle(const char* title)
+{
+    setWindowTitle(title);
+}
+
+void GRenderWindow::SwapBuffers()
+{
+    swapBuffers();
 }

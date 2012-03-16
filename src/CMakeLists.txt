@@ -4,6 +4,6 @@ add_subdirectory(video_core)
 add_subdirectory(input_common)
 add_subdirectory(pcafe)
 
-if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND AND NOT DISABLE_QT4)
+if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND AND QT_QTOPENGL_FOUND AND NOT DISABLE_QT4)
     add_subdirectory(gekko_qt)
 endif()

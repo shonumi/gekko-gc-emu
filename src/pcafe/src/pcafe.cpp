@@ -32,6 +32,7 @@
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
 #include "video/opengl.h"
+#include "video/emuwindow_sdl.h"
 
 #include "pcafe.h"
 
@@ -53,7 +54,10 @@ int __cdecl main(int argc, char **argv)
     program_dir[cwd_len] = '/';
     program_dir[cwd_len+1] = '\0';
 
+    EmuWindow_SDL* emu_window = new EmuWindow_SDL;
+    OPENGL_SetWindow(emu_window);
     OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
+
     common::ConfigManager config_manager;
     config_manager.set_program_dir(program_dir, MAX_PATH);
     config_manager.ReloadConfig(NULL);
