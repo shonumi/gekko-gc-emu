@@ -14,10 +14,10 @@
 #include "powerpc/cpu_core.h"
 #include "powerpc/cpu_core_regs.h"
 
-#define OPTYPE	void EMU_FASTCALL
+#define OPTYPE                  void
 #define GekkoIntOpDecl(name)	OPTYPE GekkoInterpreter_##name(void)
-#define GekkoIntOp(name)	OPTYPE GekkoCPUInterpreter::GekkoInterpreter_##name(void)
-#define GekkoInt(name)		GekkoCPUInterpreter::GekkoInterpreter_##name
+#define GekkoIntOp(name)	    OPTYPE GekkoCPUInterpreter::GekkoInterpreter_##name(void)
+#define GekkoInt(name)		    GekkoCPUInterpreter::GekkoInterpreter_##name
 
 #undef GekkoCPUOpsGroup
 #undef GekkoCPUOp
@@ -25,17 +25,6 @@
 #define GekkoCPUOp				GekkoInt
 
 #define getCycles				1
-/*
-#define GekkoRead8 Memory_Read8
-#define GekkoRead16 Memory_Read16
-#define GekkoRead32 Memory_Read32
-#define GekkoRead64 Memory_Read64
-
-#define GekkoWrite8 Memory_Write8
-#define GekkoWrite16 Memory_Write16
-#define GekkoWrite32 Memory_Write32
-#define GekkoWrite64 Memory_Write64
-*/
 
 ////////////////////////////////////////////////////////////
 

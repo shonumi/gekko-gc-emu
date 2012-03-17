@@ -25,7 +25,7 @@
 #define GekkoCPUOpsGroup(name)	GekkoCPU::OpData EMU_FASTCALL GekkoCPURecompiler::GekkoRecGroupOps##name
 #define GekkoCPUOp				GekkoRecInt
 
-#define OPTYPE	void EMU_FASTCALL
+#define OPTYPE              void
 #define GekkoRecOp(name)	OPTYPE GekkoCPURecompiler::GekkoRecompiler_##name(void)
 #define GekkoRec(name)		GekkoCPURecompiler::GekkoRecompiler_##name
 #define GekkoRecIntOp(name)	OPTYPE GekkoCPURecompiler::GekkoRecompilerInt_##name(void)
@@ -98,8 +98,8 @@ public:
 	extern struct RecInstruction;
 	extern struct PPCRegInfo;
 
-	typedef void (EMU_FASTCALL *RecCacheInstructionPtr)(RecInstruction *Instruction);
-	typedef void (EMU_FASTCALL *RecILInstructionPtr)(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
+	typedef void (*RecCacheInstructionPtr)(RecInstruction *Instruction);
+	typedef void (*RecILInstructionPtr)(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
 
 #define GekkoRecILOp(name)	OPTYPE GekkoCPURecompiler::GekkoILInstruction_##name(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs)
 #define GekkoRecIL(name)	GekkoCPURecompiler::GekkoILInstruction_##name
@@ -830,7 +830,7 @@ public:
 #define FPUAssignRegs(name)			GekkoCPURecompiler::AssignFPURegs_PPC##name
 #define X86FPUAssignRegsOp(name)	OPTYPE GekkoCPURecompiler::AssignX86FPURegs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
 #define X86FPUAssignRegs(name)		GekkoCPURecompiler::AssignX86FPURegs_PPC##name
-typedef void (EMU_FASTCALL *RecX86FPUAssignRegsPtr)(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs);
+typedef void (*RecX86FPUAssignRegsPtr)(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs);
 
 	static X86AssignRegsOp(NONE);
 	static X86AssignRegsOp(InReg_Special);

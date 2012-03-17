@@ -403,7 +403,7 @@ GekkoF EMU_FASTCALL GekkoCPURecompiler::CompileIL(u32 OldPC, u32 NewPC)
 	NextGetRegID_Val = 0x50;
 }
 
-GekkoCPURecompiler::RecX86FPUAssignRegsPtr EMU_FASTCALL GekkoCPURecompiler::RecX86FPUAssignRegs[] =
+GekkoCPURecompiler::RecX86FPUAssignRegsPtr GekkoCPURecompiler::RecX86FPUAssignRegs[] =
 {
 	//0x00
 	X86AssignRegs(NONE),

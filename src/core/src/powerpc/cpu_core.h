@@ -8,7 +8,7 @@
 #include "common.h"
 #include "config.h"
 
-typedef void(EMU_FASTCALL *GekkoFP)(void);
+typedef void(*GekkoFP)(void);
 typedef void GekkoF;
 
 //Generic CPU Core interface class

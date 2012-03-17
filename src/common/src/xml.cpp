@@ -287,7 +287,7 @@ void ParsePowerPCNode(rapidxml::xml_node<> *node, Config& config) {
  * \param config Config class object to parse data into
  */
 void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
-    char res_str[12];
+    char res_str[255];
     Config::ResolutionType res;
 
     // Don't parse the node if it doesn't exist!
@@ -298,10 +298,10 @@ void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
     
     // Set resolutions
     GetXMLElementAsString(node, "WindowResolution", res_str);
-    sscanf(res_str, "%d_%d", &res.width, &res.height);
+    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
     config.set_window_resolution(res);
     GetXMLElementAsString(node, "FullscreenResolution", res_str);
-    sscanf(res_str, "%d_%d", &res.width, &res.height);
+    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
     config.set_fullscreen_resolution(res);
 
     // Parse all search renderer nodes
@@ -484,7 +484,7 @@ void LoadXMLConfig(Config& config, char* filename) {
     ParseDebugNode(node->first_node("Debug"),       config);
     ParseBootNode(node->first_node("Boot"),         config);
     ParsePowerPCNode(node->first_node("PowerPC"),   config);
-    ParseVideoNode(node->first_node("Video"),       config);
+    //ParseVideoNode(node->first_node("Video"),       config); TODO(ShizZy): FIXME
     ParseDevicesNode(node->first_node("Devices"),   config);
 }
 

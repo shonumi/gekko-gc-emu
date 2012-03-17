@@ -201,7 +201,7 @@ __inline static f64 toDOUBLE(u64 x)
 	return *(f64*)&x;
 }
 
-typedef void(EMU_FASTCALL *optable)(void);
+typedef void(*optable)(void);
 typedef	void(EMU_FASTCALL *hwtable)(u32, u32*);
 
 ////////////////////////////////////////////////////////////////////////////////
