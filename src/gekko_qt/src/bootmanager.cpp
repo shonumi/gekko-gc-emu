@@ -111,7 +111,7 @@ void EmuThread::run()
                         emit CPUStepped();
                         exec_cpu_step = false;
                         cpu->step = true;
-                        while (!exec_cpu_step && !cpu_running);
+                        while (!exec_cpu_step && !cpu_running && core::SYS_DIE != core::g_state);
                     }
                     cpu->execStep();
                     cpu->step = false;
