@@ -48,13 +48,13 @@
     <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;%QTDIR%\include\QtOpenGL;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
+    <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include;$QTDIR%\include\Qt</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include;$QTDIR%\include\Qt;$(SolutionDir)\externals\qhexedit</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -64,6 +64,13 @@
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
+    <MOC>
+      <QtCommandLine>/I"$(SolutionDir)\src\common\src" /I"$(SolutionDir)\src\core\src" /I"$(SolutionDir)\externals\sdl-1.2.15\include" /I"$(SolutionDir)\externals\qhexedit"</QtCommandLine>
+    </MOC>
+    <UIC>
+      <QtUicPrefix>src/ui_</QtUicPrefix>
+      <QtUicExt>.h</QtUicExt>
+    </UIC>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
