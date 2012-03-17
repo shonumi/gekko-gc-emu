@@ -1,3 +1,5 @@
+#include "../memory.h"
+#include "powerpc/cpu_core_regs.h"
 #include <vector>
 #include <set>
 #include "core.h"
@@ -13,18 +15,28 @@ static std::vector<CPUStepCallbackObject> cpu_step_observers;
 
 bool Debugger::GetCallstack(Callstack& out)
 {
-//    if (core::g_state != core::SYS_HALTED && core::g_state != core::SYS_DEBUG)
- //       return false;
-
-
     CallstackEntry entry;
-    entry.name = "some toplevel func";
-    entry.addr = 0x80004100;
-    out.push_back(entry);
-    entry.name = "some other func";
-    entry.addr = 0x80004114;
+    u32 addr = Memory_Read32(ireg.gpr[1]);
+    if (LR == 0)
+    {
+        entry.name = "(error: LR=0)";
+        entry.addr = 0;
+        out.push_back(entry);
+    }
+
+    entry.name = "Unknown";
+    entry.addr = LR - 4;
     out.push_back(entry);
 
+    while ((addr != 0xFFFFFFFF) && (addr != 0) && (out.size() < 20) && ireg.gpr[1] != 0)
+    {
+        u32 func = Memory_Read32(addr + 4);
+        entry.name = "Unknown";
+        entry.addr = func - 4;
+        out.push_back(entry);
+
+        addr = Memory_Read32(addr);
+    }
     return true;
 }
 

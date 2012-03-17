@@ -6,6 +6,9 @@
 
 ////////////////////////////////////////////////////////////
 
+#include "platform.h"
+#include "types.h"
+
 #define RAM_24MB					(1024*1024*24)
 #define RAM_SIZE					(1024*1024*32)
 #define RAM2_SIZE					(1024*1024*64)

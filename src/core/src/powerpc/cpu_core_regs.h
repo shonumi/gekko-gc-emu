@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "memory.h"
+#include "cpu_core.h"
 
 //union for the 64bit timer
 typedef union _Gekko_Timer
