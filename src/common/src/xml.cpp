@@ -298,10 +298,10 @@ void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
     
     // Set resolutions
     GetXMLElementAsString(node, "WindowResolution", res_str);
-    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
+    sscanf(res_str, "%d_%d", &res.width, &res.height);
     config.set_window_resolution(res);
     GetXMLElementAsString(node, "FullscreenResolution", res_str);
-    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
+    sscanf(res_str, "%d_%d", &res.width, &res.height);
     config.set_fullscreen_resolution(res);
 
     // Parse all search renderer nodes
