@@ -158,6 +158,7 @@ void SDLJoypads::PollEvent() {
 
         //Unique number to id joypad input
         int pad = 0;
+        int val = 0;
 
         switch(joyevent.type) {
 
@@ -177,15 +178,71 @@ void SDLJoypads::PollEvent() {
         case SDL_JOYAXISMOTION:
             pad = 200;
             pad += (joyevent.jaxis.axis * 2);
-            int val = joyevent.jaxis.value; 
+            val = joyevent.jaxis.value; 
 
-            if(val > 0) { pad += 1; }
+            if(val > 0) { 
+                pad += 1; 
+            }
 
             // Check for joy axis input on corresponding pads
             if((GetControllerStatus(0, pad) == GCController::RELEASED) && (!DeadZone(val))) {
                 SetControllerStatus(0, pad, GCController::PRESSED);
             } else if((GetControllerStatus(0, pad) == GCController::PRESSED) && (DeadZone(val))) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
+            }
+            break;
+        // Handle joystick hat motion events
+        case SDL_JOYHATMOTION:
+            pad = 300;
+            pad += joyevent.jhat.hat * 4;
+
+            // Check for joy hat input on corresponding pads
+            // This _should_ work for multiple hats, untested though
+            if(joyevent.jhat.value == SDL_HAT_LEFT) {
+                SetControllerStatus(0, pad, GCController::PRESSED);
+                SetControllerStatus(0, pad+1, GCController::RELEASED);
+                SetControllerStatus(0, pad+2, GCController::RELEASED);
+                SetControllerStatus(0, pad+3, GCController::RELEASED);
+            } else if(joyevent.jhat.value == SDL_HAT_LEFTUP) {
+                SetControllerStatus(0, pad, GCController::PRESSED);
+                SetControllerStatus(0, pad+1, GCController::RELEASED);
+                SetControllerStatus(0, pad+2, GCController::PRESSED);
+                SetControllerStatus(0, pad+3, GCController::RELEASED);
+            } else if(joyevent.jhat.value == SDL_HAT_LEFTDOWN) {
+                SetControllerStatus(0, pad, GCController::PRESSED);
+                SetControllerStatus(0, pad+1, GCController::RELEASED);
+                SetControllerStatus(0, pad+2, GCController::RELEASED);
+                SetControllerStatus(0, pad+3, GCController::PRESSED);
+            } else if(joyevent.jhat.value == SDL_HAT_RIGHT) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
+                SetControllerStatus(0, pad+1, GCController::PRESSED);
+                SetControllerStatus(0, pad+2, GCController::RELEASED);
+                SetControllerStatus(0, pad+3, GCController::RELEASED);
+            } else if(joyevent.jhat.value == SDL_HAT_RIGHTUP) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
+                SetControllerStatus(0, pad+1, GCController::PRESSED);
+                SetControllerStatus(0, pad+2, GCController::PRESSED);
+                SetControllerStatus(0, pad+3, GCController::RELEASED);
+            } else if(joyevent.jhat.value == SDL_HAT_RIGHTDOWN) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
+                SetControllerStatus(0, pad+1, GCController::PRESSED);
+                SetControllerStatus(0, pad+2, GCController::RELEASED);
+                SetControllerStatus(0, pad+3, GCController::PRESSED);
+            } else if(joyevent.jhat.value == SDL_HAT_UP) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
+                SetControllerStatus(0, pad+1, GCController::RELEASED);
+                SetControllerStatus(0, pad+2, GCController::PRESSED);
+                SetControllerStatus(0, pad+3, GCController::RELEASED);
+            } else if(joyevent.jhat.value == SDL_HAT_DOWN) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
+                SetControllerStatus(0, pad+1, GCController::RELEASED);
+                SetControllerStatus(0, pad+2, GCController::RELEASED);
+                SetControllerStatus(0, pad+3, GCController::PRESSED);
+            } else if(joyevent.jhat.value == SDL_HAT_CENTERED) {
+                SetControllerStatus(0, pad, GCController::RELEASED);
+                SetControllerStatus(0, pad+1, GCController::RELEASED);
+                SetControllerStatus(0, pad+2, GCController::RELEASED);
+                SetControllerStatus(0, pad+3, GCController::RELEASED);
             }
             break;
         }
@@ -201,6 +258,7 @@ bool SDLJoypads::Init() {
     //Initalize SDL joypad subsystem first of all
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 
+    // TODO - Initialize multiple joypads
     jpad = NULL;
     jpad = SDL_JoystickOpen(0);
 
@@ -209,6 +267,8 @@ bool SDLJoypads::Init() {
         LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin not initialized");
         return false;
     } else if(jpad != NULL) {
+        LOG_NOTICE(TJOYPAD, "Joypad detected");
+        LOG_NOTICE(TJOYPAD, SDL_JoystickName(0));
         LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin initialized ok");
         return true;
     }
