@@ -26,6 +26,7 @@
 #define VIDEO_CORE_VERTEX_LOADER_H_
 
 #include "common.h"
+#include "fifo.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
@@ -44,7 +45,7 @@ extern f32  g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for
  * \param count Number of vertices
  * \param vat Vertex attribute table
  */
-void DecodePrimitive(int type, int count, u8 vat); 
+void DecodePrimitive(GXPrimitive type, int count, u8 vat); 
 
 /// Initialize the Vertex Loader
 void VertexLoaderInit();

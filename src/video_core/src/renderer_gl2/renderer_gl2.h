@@ -1,10 +1,10 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    renderer_gl3.h
+ * \file    renderer_gl2.h
  * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-09
- * \brief   Implementation of a OpenGL 3.3 renderer
+ * \date    2012-03-18
+ * \brief   Implementation of a OpenGL 32 renderer
  *
  * \section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -22,22 +22,23 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#ifndef VIDEO_CORE_RENDERER_GL3_H_
-#define VIDEO_CORE_RENDERER_GL3_H_
+#ifndef VIDEO_CORE_RENDERER_GL2_H_
+#define VIDEO_CORE_RENDERER_GL2_H_
 
 #include <GL/glew.h>
-#include <GL/glfw.h>
+
+#include "video/emuwindow.h"
 
 #include "common.h"
 #include "renderer_base.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL 3.3 Renderer
+// OpenGL 2 Renderer
 
-class RendererGL3  : virtual public RendererBase {
+class RendererGL2 : virtual public RendererBase {
 public:
-    RendererGL3() : resolution_width_(640), resolution_height_(480) {};
-    ~RendererGL3() {};
+    RendererGL2() : resolution_width_(640), resolution_height_(480) {};
+    ~RendererGL2() {};
 
     /// Draw a vertex array
     void DrawPrimitive();
@@ -54,9 +55,14 @@ public:
     /// Sets the renderer culling mode
     void SetCullMode();
 
+    /// Swap the display buffers (finish drawing frame)
     void SwapBuffers();
-    void SetWindowText(const char* text);
-    void SetWindowSize(int width, int height);
+
+    /*! 
+     * \brief Set the window of the emulator
+     * \param window EmuWindow handle to emulator window to use for rendering
+     */
+    void SetWindow(EmuWindow* window);
 
     void Init();
     void PollEvent();
@@ -67,9 +73,11 @@ private:
     int resolution_width_;
     int resolution_height_;
 
+    EmuWindow* render_window_;
+
     GLuint shader_id_;
 
-    DISALLOW_COPY_AND_ASSIGN(RendererGL3);
+    DISALLOW_COPY_AND_ASSIGN(RendererGL2);
 };
 
-#endif // VIDEO_CORE_RENDERER_GL3_H_
+#endif // VIDEO_CORE_RENDERER_GL2_H_

@@ -26,6 +26,8 @@
 #define VIDEO_CORE_RENDER_BASE_H_
 
 #include "common.h"
+#include "fifo.h"
+#include "video/emuwindow.h"
 
 class RendererBase {
 public:
@@ -44,17 +46,17 @@ public:
     /// Sets the renderer depthrange, znear and zfar
     virtual void SetDepthRange(double znear, double zfar);
 
-    /*! 
-     * \brief Set the window text of the renderer
-     * \param text Text so set the window title bar to
-     */
-    virtual void SetWindowText(const char* text);
+    /// Sets the renderer depth test mode
+    virtual void SetDepthTest();
+
+    /// Sets the renderer culling mode
+    virtual void SetCullMode();
 
     /*! 
-     * \brief Set the window size of the renderer
-     * \param text Text so set the window title bar to
+     * \brief Set the emulator window to use for renderer
+     * \param window EmuWindow handle to emulator window to use for rendering
      */
-    virtual void SetWindowSize(int width, int height);
+    virtual void SetWindow(EmuWindow* window);
 
     /// Initialize the renderer
     virtual void Init();
@@ -63,7 +65,6 @@ public:
     virtual void ShutDown();
 
 private:
-
 
     DISALLOW_COPY_AND_ASSIGN(RendererBase);
 };

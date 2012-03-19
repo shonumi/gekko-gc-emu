@@ -31,6 +31,8 @@
 
 namespace gp {
 
+typedef void (*VertexLoaderTable)(u16);	
+
 f32*    g_position_burst_ptr;
 f32     g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
 
@@ -62,6 +64,8 @@ static inline void SendPositionXYZ(f32 x, f32 y, f32 z) {
     g_position_burst_ptr++;
     *g_position_burst_ptr = z;
     g_position_burst_ptr++;
+
+    LOG_DEBUG(TGP, "SentVertex-> %02.04f %02.04f %02.04f", x, y, z);
     //LOG_DEBUG(TGP, "SentPosition-> \t%f\t%f\t%f", x, y, z);
 }
 
@@ -87,25 +91,109 @@ static inline void SendColorRGBA(f32 r, f32 g, f32 b, f32 a) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__inline u16 MemoryRead16(u32 addr) {
-    return *(u16 *)(&Mem_RAM[addr & RAM_MASK]);
+__inline u16 MemoryRead16(u32 addr)
+{
+	if(!(addr & 1))
+		return *(u16 *)(&Mem_RAM[(addr ^ 2) & RAM_MASK]);
+
+	addr = addr & RAM_MASK;
+	return (u16)(Mem_RAM[(addr + 0) ^ 3] << 8) |
+		   (u16)(Mem_RAM[(addr + 1) ^ 3]);
 }
 
-__inline u32 MemoryRead32(u32 addr) {
-    return *(u32 *)(&Mem_RAM[addr & RAM_MASK]);
+__inline u32 MemoryRead32(u32 addr)
+{
+	addr &= RAM_MASK;
+	if(!(addr & 3))
+		return *(u32 *)(&Mem_RAM[addr]);
+
+	return ((u32)Mem_RAM[(addr + 0) ^ 3] << 24) |
+		   ((u32)Mem_RAM[(addr + 1) ^ 3] << 16) |
+		   ((u32)Mem_RAM[(addr + 2) ^ 3] << 8) |
+		   ((u32)Mem_RAM[(addr + 3) ^ 3]);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// POSITION DECODING
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Position Decoding
+
+static void VertexPosition_Unk(u16 index) {
+    LOG_ERROR(TGP, "Unknown Vertex position!!! Ask neobrain to implement me!");
+    logger::Crash();
+}
 
 // correct
-static void VertexPosition_I8_F32_XYZ(VertexData *vtx) {
+static void VertexPosition_IF32_XYZ(u16 index) {
 	t32 v[3];
-	v[0]._u32 = MemoryRead32(CP_DATA_POS_ADDR(vtx->index) + 0);
-	v[1]._u32 = MemoryRead32(CP_DATA_POS_ADDR(vtx->index) + 4);
-	v[2]._u32 = MemoryRead32(CP_DATA_POS_ADDR(vtx->index) + 8);
+	v[0]._u32 = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
+	v[1]._u32 = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
+	v[2]._u32 = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
 	SendPositionXYZ(v[0]._f32, v[1]._f32, v[2]._f32);
 }
+
+static void VertexPosition_IS16_XYZ(u16 index)
+{
+	f32 v[3];
+	u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
+
+   // LOG_DEBUG(TGP, "%08x %08x %08x", CP_DATA_POS_ADDR(index), data, MemoryRead16(CP_DATA_POS_ADDR(index) + 4));
+
+	v[0] = (f32)(s16)(data >> 16);
+	v[1] = (f32)(s16)(data & 0xFFFF);
+	v[2] = (f32)(s16)MemoryRead16(CP_DATA_POS_ADDR(index) + 4);
+	SendPositionXYZ(v[0], v[1], v[2]);
+}
+
+
+// unimplemented
+
+#define VERTEXLOADER_POSITION_UNDEF(name)   void VertexPosition_##name(u16 index) { \
+    LOG_ERROR(TGP, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__ ); \
+    logger::Crash(); \
+}
+
+VERTEXLOADER_POSITION_UNDEF(DU8_XY);
+VERTEXLOADER_POSITION_UNDEF(DS8_XY);
+VERTEXLOADER_POSITION_UNDEF(DU16_XY);
+VERTEXLOADER_POSITION_UNDEF(DS16_XY);
+VERTEXLOADER_POSITION_UNDEF(DF32_XY);
+VERTEXLOADER_POSITION_UNDEF(DU8_XYZ);
+VERTEXLOADER_POSITION_UNDEF(DS8_XYZ);
+VERTEXLOADER_POSITION_UNDEF(DU16_XYZ);
+VERTEXLOADER_POSITION_UNDEF(DS16_XYZ);
+VERTEXLOADER_POSITION_UNDEF(DF32_XYZ);
+
+VERTEXLOADER_POSITION_UNDEF(IU8_XY);
+VERTEXLOADER_POSITION_UNDEF(IS8_XY);
+VERTEXLOADER_POSITION_UNDEF(IU16_XY);
+VERTEXLOADER_POSITION_UNDEF(IS16_XY);
+VERTEXLOADER_POSITION_UNDEF(IF32_XY);
+VERTEXLOADER_POSITION_UNDEF(IU8_XYZ);
+VERTEXLOADER_POSITION_UNDEF(IS8_XYZ);
+VERTEXLOADER_POSITION_UNDEF(IU16_XYZ);
+//VERTEXLOADER_POSITION_UNDEF(IS16_XYZ);
+//VERTEXLOADER_POSITION_UNDEF(IF32_XYZ);
+
+VertexLoaderTable VertexLoad[0x40] = {
+    VertexPosition_Unk, VertexPosition_DU8_XY,  VertexPosition_IU8_XY,  VertexPosition_IU8_XY,  	 
+    VertexPosition_Unk, VertexPosition_DS8_XY,  VertexPosition_IS8_XY,  VertexPosition_IS8_XY,  
+    VertexPosition_Unk, VertexPosition_DU16_XY, VertexPosition_IU16_XY, VertexPosition_IU16_XY, 	 
+    VertexPosition_Unk, VertexPosition_DS16_XY, VertexPosition_IS16_XY, VertexPosition_IS16_XY, 
+    VertexPosition_Unk, VertexPosition_DF32_XY, VertexPosition_IF32_XY, VertexPosition_IF32_XY, 	 
+    VertexPosition_Unk, VertexPosition_Unk,     VertexPosition_Unk,     VertexPosition_Unk,    
+    VertexPosition_Unk, VertexPosition_Unk,     VertexPosition_Unk,     VertexPosition_Unk,     
+    VertexPosition_Unk, VertexPosition_Unk,     VertexPosition_Unk,     VertexPosition_Unk,     
+    VertexPosition_Unk, VertexPosition_DU8_XYZ, VertexPosition_IU8_XYZ, VertexPosition_IU8_XYZ, 	 
+    VertexPosition_Unk, VertexPosition_DS8_XYZ, VertexPosition_IS8_XYZ, VertexPosition_IS8_XYZ, 
+    VertexPosition_Unk, VertexPosition_DU16_XYZ,VertexPosition_IU16_XYZ,VertexPosition_IU16_XYZ,	 
+    VertexPosition_Unk, VertexPosition_DS16_XYZ,VertexPosition_IS16_XYZ,VertexPosition_IS16_XYZ, 
+    VertexPosition_Unk, VertexPosition_DF32_XYZ,VertexPosition_IF32_XYZ,VertexPosition_IF32_XYZ,	 
+    VertexPosition_Unk, VertexPosition_Unk,     VertexPosition_Unk,     VertexPosition_Unk,		
+    VertexPosition_Unk, VertexPosition_Unk,     VertexPosition_Unk,     VertexPosition_Unk,		 
+    VertexPosition_Unk, VertexPosition_Unk,     VertexPosition_Unk,     VertexPosition_Unk	
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Color Decoding
 
 // correct
 static void VertexColor_I8_RGBA8(VertexData *vtx) {
@@ -121,15 +209,14 @@ static void VertexColor_I8_RGBA8(VertexData *vtx) {
 // PRIMITIVE DECODING
 
 inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexData* col0, VertexData* col1) {
-
     // Position
     pos->vcd = VCD_POS;
     if (pos->vcd) {
         pos->cnt = VAT_POSCNT;
         pos->fmt = VAT_POSFMT;
         pos->dqf = 1.0f / (1 << VAT_POSSHFT);
-        pos->vtx_format = kVertexPositionSize[VTX_FORMAT(pos)];
-       // pos->vtx_format_vcd = (void*)gx_send_pos_if32xyz;
+        pos->vtx_format = kVertexPositionSize[VTX_FORMAT_PTR(pos)];
+       // pos->vtx_format_vcd = (void*)gx_send_pos_if32_XYz;
     }
 
     // Normal
@@ -137,7 +224,7 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     if (nrm->vcd) {
         nrm->cnt = VAT_NRMCNT;
         nrm->fmt = VAT_NRMFMT;
-        nrm->vtx_format = kVertexNormalSize[VTX_FORMAT(nrm)];
+        nrm->vtx_format = kVertexNormalSize[VTX_FORMAT_PTR(nrm)];
 //        nrm->vtx_format_vcd = (void*)gx_send_col_irgba8;
     }
 
@@ -146,7 +233,7 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     if (col0->vcd) {
         col0->cnt = VAT_COL0CNT;
         col0->fmt = VAT_COL0FMT;
-        col0->vtx_format = kVertexColorSize[VTX_FORMAT(col0)];
+        col0->vtx_format = kVertexColorSize[VTX_FORMAT_PTR(col0)];
        // col0->vtx_format_vcd = (void *)gx_send_col_irgba8;
     }
 
@@ -155,7 +242,7 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     if (col1->vcd) {
         col1->cnt = VAT_COL1CNT;
         col1->fmt = VAT_COL1FMT;
-        col1->vtx_format = kVertexColorSize[VTX_FORMAT(col1)];
+        col1->vtx_format = kVertexColorSize[VTX_FORMAT_PTR(col1)];
 //        col1->vtx_format_vcd = (void *)gx_send_col[VTX_FORMAT_VCD(col1)];
     }
 }
@@ -178,9 +265,11 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         break;
     case 2: // 8bit index
         pos.index = FIFO_POP8();
-        VertexPosition_I8_F32_XYZ(&pos);
+        //VertexPosition_I8_F32_XYZ(pos.index);
+        VertexLoad[VTX_FORMAT_VCD(pos)](pos.index);
         break;
     case 3: // 16bit index
+        pos.index = FIFO_POP16();
         //pos.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)pos.vtx_format_vcd)(_gxlist, &pos); 
@@ -199,10 +288,12 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         //((gxtable)nrm.vtx_format_vcd)(_gxlist, &nrm);
         break;
     case 2: // 8bit index
+        FIFO_POP8();
         //nrm.index = _gxlist->get8(offset++);
         //((gxtable)nrm.vtx_format_vcd)(_gxlist, &nrm);
         break;
     case 3: // 16bit index
+        FIFO_POP16();
         //nrm.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)nrm.vtx_format_vcd)(_gxlist, &nrm);
@@ -235,6 +326,7 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
 
         break;
     case 3: // 16bit index 
+        FIFO_POP16();
         //col0.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)col0.vtx_format_vcd)(_gxlist, &col0); 
@@ -255,11 +347,13 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         //glSecondaryColor3bv((GLbyte *)cv->color);
         break;
     case 2: // 8bit index
+        FIFO_POP8();
         //col1.index = _gxlist->get8(offset++);
         //((gxtable)col1.vtx_format_vcd)(_gxlist, &col1); 
         //glSecondaryColor3bv((GLbyte *)cv->color);
         break;
     case 3: // 16bit index
+        FIFO_POP16();
         //col1.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)col1.vtx_format_vcd)(_gxlist, &col1); 
@@ -269,7 +363,7 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
 }
 
 // begin primitive drawing
-void DecodePrimitive(int type, int count, u8 vat) {
+void DecodePrimitive(GXPrimitive type, int count, u8 vat) {
 
     VertexData pos, nrm, col0, col1;
     DecodeVertexFormat(vat, &pos, &nrm, &col0, &col1);

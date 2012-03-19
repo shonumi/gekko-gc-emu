@@ -44,15 +44,15 @@
 #define CP_VAT_A						gp::g_cp_regs.mem[0x70 + vat]
 #define CP_VAT_B						gp::g_cp_regs.mem[0x80 + vat]
 #define CP_VAT_C						gp::g_cp_regs.mem[0x90 + vat]
-#define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + idx * gp::g_cp_regs.mem[0xb0])
-#define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + idx * gp::g_cp_regs.mem[0xb1])
-#define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.mem[0xa2] + idx * gp::g_cp_regs.mem[0xb2])
-#define CP_DATA_TEX_ADDR(idx, n)		(gp::g_cp_regs.mem[0xa4 + n] + idX * gp::g_cp_regs.mem[0xb4 + n])		
+#define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + (idx) * gp::g_cp_regs.mem[0xb0])
+#define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + (idx) * gp::g_cp_regs.mem[0xb1])
+#define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.mem[0xa2] + (idx) * gp::g_cp_regs.mem[0xb2])
+#define CP_DATA_TEX_ADDR(idx, n)		(gp::g_cp_regs.mem[0xa4 + n] + (idx) * gp::g_cp_regs.mem[0xb4 + n])		
 #define CP_MATIDX_REG_A					gp::g_cp_regs.mem[0x30]
 #define CP_MATIDX_REG_B					gp::g_cp_regs.mem[0x40]
 
 // Address reference (used for XF)
-#define CP_IDX_ADDR(idx, n)				(gp::g_cp_regs.mem[0xac + n] + idx * gp::g_cp_regs.mem[0xbc + n])
+#define CP_IDX_ADDR(idx, n)				(gp::g_cp_regs.mem[0xac + n] + (idx) * gp::g_cp_regs.mem[0xbc + n])
 
 // midx: matrix indexes
 // index for position/normal matrix	
@@ -126,8 +126,9 @@
 #define VAT_TEX7SHFT					((CP_VAT_C >> 27) & 0x1f)			
 
 // format decoding
-#define VTX_FORMAT(vtx)					((vtx->cnt << 3) | vtx->fmt)
-#define VTX_FORMAT_VCD(vtx)				((VTX_FORMAT(vtx) << 2) | vtx->vcd)
+#define VTX_FORMAT(vtx)					((vtx.cnt << 3) | vtx.fmt)
+#define VTX_FORMAT_PTR(vtx)             ((vtx->cnt << 3) | vtx->fmt)
+#define VTX_FORMAT_VCD(vtx)				((VTX_FORMAT(vtx) << 2) | vtx.vcd)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace

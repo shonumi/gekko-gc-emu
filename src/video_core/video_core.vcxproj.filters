@@ -4,6 +4,9 @@
     <Filter Include="renderer_gl3">
       <UniqueIdentifier>{55f139c2-1376-474b-83de-052542d401ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="renderer_gl2">
+      <UniqueIdentifier>{f3be6b41-7fa2-47a4-8926-dc2383a2050c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp">
@@ -16,6 +19,9 @@
     <ClCompile Include="src\renderer_base.cpp" />
     <ClCompile Include="src\video_core.cpp" />
     <ClCompile Include="src\xf_mem.cpp" />
+    <ClCompile Include="src\renderer_gl2\renderer_gl2.cpp">
+      <Filter>renderer_gl2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h">
@@ -28,5 +34,8 @@
     <ClInclude Include="src\renderer_base.h" />
     <ClInclude Include="src\video_core.h" />
     <ClInclude Include="src\xf_mem.h" />
+    <ClInclude Include="src\renderer_gl2\renderer_gl2.h">
+      <Filter>renderer_gl2</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

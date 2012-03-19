@@ -51,20 +51,19 @@ void RendererBase::SetDepthRange(double znear, double zfar) {
     printf("RendererBase::SetDepthRange()\n");
 }
 
-/*! 
- * \brief Set the window text of the renderer
- * \param text Text so set the window title bar to
- */
-void RendererBase::SetWindowText(const char* text) {
-    printf("RendererBase::SetWindowText()\n");
+/// Sets the renderer depth test mode
+void RendererBase::SetDepthTest() {
+    printf("RendererBase::SetDepthTest()\n");
 }
 
-/*! 
- * \brief Set the window size of the renderer
- * \param text Text so set the window title bar to
- */
-void RendererBase::SetWindowSize(int width, int height) {
-    printf("RendererBase::SetWindowSize()\n");
+/// Sets the renderer culling mode
+void RendererBase::SetCullMode() {
+    printf("RendererBase::SetCullMode()\n");
+}
+
+/// Set the window of the emulator
+void RendererBase::SetWindow(EmuWindow* window) {
+    printf("RendererBase::SetWindow()\n");
 }
 
 /// Initialize the renderer

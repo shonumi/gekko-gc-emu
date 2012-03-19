@@ -43,8 +43,15 @@ GLuint g_color1_buffer;
 /// Draw a vertex array
 void RendererGL3::DrawPrimitive() {
 
-    int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer) * 4;
+    int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
     int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
+
+
+    //position_buffer_size *= 2;
+
+    //f32* test =(f32*) malloc(position_buffer_size*4);
+
+
     
     f32* pmtx = XF_GEOMETRY_MATRIX;
     f32 pmtx44[16];
@@ -81,18 +88,28 @@ void RendererGL3::DrawPrimitive() {
 
     m_id = glGetUniformLocation(shader_id_, "modelMatrix");
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &pmtx44[0]);
+/*
+    f32 quad_buff[0x1000];
 
-    
-
-
-
+    int new_size = 0;
+    for (int i = 0; i < position_buffer_size;) {
+        quad_buff[new_size+0] = gp::g_position_burst_buffer[i+0];
+        quad_buff[new_size+1] = gp::g_position_burst_buffer[i+1];
+        quad_buff[new_size+2] = gp::g_position_burst_buffer[i+2];
+        quad_buff[new_size+3] = gp::g_position_burst_buffer[i+1];
+        quad_buff[new_size+4] = gp::g_position_burst_buffer[i+2];
+        quad_buff[new_size+5] = gp::g_position_burst_buffer[i+3];
+        new_size+=6;
+        i+=4;
+    }
+    */
 
 
 
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, g_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, position_buffer_size, gp::g_position_burst_buffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, position_buffer_size*4, gp::g_position_burst_buffer, GL_STATIC_DRAW);
 
     glVertexAttribPointer(
        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
@@ -105,7 +122,7 @@ void RendererGL3::DrawPrimitive() {
  
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, position_buffer_size); // Starting from vertex 0; 3 vertices total -> 1 triangle
- 
+    //glDrawElements(GL_TRIANGLES, position_buffer_size, GL_FLOAT, gp::g_position_burst_buffer);
     glDisableVertexAttribArray(0);
 
     ///////////////////////////////////////////////////////////////////////
@@ -138,6 +155,14 @@ void RendererGL3::SetViewport(int x, int y, int width, int height) {
 /// Sets the renderer depthrange, znear and zfar
 void RendererGL3::SetDepthRange(double znear, double zfar) {
     glDepthRange(znear, zfar);
+}
+
+/// Sets the renderer depth test mode
+void RendererGL3::SetDepthTest() {
+}
+
+/// Sets the renderer culling mode
+void RendererGL3::SetCullMode() {
 }
 
 /// Sets the projection matrix
@@ -246,11 +271,11 @@ void RendererGL3::Init() {
         exit(E_ERR);
     }
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
+    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
+    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0);
     glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16); // 2X AA
+   // glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16); // 2X AA
 
     
 
@@ -308,7 +333,7 @@ void RendererGL3::Init() {
 
     */
 
-	char vs[1024] = "#version 330\n" \
+	char vs[1024] = "#version 150\n" \
                     "layout(location = 0) in vec3 position;\n" \
                     "layout(location = 1) in vec3 vertexColor;\n" \
                     "out vec3 fragmentColor;\n" \
@@ -319,7 +344,7 @@ void RendererGL3::Init() {
                     "    fragmentColor = vertexColor;\n" \
                     "}";
  
-    char fs[1024] = "#version 330\n" \
+    char fs[1024] = "#version 150\n" \
                     "in vec3 fragmentColor;\n" \
                     "out vec3 color;\n" \
                     "void main() {\n" \

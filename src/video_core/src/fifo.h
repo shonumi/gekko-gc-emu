@@ -35,9 +35,9 @@ typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 #define GP_SETOP(n, op)         g_exec_op[n] = (GPFuncPtr)op
 
 // FIFO information
-#define FIFO_SIZE           0x10000                 // 64kb - good size
+#define FIFO_SIZE           0x10000*2                 // 64kb - good size
 #define FIFO_HEAD_END       0x4000                  // First 16kb of FIFO
-#define FIFO_TAIL_END       (FIFO_SIZE - 0x4000)    // Last 16kb of FIFO... Reset to beginning ASAP
+#define FIFO_TAIL_END       (FIFO_SIZE - FIFO_HEAD_END)    // Last 16kb of FIFO... Reset to beginning ASAP
 #define FIFO_MASK           (FIFO_SIZE - 1)         // mask
 
 // FIFO write access
@@ -102,26 +102,26 @@ extern SDL_mutex*  g_fifo_write_ptr_mutex;  ///< Mutex for accessing g_fifo_writ
 
 /// Push 8-bit byte into the FIFO
 static inline void FifoPush8(u8 data) {
-    SDL_mutexP(g_fifo_write_ptr_mutex);
+ //   SDL_mutexP(g_fifo_write_ptr_mutex);
     *g_fifo_write_ptr = data;
     g_fifo_write_ptr+=1;
-    SDL_mutexV(g_fifo_write_ptr_mutex); 
+   // SDL_mutexV(g_fifo_write_ptr_mutex); 
 }
 
 /// Push 16-bit halfword into the FIFO
 static inline void FifoPush16(u16 data) {
-    SDL_mutexP(g_fifo_write_ptr_mutex);
+  //  SDL_mutexP(g_fifo_write_ptr_mutex);
     *(u16*)gp::g_fifo_write_ptr = data;
     g_fifo_write_ptr+=2;
-    SDL_mutexV(g_fifo_write_ptr_mutex); 
+   // SDL_mutexV(g_fifo_write_ptr_mutex); 
 }
 
 /// Push 32-bit word into the FIFO
 static inline void FifoPush32(u32 data) {
-    SDL_mutexP(g_fifo_write_ptr_mutex);
+   // SDL_mutexP(g_fifo_write_ptr_mutex);
     *(u32*)gp::g_fifo_write_ptr = data;
     g_fifo_write_ptr+=4;
-    SDL_mutexV(g_fifo_write_ptr_mutex); 
+   // SDL_mutexV(g_fifo_write_ptr_mutex); 
 }
 
 /// Called by CPU core to catch up

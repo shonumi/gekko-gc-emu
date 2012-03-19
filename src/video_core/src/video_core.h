@@ -28,7 +28,10 @@
 #include "common.h"
 #include "renderer_base.h"
 
-//#define USE_NEW_VIDEO_CORE
+#define USE_NEW_VIDEO_CORE
+
+#undef LOG_DEBUG
+#define LOG_DEBUG(x,y, ...)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Video Core namespace
@@ -38,13 +41,13 @@ namespace video_core {
 extern RendererBase*   g_renderer;  ///< Renderer plugin 
 
 /// Start the video core
-void EMU_FASTCALL Start();
+void Start();
 
 /// Initialize the video core
-void EMU_FASTCALL Init();
+void Init();
 
 /// Shutdown the video core
-void EMU_FASTCALL ShutDown();
+void ShutDown();
 
 } // namespace
 

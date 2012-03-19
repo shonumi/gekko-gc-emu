@@ -38,9 +38,6 @@
 #include "cp_mem.h"
 #include "xf_mem.h"
 
-#undef LOG_DEBUG
-#define LOG_DEBUG(x,y, ...)
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
 
@@ -84,55 +81,59 @@ int GetVertexSize(u8 vat)
     }
 
     switch(VCD_POS)
-    {	case 1: // direct
-    count = VAT_POSCNT + 2;
-    switch(VAT_POSFMT)
-    {
-    case 0: // ubyte
-    case 1: size += (1 * count); break; // byte
-    case 2: // uhalf
-    case 3: size += (2 * count); break; // half
-    case 4: size += (4 * count); break; // float
-    }
-    break;
+    {	
+    case 1: // direct
+        count = VAT_POSCNT + 2;
+        switch(VAT_POSFMT)
+        {
+        case 0: // ubyte
+        case 1: size += (1 * count); break; // byte
+        case 2: // uhalf
+        case 3: size += (2 * count); break; // half
+        case 4: size += (4 * count); break; // float
+        }
+        break;
     case 2: size+=1; break; // index 8
     case 3: size+=2; break; // index 16
     }
 
     switch(VCD_NRM)
-    {	case 1: size+=kVertexNormalSize[((VAT_NRMCNT << 3) | VAT_NRMFMT)]; break; // direct
-    case 2: size+=1; break; // index 8
-    case 3: size+=2; break; // index 16
+    {	
+        case 1: size+=kVertexNormalSize[((VAT_NRMCNT << 3) | VAT_NRMFMT)]; break; // direct
+        case 2: size+=1; break; // index 8
+        case 3: size+=2; break; // index 16
     }
 
     switch(VCD_COL0)
-    {	case 1: // direct
-    switch(VAT_COL0FMT)
-    {
-    case 0: size += 2; break; // rgb565
-    case 1: size += 3; break; // rgb888
-    case 2: size += 4; break; // rgb888x
-    case 3: size += 2; break; // rgba4444
-    case 4: size += 3; break; // rgba6666
-    case 5: size += 4; break; // rgba8888
-    }
-    break;
+    {	
+    case 1: // direct
+        switch(VAT_COL0FMT)
+        {
+        case 0: size += 2; break; // rgb565
+        case 1: size += 3; break; // rgb888
+        case 2: size += 4; break; // rgb888x
+        case 3: size += 2; break; // rgba4444
+        case 4: size += 3; break; // rgba6666
+        case 5: size += 4; break; // rgba8888
+        }
+        break;
     case 2: size+=1; break; // index 8
     case 3: size+=2; break; // index 16
     }
 
     switch(VCD_COL1)
-    {	case 1: // direct
-    switch(VAT_COL1FMT)
-    {
-    case 0: size += 2; break; // rgb565
-    case 1: size += 3; break; // rgb888
-    case 2: size += 4; break; // rgb888x
-    case 3: size += 2; break; // rgba4444
-    case 4: size += 3; break; // rgba6666
-    case 5: size += 4; break; // rgba8888
-    }
-    break;
+    {	
+    case 1: // direct
+        switch(VAT_COL1FMT)
+        {
+        case 0: size += 2; break; // rgb565
+        case 1: size += 3; break; // rgb888
+        case 2: size += 4; break; // rgb888x
+        case 3: size += 2; break; // rgba4444
+        case 4: size += 3; break; // rgba6666
+        case 5: size += 4; break; // rgba8888
+        }
+        break;
     case 2: size+=1; break; // index 8
     case 3: size+=2; break; // index 16
     }
@@ -145,12 +146,12 @@ int GetVertexSize(u8 vat)
 /// Called by CPU core to catch up
 void EMU_FASTCALL FifoSynchronize() {
     if (g_fifo_write_ptr > g_fifo_tail_ptr) {
-        SDL_mutexP(g_fifo_synch_mutex);
+      //  SDL_mutexP(g_fifo_synch_mutex);
         g_reset_fifo = true;
-        SDL_mutexV(g_fifo_synch_mutex);
+        //SDL_mutexV(g_fifo_synch_mutex);
 
         while (g_reset_fifo) {
-            SDL_Delay(1);
+           // SDL_Delay(1);
         }
     }
 }
@@ -292,9 +293,12 @@ GP_OPCODE(LOAD_XF_REG) {
     u16 addr    = temp & 0xFFFF;
     u32 regs[64];
 
+    //ASSERT_T(length <= 64, "GP core fu***d up....");
+
 	for(int i = 0; i < length; i++) {
         regs[i] = FIFO_POP32();
     }
+
     XFRegisterWrite(length, addr, regs);
     LOG_DEBUG(TGP, "Called LOAD_XF_REG: length = %d addr = %04x", length, addr);
 }
@@ -369,14 +373,14 @@ GP_OPCODE(LOAD_BP_REG) {
 /// draw a primitive - quads
 GP_OPCODE(DRAW_QUADS) {
 	u16 count = FIFO_POP16();
-	//gx_vertex::draw_primitive(_gxlist, GL_QUADS, count, vat);
+	DecodePrimitive(GX_QUADS, count, g_cur_vat);
     LOG_DEBUG(TGP, "Called DRAW_QUADS");
 }
 
 /// draw a primitive - triangles
 GP_OPCODE(DRAW_TRIANGLES) {
 	u16 count = FIFO_POP16();
-    DecodePrimitive(GL_TRIANGLES, count, g_cur_vat);
+    DecodePrimitive(GX_TRIANGLES, count, g_cur_vat);
 	//gx_vertex::draw_primitive(_gxlist, , count, vat);
     LOG_DEBUG(TGP, "Called DRAW_TRIANGLES");
 }
@@ -430,21 +434,21 @@ int DecodeThread(void *unused) {
         }
 
         // Synchronize the CPU<-->FIFO
-        SDL_mutexP(g_fifo_synch_mutex);
+       // SDL_mutexP(g_fifo_synch_mutex);
         if (g_reset_fifo) {
             // Lock writes from CPU to FIFO, reset FIFO to beginning
-            SDL_mutexP(g_fifo_write_ptr_mutex);
+            //SDL_mutexP(g_fifo_write_ptr_mutex);
             bytes_in_fifo = g_fifo_write_ptr - g_fifo_read_ptr;
             g_fifo_write_ptr = g_fifo_buffer + bytes_in_fifo;
             memcpy(g_fifo_buffer, g_fifo_read_ptr, (size_t)bytes_in_fifo);
-            SDL_mutexV(g_fifo_write_ptr_mutex);
+            //SDL_mutexV(g_fifo_write_ptr_mutex);
 
             // Move FIFO to beginning
             g_fifo_read_ptr = g_fifo_buffer;
 
             g_reset_fifo = false;
         }
-        SDL_mutexV(g_fifo_synch_mutex);
+       // SDL_mutexV(g_fifo_synch_mutex);
 
         // Get the next GP opcode and decode it
         if (FifoNextCommandReady()) {

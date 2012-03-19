@@ -165,6 +165,8 @@ typedef union {
     u32 mem[0x100];
 }BPMemory;
 
+extern BPMemory g_bp_regs; ///< BP memory/registers
+
 /*!
  * \brief Write a BP register
  * \param addr Address (8-bit) of register

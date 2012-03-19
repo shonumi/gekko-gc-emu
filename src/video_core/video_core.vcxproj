@@ -47,6 +47,7 @@
     <ClCompile Include="src\cp_mem.cpp" />
     <ClCompile Include="src\fifo.cpp" />
     <ClCompile Include="src\renderer_base.cpp" />
+    <ClCompile Include="src\renderer_gl2\renderer_gl2.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
     <ClCompile Include="src\video_core.cpp" />
@@ -57,6 +58,7 @@
     <ClInclude Include="src\cp_mem.h" />
     <ClInclude Include="src\fifo.h" />
     <ClInclude Include="src\renderer_base.h" />
+    <ClInclude Include="src\renderer_gl2\renderer_gl2.h" />
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h" />
     <ClInclude Include="src\vertex_loader.h" />
     <ClInclude Include="src\video_core.h" />

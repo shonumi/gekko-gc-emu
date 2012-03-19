@@ -28,7 +28,9 @@
 
 #include "video_core.h"
 #include "renderer_base.h"
+#include "video/emuwindow_sdl.h"
 #include "renderer_gl3/renderer_gl3.h"
+#include "renderer_gl2/renderer_gl2.h"
 #include "fifo.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +44,12 @@ SDL_Thread      *g_video_thread;
 
 
 int VideoThreadEntry(void *unused) {
+
+    EmuWindow_SDL* emu_window = new EmuWindow_SDL;
+
     delete g_renderer;
-    g_renderer = new RendererGL3(); // We only have one plugin right now, so use that!
+    g_renderer = new RendererGL2();
+    g_renderer->SetWindow(emu_window);
     g_renderer->Init();
 
     gp::DecodeThread(NULL);
@@ -52,7 +58,7 @@ int VideoThreadEntry(void *unused) {
 }
 
 /// Start the video core
-void EMU_FASTCALL Start() {
+void Start() {
     g_video_thread = SDL_CreateThread(VideoThreadEntry, NULL);
 
     if (g_video_thread == NULL) {
@@ -62,14 +68,14 @@ void EMU_FASTCALL Start() {
 }
 
 /// Initialize the video core
-void EMU_FASTCALL Init() {
+void Init() {
     gp::FifoInit();
 
     LOG_NOTICE(TVIDEO, "initialized ok");
 }
 
 /// Shutdown the video core
-void EMU_FASTCALL Shutdown() {
+void Shutdown() {
     gp::FifoShutdown();
 }
 

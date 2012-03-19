@@ -24,6 +24,8 @@
 
 #include "common.h"
 
+#include <GL/glew.h>
+
 #include "hw/hw_pe.h"
 
 #include "video_core.h"
@@ -36,6 +38,9 @@
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
 
+#define BP_PE_COPYCLEAR_Z			gp::g_bp_regs.mem[0x51]
+#define BP_PE_COPYCLEAR_Z_VALUE		(BP_PE_COPYCLEAR_Z & 0xffffff)
+#define GX_VIEWPORT_ZMAX				16777215.0f
 namespace gp {
 
 BPMemory g_bp_regs; ///< BP memory/registers
@@ -50,11 +55,9 @@ void BPRegisterWrite(u8 addr, u32 data) {
     // adjust gx globals accordingly
     switch(addr) {
     case 0x0: // GEN_MODE
-        //gx_states::set_cullmode();
+        //video_core::g_renderer->SetCullMode();
         //gx_tev::active_stages = bp.genmode.ntev + 1;
         //gx_tev::set_modifed();
-
-        LOG_DEBUG(TGP, "BP-> GEN_MODE");
         break;
 
     case 0x20: // SU_SCIS0 - Scissorbox Top Left Corner
@@ -81,7 +84,7 @@ void BPRegisterWrite(u8 addr, u32 data) {
         break;
 
     case 0x40: // PE_ZMODE
-        //gx_states::set_zmode();
+        //video_core::g_renderer->SetDepthTest();
         LOG_DEBUG(TGP, "BP-> PE_ZMODE");
         break;
 
@@ -124,6 +127,9 @@ void BPRegisterWrite(u8 addr, u32 data) {
 
     case 0x51: // PE copy clear Z - 24-bit Z value
         //gx_states::set_copyclearz();
+	    // unpack z data
+	    // send to efb
+	    //glClearDepth(((GLclampd)BP_PE_COPYCLEAR_Z_VALUE) / GX_VIEWPORT_ZMAX);
         LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_X");
         break;
 
