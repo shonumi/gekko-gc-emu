@@ -28,7 +28,7 @@
 #include "common.h"
 #include "renderer_base.h"
 
-#define USE_NEW_VIDEO_CORE
+//#define USE_NEW_VIDEO_CORE
 
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
