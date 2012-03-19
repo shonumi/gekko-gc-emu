@@ -10,8 +10,8 @@
 #include "gekko_regs.hxx"
 #include "image_info.hxx"
 #include "ramview.hxx"
-
 #include "bootmanager.hxx"
+#include "hotkeys.h"
 
 #include "core.h"
 #include "dvd/loader.h"
@@ -87,6 +87,14 @@ GMainWindow::GMainWindow()
     connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), disasm, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
     connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), gekko_regs, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
     connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), callstack, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
+
+    // Setup hotkeys
+    Hotkeys::LoadHotkeys(settings);
+    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Step, this), SIGNAL(activated()), disasm, SLOT(OnStep()));
+//    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_StepInto, this), SIGNAL(activated()), disasm, SLOT(OnStepInto()));
+//    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Pause, this), SIGNAL(activated()), disasm, SLOT(OnPause()));
+    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Cont, this), SIGNAL(activated()), disasm, SLOT(OnContinue()));
+    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Breakpoint, this), SIGNAL(activated()), disasm, SLOT(OnSetBreakpoint()));
 
     // TODO: Enable this?
 //    setUnifiedTitleAndToolBarOnMac(true);
@@ -262,6 +270,7 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
+    Hotkeys::SaveHotkeys(settings);
     // TODO: Save "single window mode" check state
 
     render_window->close();

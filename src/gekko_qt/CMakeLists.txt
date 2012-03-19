@@ -3,6 +3,7 @@ set(SRCS
             src/callstack.cpp
             src/disasm.cpp
             src/gekko_regs.cpp
+            src/hotkeys.cpp
             src/image_info.cpp
             src/main.cpp
             src/ramview.cpp)

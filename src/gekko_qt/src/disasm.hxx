@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+class QAction;
 class QStandardItemModel;
 class EmuThread;
 
@@ -22,8 +23,8 @@ public slots:
     void OnCPUStepped();
 
 private:
+    // returns -1 if no row is selected
     int SelectedRow();
-    u32 SelectedAddress();
 
     Ui::DockWidget disasm_ui;
     QStandardItemModel* model;

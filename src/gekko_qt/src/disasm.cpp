@@ -28,16 +28,20 @@ GDisAsmView::GDisAsmView(QWidget* parent, EmuThread& emu_thread) : QDockWidget(p
 
 void GDisAsmView::OnSetBreakpoint()
 {
-    if (Debugger::IsBreakpoint(SelectedAddress()))
+    if (SelectedRow() == -1)
+        return;
+
+    u32 address = base_addr + 4 * SelectedRow();
+    if (Debugger::IsBreakpoint(address))
     {
-        Debugger::UnsetBreakpoint(SelectedAddress());
+        Debugger::UnsetBreakpoint(address);
         model->item(SelectedRow(), 0)->setBackground(QBrush());
         model->item(SelectedRow(), 1)->setBackground(QBrush());
         model->item(SelectedRow(), 2)->setBackground(QBrush());
     }
     else
     {
-        Debugger::SetBreakpoint(SelectedAddress());
+        Debugger::SetBreakpoint(address);
         model->item(SelectedRow(), 0)->setBackground(Qt::red);
         model->item(SelectedRow(), 1)->setBackground(Qt::red);
         model->item(SelectedRow(), 2)->setBackground(Qt::red);
@@ -90,6 +94,12 @@ void GDisAsmView::OnCPUStepped()
             model->item(counter, 2)->setBackground(Qt::yellow);
             cur_instr_index = model->index(counter, 0);
         }
+        else if (Debugger::IsBreakpoint(curInstAddr))
+        {
+            model->item(counter, 0)->setBackground(Qt::red);
+            model->item(counter, 1)->setBackground(Qt::red);
+            model->item(counter, 2)->setBackground(Qt::red);
+        }
         else
         {
             model->item(counter, 0)->setBackground(QBrush());
@@ -109,10 +119,9 @@ void GDisAsmView::OnCPUStepped()
 
 int GDisAsmView::SelectedRow()
 {
-    return model->itemFromIndex(disasm_ui.treeView->selectionModel()->currentIndex())->row();
-}
+    QModelIndex index = disasm_ui.treeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return -1;
 
-u32 GDisAsmView::SelectedAddress()
-{
-    return base_addr + 4 * SelectedRow();
+    return model->itemFromIndex(disasm_ui.treeView->selectionModel()->currentIndex())->row();
 }
