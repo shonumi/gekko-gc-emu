@@ -162,7 +162,11 @@ public:
         setAutoBufferSwap(false);
     }
 
-    void paintEvent(QPaintEvent*) {}
+    void paintEvent(QPaintEvent* ev)
+    {
+        // Apparently, Windows doesn't display anything if we don't call this here.
+		makeCurrent();
+    }
     void resizeEvent(QResizeEvent*) {}
 };
 
@@ -198,7 +202,7 @@ void GRenderWindow::SetTitle(const char* title)
 
 void GRenderWindow::SwapBuffers()
 {
-    child->makeCurrent();
+    child->makeCurrent(); // TODO: Not necessary?
     child->swapBuffers();
 }
 
