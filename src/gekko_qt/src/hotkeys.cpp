@@ -1,10 +1,7 @@
 #include <QKeySequence>
 #include <QSettings>
-#include "hotkeys.h"
+#include "hotkeys.hxx"
 #include <map>
-
-namespace Hotkeys
-{
 
 struct Hotkey
 {
@@ -15,69 +12,73 @@ struct Hotkey
     Qt::ShortcutContext context;
 };
 
-std::map<HotkeyAction, Hotkey> hotkeys;
+typedef std::map<QString, Hotkey> HotkeyMap;
+typedef std::map<QString, HotkeyMap> HotkeyGroupMap;
 
-const char* action_names[] = {
-    "StartGame",
-    "Disasm_Step",
-//    "Disasm_StepInto",
-//    "Disasm_Pause",
-    "Disasm_Cont",
-    "Disasm_Breakpoint",
-};
+HotkeyGroupMap hotkey_groups;
 
 void SaveHotkeys(QSettings& settings)
 {
     settings.beginGroup("Shortcuts");
-    for (int action = 0; action < NumActions; ++action)
+
+    for (HotkeyGroupMap::iterator group = hotkey_groups.begin(); group != hotkey_groups.end(); ++group)
     {
-        settings.setValue(QString("ShortcutKeySeq_") + QString(action_names[action]), hotkeys[(HotkeyAction)action].keyseq.toString());
-        settings.setValue(QString("ShortcutContext_") + QString(action_names[action]), hotkeys[(HotkeyAction)action].context);
+        settings.beginGroup(group->first);
+        for (HotkeyMap::iterator hotkey = group->second.begin(); hotkey != group->second.end(); ++hotkey)
+        {
+            settings.beginGroup(hotkey->first);
+            settings.setValue(QString("KeySeq"), hotkey->second.keyseq.toString());
+            settings.setValue(QString("Context"), hotkey->second.context);
+            settings.endGroup();
+        }
+        settings.endGroup();
     }
     settings.endGroup();
 }
 
 void LoadHotkeys(QSettings& settings)
 {
-    std::map<HotkeyAction, QString> default_keys;
-    default_keys[StartGame] = "";
-    default_keys[Disasm_Step] = "F10";
-//    default_keys[Disasm_StepInto] = "F11";
-//    default_keys[Disasm_Pause] = "F5";
-    default_keys[Disasm_Cont] = "F5";
-    default_keys[Disasm_Breakpoint] = "F9";
-
-    std::map<HotkeyAction, Qt::ShortcutContext> default_contexts;
-    default_contexts[StartGame] = Qt::WindowShortcut;
-    default_contexts[Disasm_Step] = Qt::ApplicationShortcut;
-//    default_contexts[Disasm_StepInto] = Qt::ApplicationShortcut;
-//    default_contexts[Disasm_Pause] = Qt::ApplicationShortcut;
-    default_contexts[Disasm_Cont] = Qt::ApplicationShortcut;
-    default_contexts[Disasm_Breakpoint] = Qt::ApplicationShortcut;
-    
     settings.beginGroup("Shortcuts");
-    for (int action = 0; action < NumActions; ++action)
+
+    // Make sure NOT to use a reference here because it would become invalid once we call beginGroup()
+    QStringList groups = settings.childGroups();
+    for (QList<QString>::iterator group = groups.begin(); group != groups.end(); ++group)
     {
-        QString str = settings.value(QString("ShortcutKeySeq_") + QString(action_names[action]), default_keys[(HotkeyAction)action]).toString();
-        hotkeys[(HotkeyAction)action].keyseq = QKeySequence::fromString(str);
-        hotkeys[(HotkeyAction)action].context = (Qt::ShortcutContext)settings.value(QString("ShortcutContext_") + QString(action_names[action]), default_contexts[(HotkeyAction)action]).toInt();
+        settings.beginGroup(*group);
+
+        QStringList hotkeys = settings.childGroups();
+        for (QList<QString>::iterator hotkey = hotkeys.begin(); hotkey != hotkeys.end(); ++hotkey)
+        {
+            settings.beginGroup(*hotkey);
+
+            // RegisterHotkey assigns default keybindings, so use old values as default parameters
+            Hotkey& hk = hotkey_groups[*group][*hotkey];
+            hk.keyseq = QKeySequence::fromString(settings.value("KeySeq", hk.keyseq.toString()).toString());
+            hk.context = (Qt::ShortcutContext)settings.value("Context", hk.context).toInt();
+            if (hk.shortcut)
+                hk.shortcut->setKey(hk.keyseq);
+
+            settings.endGroup();
+        }
+
+        settings.endGroup();
     }
 
     settings.endGroup();
 }
 
-void SetHotkey(HotkeyAction action, const QKeySequence& keyseq, Qt::ShortcutContext context)
+void RegisterHotkey(const QString& group, const QString& action, const QKeySequence& default_keyseq, Qt::ShortcutContext default_context)
 {
-    hotkeys[action].keyseq = keyseq;
-    hotkeys[action].context = context;
-
-    if (hotkeys[action].shortcut)
-        hotkeys[action].shortcut->setKey(keyseq);
+    if (hotkey_groups[group].find(action) == hotkey_groups[group].end())
+    {
+        hotkey_groups[group][action].keyseq = default_keyseq;
+        hotkey_groups[group][action].context = default_context;
+    }
 }
 
-QShortcut* GetShortcut(HotkeyAction action, QWidget* widget)
+QShortcut* GetHotkey(const QString& group, const QString& action, QWidget* widget)
 {
-    Hotkey& hk = hotkeys[action];
+    Hotkey& hk = hotkey_groups[group][action];
 
     if (!hk.shortcut)
         hk.shortcut = new QShortcut(hk.keyseq, widget, NULL, NULL, hk.context);
@@ -85,4 +86,26 @@ QShortcut* GetShortcut(HotkeyAction action, QWidget* widget)
     return hk.shortcut;
 }
 
-} // namespace Hotkeys
+
+GHotkeysDialog::GHotkeysDialog(QWidget* parent): QDialog(parent)
+{
+    ui.setupUi(this);
+
+    for (HotkeyGroupMap::iterator group = hotkey_groups.begin(); group != hotkey_groups.end(); ++group)
+    {
+        QTreeWidgetItem* toplevel_item = new QTreeWidgetItem(QStringList(group->first));
+        for (HotkeyMap::iterator hotkey = group->second.begin(); hotkey != group->second.end(); ++hotkey)
+        {
+            QStringList columns;
+            columns << hotkey->first << hotkey->second.keyseq.toString();
+            QTreeWidgetItem* item = new QTreeWidgetItem(columns);
+            toplevel_item->addChild(item);
+        }
+        ui.treeWidget->addTopLevelItem(toplevel_item);
+    }
+    // TODO: Make context configurable as well (hiding the column for now)
+    ui.treeWidget->setColumnCount(2);
+
+    ui.treeWidget->resizeColumnToContents(0);
+    ui.treeWidget->resizeColumnToContents(1);
+}

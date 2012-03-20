@@ -11,7 +11,7 @@
 #include "image_info.hxx"
 #include "ramview.hxx"
 #include "bootmanager.hxx"
-#include "hotkeys.h"
+#include "hotkeys.hxx"
 
 #include "core.h"
 #include "dvd/loader.h"
@@ -79,6 +79,7 @@ GMainWindow::GMainWindow()
     connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
     connect(ui.actionSingle_Window_Mode, SIGNAL(triggered(bool)), this, SLOT(SetupEmuWindowMode()));
+    connect(ui.actionHotkeys, SIGNAL(triggered()), this, SLOT(OnOpenHotkeysDialog()));
     connect(ui.treeView, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnFileBrowserDoubleClicked(const QModelIndex&)));
     connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
 
@@ -89,12 +90,12 @@ GMainWindow::GMainWindow()
     connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), callstack, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
 
     // Setup hotkeys
-    Hotkeys::LoadHotkeys(settings);
-    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Step, this), SIGNAL(activated()), disasm, SLOT(OnStep()));
-//    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_StepInto, this), SIGNAL(activated()), disasm, SLOT(OnStepInto()));
-//    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Pause, this), SIGNAL(activated()), disasm, SLOT(OnPause()));
-    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Cont, this), SIGNAL(activated()), disasm, SLOT(OnContinue()));
-    connect(Hotkeys::GetShortcut(Hotkeys::Disasm_Breakpoint, this), SIGNAL(activated()), disasm, SLOT(OnSetBreakpoint()));
+    RegisterHotkey("Main Window", "Load Image", QKeySequence::Open);
+    RegisterHotkey("Main Window", "Start Emulation");
+    LoadHotkeys(settings);
+
+    connect(GetHotkey("Main Window", "Load Image", this), SIGNAL(activated()), this, SLOT(OnMenuLoadImage()));
+    connect(GetHotkey("Main Window", "Start Emulation", this), SIGNAL(activated()), this, SLOT(OnStartGame()));
 
     // TODO: Enable this?
 //    setUnifiedTitleAndToolBarOnMac(true);
@@ -133,6 +134,12 @@ void GMainWindow::OnStartGame()
     {
         BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
     }
+}
+
+void GMainWindow::OnOpenHotkeysDialog()
+{
+    GHotkeysDialog dialog(this);
+    dialog.exec();
 }
 
 void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
@@ -270,7 +277,7 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
-    Hotkeys::SaveHotkeys(settings);
+    SaveHotkeys(settings);
     // TODO: Save "single window mode" check state
 
     render_window->close();

@@ -3,6 +3,7 @@
 #include "disasm.hxx"
 
 #include "bootmanager.hxx"
+#include "hotkeys.hxx"
 
 #include "common.h"
 #include "memory.h"
@@ -20,10 +21,21 @@ GDisAsmView::GDisAsmView(QWidget* parent, EmuThread& emu_thread) : QDockWidget(p
     model->setColumnCount(3);
     disasm_ui.treeView->setModel(model);
 
+    RegisterHotkey("Disassembler", "Step", QKeySequence(Qt::Key_F10), Qt::ApplicationShortcut);
+//    RegisterHotkey("Disassembler", "Step into", QKeySequence(Qt::Key_F11), Qt::ApplicationShortcut);
+//    RegisterHotkey("Disassembler", "Pause", QKeySequence(Qt::Key_F5), Qt::ApplicationShortcut);
+    RegisterHotkey("Disassembler", "Continue", QKeySequence(Qt::Key_F5), Qt::ApplicationShortcut);
+    RegisterHotkey("Disassembler", "Set Breakpoint", QKeySequence(Qt::Key_F9), Qt::ApplicationShortcut);
+
     connect(disasm_ui.button_breakpoint, SIGNAL(clicked()), this, SLOT(OnSetBreakpoint()));
     connect(disasm_ui.button_step, SIGNAL(clicked()), this, SLOT(OnStep()));
     connect(disasm_ui.button_pause, SIGNAL(clicked()), this, SLOT(OnPause()));
     connect(disasm_ui.button_continue, SIGNAL(clicked()), this, SLOT(OnContinue()));
+    connect(GetHotkey("Disassembler", "Step", this), SIGNAL(activated()), this, SLOT(OnStep()));
+//    connect(GetHotkey("Disassembler", "Step into", this), SIGNAL(activated()), this, SLOT(OnStepInto()));
+//    connect(GetHotkey("Disassembler", "Pause", this), SIGNAL(activated()), this, SLOT(OnPause()));
+    connect(GetHotkey("Disassembler", "Continue", this), SIGNAL(activated()), this, SLOT(OnContinue()));
+    connect(GetHotkey("Disassembler", "Set Breakpoint", this), SIGNAL(activated()), this, SLOT(OnSetBreakpoint()));
 }
 
 void GDisAsmView::OnSetBreakpoint()
