@@ -12,6 +12,7 @@ qt4_wrap_ui(UI_HDRS
                     src/callstack.ui
                     src/disasm.ui
                     src/gekko_regs.ui
+                    src/hotkeys.ui
                     src/image_info.ui
                     src/main.ui)
 
@@ -20,6 +21,7 @@ qt4_wrap_cpp(MOC_SRCS
                         src/callstack.hxx
                         src/disasm.hxx
                         src/gekko_regs.hxx
+                        src/hotkeys.hxx
                         src/image_info.hxx
                         src/main.hxx
                         src/ramview.hxx)
