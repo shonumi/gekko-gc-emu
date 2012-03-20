@@ -70,7 +70,7 @@ GMainWindow::GMainWindow()
     debug_menu->addAction(dock_ramedit->toggleViewAction());
 
     // restore UI state
-    QSettings settings("Gekko team", "Gekko");
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "Gekko team", "Gekko");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
     render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
@@ -273,7 +273,7 @@ void GMainWindow::closeEvent(QCloseEvent* event)
 {
     // Save window layout
     // NOTE: For manually created objects, you'll need to assign names via setObjectName for this to work 
-    QSettings settings("Gekko team", "Gekko");
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "Gekko team", "Gekko");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
