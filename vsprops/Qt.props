@@ -21,9 +21,7 @@
       <QtCommandLine>/I"$(SolutionDir)src\common\src" /I"$(SolutionDir)src\core\src" /I"$(ExternalsDir)glew-1.6.0\include" /I"$(ExternalsDir)sdl-1.2.15\include" /I"$(ExternalsDir)qhexedit"</QtCommandLine>
       <QtKeywords>false</QtKeywords>
     </MOC>
-    <Link>
-      <AdditionalDependencies>QtCored4.lib;QtGuid4.lib;QtOpenGLd4.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
+    <Link />
     <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>

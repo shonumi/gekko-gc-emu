@@ -64,6 +64,7 @@
     <Import Project="..\..\vsprops\Base.props" />
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\QtDebugLibs.props" />
     <Import Project="..\..\vsprops\CodeGen_Debug.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
@@ -72,6 +73,7 @@
     <Import Project="..\..\vsprops\Base.props" />
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\QtDebugLibs.props" />
     <Import Project="..\..\vsprops\CodeGen_Debug.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
@@ -80,6 +82,7 @@
     <Import Project="..\..\vsprops\Base.props" />
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\QtReleaseLibs.props" />
     <Import Project="..\..\vsprops\CodeGen_Release.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
@@ -88,6 +91,7 @@
     <Import Project="..\..\vsprops\Base.props" />
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\QtReleaseLibs.props" />
     <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
@@ -96,6 +100,7 @@
     <Import Project="..\..\vsprops\Base.props" />
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\QtReleaseLibs.props" />
     <Import Project="..\..\vsprops\CodeGen_Release.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
@@ -104,6 +109,7 @@
     <Import Project="..\..\vsprops\Base.props" />
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\QtReleaseLibs.props" />
     <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
