@@ -39,7 +39,7 @@
 
 // All inline assembly is x86 right now!
 #ifdef EMU_ARCHITECTURE_X86
-#define USE_INLINE_ASM_X86
+//#define USE_INLINE_ASM_X86
 #endif // EMU_ARCHITECTURE_X86
 
 #pragma warning( disable : 4786 )	//disable the truncated 255 character limit warning for debug identifiers

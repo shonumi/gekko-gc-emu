@@ -46,7 +46,7 @@ extern GCController*    g_controller_state[4];  ///< Current controller states
 extern InputBase*       g_user_input;           ///< Pointer to the user input plugin we are using
 
 /// Initialize the user input system
-void EMU_FASTCALL Init();
+void Init();
  
 } // namespace
 

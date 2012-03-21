@@ -17,8 +17,6 @@
 #include "powerpc/cpu_core.h"
 #include "powerpc/cpu_core_regs.h"
 #include "powerpc/cpu_opsgroup.h"
-#include "debugger/DebugInterface.h"
-#include "debugger/GekkoDbgInterface.h"
 
 u32			GekkoCPUInterpreter::RotMask[32][32];
 
@@ -229,7 +227,7 @@ GekkoF GekkoCPUInterpreter::Open(u32 entry_point)
 	{
 		//if we are debugging, backup the registers
 
-#ifdef USE_INLINE_ASM_X86
+#if(0)
 		if(PipeIsClient)
 		{
 			_asm
@@ -282,9 +280,6 @@ GekkoF GekkoCPUInterpreter::Start(void)
 	{
 		is_on = true;
 		pause = false;
-#ifndef SINGLETHREADED
-		hGekkoThread = CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)GekkoInterpreter_RunThread,NULL,NULL,&GekkoThread);
-#endif
 	} else {
 		printf(".CPU: Gekko_Interpreter_Start - Gekko Core Already Started!\n");
 	}
@@ -299,10 +294,6 @@ GekkoF GekkoCPUInterpreter::Halt(void)
 	is_on = false;
 	pause = false;
     core::SetState(core::SYS_HALTED);
-
-#ifndef SINGLETHREADED
-	TerminateThread(hGekkoThread,0);
-#endif
 }
 
 ////////////////////////////////////////////////////////////
@@ -723,7 +714,7 @@ SkipFlipperUpdate:
 		LastFinishedOp = ireg.PC;
 
 		//if we are debugging, backup the registers
-#ifdef USE_INLINE_ASM_X86
+#if(0)
 		if(PipeIsClient)
 		{
 			_asm

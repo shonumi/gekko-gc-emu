@@ -19,56 +19,10 @@ void gx_transform::gx_tf_pos_xy(f32* d, f32 *v)
 {
 	f32 *pmtx = XF_POSITION_MATRIX;
 
-#if(0) //#ifdef USE_INLINE_ASM
-#pragma todo(gx_tf_pos_xy may need asm rewrite to avoid unneeded mul/add)
-	_asm
-	{
-		mov eax, pmtx
-		mov ebx, v
-		mov dword ptr [ebx+ 8], 0x00000000	//v[2] = 0.0f;
-		mov dword ptr [ebx+12], 0x3F800000	//v[3] = 1.0f;
-		mov edx, d
-		movups xmm0, [eax+0]		//tmtx.3,tmtx.2,tmtx.1,tmtx.0
-		movups xmm1, [eax+16]		//tmtx.7,tmtx.6,tmtx.5,tmtx.4
-		movups xmm2, [eax+32]		//tmtx.11,tmtx.10,tmtx.9,tmtx.8
-		movups xmm3, [ebx]			//v.3,v.2,v.1,v.0
-
-		//tmtx * v
-		mulps xmm0, xmm3			//tmtx.3*v.3,tmtx.2*v.2,tmtx.1*v.1,tmtx.0*v.0
-		mulps xmm1, xmm3			//tmtx.7*v.3,tmtx.6*v.2,tmtx.5*v.1,tmtx.4*v.0
-		mulps xmm2, xmm3			//tmtx.11*v.3,tmtx.10*v.2,tmtx.9*v.1,tmtx.8*v.0
-
-		//swap the register around for the add
-		movhlps xmm4, xmm0			//xmm4 = ?,?,tmtx.3,tmtx.2
-		movlhps xmm5, xmm1			//xmm5 = tmtx.5,tmtx.4,?,?
-		movhlps xmm6, xmm2			//xmm6 = ?,?,tmtx.11,tmtx.10
-
-		addps xmm0, xmm4			//?,?,tmtx.1+3,tmtx.0+2
-		addps xmm1, xmm5			//tmtx.7+5,tmtx.6+4,?,?
-		addps xmm2, xmm6			//?,?,tmtx.9+11,tmtx.8+10
-
-		movsd xmm1, xmm0			//tmtx.5+7,tmtx.4+6,tmtx.1+3,tmtx.0+2
-
-#pragma todo(SSE3 will make this block 2 instructions with MOVSHDUP)
-		movaps xmm0, xmm1
-		shufps xmm1, xmm1, 11110101b	//tmtx.5+7,tmtx.5+7,tmtx.1+3,tmtx.1+3
-		movaps xmm3, xmm2
-		shufps xmm3, xmm3, 00000101b	//?,?,tmtx.9+11,tmtx.9+11
-
-		addps xmm0, xmm1				//?,tmtx.4567,?,tmtx.0123
-		addps xmm3, xmm2				//?,?,?,tmtx.891011
-
-		//combine our registers now
-		shufps xmm0, xmm2, 00001000b
-
-		movups [edx], xmm0
-	};
-#else
 	// transform 
 	d[0] = (pmtx[0])*v[0] + (pmtx[1])*v[1] + (pmtx[ 3]);
 	d[1] = (pmtx[4])*v[0] + (pmtx[5])*v[1] + (pmtx[ 7]);
 	d[2] = (pmtx[8])*v[0] + (pmtx[9])*v[1] + (pmtx[11]);
-#endif
 }
 
 // transform 3d vertex position (software)
@@ -76,54 +30,10 @@ void gx_transform::gx_tf_pos_xyz(f32* d, f32 *v)
 {
 	f32 *pmtx = XF_POSITION_MATRIX;
 
-#if(0) //#ifdef USE_INLINE_ASM
-	_asm
-	{
-		mov eax, pmtx
-		mov ebx, v
-		mov dword ptr [ebx+12], 0x3F800000	//v[3] = 1.0f;
-		mov edx, d
-		movups xmm0, [eax+0]		//tmtx.3,tmtx.2,tmtx.1,tmtx.0
-		movups xmm1, [eax+16]		//tmtx.7,tmtx.6,tmtx.5,tmtx.4
-		movups xmm2, [eax+32]		//tmtx.11,tmtx.10,tmtx.9,tmtx.8
-		movups xmm3, [ebx]			//v.3,v.2,v.1,v.0
-
-		//tmtx * v
-		mulps xmm0, xmm3			//tmtx.3*v.3,tmtx.2*v.2,tmtx.1*v.1,tmtx.0*v.0
-		mulps xmm1, xmm3			//tmtx.7*v.3,tmtx.6*v.2,tmtx.5*v.1,tmtx.4*v.0
-		mulps xmm2, xmm3			//tmtx.11*v.3,tmtx.10*v.2,tmtx.9*v.1,tmtx.8*v.0
-
-		//swap the register around for the add
-		movhlps xmm4, xmm0			//xmm4 = ?,?,tmtx.3,tmtx.2
-		movlhps xmm5, xmm1			//xmm5 = tmtx.5,tmtx.4,?,?
-		movhlps xmm6, xmm2			//xmm6 = ?,?,tmtx.11,tmtx.10
-
-		addps xmm0, xmm4			//?,?,tmtx.1+3,tmtx.0+2
-		addps xmm1, xmm5			//tmtx.7+5,tmtx.6+4,?,?
-		addps xmm2, xmm6			//?,?,tmtx.9+11,tmtx.8+10
-
-		movsd xmm1, xmm0			//tmtx.5+7,tmtx.4+6,tmtx.1+3,tmtx.0+2
-
-#pragma todo(SSE3 will make this block 2 instructions with MOVSHDUP)
-		movaps xmm0, xmm1
-		shufps xmm1, xmm1, 11110101b	//tmtx.5+7,tmtx.5+7,tmtx.1+3,tmtx.1+3
-		movaps xmm3, xmm2
-		shufps xmm3, xmm3, 00000101b	//?,?,tmtx.9+11,tmtx.9+11
-
-		addps xmm0, xmm1				//?,tmtx.4567,?,tmtx.0123
-		addps xmm3, xmm2				//?,?,?,tmtx.891011
-
-		//combine our registers now
-		shufps xmm0, xmm2, 00001000b
-
-		movups [edx], xmm0
-	};
-#else
 	// transform 
 	d[0] = (pmtx[0])*v[0] + (pmtx[1])*v[1] + (pmtx[ 2])*v[2] + (pmtx[ 3]);
 	d[1] = (pmtx[4])*v[0] + (pmtx[5])*v[1] + (pmtx[ 6])*v[2] + (pmtx[ 7]);
 	d[2] = (pmtx[8])*v[0] + (pmtx[9])*v[1] + (pmtx[10])*v[2] + (pmtx[11]);
-#endif
 }
 
 // transform vertex (hardware accelerated)
@@ -161,57 +71,10 @@ void gx_transform::gx_tf_tex_st(f32* d, f32 *v, u8 _indexed, u8 n)
 			tmtx = XF_TEXTURE_MATRIX03(n);
 		}
 	}
-
-#if(0) //#ifdef USE_INLINE_ASM
-#pragma todo(gx_tf_tex_st may need asm rewrite to avoid unneeded mul/add)
-	_asm
-	{
-		mov eax, tmtx
-		mov ebx, v
-		mov dword ptr [ebx+ 8], 0x00000000	//v[2] = 0.0f;
-		mov dword ptr [ebx+12], 0x3F800000	//v[3] = 1.0f;
-		mov edx, d
-		movups xmm0, [eax+0]		//tmtx.3,tmtx.2,tmtx.1,tmtx.0
-		movups xmm1, [eax+16]		//tmtx.7,tmtx.6,tmtx.5,tmtx.4
-		movups xmm2, [eax+32]		//tmtx.11,tmtx.10,tmtx.9,tmtx.8
-		movups xmm3, [ebx]			//v.3,v.2,v.1,v.0
-
-		//tmtx * v
-		mulps xmm0, xmm3			//tmtx.3*v.3,tmtx.2*v.2,tmtx.1*v.1,tmtx.0*v.0
-		mulps xmm1, xmm3			//tmtx.7*v.3,tmtx.6*v.2,tmtx.5*v.1,tmtx.4*v.0
-		mulps xmm2, xmm3			//tmtx.11*v.3,tmtx.10*v.2,tmtx.9*v.1,tmtx.8*v.0
-
-		//swap the register around for the add
-		movhlps xmm4, xmm0			//xmm4 = ?,?,tmtx.3,tmtx.2
-		movlhps xmm5, xmm1			//xmm5 = tmtx.5,tmtx.4,?,?
-		movhlps xmm6, xmm2			//xmm6 = ?,?,tmtx.11,tmtx.10
-
-		addps xmm0, xmm4			//?,?,tmtx.1+3,tmtx.0+2
-		addps xmm1, xmm5			//tmtx.7+5,tmtx.6+4,?,?
-		addps xmm2, xmm6			//?,?,tmtx.9+11,tmtx.8+10
-
-		movsd xmm1, xmm0			//tmtx.5+7,tmtx.4+6,tmtx.1+3,tmtx.0+2
-
-#pragma todo(SSE3 will make this block 2 instructions with MOVSHDUP)
-		movaps xmm0, xmm1
-		shufps xmm1, xmm1, 11110101b	//tmtx.5+7,tmtx.5+7,tmtx.1+3,tmtx.1+3
-		movaps xmm3, xmm2
-		shufps xmm3, xmm3, 00000101b	//?,?,tmtx.9+11,tmtx.9+11
-
-		addps xmm0, xmm1				//?,tmtx.4567,?,tmtx.0123
-		addps xmm3, xmm2				//?,?,?,tmtx.891011
-
-		//combine our registers now
-		shufps xmm0, xmm2, 00001000b
-
-		movups [edx], xmm0
-	};
-#else
 	// transform 
 	d[0] = (tmtx[0])*v[0] + (tmtx[1])*v[1] + (tmtx[ 3]);
 	d[1] = (tmtx[4])*v[0] + (tmtx[5])*v[1] + (tmtx[ 7]);
 	d[2] = (tmtx[8])*v[0] + (tmtx[9])*v[1] + (tmtx[11]);
-#endif
 }
 
 // transform texture coordinate (3d - projected)
@@ -231,57 +94,10 @@ void gx_transform::gx_tf_tex_stq(f32* d, f32 *v, u8 _indexed, u8 n)
 			tmtx = XF_TEXTURE_MATRIX03(n);
 		}
 	}
-
-#if(0) //#ifdef USE_INLINE_ASM
-	_asm
-	{
-		mov eax, tmtx
-		mov ebx, v
-		mov dword ptr [ebx+12], 0x3F800000	//v[3] = 1.0f;
-		mov edx, d
-		movups xmm0, [eax+0]		//tmtx.3,tmtx.2,tmtx.1,tmtx.0
-		movups xmm1, [eax+16]		//tmtx.7,tmtx.6,tmtx.5,tmtx.4
-		movups xmm2, [eax+32]		//tmtx.11,tmtx.10,tmtx.9,tmtx.8
-		movups xmm3, [ebx]			//v.3,v.2,v.1,v.0
-
-		//tmtx * v
-		mulps xmm0, xmm3			//tmtx.3*v.3,tmtx.2*v.2,tmtx.1*v.1,tmtx.0*v.0
-		mulps xmm1, xmm3			//tmtx.7*v.3,tmtx.6*v.2,tmtx.5*v.1,tmtx.4*v.0
-		mulps xmm2, xmm3			//tmtx.11*v.3,tmtx.10*v.2,tmtx.9*v.1,tmtx.8*v.0
-
-		//swap the register around for the add
-		movhlps xmm4, xmm0			//xmm4 = ?,?,tmtx.3,tmtx.2
-		movlhps xmm5, xmm1			//xmm5 = tmtx.5,tmtx.4,?,?
-		movhlps xmm6, xmm2			//xmm6 = ?,?,tmtx.11,tmtx.10
-
-		addps xmm0, xmm4			//?,?,tmtx.1+3,tmtx.0+2
-		addps xmm1, xmm5			//tmtx.7+5,tmtx.6+4,?,?
-		addps xmm2, xmm6			//?,?,tmtx.9+11,tmtx.8+10
-
-		movsd xmm1, xmm0			//tmtx.5+7,tmtx.4+6,tmtx.1+3,tmtx.0+2
-
-#pragma todo(SSE3 will make this block 2 instructions with MOVSHDUP)
-		movaps xmm0, xmm1
-		shufps xmm1, xmm1, 11110101b	//tmtx.5+7,tmtx.5+7,tmtx.1+3,tmtx.1+3
-		movaps xmm3, xmm2
-		shufps xmm3, xmm3, 00000101b	//?,?,tmtx.9+11,tmtx.9+11
-
-		addps xmm0, xmm1				//?,tmtx.4567,?,tmtx.0123
-		addps xmm3, xmm2				//?,?,?,tmtx.891011
-
-		//combine our registers now
-		shufps xmm0, xmm2, 00001000b
-
-		movups [edx], xmm0
-	};
-#else
-
 	// transform 
 	d[0] = (tmtx[0])*v[0] + (tmtx[1])*v[1] + (tmtx[ 2])*v[2] + (tmtx[ 3]);
 	d[1] = (tmtx[4])*v[0] + (tmtx[5])*v[1] + (tmtx[ 6])*v[2] + (tmtx[ 7]);
 	d[2] = (tmtx[8])*v[0] + (tmtx[9])*v[1] + (tmtx[10])*v[2] + (tmtx[11]);
-#endif
-
 }
 
 //////////////////////////////////////////////////////////////////////

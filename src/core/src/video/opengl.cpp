@@ -165,7 +165,7 @@ void OPENGL_Kill()
 }
 
 void OPENGL_SetTitle()
-{
+{   
 	static u32 swaps = 0, last = 0;
 	static float fps = 0;
 	u32 t = SDL_GetTicks();
@@ -173,7 +173,8 @@ void OPENGL_SetTitle()
 	s64 ops = 0;
 	f32 mips = 0;
 	static double opsspeed = 0;
-
+	char str1[255];
+	char str2[15];
 	swaps++;
 		
 	if(t - last > 1000) {
@@ -185,14 +186,12 @@ void OPENGL_SetTitle()
 		last = t;
 		opcount = cpu->GetTicks();
 
-		char str1[100];
-		char str2[15];
 		if (cpu->GetCPUType() == GekkoCPU::DynaRec) {
-			sprintf(str2, "rec");
+			sprintf_s(str2, 15, "rec");
         } else {
-            sprintf(str2, "int");
+            sprintf_s(str2, 15, "int");
 		}
-		sprintf(str1, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
+		sprintf_s(str1, 255, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
             g_window_title, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
 
         s_render_window->SetTitle(str1);

@@ -344,8 +344,6 @@ void EXI_Update(void)
 	else
 		MemCard_Update();
 */
-
-#ifndef USE_INLINE_ASM_X86
 	//generate the final mask
 	exi.FinalINTMask = (exi.csrINTMask[0] & exi.csr[0]) |
 						(exi.csrINTMask[1] & exi.csr[1]) |
@@ -368,41 +366,6 @@ void EXI_Update(void)
 			PI_ClearInterrupt(PI_MASK_EXI);
 		}
 	}
-#else
-	_asm
-	{
-		movdqu xmm0, xmmword ptr exi.csr
-		movdqu xmm1, xmmword ptr exi.csrINTMask
-		pxor xmm2, xmm2
-		pand xmm0, xmm1
-		pcmpgtd xmm0, xmm2
-		movmskps eax, xmm0
-		mov ecx, PI_MASK_EXI
-
-		//see if we have any interrupts
-		cmp eax, 0
-		jne EXI_Interrupt
-
-		//no interrupt, if we haven't already cleared the interrupt
-		//then  clear it
-		cmp LastINTStatus, 0
-		je EXI_InterruptDone
-
-		mov LastINTStatus, 0
-		call PI_ClearInterrupt
-		jmp EXI_InterruptDone
-
-EXI_Interrupt:
-		//if we haven't already ran the interrupt then run it
-		cmp LastINTStatus, 0
-		jne EXI_InterruptDone
-
-		mov LastINTStatus, 1
-		call PI_RequestInterrupt
-
-EXI_InterruptDone:
-	};
-#endif
 }
 
 // Desc: Initialize EXI Hardware

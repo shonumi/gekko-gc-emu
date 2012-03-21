@@ -124,7 +124,7 @@ public:
 
 	static inline unsigned long Gekko_Rotl(u32 X, u32 Y)
 	{
-	#ifdef USE_INLINE_ASM
+	#if(0)
 		u32	RetVal = 0;
 		_asm
 		{

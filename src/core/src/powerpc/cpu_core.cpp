@@ -231,7 +231,7 @@ GekkoCPU::~GekkoCPU()
 	if(hGekkoThread)
 		this->Halt();
 
-#if EMU_PLATFORM == PLATFORM_WINDOWS
+#if(0)
 	if(PipeHandle)	//if(PipeHandle != INVALID_HANDLE_VALUE)
 	{
 		UnmapViewOfFile(PipeHandleData);
@@ -289,7 +289,7 @@ GekkoF GekkoCPU::execStep()
 
 GekkoF GekkoCPU::StartPipe(u32 IsClient)
 {
-#if EMU_PLATFORM == PLATFORM_WINDOWS
+#if(0)
 	if(IsClient)
 	{
         PipeHandle = OpenFileMapping(FILE_MAP_READ | FILE_MAP_WRITE,FALSE,"GekkoCPURecompile");

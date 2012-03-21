@@ -70,19 +70,6 @@ int __cdecl main(int argc, char **argv)
     }
     OPENGL_Create();
 
-#ifdef USE_INLINE_ASM
-	// If using asm, see if this computer can process
-	LOG_INFO(TMASTER, "compiled with inline assembly... ");
-    if (E_OK == common::IsSSE2Supported()) {
-        LOG_APPEND(LINFO, TMASTER, "SSE2 found\n");
-    } else {
-        LOG_ERROR(TMASTER, "compiled with inline assembly, but your CPU architecture does not "
-            "support SSE2, exiting...");
-        core::Kill();
-        exit(1);
-    }
-#endif
-
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
         if (common::g_config->enable_auto_boot()) {
@@ -100,39 +87,9 @@ int __cdecl main(int argc, char **argv)
             if(!cpu->is_on) {
                 cpu->Start(); // Initialize and start CPU.
             } else {
-#ifdef USE_INLINE_ASM
-                _asm {
-                    mov tight_loop, 10000
-
-                ContinueCPULoop:
-                    mov ecx, cpu
-                    cmp GekkoCPU::pause, 0
-                    jne CPULoopDone
-                    mov edx, [ecx] //call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    mov ecx, cpu
-                    mov edx, [ecx]	//call cpu->ExecuteInstruction
-                    call [edx]
-                    cmp core::g_state, 2 // 2 is core::SYS_RUNNING
-                    jne CPULoopDone
-                    sub tight_loop, 1
-                    jnz ContinueCPULoop
-                CPULoopDone:
-                };
-#else
                 for(tight_loop = 0; tight_loop < 10000; ++tight_loop) {
                     cpu->execStep();
                 }
-#endif
             }
         } else if (core::SYS_HALTED == core::g_state) {
             core::Stop();

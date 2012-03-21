@@ -8,8 +8,6 @@
 #include "hw/hw_cp.h"
 #include "hle/hle.h"
 
-#include "emu_dbg.h"
-
 #undef SET_XER_CA
 #undef RESET_XER_CA
 #define SET_XER_CA				(XER_CARRY = 1)
@@ -162,15 +160,6 @@ static u32 ppc_cmp_and_mask[8] = {
 };
 
 #define GEKKO_CARRY			(XER_CARRY)		
-
-#define GEKKO_OPC_ERR(str)			\
-{									\
-	MessageBox( NULL,			\
-		str,						\
-		"Error",					\
-		MB_ICONEXCLAMATION | MB_OK	\
-	);								\
-}
 
 ////////////////////////////////////////////////////////////
 // Desc: Misc Opcodes
@@ -724,8 +713,9 @@ GekkoRecIntOp(MCRF)
 
 GekkoRecIntOp(MCRFS)
 {
-	GEKKO_OPC_ERR("Interpreter Error: MCRFS Unimplemented.");
+	LOG_ERROR(TPOWERPC, "Interpreter Error: MCRFS Unimplemented.");
 }
+
 
 GekkoRecIntOp(MCRXR)
 {

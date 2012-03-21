@@ -52,7 +52,7 @@ void InputBase::ShutDown() {
 }
 
 /// Initialize the user input system
-void EMU_FASTCALL Init() {
+void Init() {
     for (int i = 0; i < 4; i++) {
         delete g_controller_state[i];
         g_controller_state[i] = new GCController();

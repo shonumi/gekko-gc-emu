@@ -314,6 +314,7 @@ DEFRealDVDOpen(GCMDMPDVDOpen)
 }
 
 int LoadDMP(char *filename) {
+    /*
 	GCMFSTHeader	FSTInfo;
 	DWORD			BytesRead;
 	u32				TempData;
@@ -568,7 +569,9 @@ int LoadDMP(char *filename) {
 
 	Flipper_Open();
 	Boot_AppLoader(AppLoaderHeader);
-	HLE_ScanForPatches();
+	HLE_ScanForPatches();*/
+
+    LOG_ERROR(TDVD, "LoadDMP not implemented!");
 
 	return E_OK;
 }

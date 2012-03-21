@@ -103,7 +103,7 @@ int Init() {
 
 #ifdef EMU_ARCHITECTURE_X86
         delete cpu;
-        cpu = new GekkoCPURecompiler();
+       // cpu = new GekkoCPURecompiler();
 #else
         LOG_ERROR(TCORE, "Recompiler only x86 - Please switch your configuration to the interpreter!\n");
         return E_ERR;

@@ -274,6 +274,7 @@ bool ELF_LoadSection(FILE* f, u32 srcaddr, u32 dstaddr, u32 len)
     return true;
 }
 #if EMU_PLATFORM == PLATFORM_WINDOWS
+/*
 u32 ELF_CountFilesWindows(char *CurPath, u32 *FileIndex, u32 *FileNameIndex)
 {
     WIN32_FIND_DATA	FileData;
@@ -402,6 +403,7 @@ u32 ELF_CreateFileStructureWindows(char *CurPath, GCMFST *FileEntries, u32 *File
 
     return FileCount;
 }
+*/
 #endif
 
 u32 ELF_CreateFileStructure(char *ELFFileName)
@@ -443,7 +445,7 @@ u32 ELF_CreateFileStructure(char *ELFFileName)
     //go thru and find directories for the system	
     FileCount = 0;
     FileNameLen = 0;
-
+/*
 #if EMU_PLATFORM == PLATFORM_WINDOWS
     TotalFileSize = ELF_CountFilesWindows(FilePath, &FileCount, &FileNameLen);
 
@@ -458,9 +460,9 @@ u32 ELF_CreateFileStructure(char *ELFFileName)
         //set the start position of data at 10mb
         TotalFileSize = 10*1024*1024;
     }
-#else
+#else*/
     TotalFileSize = 10*1024*1024;
-#endif
+//#endif
 
     //setup our memory positions for the data, need to count a root entry
     DataSize = (sizeof(GCMFST) * (FileCount+1));
@@ -484,14 +486,14 @@ u32 ELF_CreateFileStructure(char *ELFFileName)
     //reset our counts
     FileCount = 0;
     FileNameLen = 0;
-#ifdef WIN32
+/*#ifdef WIN32
     ELF_CreateFileStructureWindows(FilePath, FileInfo, &FileCount, FileNames, &FileNameLen, &TotalFileSize);
     (*((GCMFST *)(&Mem_RAM[DataPos]))).NameOffset = 0x01000000;
     (*((GCMFST *)(&Mem_RAM[DataPos]))).FileSize = FileCount + 1;
     (*((GCMFST *)(&Mem_RAM[DataPos]))).DiskAddr = 0;
-#else
+#else*/
 #pragma error("ELF_CreateFileStructure not modified for this OS!");
-#endif
+//#endif
 
     //bswap the memory around
     //	MemSwap = (u32 *)&Mem_RAM[DataPos + DataSize];
