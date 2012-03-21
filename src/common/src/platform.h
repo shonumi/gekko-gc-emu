@@ -103,8 +103,8 @@ extern char *kGekkoOS;
 // TODO: EXCEPTION_POINTERS wasn't defined anywhere...
 typedef void EXCEPTION_POINTERS;
 
-#endif
-
 #define EMU_IGNORE_RECOMPILER
+
+#endif
 
 #endif // COMMON_PLATFORM_H_
