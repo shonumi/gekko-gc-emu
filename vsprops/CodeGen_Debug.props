@@ -10,6 +10,14 @@
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
+    <MOC>
+      <QtNoDebug>false</QtNoDebug>
+      <QtCommandLine>/I"$(SolutionDir)src\common\src" /I"$(SolutionDir)src\core\src" /I"$(ExternalsDir)glew-1.6.0\include" /I"$(ExternalsDir)sdl-1.2.15\include" /I"$(ExternalsDir)qhexedit" /D"_DEBUG"</QtCommandLine>
+    </MOC>
+    <MOC />
+    <Link>
+      <AdditionalOptions>/NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>
