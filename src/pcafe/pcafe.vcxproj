@@ -126,9 +126,7 @@
       <Command>
       </Command>
     </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -142,9 +140,7 @@
       <Command>
       </Command>
     </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir)\$(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -167,9 +163,7 @@
       <Outputs>
       </Outputs>
     </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -194,9 +188,7 @@
       <Outputs>
       </Outputs>
     </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
@@ -215,9 +207,7 @@
       <Command>
       </Command>
     </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
@@ -236,9 +226,7 @@
       <Command>
       </Command>
     </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">
