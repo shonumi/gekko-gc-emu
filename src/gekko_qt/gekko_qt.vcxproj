@@ -1,13 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DebugFast|Win32">
+      <Configuration>DebugFast</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugFast|x64">
+      <Configuration>DebugFast</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -18,13 +34,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -32,72 +61,106 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\CodeGen_Debug.props" />
+    <Import Project="..\..\vsprops\App.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\CodeGen_Debug.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\CodeGen_Release.props" />
+    <Import Project="..\..\vsprops\App.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
+    <Import Project="..\..\vsprops\App.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\CodeGen_Release.props" />
+    <Import Project="..\..\vsprops\App.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\Qt.props" />
+    <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;%QTDIR%\include\QtOpenGL;$(IncludePath)</IncludePath>
-    <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>%QTDIR%\include;%QTDIR%\include\QtGui;%QTDIR%\include\QtCore;%QTDIR%\include\Qt;%QTDIR%\include\QtOpenGL;$(IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>%QTDIR%\lib;$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include;$QTDIR%\include\Qt;$(SolutionDir)\externals\qhexedit</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-    </ClCompile>
+    <ClCompile />
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;QtCored4.lib;QtGuid4.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
-    <MOC>
-      <QtCommandLine>/I"$(SolutionDir)\src\common\src" /I"$(SolutionDir)\src\core\src" /I"$(SolutionDir)\externals\sdl-1.2.15\include" /I"$(SolutionDir)\externals\qhexedit"</QtCommandLine>
-    </MOC>
-    <UIC>
-      <QtUicPrefix>src/ui_</QtUicPrefix>
-      <QtUicExt>.h</QtUicExt>
-    </UIC>
+    <MOC />
+    <UIC />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile />
+    <Link>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+    </Link>
+    <MOC />
+    <UIC />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include;$(SolutionDir)\externals\qhexedit</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;sdl.lib;common.lib;input_common.lib;core.lib;video_core.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-    <UIC>
-      <QtUicExt>.h</QtUicExt>
-    </UIC>
-    <UIC>
-      <QtUicPrefix>src/ui_</QtUicPrefix>
-    </UIC>
-    <MOC>
-      <QtKeywords>false</QtKeywords>
-      <QtCommandLine>/I"$(SolutionDir)\src\common\src" /I"$(SolutionDir)\src\core\src" /I"$(SolutionDir)\externals\glew-1.6.0\include" /I"$(SolutionDir)\externals\sdl-1.2.15\include" /I"$(SolutionDir)\externals\qhexedit"</QtCommandLine>
-    </MOC>
+    <ClCompile />
+    <Link />
+    <UIC />
+    <UIC />
+    <MOC />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
+    <ClCompile />
+    <Link />
+    <UIC />
+    <UIC />
+    <MOC />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile />
+    <Link />
+    <UIC />
+    <UIC />
+    <MOC />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
+    <ClCompile />
+    <Link />
+    <UIC />
+    <UIC />
+    <MOC />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\externals\qhexedit\commands.cpp" />
@@ -108,6 +171,7 @@
     <ClCompile Include="src\callstack.cpp" />
     <ClCompile Include="src\disasm.cpp" />
     <ClCompile Include="src\gekko_regs.cpp" />
+    <ClCompile Include="src\hotkeys.cpp" />
     <ClCompile Include="src\image_info.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ramview.cpp" />
@@ -117,9 +181,13 @@
     <MOC Include="src\callstack.hxx" />
     <MOC Include="src\disasm.hxx" />
     <MOC Include="src\gekko_regs.hxx" />
+    <MOC Include="src\hotkeys.hxx" />
     <MOC Include="src\image_info.hxx" />
     <MOC Include="src\main.hxx">
       <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</QtKeywords>
+      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">false</QtKeywords>
+      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</QtKeywords>
+      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">false</QtKeywords>
     </MOC>
     <MOC Include="src\ramview.hxx" />
   </ItemGroup>
@@ -127,6 +195,7 @@
     <UIC Include="src\callstack.ui" />
     <UIC Include="src\disasm.ui" />
     <UIC Include="src\gekko_regs.ui" />
+    <UIC Include="src\hotkeys.ui" />
     <UIC Include="src\image_info.ui" />
     <UIC Include="src\main.ui" />
   </ItemGroup>
@@ -136,6 +205,20 @@
     <MOC Include="..\..\externals\qhexedit\qhexedit_p.h" />
     <MOC Include="..\..\externals\qhexedit\xbytearray.h" />
     <ClInclude Include="src\version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{dfe335fc-755d-4baa-8452-94434f8a1edb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\core\core.vcxproj">
+      <Project>{8aea7f29-3466-4786-a10d-6a4bd0610977}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\input_common\input_common.vcxproj">
+      <Project>{e34d07d0-7de6-4c46-a00d-c20c691789e4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\video_core\video_core.vcxproj">
+      <Project>{6678d1a3-33a6-48a9-878b-48e5d2903d27}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

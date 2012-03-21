@@ -1,20 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="debug-fast-x64|Win32">
-      <Configuration>debug-fast-x64</Configuration>
+    <ProjectConfiguration Include="DebugFast|Win32">
+      <Configuration>DebugFast</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="debug-fast-x64|x64">
-      <Configuration>debug-fast-x64</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="debug-fast|Win32">
-      <Configuration>debug-fast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="debug-fast|x64">
-      <Configuration>debug-fast</Configuration>
+    <ProjectConfiguration Include="DebugFast|x64">
+      <Configuration>DebugFast</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
@@ -23,14 +15,6 @@
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="release-x64|Win32">
-      <Configuration>release-x64</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="release-x64|x64">
-      <Configuration>release-x64</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
@@ -52,188 +36,90 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\CodeGen_Debug.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\CodeGen_Debug.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\CodeGen_Release.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\CodeGen_Release.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|x64'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\vsprops\Base.props" />
+    <Import Project="..\..\vsprops\Externals.props" />
+    <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
+    <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>gekko-$(ProjectName)_d</TargetName>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>gekko-$(ProjectName)_d</TargetName>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)</TargetName>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;F:\gekko-trunk\externals\glew-1.6.0\lib;F:\gekko-trunk\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)</TargetName>
-    <CustomBuildBeforeTargets />
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x64;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)</TargetName>
     <CustomBuildBeforeTargets />
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x64;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)</TargetName>
-    <CustomBuildBeforeTargets />
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;$(SolutionDir)\externals\glew-1.6.0\lib;$(SolutionDir)\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)_df</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x64;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)_df</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x86;F:\gekko-trunk\externals\glew-1.6.0\lib;F:\gekko-trunk\externals\glfw-2.7.3\lib-msvc100;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)_df</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
-    <IntDir>$(SolutionDir)\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>$(SolutionDir)\build\$(Configuration)\;$(SolutionDir)\externals\libjpeg;$(SolutionDir)\externals\sdl-1.2.15\lib\x64;$(SolutionDir)\externals\glew;$(LibraryPath)</LibraryPath>
-    <TargetName>gekko-$(ProjectName)_df</TargetName>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <CallingConvention>Cdecl</CallingConvention>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;GLFW.lib;sdl.lib;common.lib;core.lib;input_common.lib;video_core.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;MSVCPRT.LIB;msvcrtd.lib;MSVCPRTD.LIB</IgnoreSpecificDefaultLibraries>
-    </Link>
+    <Link />
     <CustomBuildStep>
       <Outputs>
       </Outputs>
@@ -248,20 +134,8 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;MSVCRT.lib;libcpmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib;MSVCRTD.lib;libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
-    </Link>
+    <Link />
     <CustomBuildStep>
       <Outputs>
       </Outputs>
@@ -274,84 +148,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CallingConvention>Cdecl</CallingConvention>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;GLFW.lib;sdl.lib;common.lib;core.lib;input_common.lib;video_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;MSVCPRT.LIB;msvcrtd.lib;MSVCPRTD.LIB</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Message>
-      </Message>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>
-      </Outputs>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>Cdecl</CallingConvention>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;GLFW.lib;sdl.lib;common.lib;core.lib;input_common.lib;video_core.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SpecifySectionAttributes>
-      </SpecifySectionAttributes>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;MSVCPRT.LIB;msvcrtd.lib;MSVCPRTD.LIB</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -371,36 +173,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>FastCall</CallingConvention>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -418,87 +198,16 @@
       <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release-x64|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>FastCall</CallingConvention>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Message>
-      </Message>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>
-      </Outputs>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>DEBUG;GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>Cdecl</CallingConvention>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;GLFW.lib;sdl.lib;common.lib;core.lib;input_common.lib;video_core.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SpecifySectionAttributes>
-      </SpecifySectionAttributes>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;MSVCPRT.LIB;msvcrtd.lib;MSVCPRTD.LIB</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Outputs>
@@ -510,125 +219,16 @@
       <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>FastCall</CallingConvention>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <CustomBuildStep>
-      <Outputs>
-      </Outputs>
-      <Command>
-      </Command>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir) $(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew-1.6.0\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>Cdecl</CallingConvention>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;GLFW.lib;sdl.lib;common.lib;core.lib;input_common.lib;video_core.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SpecifySectionAttributes>
-      </SpecifySectionAttributes>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;MSVCPRT.LIB;msvcrtd.lib;MSVCPRTD.LIB</IgnoreSpecificDefaultLibraries>
-      <TargetMachine>MachineX64</TargetMachine>
-    </Link>
-    <CustomBuildStep>
-      <Outputs>
-      </Outputs>
-      <Command>
-      </Command>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\utils\gen_version_h\gen_version_h.exe $(SolutionDir)\$(ProjectDir)\src\version.h</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-fast-x64|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\src;..\common\src;..\core\src;$(SolutionDir)\externals\glew\include;$(SolutionDir)\externals\sdl-1.2.15\include</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CallingConvention>FastCall</CallingConvention>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libjpeg.lib;winmm.lib;opengl32.lib;glu32.lib;glew32s.lib;odbc32.lib;odbccp32.lib;comctl32.lib;sdl.lib;common.lib;input_common.lib;core.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SpecifySectionAttributes>
-      </SpecifySectionAttributes>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcprt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Outputs>
@@ -643,15 +243,35 @@
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">
       <Project>{dfe335fc-755d-4baa-8452-94434f8a1edb}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\core\core.vcxproj">
       <Project>{8aea7f29-3466-4786-a10d-6a4bd0610977}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\input_common\input_common.vcxproj">
       <Project>{e34d07d0-7de6-4c46-a00d-c20c691789e4}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\video_core\video_core.vcxproj">
       <Project>{6678d1a3-33a6-48a9-878b-48e5d2903d27}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

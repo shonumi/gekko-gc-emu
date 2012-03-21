@@ -1,85 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="boot">
-      <UniqueIdentifier>{a568548a-e251-40f2-86c2-3f28bff6eefc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="debugger">
-      <UniqueIdentifier>{cae0b363-2dc7-4aa8-b2fa-78118bcd8450}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="hle">
-      <UniqueIdentifier>{d16864db-27db-49b4-9db9-f37cb536cb14}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="dvd">
-      <UniqueIdentifier>{303f20ec-8e03-418b-8c9e-26f7ba4a67b1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="hw">
-      <UniqueIdentifier>{47bf33f9-8a95-4b04-be10-1d28c727aedf}</UniqueIdentifier>
+      <UniqueIdentifier>{bf2e473c-01f8-41bc-9524-7847ce5574d8}</UniqueIdentifier>
     </Filter>
     <Filter Include="powerpc">
-      <UniqueIdentifier>{bff62f55-41f2-4824-9935-6edd2085e652}</UniqueIdentifier>
+      <UniqueIdentifier>{3e6d7829-becf-4860-b207-301e98478ada}</UniqueIdentifier>
     </Filter>
-    <Filter Include="video">
-      <UniqueIdentifier>{3d011329-9d96-4c02-b571-daa3d5736f19}</UniqueIdentifier>
+    <Filter Include="hle">
+      <UniqueIdentifier>{01e1dcb5-a175-453f-9958-3c741d1ecfca}</UniqueIdentifier>
     </Filter>
     <Filter Include="hw\data">
-      <UniqueIdentifier>{53289f7c-0b66-4876-977e-532c28d1fbfc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="powerpc\disassembler">
-      <UniqueIdentifier>{92634d97-e1ad-408b-a268-c7b9641f34c4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="powerpc\interpreter">
-      <UniqueIdentifier>{530c6fac-3742-46c6-97d7-6749c60bf091}</UniqueIdentifier>
+      <UniqueIdentifier>{11b6ad4d-6bdb-41cf-acc8-185425ca0725}</UniqueIdentifier>
     </Filter>
     <Filter Include="powerpc\recompiler">
-      <UniqueIdentifier>{b96c70ba-1ad5-44ee-872b-abf4a4565f42}</UniqueIdentifier>
+      <UniqueIdentifier>{5ef89746-32e9-469c-a01a-0452b77945cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="powerpc\interpreter">
+      <UniqueIdentifier>{ad844bfc-03da-4498-a0e3-3be776e4aff4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="powerpc\disassembler">
+      <UniqueIdentifier>{8e0b253f-e006-4bbe-af94-460c17e440f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="boot">
+      <UniqueIdentifier>{2c2fd049-1d2a-4998-9399-318149f51d88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dvd">
+      <UniqueIdentifier>{6c4c2130-918a-461a-94ab-a68e7b149ca2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="video">
+      <UniqueIdentifier>{362c54fa-dd35-40e6-bbe0-b2f71089c3c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="debugger">
+      <UniqueIdentifier>{dc22d90a-68bd-4df6-b160-93edf06322e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\core.cpp" />
-    <ClCompile Include="src\memory.cpp" />
-    <ClCompile Include="src\boot\apploader.cpp">
-      <Filter>boot</Filter>
-    </ClCompile>
-    <ClCompile Include="src\boot\bootrom.cpp">
-      <Filter>boot</Filter>
-    </ClCompile>
-    <ClCompile Include="src\debugger\debugger.cpp">
-      <Filter>debugger</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hle\hle.cpp">
-      <Filter>hle</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hle\hle_audio.cpp">
-      <Filter>hle</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hle\hle_dsp.cpp">
-      <Filter>hle</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hle\hle_general.cpp">
-      <Filter>hle</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hle\hle_math.cpp">
-      <Filter>hle</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\dol.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\elf.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\gcm.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\gcm_dump.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\loader.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dvd\realdvd.cpp">
-      <Filter>dvd</Filter>
-    </ClCompile>
     <ClCompile Include="src\hw\hw.cpp">
       <Filter>hw</Filter>
     </ClCompile>
@@ -119,9 +75,49 @@
     <ClCompile Include="src\hw\hw_vi.cpp">
       <Filter>hw</Filter>
     </ClCompile>
-    <ClCompile Include="src\video\emuwindow_sdl.cpp">
-      <Filter>video</Filter>
+    <ClCompile Include="src\hle\hle.cpp">
+      <Filter>hle</Filter>
     </ClCompile>
+    <ClCompile Include="src\hle\hle_audio.cpp">
+      <Filter>hle</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hle\hle_dsp.cpp">
+      <Filter>hle</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hle\hle_general.cpp">
+      <Filter>hle</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hle\hle_math.cpp">
+      <Filter>hle</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\cpu_core.cpp">
+      <Filter>powerpc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\cpu_core_regs.cpp">
+      <Filter>powerpc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\interpreter\cpu_int.cpp">
+      <Filter>powerpc\interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\interpreter\cpu_int_opcodes.cpp">
+      <Filter>powerpc\interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\disassembler\ppc_disasm.cpp">
+      <Filter>powerpc\disassembler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\boot\apploader.cpp">
+      <Filter>boot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\boot\bootrom.cpp">
+      <Filter>boot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dvd\gcm.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dvd\realdvd.cpp">
+      <Filter>dvd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\video\gx_fifo.cpp">
       <Filter>video</Filter>
     </ClCompile>
@@ -143,64 +139,81 @@
     <ClCompile Include="src\video\opengl.cpp">
       <Filter>video</Filter>
     </ClCompile>
-    <ClCompile Include="src\powerpc\cpu_core.cpp">
-      <Filter>powerpc</Filter>
+    <ClCompile Include="src\core.cpp" />
+    <ClCompile Include="src\dvd\dol.cpp">
+      <Filter>dvd</Filter>
     </ClCompile>
-    <ClCompile Include="src\powerpc\cpu_core_regs.cpp">
-      <Filter>powerpc</Filter>
+    <ClCompile Include="src\dvd\elf.cpp">
+      <Filter>dvd</Filter>
     </ClCompile>
-    <ClCompile Include="src\powerpc\disassembler\ppc_disasm.cpp">
-      <Filter>powerpc\disassembler</Filter>
+    <ClCompile Include="src\dvd\loader.cpp">
+      <Filter>dvd</Filter>
     </ClCompile>
-    <ClCompile Include="src\powerpc\interpreter\cpu_int.cpp">
-      <Filter>powerpc\interpreter</Filter>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec.cpp">
+      <Filter>powerpc\recompiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\powerpc\interpreter\cpu_int_opcodes.cpp">
-      <Filter>powerpc\interpreter</Filter>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_fpu.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_jumps.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_assembler_loadstore.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_compiler.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_fpu.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_registers_x86.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_il_regs.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_int.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_memory.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_branch.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_compare.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_loadstore_fpu.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_math_fpu.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_opcodes_ps.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp">
+      <Filter>powerpc\recompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\debugger\debugger.cpp">
+      <Filter>debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="src\video\emuwindow_sdl.cpp">
+      <Filter>video</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\core.h" />
-    <ClInclude Include="src\memory.h" />
-    <ClInclude Include="src\boot\apploader.h">
-      <Filter>boot</Filter>
-    </ClInclude>
-    <ClInclude Include="src\boot\bootrom.h">
-      <Filter>boot</Filter>
-    </ClInclude>
-    <ClInclude Include="src\debugger\debugger.h">
-      <Filter>debugger</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hle\hle.h">
-      <Filter>hle</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hle\hle_crc.h">
-      <Filter>hle</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hle\hle_dsp.h">
-      <Filter>hle</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hle\hle_func.h">
-      <Filter>hle</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hle\hle_general.h">
-      <Filter>hle</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hle\hle_math.h">
-      <Filter>hle</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dvd\elf.h">
-      <Filter>dvd</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dvd\gcm.h">
-      <Filter>dvd</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dvd\loader.h">
-      <Filter>dvd</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dvd\realdvd.h">
-      <Filter>dvd</Filter>
-    </ClInclude>
     <ClInclude Include="src\hw\hw.h">
       <Filter>hw</Filter>
     </ClInclude>
@@ -243,12 +256,61 @@
     <ClInclude Include="src\hw\data\font_sjis.h">
       <Filter>hw\data</Filter>
     </ClInclude>
-    <ClInclude Include="src\video\emuwindow.h">
-      <Filter>video</Filter>
+    <ClInclude Include="src\hle\hle.h">
+      <Filter>hle</Filter>
     </ClInclude>
-    <ClInclude Include="src\video\emuwindow_sdl.h">
-      <Filter>video</Filter>
+    <ClInclude Include="src\hle\hle_crc.h">
+      <Filter>hle</Filter>
     </ClInclude>
+    <ClInclude Include="src\hle\hle_dsp.h">
+      <Filter>hle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hle\hle_func.h">
+      <Filter>hle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hle\hle_general.h">
+      <Filter>hle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hle\hle_math.h">
+      <Filter>hle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\cpu_core.h">
+      <Filter>powerpc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\cpu_core_regs.h">
+      <Filter>powerpc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\cpu_core_regs_layout.h">
+      <Filter>powerpc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\cpu_core_userid.h">
+      <Filter>powerpc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\cpu_opsgroup.h">
+      <Filter>powerpc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec.h">
+      <Filter>powerpc\recompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\interpreter\cpu_int.h">
+      <Filter>powerpc\interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\powerpc\disassembler\ppc_disasm.h">
+      <Filter>powerpc\disassembler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\boot\apploader.h">
+      <Filter>boot</Filter>
+    </ClInclude>
+    <ClInclude Include="src\boot\bootrom.h">
+      <Filter>boot</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dvd\gcm.h">
+      <Filter>dvd</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dvd\realdvd.h">
+      <Filter>dvd</Filter>
+    </ClInclude>
+    <ClInclude Include="src\memory.h" />
     <ClInclude Include="src\video\gx_fifo.h">
       <Filter>video</Filter>
     </ClInclude>
@@ -270,26 +332,30 @@
     <ClInclude Include="src\video\opengl.h">
       <Filter>video</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\cpu_core.h">
-      <Filter>powerpc</Filter>
+    <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\dvd\elf.h">
+      <Filter>dvd</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\cpu_core_regs.h">
-      <Filter>powerpc</Filter>
+    <ClInclude Include="src\dvd\loader.h">
+      <Filter>dvd</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\cpu_core_regs_layout.h">
-      <Filter>powerpc</Filter>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_assembler.h">
+      <Filter>powerpc\recompiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\cpu_core_userid.h">
-      <Filter>powerpc</Filter>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h">
+      <Filter>powerpc\recompiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\cpu_opsgroup.h">
-      <Filter>powerpc</Filter>
+    <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h">
+      <Filter>powerpc\recompiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\disassembler\ppc_disasm.h">
-      <Filter>powerpc\disassembler</Filter>
+    <ClInclude Include="src\debugger\debugger.h">
+      <Filter>debugger</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\interpreter\cpu_int.h">
-      <Filter>powerpc\interpreter</Filter>
+    <ClInclude Include="src\video\emuwindow.h">
+      <Filter>video</Filter>
+    </ClInclude>
+    <ClInclude Include="src\video\emuwindow_sdl.h">
+      <Filter>video</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
