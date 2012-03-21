@@ -36,6 +36,7 @@
     <ClCompile Include="..\..\externals\qhexedit\xbytearray.cpp">
       <Filter>qhexedit</Filter>
     </ClCompile>
+    <ClCompile Include="src\hotkeys.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\main.hxx" />
@@ -65,6 +66,7 @@
       <Filter>debugger</Filter>
     </MOC>
     <MOC Include="src\bootmanager.hxx" />
+    <MOC Include="src\hotkeys.hxx" />
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\main.ui" />
@@ -78,6 +80,7 @@
     <UIC Include="src\callstack.ui">
       <Filter>debugger</Filter>
     </UIC>
+    <UIC Include="src\hotkeys.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />
