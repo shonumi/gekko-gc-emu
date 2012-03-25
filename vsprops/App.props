@@ -2,10 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <GekkoBinDir>$(SolutionDir)bin\$(PlatformName)$(Configuration)\</GekkoBinDir>
+    <GekkoBinDir>$(SolutionDir)bin\$(PlatformName)\</GekkoBinDir>
   </PropertyGroup>
   <PropertyGroup>
     <OutDir>$(GekkoBinDir)</OutDir>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <PostBuildEvent>
