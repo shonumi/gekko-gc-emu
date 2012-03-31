@@ -197,7 +197,8 @@ GRenderWindow::~GRenderWindow()
 
 void GRenderWindow::SetTitle(const char* title)
 {
-    setWindowTitle(title);
+	// TODO: Currently called from GPU thread but we should call this from the GUI thread (setWindowTitle is not thread-safe)
+//    setWindowTitle(title);
 }
 
 void GRenderWindow::SwapBuffers()
