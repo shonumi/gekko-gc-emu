@@ -69,8 +69,9 @@ void GCMFSTHeader::ToggleEndianness()
 
 void GCMHeader::ToggleEndianness()
 {
-    game_code.hex = BSWAP32(game_code.hex);
-    maker_code = BSWAP16(maker_code);
+    // game code and maker code usually aren't printed swapped, so we shouldn't do that either..
+    //game_code.hex = BSWAP32(game_code.hex);
+    //maker_code = BSWAP16(maker_code);
     dvd_magic_word = BSWAP32(dvd_magic_word);
     debug_monitor_offset = BSWAP32(debug_monitor_offset);
     debug_monitor_load_addr = BSWAP32(debug_monitor_load_addr);
@@ -942,92 +943,71 @@ int LoadGCM(char *filename)
     return E_OK;
 }
 
-int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header)
+int ReadGCMInfo(const char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header)
 {
-    GCMFSTHeader	gcm_fst_info;
-    u32 			read_count;
-    u32				gcm_file_count;
-    u32				i;
-    u32				x;
-    GCMFST *		gcm_fst_data;
-    char*           file_names;
-    FILE*           file_handle;
-    u8*             header_data[0x1000];
+    u32      read_count;
+    u32      gcm_file_count;
+    u32      i;
+    u32      x;
+    GCMFST*  gcm_fst_data = NULL;
+    char*    file_names = NULL;
+    int      file_names_size;
+    int      foo; // gotta admire ShizZy's creativity when naming variables
+    FILE*    file_handle;
+    u8*      header_data[0x1000];
+    int ret = E_ERR;
 
-    // Open file up
+    // Read to stack if caller doesn't request header
+    GCMHeader gcm_header;
+    if (!Header)
+        Header = &gcm_header;
+
+    // Open file
     file_handle = fopen(filename, "rb");
     if (file_handle == NULL) {
         return E_ERR;
     }
 
-    // Read the first 32 bytes into the root memory area
-    read_count = fread(header_data, 1, 32, file_handle);
+    if (filesize)
+        *filesize = common::FileSize(file_handle);
 
-    // Swap the memory around
-    for (i = 0; i < (32 >> 2); i++) {
-        *(u32 *)(&header_data[i * 4]) = BSWAP32(*(u32 *)(&header_data[i * 4]));
-    }
+    // Read the GCM header, check magic word
+    read_count = fread(Header, 1, sizeof(GCMHeader), file_handle);
+    if (read_count != sizeof(GCMHeader))
+        goto cleanup;
 
-    // Read the FST
-    fseek(file_handle, 0x424, SEEK_SET);
-    if (ftell(file_handle) != 0x424) {
-        fclose(file_handle);
-        file_handle = NULL;
-        return E_ERR;
-    }
+    Header->ToggleEndianness();
+    if (((GCMHeader*)Header)->dvd_magic_word != GCM_HEADER_MAGIC_WORD)
+        goto cleanup;
 
-    // Get the FST info header
-    read_count = fread(&gcm_fst_info, 1, sizeof(gcm_fst_info), file_handle);
-    if (read_count != sizeof(gcm_fst_info))
-    {
-        fclose(file_handle);
-        file_handle = NULL;
-        return E_ERR;
-    }
+    // TODO(neobrain): Is this correct?
+    Header->fst_header.MemLocation += RAM_24MB - 4*1024*1024; //last 4 megs of mem
 
-    // Swap the FST info
-    gcm_fst_info.Offset = BSWAP32(gcm_fst_info.Offset);
-    gcm_fst_info.Size = BSWAP32(gcm_fst_info.Size);
-    gcm_fst_info.MaxSize = BSWAP32(gcm_fst_info.MaxSize);
-    gcm_fst_info.MemLocation = BSWAP32(gcm_fst_info.MemLocation) + RAM_24MB - (4*1024*1024);	//last 4 megs of mem
-
-    fseek(file_handle, gcm_fst_info.Offset + 8, SEEK_SET);
-    if (ftell(file_handle) != (gcm_fst_info.Offset + 8)) {
-        fclose(file_handle);
-        file_handle = NULL;
-        return E_ERR;
-    }
+    fseek(file_handle, Header->fst_header.Offset + 8, SEEK_SET);
+    if (ftell(file_handle) != (Header->fst_header.Offset + 8))
+        goto cleanup;
 
     // Read 4 bytes for the number of files
     read_count = fread(&gcm_file_count, 1, 4, file_handle);
-    if (read_count != 4) {
-        fclose(file_handle);
-        file_handle = NULL;
-        return E_ERR;
-    }
+    if (read_count != 4)
+        goto cleanup;
 
     // Go back. the first entry is empty but tells the number of files
-    fseek(file_handle, gcm_fst_info.Offset, SEEK_SET);
-    if (ftell(file_handle) != gcm_fst_info.Offset) {
-        fclose(file_handle);
-        file_handle = NULL;
-        return E_ERR;
-    }
+    fseek(file_handle, Header->fst_header.Offset, SEEK_SET);
+    if (ftell(file_handle) != Header->fst_header.Offset)
+        goto cleanup;
 
     // Allocate memory for the FST info and filenames
     gcm_file_count = BSWAP32(gcm_file_count);
-    int foo = gcm_file_count * sizeof(GCMFST);
-    gcm_fst_data = (GCMFST*)malloc((gcm_file_count+1) * sizeof(GCMFST));
-    file_names = (char*)malloc(gcm_fst_info.Size - (foo));
+    gcm_fst_data = new GCMFST[gcm_file_count+1];
+
+    foo = gcm_file_count * sizeof(GCMFST);
+    file_names = new char[Header->fst_header.Size - foo];
 
     // Read the data
     read_count = fread(gcm_fst_data, 1, foo, file_handle);
-    if (read_count != (foo))
-    {
-        fclose(file_handle);
-        file_handle = NULL;
-        return E_ERR;
-    }
+    if (read_count != foo)
+        goto cleanup;
 
     // Swap all of the numerical FST data in the GCM data
     for (i = 1; i < gcm_file_count; i++) {
@@ -1035,42 +1015,35 @@ int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCM
         gcm_fst_data[i].FileSize = BSWAP32(gcm_fst_data[i].FileSize);
         gcm_fst_data[i].NameOffset = BSWAP32(gcm_fst_data[i].NameOffset);
     }
-    int file_names_size = gcm_fst_info.Size - (gcm_file_count * sizeof(GCMFST));
+    file_names_size = Header->fst_header.Size - (gcm_file_count * sizeof(GCMFST));
     read_count = fread(file_names, 1, file_names_size, file_handle);
     if (read_count != file_names_size)
-    {
-        fclose(file_handle);
-        file_handle = NULL;
-        free(FileNames);
-        free(gcm_fst_data);
-        return E_ERR;
-    }
+        goto cleanup;
 
     // Seek thru the files for opening.bnr
     for (i=0; i < gcm_file_count; i++) {
         common::UpperStr(&file_names[(gcm_fst_data[i].NameOffset) & 0xFFFFFF]);
         if (strcmp(&file_names[(gcm_fst_data[i].NameOffset) & 0xFFFFFF], "OPENING.BNR") == 0) {
             // Found the entry, read it's data and exit
-            fseek(file_handle, (gcm_fst_data[i].DiskAddr), SEEK_SET);
-            read_count = fread(BannerBuffer, 0x1960, 1, file_handle);
+            if (BannerBuffer)
+            {
+                fseek(file_handle, (gcm_fst_data[i].DiskAddr), SEEK_SET);
+                read_count = fread(BannerBuffer, 0x1960, 1, file_handle);
+            }
             break;
         }
     }
-    // Get the file size
-    *filesize = common::FileSize(file_handle);
 
-    // Close file handle
+    // Only succeed if we found opening.bnr
+    if (i < gcm_file_count)
+        ret = E_OK;
+
+cleanup:
+    delete[] file_names;
+    delete[] gcm_fst_data;
     fclose(file_handle);
 
-    // Free dynamically allocated data
-    free(file_names);
-    free(gcm_fst_data);
-
-    //return if we found opening.bnr
-    if (i >= gcm_file_count) {
-        return E_ERR;
-    }
-    return E_OK;
+    return ret;
 }
 
 } // namespace

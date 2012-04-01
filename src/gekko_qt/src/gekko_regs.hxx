@@ -1,3 +1,6 @@
+#ifndef _GEKKO_REGS_HXX_
+#define _GEKKO_REGS_HXX_
+
 #include <QDockWidget>
 #include "ui_gekko_regs.h"
 
@@ -26,3 +29,5 @@ private:
     QTreeWidgetItem* sr;
     QTreeWidgetItem* spr;
 };
+
+#endif // _GEKKO_REGS_HXX_

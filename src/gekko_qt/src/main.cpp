@@ -7,6 +7,7 @@
 
 #include "callstack.hxx"
 #include "disasm.hxx"
+#include "gamelist.hxx"
 #include "gekko_regs.hxx"
 #include "image_info.hxx"
 #include "ramview.hxx"
@@ -19,22 +20,10 @@
 #include "version.h"
 
 
-GMainWindow::GMainWindow()
+GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
     ui.setupUi(this);
     statusBar()->hide();
-
-    // TODO: Make drives show up as well...
-    QString sPath = QDir::currentPath();
-    file_browser_model = new QFileSystemModel(this);
-    file_browser_model->setFilter(QDir::Dirs | QDir::Files | QDir::Drives | QDir::NoDot);
-    file_browser_model->setRootPath(sPath);
-
-    ui.treeView->setModel(file_browser_model);
-    ui.treeView->setRootIndex(file_browser_model->index(sPath));
-    ui.treeView->sortByColumn(0, Qt::AscendingOrder);
-    ui.treeView->hideColumn(2); // drive
-    ui.treeView->hideColumn(3); // date
 
     render_window = new GRenderWindow;
     render_window->hide();
@@ -63,6 +52,10 @@ GMainWindow::GMainWindow()
     QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));
     filebrowser_menu->addAction(image_info->toggleViewAction());
 
+    QActionGroup* action_group_gbs = new QActionGroup(this);
+    action_group_gbs->addAction(ui.action_gbs_table);
+    action_group_gbs->addAction(ui.action_gbs_file_browser);
+
     QMenu* debug_menu = ui.menu_View->addMenu(tr("Debugging"));
     debug_menu->addAction(disasm->toggleViewAction());
     debug_menu->addAction(gekko_regs->toggleViewAction());
@@ -71,17 +64,18 @@ GMainWindow::GMainWindow()
 
     // restore UI state
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "Gekko team", "Gekko");
+    SetGameBrowserStyle((GGameBrowser::Style)settings.value("gameBrowserStyle", GGameBrowser::Style_Table).toInt());
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
     render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
 
     // setup connections
-    connect(ui.actionLoad_Image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
+    connect(ui.action_load_image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
+    connect(ui.action_browse_images, SIGNAL(triggered()), this, SLOT(OnMenuBrowseForImages()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
     connect(ui.actionSingle_Window_Mode, SIGNAL(triggered(bool)), this, SLOT(SetupEmuWindowMode()));
     connect(ui.actionHotkeys, SIGNAL(triggered()), this, SLOT(OnOpenHotkeysDialog()));
-    connect(ui.treeView, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnFileBrowserDoubleClicked(const QModelIndex&)));
-    connect(ui.treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnFileBrowserSelectionChanged()));
+    connect(action_group_gbs, SIGNAL(triggered(QAction*)), this, SLOT(OnChangeGameBrowserStyle(QAction*)));
 
     // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views before the CPU continues
     connect(&render_window->GetEmuThread(), SIGNAL(CPUStepped()), ram_edit, SLOT(OnCPUStepped()), Qt::BlockingQueuedConnection);
@@ -124,15 +118,30 @@ void GMainWindow::OnMenuLoadImage()
        BootGame(filename.toLatin1().data());
 }
 
+void GMainWindow::OnMenuBrowseForImages()
+{
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Browser for Images"));
+    if (dir.size())
+    {
+        // Qt wouldn't let me define some common interface for this, maybe Q_INTERFACE would help?
+        QMetaObject::invokeMethod(game_browser, "Browse", Qt::DirectConnection, Q_ARG(const QString&, dir));
+    }
+}
+
 void GMainWindow::OnStartGame()
 {
-    if (!ui.treeView->selectionModel()->hasSelection())
+    // Qt wouldn't let me define some common interface for this, maybe Q_INTERFACE would help?
+    bool has_selection;
+    QMetaObject::invokeMethod(game_browser, "HasSelection", Qt::DirectConnection, Q_RETURN_ARG(bool, has_selection));
+    if (!has_selection)
     {
         BootGame(common::g_config->default_boot_file());
     }
     else
     {
-        BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
+        IsoInfo info;
+        QMetaObject::invokeMethod(game_browser, "SelectedIso", Qt::DirectConnection, Q_RETURN_ARG(IsoInfo, info));
+        BootGame(info.filename.toLatin1().data());
     }
 }
 
@@ -142,107 +151,15 @@ void GMainWindow::OnOpenHotkeysDialog()
     dialog.exec();
 }
 
-void GMainWindow::OnFileBrowserDoubleClicked(const QModelIndex& index)
+void GMainWindow::OnIsoSelected(const IsoInfo& info)
 {
-    if (!file_browser_model->isDir(index))
-    {
-        // Start emulation
-        if (!render_window->GetEmuThread().isRunning())
-            BootGame(file_browser_model->filePath(ui.treeView->selectionModel()->currentIndex()).toLatin1().data());
-    }
-    else
-    {
-        // Change directory
-        // TODO: Sometimes, trying to access a directory with lacking read permissions will break stuff (you'll end up in an empty directory with now way to cd back to parent directory)
-        QString new_path = file_browser_model->filePath(index);
-        file_browser_model->setRootPath(new_path);
-        ui.treeView->setRootIndex(file_browser_model->index(new_path));
-    }
+    image_info->SetBanner(info.pm);
+    image_info->SetName(info.name);
+    image_info->SetId(info.unique_id);
+    image_info->SetDeveloper(info.developer);
+    image_info->SetDescription(info.description);
 }
 
-static inline u32 DeccoreRGB5A3(u16 _data)
-{
-    u8 r, g, b, a;
-
-    if(_data & SIGNED_BIT16) // rgb5
-    {
-        r = (u8)(255.0f * (((_data >> 10) & 0x1f) / 32.0f));
-        g = (u8)(255.0f * (((_data >> 5) & 0x1f) / 32.0f));
-        b = (u8)(255.0f * ((_data & 0x1f) / 32.0f));
-        a = 0xff;	
-    }else{ // rgb4a3
-        r = 17 * ((_data >> 8) & 0xf);
-        g = 17 * ((_data >> 4) & 0xf);
-        b = 17 * (_data & 0xf);
-        a = (u8)(255.0f * (((_data >> 12) & 7) / 8.0f));
-    }
-    return (a << 24) | (r << 16) | (g << 8) | b;
-}
-
-void DecodeBanner(u8* src, u8* dst, int w, int h) {
-    u32 *dst32 = (u32*)dst;
-    u16	*src16 = ((u16*)src);
-    u32	*src32 = ((u32*)src);
-    int	x, y, dx, dy, i = 0, j = 0;
-    int width = (w + 3) & ~3;
-
-    for (i=0; i < w*h/2; i++) {
-        src32[i] = BSWAP32(src32[i]);
-    }
-
-    for(y = 0; y < h; y += 4) {
-        for(x = 0; x < width; x += 4) {
-            for(dy = 0; dy < 4; dy++) {
-                for(dx = 0; dx < 4; dx++) {
-                    // memory is not already swapped.. use this to grab high word first
-                    j ^= 1;
-                    // decode color
-                    dst32[width * (y + dy) + x + dx] = DeccoreRGB5A3((*((u16*)(src16 + j))));
-                    dst32[width * (y + dy) + x + dx] |= 0xff000000; // Remove this for alpha (looks sh**)
-                    // only increment every other time otherwise you get address doubles
-                    if(!j) src16 += 2;
-                }
-            }
-        }
-    }
-}
-
-static void BrowserAddBanner(u8 *banner, QPixmap& out_pixmap)
-{   
-    u8			*imageA;
-    imageA = (u8*)malloc(DVD_BANNER_WIDTH*DVD_BANNER_HEIGHT*4);
-    DecodeBanner(banner, imageA, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
-
-    out_pixmap.convertFromImage(QImage(imageA, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, 
-        QImage::Format_ARGB32));
-    delete[] imageA;
-}
-
-void GMainWindow::OnFileBrowserSelectionChanged()
-{
-    unsigned long size;
-    u8 banner[0x1960];
-    dvd::GCMHeader header;
-    QModelIndex index = ui.treeView->selectionModel()->currentIndex(); // TODO: this doesn't quite work..
-	if (dvd::ReadGCMInfo(file_browser_model->filePath(index).toLatin1().data(), &size, (void*)banner, &header) != E_OK)
-    {
-        image_info->SetBanner(QPixmap());
-        image_info->SetName(QString());
-        image_info->SetId(QString());
-        image_info->SetDeveloper(QString());
-        return;
-    }
-
-    // TODO: Banner loading is broken.. colors are messed up
-    QPixmap pm_banner;
-    BrowserAddBanner(&banner[0x20], pm_banner);
-    image_info->SetBanner(pm_banner);
-
-    // TODO: Support SHIFT-JIS ...
-    image_info->SetName(QString::fromLatin1((char*)&banner[0x1860]));
-//    image_info->SetId(QString::fromLatin1(???)); // TODO
-    image_info->SetDeveloper(QString::fromLatin1((char*)&banner[0x18a0]));
-}
 
 void GMainWindow::SetupEmuWindowMode()
 {
@@ -253,7 +170,7 @@ void GMainWindow::SetupEmuWindowMode()
     if (enable && render_window->parent() == NULL) // switch to single window mode
     {
         render_window->BackupGeometry();
-        ui.treeView->hide();
+        game_browser->setVisible(false);
         ui.horizontalLayout->addWidget(render_window);
         render_window->setVisible(true);
         render_window->DoneCurrent();
@@ -261,12 +178,54 @@ void GMainWindow::SetupEmuWindowMode()
     else if (!enable && render_window->parent() != NULL) // switch to multiple windows mode
     {
         ui.horizontalLayout->removeWidget(render_window);
-        ui.treeView->show();
+        game_browser->setVisible(true);
         render_window->setParent(NULL);
         render_window->setVisible(true);
         render_window->DoneCurrent();
         render_window->RestoreGeometry();
     }
+}
+
+void GMainWindow::OnChangeGameBrowserStyle(QAction* source)
+{
+    if (source == ui.action_gbs_file_browser)
+        SetGameBrowserStyle(GGameBrowser::Style_FileBrowser);
+    else if (source == ui.action_gbs_table)
+        SetGameBrowserStyle(GGameBrowser::Style_Table);
+}
+
+void GMainWindow::SetGameBrowserStyle(GGameBrowser::Style style)
+{
+    if (style == gbs_style)
+        return;
+
+    gbs_style = style;
+
+    if (game_browser)
+    {
+        ui.horizontalLayout->removeWidget(game_browser);
+        delete game_browser;
+        game_browser = NULL;
+    }
+    switch (style)
+    {
+        case GGameBrowser::Style_FileBrowser:
+        {
+            ui.action_gbs_file_browser->setChecked(true);
+            game_browser = new GGameFileBrowser;
+            break;
+        }
+
+        case GGameBrowser::Style_Table:
+        {
+            ui.action_gbs_table->setChecked(true);
+            game_browser = new GGameTable;
+            break;
+        }
+    }
+    ui.horizontalLayout->addWidget(game_browser);
+    connect(game_browser, SIGNAL(IsoSelected(const IsoInfo&)), this, SLOT(OnIsoSelected(const IsoInfo&)));
+    connect(game_browser, SIGNAL(EmuStartRequested()), this, SLOT(OnStartGame()));
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event)
@@ -277,6 +236,7 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     settings.setValue("geometry", saveGeometry());
     settings.setValue("state", saveState());
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
+    settings.setValue("gameBrowserStyle", gbs_style);
     SaveHotkeys(settings);
     // TODO: Save "single window mode" check state
 

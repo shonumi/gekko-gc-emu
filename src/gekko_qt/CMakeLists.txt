@@ -2,6 +2,7 @@ set(SRCS
             src/bootmanager.cpp
             src/callstack.cpp
             src/disasm.cpp
+            src/gamelist.cpp
             src/gekko_regs.cpp
             src/hotkeys.cpp
             src/image_info.cpp
@@ -20,6 +21,7 @@ qt4_wrap_cpp(MOC_SRCS
                         src/bootmanager.hxx
                         src/callstack.hxx
                         src/disasm.hxx
+                        src/gamelist.hxx
                         src/gekko_regs.hxx
                         src/hotkeys.hxx
                         src/image_info.hxx

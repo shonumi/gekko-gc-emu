@@ -24,27 +24,7 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QTreeView" name="treeView">
-      <property name="alternatingRowColors">
-       <bool>true</bool>
-      </property>
-      <property name="rootIsDecorated">
-       <bool>false</bool>
-      </property>
-      <property name="itemsExpandable">
-       <bool>false</bool>
-      </property>
-      <property name="sortingEnabled">
-       <bool>true</bool>
-      </property>
-      <property name="expandsOnDoubleClick">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <layout class="QHBoxLayout" name="horizontalLayout"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -59,7 +39,8 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionLoad_Image"/>
+    <addaction name="action_load_image"/>
+    <addaction name="action_browse_images"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -81,8 +62,16 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="menu_game_browser_style">
+     <property name="title">
+      <string>Game Browser Style</string>
+     </property>
+     <addaction name="action_gbs_table"/>
+     <addaction name="action_gbs_file_browser"/>
+    </widget>
     <addaction name="actionSingle_Window_Mode"/>
     <addaction name="actionHotkeys"/>
+    <addaction name="menu_game_browser_style"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -90,7 +79,7 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionLoad_Image">
+  <action name="action_load_image">
    <property name="text">
     <string>Load Image ...</string>
    </property>
@@ -140,6 +129,51 @@
   <action name="actionHotkeys">
    <property name="text">
     <string>Configure &amp;Hotkeys ...</string>
+   </property>
+  </action>
+  <action name="actionTable">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Table</string>
+   </property>
+  </action>
+  <action name="actionList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>List</string>
+   </property>
+  </action>
+  <action name="actionFile_Browser">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>File Browser</string>
+   </property>
+  </action>
+  <action name="action_gbs_table">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Table</string>
+   </property>
+  </action>
+  <action name="action_gbs_file_browser">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>File Browser</string>
+   </property>
+  </action>
+  <action name="action_browse_images">
+   <property name="text">
+    <string>Browse for Images ...</string>
    </property>
   </action>
  </widget>
