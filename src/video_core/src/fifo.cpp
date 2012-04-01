@@ -146,12 +146,11 @@ int GetVertexSize(u8 vat)
 /// Called by CPU core to catch up
 void EMU_FASTCALL FifoSynchronize() {
     if (g_fifo_write_ptr > g_fifo_tail_ptr) {
-      //  SDL_mutexP(g_fifo_synch_mutex);
+        SDL_mutexP(g_fifo_synch_mutex);
         g_reset_fifo = true;
-        //SDL_mutexV(g_fifo_synch_mutex);
+        SDL_mutexV(g_fifo_synch_mutex);
 
         while (g_reset_fifo) {
-           // SDL_Delay(1);
         }
     }
 }
@@ -174,6 +173,7 @@ bool FifoNextCommandReady() {
     }
     // Otherwise, read_ptr < write_ptr:
     uintptr_t bytes_in_fifo = g_fifo_write_ptr - g_fifo_read_ptr;
+
     // Last size still right...
 	if ((last_required_size != -1) && (last_required_size > (s32)bytes_in_fifo)) {
 	    return false;
@@ -434,7 +434,7 @@ int DecodeThread(void *unused) {
         }
 
         // Synchronize the CPU<-->FIFO
-       // SDL_mutexP(g_fifo_synch_mutex);
+        SDL_mutexP(g_fifo_synch_mutex);
         if (g_reset_fifo) {
             // Lock writes from CPU to FIFO, reset FIFO to beginning
             //SDL_mutexP(g_fifo_write_ptr_mutex);
@@ -448,7 +448,7 @@ int DecodeThread(void *unused) {
 
             g_reset_fifo = false;
         }
-       // SDL_mutexV(g_fifo_synch_mutex);
+        SDL_mutexV(g_fifo_synch_mutex);
 
         // Get the next GP opcode and decode it
         if (FifoNextCommandReady()) {
