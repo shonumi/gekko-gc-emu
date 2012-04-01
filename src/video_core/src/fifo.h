@@ -35,7 +35,7 @@ typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 #define GP_SETOP(n, op)         g_exec_op[n] = (GPFuncPtr)op
 
 // FIFO information
-#define FIFO_SIZE           0x10000*2                 // 64kb - good size
+#define FIFO_SIZE           0x100000                // 1MB
 #define FIFO_HEAD_END       0x4000                  // First 16kb of FIFO
 #define FIFO_TAIL_END       (FIFO_SIZE - FIFO_HEAD_END)    // Last 16kb of FIFO... Reset to beginning ASAP
 #define FIFO_MASK           (FIFO_SIZE - 1)         // mask
@@ -79,17 +79,6 @@ typedef enum {
     GP_DRAW_LINESTRIP           = 0xb0,
     GP_DRAW_POINTS              = 0xb8
 } GPOpcodeType;
-
-/// GX API primitive types
-typedef enum {
-    GX_POINTS        = 0xb8,
-    GX_LINES         = 0xa8,
-    GX_LINESTRIP     = 0xb0,
-    GX_TRIANGLES     = 0x90,
-    GX_TRIANGLESTRIP = 0x98,
-    GX_TRIANGLEFAN   = 0xa0,
-    GX_QUADS         = 0x80
-} GXPrimitive;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
