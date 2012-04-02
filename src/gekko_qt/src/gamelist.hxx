@@ -126,7 +126,7 @@ public:
 
 public slots:
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
-    void OnSelectionChanged(const QItemSelection& current);
+    void OnSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
     void OnDoubleClicked(const QModelIndex& index);
 
     void Browse(const QString& path);
@@ -149,7 +149,7 @@ public:
     GGameFileBrowser(QWidget* parent = NULL);
 
 public slots:
-    void OnSelectionChanged(const QItemSelection& current);
+    void OnSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
     void OnDoubleClicked(const QModelIndex& index);
     bool HasSelection();
     IsoInfo SelectedIso();

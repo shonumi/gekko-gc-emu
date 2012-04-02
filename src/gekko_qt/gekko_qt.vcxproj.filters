@@ -37,6 +37,9 @@
       <Filter>qhexedit</Filter>
     </ClCompile>
     <ClCompile Include="src\hotkeys.cpp" />
+    <ClCompile Include="src\path_list.cpp" />
+    <ClCompile Include="src\welcome_wizard.cpp" />
+    <ClCompile Include="src\gamelist.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\main.hxx" />
@@ -67,6 +70,9 @@
     </MOC>
     <MOC Include="src\bootmanager.hxx" />
     <MOC Include="src\hotkeys.hxx" />
+    <MOC Include="src\path_list.hxx" />
+    <MOC Include="src\welcome_wizard.hxx" />
+    <MOC Include="src\gamelist.hxx" />
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\main.ui" />
@@ -81,6 +87,7 @@
       <Filter>debugger</Filter>
     </UIC>
     <UIC Include="src\hotkeys.ui" />
+    <UIC Include="src\welcome_wizard.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />

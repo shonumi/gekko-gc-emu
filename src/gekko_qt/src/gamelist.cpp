@@ -1,9 +1,7 @@
 #include <QDir>
 #include <QFileSystemModel>
 #include <QHeaderView>
-#include <QStandardItemModel> // TODO: Not needed...
 #include "gamelist.hxx"
-#include "QDebug" // ..
 
 #include "dvd/loader.h"
 
@@ -209,7 +207,7 @@ GGameTable::GGameTable(QWidget* parent) : QTableView(parent)
     model->SetNumColumns(qMax(1,maximumViewportSize().width() / sizeHintForColumn(0)));
 
     // TODO: connect pressing Enter key
-    connect(selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnSelectionChanged(const QItemSelection&)));
+    connect(selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(OnSelectionChanged(const QModelIndex&, const QModelIndex&)));
     connect(this, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnDoubleClicked(const QModelIndex&)));
 }
 
@@ -225,16 +223,12 @@ void GGameTable::Browse(const QString& path)
     model->Browse(path);
 }
 
-void GGameTable::OnSelectionChanged(const QItemSelection& current)
+void GGameTable::OnSelectionChanged(const QModelIndex& current, const QModelIndex& previous)
 {
-    if (current.indexes().isEmpty())
+    if (!current.isValid())
         return;
 
-    QModelIndex index = current.indexes().first();
-    if (!index.isValid())
-        return;
-
-    const IsoInfo& info = model->data(index, GGameBrowserModel::Role_IsoInfo).value<IsoInfo>();
+    const IsoInfo& info = model->data(current, GGameBrowserModel::Role_IsoInfo).value<IsoInfo>();
     emit IsoSelected(info);
 }
 
@@ -254,15 +248,18 @@ void GGameTable::resizeEvent(QResizeEvent* event)
 
 bool GGameTable::HasSelection()
 {
-    if (selectionModel()->selection().indexes().isEmpty())
+    if (!selectionModel()->currentIndex().isValid())
         return false;
 
-    return model->data(selectionModel()->selection().indexes().first(), GGameBrowserModel::Role_IsValid).toBool();
+    return model->data(selectionModel()->currentIndex(), GGameBrowserModel::Role_IsValid).toBool();
 }
 
 IsoInfo GGameTable::SelectedIso()
 {
-    return model->data(selectionModel()->selection().indexes().first(), GGameBrowserModel::Role_IsoInfo).value<IsoInfo>();
+    if (!selectionModel()->currentIndex().isValid())
+        return IsoInfo();
+
+    return model->data(selectionModel()->currentIndex(), GGameBrowserModel::Role_IsoInfo).value<IsoInfo>();
 }
 
 
@@ -282,25 +279,18 @@ GGameFileBrowser::GGameFileBrowser(QWidget* parent): QTreeView(parent)
     hideColumn(3); // date
 
     connect(this, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(OnDoubleClicked(const QModelIndex&)));
-    connect(selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(OnSelectionChanged(const QItemSelection&)));
+    connect(selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(OnSelectionChanged(const QModelIndex&, const QModelIndex&)));
 }
 
-void GGameFileBrowser::OnSelectionChanged(const QItemSelection& current)
+void GGameFileBrowser::OnSelectionChanged(const QModelIndex& current, const QModelIndex& previous)
 {
-    if (current.indexes().isEmpty())
+    if (!current.isValid())
     {
         selected_iso = IsoInfo();
         return;
     }
 
-    QModelIndex index = current.indexes().first();
-    if (!index.isValid())
-    {
-        selected_iso = IsoInfo();
-        return;
-    }
-
-    QString filename = model->filePath(index);
+    QString filename = model->filePath(current);
 
     unsigned long size;
     u8 banner[0x1960];
@@ -343,15 +333,10 @@ void GGameFileBrowser::OnDoubleClicked(const QModelIndex& index)
 
 bool GGameFileBrowser::HasSelection()
 {
-    if (selectionModel()->selection().indexes().isEmpty())
+    if (!selectionModel()->currentIndex().isValid())
         return false;
 
-    QModelIndex index = selectionModel()->selection().indexes().first();
-    if (!index.isValid())
-        return false;
-
-    QString filename = model->filePath(index);
-
+    QString filename = model->filePath(selectionModel()->currentIndex());
     return E_OK == dvd::ReadGCMInfo(filename.toLatin1().data(), NULL, NULL, NULL);
 }
 
