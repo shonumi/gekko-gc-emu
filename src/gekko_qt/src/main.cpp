@@ -13,6 +13,7 @@
 #include "ramview.hxx"
 #include "bootmanager.hxx"
 #include "hotkeys.hxx"
+#include "welcome_wizard.hxx"
 
 #include "core.h"
 #include "dvd/loader.h"
@@ -84,6 +85,7 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
     render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
+    bool first_start = settings.value("firstStart", true).toBool();
 
     ui.actionSingle_Window_Mode->setChecked(settings.value("singleWindowMode", false).toBool());
     SetupEmuWindowMode();
@@ -112,6 +114,13 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
 
     // TODO: Enable this?
 //    setUnifiedTitleAndToolBarOnMac(true);
+
+    show();
+    if (first_start)
+    {
+        // TODO: This should actually modify Gekko config..
+        GWelcomeWizard* wizard = new GWelcomeWizard(this);
+    }
 }
 
 GMainWindow::~GMainWindow()
@@ -139,7 +148,7 @@ void GMainWindow::OnMenuLoadImage()
 
 void GMainWindow::OnMenuBrowseForImages()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Browser for Images"));
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Browse for Images"));
     if (dir.size())
     {
         // Qt wouldn't let me define some common interface for this, maybe Q_INTERFACE would help?
@@ -257,7 +266,10 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
     settings.setValue("gameBrowserStyle", gbs_style);
     settings.setValue("singleWindowMode", ui.actionSingle_Window_Mode->isChecked());
+    settings.setValue("firstStart", false);
     SaveHotkeys(settings);
+
+    // TODO: Should save Gekko config here
 
     render_window->close();
 
