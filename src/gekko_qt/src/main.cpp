@@ -34,12 +34,15 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
 
     GDisAsmView* disasm = new GDisAsmView(this, render_window->GetEmuThread());
     addDockWidget(Qt::TopDockWidgetArea, disasm);
+    disasm->hide();
 
     GGekkoRegsView* gekko_regs = new GGekkoRegsView(this);
     addDockWidget(Qt::LeftDockWidgetArea, gekko_regs);
+    gekko_regs->hide();
 
     GCallstackView* callstack = new GCallstackView(this);
     addDockWidget(Qt::BottomDockWidgetArea, callstack);
+    callstack->hide();
 
     QDockWidget* dock_ramedit = new QDockWidget(this);
     dock_ramedit->setObjectName("RamViewer");
@@ -47,6 +50,7 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     dock_ramedit->setWidget(ram_edit);
     dock_ramedit->setWindowTitle(tr("Memory viewer"));
     addDockWidget(Qt::TopDockWidgetArea, dock_ramedit);
+    dock_ramedit->hide();
 
     // menu items
     QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));
@@ -62,14 +66,29 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     debug_menu->addAction(callstack->toggleViewAction());
     debug_menu->addAction(dock_ramedit->toggleViewAction());
 
-    // restore UI state
+    // Set default UI state
+    // geometry: 55% of the window contents are in the upper screen half, 45% in the lower half
+    QDesktopWidget* desktop = ((QApplication*)QApplication::instance())->desktop();
+    QRect screenRect = desktop->screenGeometry(this);
+    int x, y, w, h;
+    w = screenRect.width() * 2 / 3;
+    h = screenRect.height() / 2;
+    x = (screenRect.x() + screenRect.width()) / 2 - w / 2;
+    y = (screenRect.y() + screenRect.height()) / 2 - h * 55 / 100;
+    setGeometry(x, y, w, h);
+
+
+    // Restore UI state
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "Gekko team", "Gekko");
     SetGameBrowserStyle((GGameBrowser::Style)settings.value("gameBrowserStyle", GGameBrowser::Style_Table).toInt());
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("state").toByteArray());
     render_window->restoreGeometry(settings.value("geometryRenderWindow").toByteArray());
 
-    // setup connections
+    ui.actionSingle_Window_Mode->setChecked(settings.value("singleWindowMode", false).toBool());
+    SetupEmuWindowMode();
+
+    // Setup connections
     connect(ui.action_load_image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_browse_images, SIGNAL(triggered()), this, SLOT(OnMenuBrowseForImages()));
     connect(ui.action_Start, SIGNAL(triggered()), this, SLOT(OnStartGame()));
@@ -237,8 +256,8 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     settings.setValue("state", saveState());
     settings.setValue("geometryRenderWindow", render_window->saveGeometry());
     settings.setValue("gameBrowserStyle", gbs_style);
+    settings.setValue("singleWindowMode", ui.actionSingle_Window_Mode->isChecked());
     SaveHotkeys(settings);
-    // TODO: Save "single window mode" check state
 
     render_window->close();
 
