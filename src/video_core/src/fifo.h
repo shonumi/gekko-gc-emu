@@ -40,18 +40,6 @@ typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 #define FIFO_TAIL_END       (FIFO_SIZE - FIFO_HEAD_END)    // Last 16kb of FIFO... Reset to beginning ASAP
 #define FIFO_MASK           (FIFO_SIZE - 1)         // mask
 
-// FIFO write access
-#define FIFO_PUSH8(data)    *(gp::g_fifo_write_ptr) = data; gp::g_fifo_write_ptr++
-#define FIFO_PUSH16(data)   *(u16*)(gp::g_fifo_write_ptr) = data; gp::g_fifo_write_ptr+=2
-#define FIFO_PUSH32(data)   *(u32*)(gp::g_fifo_write_ptr) = data; gp::g_fifo_write_ptr+=4
-
-/// Pop byte off FIFO
-#define FIFO_POP8()         *(gp::g_fifo_read_ptr); gp::g_fifo_read_ptr++
-/// Pop half off of FIFO
-#define FIFO_POP16()        *((u16*)(gp::g_fifo_read_ptr)); gp::g_fifo_read_ptr+=2
-/// Pop word off of FIFO
-#define FIFO_POP32()        *((u32*)(gp::g_fifo_read_ptr)); gp::g_fifo_read_ptr+=4
-
 /// Get last byte from FIFO
 #define FIFO_GET8(ofs)      *(gp::g_fifo_read_ptr + ofs)
 /// Get last half from FIFO
@@ -91,26 +79,39 @@ extern SDL_mutex*  g_fifo_write_ptr_mutex;  ///< Mutex for accessing g_fifo_writ
 
 /// Push 8-bit byte into the FIFO
 static inline void FifoPush8(u8 data) {
- //   SDL_mutexP(g_fifo_write_ptr_mutex);
     *g_fifo_write_ptr = data;
     g_fifo_write_ptr+=1;
-   // SDL_mutexV(g_fifo_write_ptr_mutex); 
 }
 
 /// Push 16-bit halfword into the FIFO
 static inline void FifoPush16(u16 data) {
-  //  SDL_mutexP(g_fifo_write_ptr_mutex);
     *(u16*)gp::g_fifo_write_ptr = data;
     g_fifo_write_ptr+=2;
-   // SDL_mutexV(g_fifo_write_ptr_mutex); 
 }
 
 /// Push 32-bit word into the FIFO
 static inline void FifoPush32(u32 data) {
-   // SDL_mutexP(g_fifo_write_ptr_mutex);
     *(u32*)gp::g_fifo_write_ptr = data;
     g_fifo_write_ptr+=4;
-   // SDL_mutexV(g_fifo_write_ptr_mutex); 
+}
+
+/// Pop an 8-bit byte off the FIFO
+static inline u8 FifoPop8() {
+    return *(g_fifo_read_ptr++);;
+}
+
+/// Pop a 16-bit halfword off the FIFO
+static inline u16 FifoPop16() {
+    u16 res = *((u16*)(g_fifo_read_ptr));
+    g_fifo_read_ptr+=2;
+    return res;
+}
+
+/// Pop a 32-bit word off the FIFO
+static inline u32 FifoPop32() {
+    u32 res = *((u32*)(g_fifo_read_ptr));
+    g_fifo_read_ptr+=4;
+    return res;
 }
 
 /// Called by CPU core to catch up
