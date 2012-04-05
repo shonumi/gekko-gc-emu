@@ -44,16 +44,11 @@ SDL_Thread      *g_video_thread;
 
 
 int VideoThreadEntry(void *unused) {
-
     EmuWindow_SDL* emu_window = new EmuWindow_SDL;
-
-    delete g_renderer;
-    g_renderer = new RendererGL2();
+    g_renderer = new RendererGL3();
     g_renderer->SetWindow(emu_window);
     g_renderer->Init();
-
     gp::DecodeThread(NULL);
-
     return 0;
 }
 
