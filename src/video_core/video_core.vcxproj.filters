@@ -1,41 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="renderer_gl3">
-      <UniqueIdentifier>{55f139c2-1376-474b-83de-052542d401ac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="renderer_gl2">
-      <UniqueIdentifier>{f3be6b41-7fa2-47a4-8926-dc2383a2050c}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="src\bp_mem.cpp" />
+    <ClCompile Include="src\cp_mem.cpp" />
+    <ClCompile Include="src\fifo.cpp" />
+    <ClCompile Include="src\vertex_loader.cpp" />
+    <ClCompile Include="src\video_core.cpp" />
+    <ClCompile Include="src\xf_mem.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
-    <ClCompile Include="src\bp_mem.cpp" />
-    <ClCompile Include="src\vertex_loader.cpp" />
-    <ClCompile Include="src\cp_mem.cpp" />
-    <ClCompile Include="src\fifo.cpp" />
-    <ClCompile Include="src\renderer_base.cpp" />
-    <ClCompile Include="src\video_core.cpp" />
-    <ClCompile Include="src\xf_mem.cpp" />
-    <ClCompile Include="src\renderer_gl2\renderer_gl2.cpp">
-      <Filter>renderer_gl2</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\bp_mem.h" />
+    <ClInclude Include="src\cp_mem.h" />
+    <ClInclude Include="src\fifo.h" />
+    <ClInclude Include="src\gx_types.h" />
+    <ClInclude Include="src\renderer_base.h" />
+    <ClInclude Include="src\vertex_loader.h" />
+    <ClInclude Include="src\video_core.h" />
+    <ClInclude Include="src\xf_mem.h" />
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h">
       <Filter>renderer_gl3</Filter>
     </ClInclude>
-    <ClInclude Include="src\bp_mem.h" />
-    <ClInclude Include="src\vertex_loader.h" />
-    <ClInclude Include="src\cp_mem.h" />
-    <ClInclude Include="src\fifo.h" />
-    <ClInclude Include="src\renderer_base.h" />
-    <ClInclude Include="src\video_core.h" />
-    <ClInclude Include="src\xf_mem.h" />
-    <ClInclude Include="src\renderer_gl2\renderer_gl2.h">
-      <Filter>renderer_gl2</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="renderer_gl3">
+      <UniqueIdentifier>{ea80baad-745c-44e4-af78-4ca3788962d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="renderer_gl2">
+      <UniqueIdentifier>{7b36e2a9-1a80-40e7-b7c3-e664109b3daa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
