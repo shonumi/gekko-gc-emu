@@ -27,17 +27,18 @@
 
 #include "common.h"
 #include "fifo.h"
+#include "gx_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
 
 namespace gp {
 
-extern f32* g_position_burst_ptr;
-extern f32  g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
+extern s16* g_position_burst_ptr;
+extern s16  g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
 
-extern f32* g_color_burst_ptr;
-extern f32  g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
+extern u8*  g_color_burst_ptr;
+extern u8   g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
 
 /*!
  * \brief Decode a primitive type

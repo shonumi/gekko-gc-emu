@@ -33,11 +33,11 @@ namespace gp {
 
 typedef void (*VertexLoaderTable)(u16);	
 
-f32*    g_position_burst_ptr;
-f32     g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
+s16*    g_position_burst_ptr;
+s16     g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
 
-f32*    g_color_burst_ptr;
-f32     g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
+u8*    g_color_burst_ptr;
+u8     g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
 
 /*!
  * \brief Send a 2D position vertex to be rendered
@@ -57,7 +57,7 @@ static inline void SendPositionXY(f32 x, f32 y) {
  * \param y y-position
  * \param z z-position
  */
-static inline void SendPositionXYZ(f32 x, f32 y, f32 z) {
+static inline void SendPositionXYZ(s16 x, s16 y, s16 z) {
     *g_position_burst_ptr = x;
     g_position_burst_ptr++;
     *g_position_burst_ptr = y;
@@ -71,12 +71,12 @@ static inline void SendPositionXYZ(f32 x, f32 y, f32 z) {
 
 /*!
  * \brief Send a RGB color for the previously specified vertex
- * \param r Red component (0.0f-1.0f)
- * \param g Green component (0.0f-1.0f)
- * \param b Blue component (0.0f-1.0f)
- * \param a Alpha component (0.0f-1.0f)
+ * \param r Red component  
+ * \param g Green component
+ * \param b Blue component 
+ * \param a Alpha component
  */
-static inline void SendColorRGBA(f32 r, f32 g, f32 b, f32 a) {
+static inline void SendColorRGBA(u8 r, u8 g, u8 b, u8 a) {
     *g_color_burst_ptr = r;
     g_color_burst_ptr++;
     *g_color_burst_ptr = g;
@@ -123,24 +123,28 @@ static void VertexPosition_Unk(u16 index) {
 
 // correct
 static void VertexPosition_IF32_XYZ(u16 index) {
-	t32 v[3];
-	v[0]._u32 = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
-	v[1]._u32 = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
-	v[2]._u32 = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
-	SendPositionXYZ(v[0]._f32, v[1]._f32, v[2]._f32);
+	u32 v[3];
+	v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
+	v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
+	v[2] = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
+
+
+    LOG_DEBUG(TGP, "%f %f %f", *(f32*)&v[0], *(f32*)&v[1], *(f32*)&v[2]);
+
+	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
 static void VertexPosition_IS16_XYZ(u16 index)
 {
-	f32 v[3];
+	s16 v[3];
 	u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
 
-   // LOG_DEBUG(TGP, "%08x %08x %08x", CP_DATA_POS_ADDR(index), data, MemoryRead16(CP_DATA_POS_ADDR(index) + 4));
+    //LOG_DEBUG(TGP, "%08x %08x %08x", CP_DATA_POS_ADDR(index), data, MemoryRead16(CP_DATA_POS_ADDR(index) + 4));
 
-	v[0] = (f32)(s16)(data >> 16);
-	v[1] = (f32)(s16)(data & 0xFFFF);
-	v[2] = (f32)(s16)MemoryRead16(CP_DATA_POS_ADDR(index) + 4);
-	SendPositionXYZ(v[0], v[1], v[2]);
+	v[0] = (s16)(data >> 16);
+	v[1] = (s16)(data & 0xFFFF);
+	v[2] = (s16)MemoryRead16(CP_DATA_POS_ADDR(index) + 4);
+	video_core::g_renderer->VertexPosition_SendShort((u16*)v);
 }
 
 
@@ -198,11 +202,11 @@ VertexLoaderTable VertexLoad[0x40] = {
 // correct
 static void VertexColor_I8_RGBA8(VertexData *vtx) {
 	u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(vtx->index));
-    f32 r = (rgba >> 24) / 255.0f;
-    f32 g = ((rgba >> 16) & 0xff) / 255.0f;
-    f32 b = ((rgba >> 8) & 0xff) / 255.0f;
-    f32 a = (rgba & 0xff) / 255.0f;
-    SendColorRGBA(r, g, b, a);
+    u8 r = (rgba >> 24);
+    u8 g = ((rgba >> 16) & 0xff);
+    u8 b = ((rgba >> 8) & 0xff);
+    u8 a = (rgba & 0xff);
+   // SendColorRGBA(r, g, b, a);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,12 +268,12 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         //pos.vtx_format_vcd(&pos); 
         break;
     case 2: // 8bit index
-        pos.index = FIFO_POP8();
+        pos.index = FifoPop8();
         //VertexPosition_I8_F32_XYZ(pos.index);
         VertexLoad[VTX_FORMAT_VCD(pos)](pos.index);
         break;
     case 3: // 16bit index
-        pos.index = FIFO_POP16();
+        pos.index = FifoPop16();
         //pos.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)pos.vtx_format_vcd)(_gxlist, &pos); 
@@ -288,12 +292,12 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         //((gxtable)nrm.vtx_format_vcd)(_gxlist, &nrm);
         break;
     case 2: // 8bit index
-        FIFO_POP8();
+        FifoPop8();
         //nrm.index = _gxlist->get8(offset++);
         //((gxtable)nrm.vtx_format_vcd)(_gxlist, &nrm);
         break;
     case 3: // 16bit index
-        FIFO_POP16();
+        FifoPop16();
         //nrm.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)nrm.vtx_format_vcd)(_gxlist, &nrm);
@@ -321,12 +325,12 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         //((gxtable)col0.vtx_format_vcd)(_gxlist, &col0); 
         //glColor4bv((GLbyte *)cv->color);
 
-        col0.index = FIFO_POP8();
+        col0.index = FifoPop8();
         VertexColor_I8_RGBA8(&col0);
 
         break;
     case 3: // 16bit index 
-        FIFO_POP16();
+        FifoPop16();
         //col0.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)col0.vtx_format_vcd)(_gxlist, &col0); 
@@ -347,13 +351,13 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
         //glSecondaryColor3bv((GLbyte *)cv->color);
         break;
     case 2: // 8bit index
-        FIFO_POP8();
+        FifoPop8();
         //col1.index = _gxlist->get8(offset++);
         //((gxtable)col1.vtx_format_vcd)(_gxlist, &col1); 
         //glSecondaryColor3bv((GLbyte *)cv->color);
         break;
     case 3: // 16bit index
-        FIFO_POP16();
+        FifoPop16();
         //col1.index = _gxlist->get16(offset);
         //offset+=2;
         //((gxtable)col1.vtx_format_vcd)(_gxlist, &col1); 
@@ -380,19 +384,19 @@ void DecodePrimitive(GXPrimitive type, int count, u8 vat) {
     // decode vertices
     //get_vertex(vat);
 
+    video_core::g_renderer->BeginPrimitive(type, count);
+    //video_core::g_renderer->VertexPosition_SetType(type, count);
 
     for (int i = 0; i < count; i++) {
         DecodeVertex(vat, pos, nrm, col0, col1);
+        video_core::g_renderer->VertexNext();
     }
-
-    // end primitive type
-    //glEnd();*/
-
-    video_core::g_renderer->DrawPrimitive();
+    
+    video_core::g_renderer->EndPrimitive();
 
     // End of burst - Reset buffers
-    g_position_burst_ptr = g_position_burst_buffer;
-    g_color_burst_ptr = g_color_burst_buffer;
+    g_position_burst_ptr    = g_position_burst_buffer;
+    g_color_burst_ptr       = g_color_burst_buffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
