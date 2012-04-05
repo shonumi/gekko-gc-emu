@@ -86,6 +86,61 @@ void SDLKeys::SetControllerStatus(int channel, u16 key,
     }  
 }
 
+/// Gets the controller status from the keyboard using SDL
+GCController::GCButtonState SDLKeys::GetControllerStatus(int channel, int key) {
+    // Buttons
+    if (key == common::g_config->controller_ports(channel).keys.start_key_code) {
+        return g_controller_state[channel]->start_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.a_key_code) {
+        return g_controller_state[channel]->a_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.b_key_code) {
+        return g_controller_state[channel]->b_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.x_key_code) {
+        return g_controller_state[channel]->x_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.y_key_code) {
+        return g_controller_state[channel]->y_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.l_key_code) {
+        return g_controller_state[channel]->l_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.r_key_code) {
+        return g_controller_state[channel]->r_status();
+    } else if (key == common::g_config->controller_ports(channel).keys.z_key_code) {
+        return g_controller_state[channel]->z_status();
+        
+    // Analog stick
+    } else if (key == common::g_config->controller_ports(channel).keys.analog_up_key_code) {
+        return g_controller_state[channel]->analog_stick_status(GCController::STICK_UP);
+    } else if (key == common::g_config->controller_ports(channel).keys.analog_down_key_code) {
+       return g_controller_state[channel]->analog_stick_status(GCController::STICK_DOWN);
+    } else if (key == common::g_config->controller_ports(channel).keys.analog_left_key_code) {
+        return g_controller_state[channel]->analog_stick_status(GCController::STICK_LEFT);
+    } else if (key == common::g_config->controller_ports(channel).keys.analog_right_key_code) {
+        return g_controller_state[channel]->analog_stick_status(GCController::STICK_RIGHT);
+
+    // C stick
+    } else if (key == common::g_config->controller_ports(channel).keys.c_up_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_UP);
+    } else if (key == common::g_config->controller_ports(channel).keys.c_down_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_DOWN);
+    } else if (key == common::g_config->controller_ports(channel).keys.c_left_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_LEFT);
+    } else if (key == common::g_config->controller_ports(channel).keys.c_right_key_code) {
+        return g_controller_state[channel]->c_stick_status(GCController::STICK_RIGHT); 
+
+    // D-pad
+    } else if (key == common::g_config->controller_ports(channel).keys.dpad_up_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_UP);
+    } else if (key == common::g_config->controller_ports(channel).keys.dpad_down_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_DOWN);
+    } else if (key == common::g_config->controller_ports(channel).keys.dpad_left_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_LEFT);
+    } else if (key == common::g_config->controller_ports(channel).keys.dpad_right_key_code) {
+        return g_controller_state[channel]->dpad_status(GCController::STICK_RIGHT);
+    }
+
+    // Return GC_CONTROLLER_NULL if unmapped pad
+    return GCController::GC_CONTROLLER_NULL;   
+}
+
 /// Poll for key presses
 void SDLKeys::PollEvent() {
     SDL_Event keyevent;
@@ -102,6 +157,57 @@ void SDLKeys::PollEvent() {
             SetControllerStatus(0, keyevent.key.keysym.sym, GCController::RELEASED);
             break;
         }
+    }
+}
+
+// Handle external key press input
+void SDLKeys::PressKey(int key) {
+    key = DecodeQtKey(key);
+
+    if(GetControllerStatus(0, key) == GCController::RELEASED) {
+        SetControllerStatus(0, key, GCController::PRESSED);
+    }
+}
+
+// Handle external key release input
+void SDLKeys::ReleaseKey(int key) {
+    key = DecodeQtKey(key);
+
+    if(GetControllerStatus(0, key) == GCController::PRESSED) {
+        SetControllerStatus(0, key, GCController::RELEASED);
+    }
+}
+
+// Decodes Qt Key Codes
+int SDLKeys::DecodeQtKey(int key) {
+
+    // Convert ASCII, Keys lower than 65 seem as okay is
+    if((key > 64) && (key < 91)) {
+        key += 32;
+        return key;
+    } else if(key < 65) {
+        return key;
+    }
+
+    // Some specific keys need to be checked
+    switch(key) {
+        // Enter/Return
+        case 0x1000004:
+            return 13;
+        // Left Arrow
+        case 0x1000012:
+            return 276;
+        // Right Arrow
+        case 0x1000014:
+            return 275;
+        // Up Arrow
+        case 0x1000013:
+            return 273;
+        // Down Arrow
+        case 0x1000015:
+            return 274;
+        default:
+            return 0;
     }
 }
 

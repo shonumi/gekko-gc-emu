@@ -51,6 +51,14 @@ void InputBase::ShutDown() {
     printf("InputBase::ShutDown()\n");
 }
 
+void InputBase::PressKey(int key) {
+    printf("InputBase::PressKey()\n");
+}
+
+void InputBase::ReleaseKey(int key) {
+    printf("InputBase::ReleaseKey()\n");
+}
+
 /// Initialize the user input system
 void Init() {
     for (int i = 0; i < 4; i++) {

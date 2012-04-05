@@ -77,6 +77,8 @@ public:
     ~GRenderWindow();
 
     void closeEvent(QCloseEvent*);
+    void keyPressEvent(QKeyEvent* event);
+    void keyReleaseEvent(QKeyEvent* event);
 
     // EmuWindow implementation
     void SwapBuffers();

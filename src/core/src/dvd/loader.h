@@ -72,9 +72,12 @@ int LoadGCM(char *filename);
  * \param filename Filename of GCM
  * \param filesize Filesize of GCM (reference)
  * \param BannerBuffer Pointer to GCM banner (reference)
+ * \return E_OK on success, E_ERR on failure
  * \todo This should eventually be in its own GCM utilities library
+ * \note If filesize and BannerBuffer are NULL, this function will only check if filename is a valid GCM.
  */
-int ReadGCMInfo(char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header);
+int ReadGCMInfo(const char *filename, unsigned long *filesize, void *BannerBuffer, GCMHeader *Header);
+
 
 extern char g_current_game_name[992];   ///< Currently loaded game name
 extern char g_current_game_crc[7];      ///< Currently loaded game checksum
