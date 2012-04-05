@@ -25,6 +25,30 @@
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
 
+/**
+ * General struct used for describing a GX Vertex
+ *
+ * @remark
+ * This struct is designed to hold the maximum possible information describing a GX vertex, it's
+ * not necessarily all used.  Individual fields are tightly packed.  For example, if the position
+ * format is GX_S16, position[3] would look like XXXXYYYY ZZZZ0000 0000000.
+ */
+
+struct GXVertex {
+    u32 position[3];    ///< Position coords - XY or XYZ
+    u32 color0;         ///< Color0 RGB/A8
+    u32 color1;         ///< Color1 RGB/A8
+    u32 normal[9];      ///< Normals (3 or 9)
+    u32 texcoord0[2];   ///< Texture 0 coordinates (S or ST)
+    u32 texcoord1[2];   ///< Texture 1 coordinates (S or ST)
+    u32 texcoord2[2];   ///< Texture 2 coordinates (S or ST)
+    u32 texcoord3[2];   ///< Texture 3 coordinates (S or ST)
+    u32 texcoord4[2];   ///< Texture 4 coordinates (S or ST)
+    u32 texcoord5[2];   ///< Texture 5 coordinates (S or ST)
+    u32 texcoord6[2];   ///< Texture 6 coordinates (S or ST)
+    u32 texcoord7[2];   ///< Texture 7 coordinates (S or ST)
+};
+
 /// GX API primitive types
 enum GXPrimitive {
     GX_POINTS        = 0xb8,
