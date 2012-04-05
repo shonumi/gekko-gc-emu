@@ -39,10 +39,13 @@
 GLuint g_position_buffer;
 GLuint g_color0_buffer;
 GLuint g_color1_buffer;
+#define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
+
+static int offset_in_bytes = 0;
 
 /// Draw a vertex array
 void RendererGL2::DrawPrimitive() {
-
+    
     int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
     int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
 
@@ -65,19 +68,6 @@ void RendererGL2::DrawPrimitive() {
     pmtx44[4]  = pmtx[1]; pmtx44[5]  = pmtx[5]; pmtx44[6]  = pmtx[9]; pmtx44[7]  = 0;
     pmtx44[8]  = pmtx[2]; pmtx44[9]  = pmtx[6]; pmtx44[10] = pmtx[10];pmtx44[11] = 0;
     pmtx44[12] = pmtx[3]; pmtx44[13] = pmtx[7]; pmtx44[14] = pmtx[11]; pmtx44[15] = 1;
-
-
-    /*
-    glm::mat4 Projection      = glm::mat4(1.0f);
-
-    i = 0, j = 0, k = 0;
-
-    for (i=3;i>=0;i--) {
-    for (j=3;j>=0;j--) {
-    Projection[j][i] = gp::g_projection_matrix[k];
-    k++;
-    }
-    }*/
 
     // Update XF matrices
     GLuint m_id = glGetUniformLocation(shader_id_, "projectionMatrix");
@@ -121,28 +111,7 @@ void RendererGL2::DrawPrimitive() {
         quad_buff[new_size+15] = gp::g_position_burst_buffer[i+0];
         quad_buff[new_size+16] = gp::g_position_burst_buffer[i+1];
         quad_buff[new_size+17] = gp::g_position_burst_buffer[i+2];
-
-
-      /*  quad_buff[new_size+0] = gp::g_position_burst_buffer[i+0];
-
-
-
-
-
-        quad_buff[new_size+1] = gp::g_position_burst_buffer[i+1];
-        quad_buff[new_size+2] = gp::g_position_burst_buffer[i+2];
-        quad_buff[new_size+3] = gp::g_position_burst_buffer[i+2];
-        quad_buff[new_size+4] = gp::g_position_burst_buffer[i+3];
-        quad_buff[new_size+5] = gp::g_position_burst_buffer[i+0];*/
         /*
-        quad_col_buff[new_col_size+0] = gp::g_color_burst_buffer[col_i+0];
-        quad_col_buff[new_col_size+1] = gp::g_color_burst_buffer[col_i+1];
-        quad_col_buff[new_col_size+2] = gp::g_color_burst_buffer[col_i+2];
-        quad_col_buff[new_col_size+3] = gp::g_color_burst_buffer[col_i+2];
-        quad_col_buff[new_col_size+4] = gp::g_color_burst_buffer[col_i+3];
-        quad_col_buff[new_col_size+5] = gp::g_color_burst_buffer[col_i+0];*/
-
-
         quad_col_buff[new_size+0] = gp::g_color_burst_buffer[i+0];
         quad_col_buff[new_size+1] = gp::g_color_burst_buffer[i+1];
         quad_col_buff[new_size+2] = gp::g_color_burst_buffer[i+2];
@@ -165,7 +134,7 @@ void RendererGL2::DrawPrimitive() {
 
         quad_col_buff[new_size+15] = gp::g_color_burst_buffer[i+0];
         quad_col_buff[new_size+16] = gp::g_color_burst_buffer[i+1];
-        quad_col_buff[new_size+17] = gp::g_color_burst_buffer[i+2];
+        quad_col_buff[new_size+17] = gp::g_color_burst_buffer[i+2];*/
 
 
         new_size+=18;
@@ -174,28 +143,31 @@ void RendererGL2::DrawPrimitive() {
     
     new_size = position_buffer_size + position_buffer_size/2;
 
-
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, g_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, new_size*4, quad_buff, GL_STATIC_DRAW);
-
+    glBufferSubData(GL_ARRAY_BUFFER, offset_in_bytes*4, new_size*4, quad_buff);
+    //offset_in_bytes += new_size;
+    
     glVertexAttribPointer(
         0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
         3,                  // size
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
         0,                  // stride
-        (void*)0            // array buffer offset
+        BUFFER_OFFSET(offset_in_bytes*4)            // array buffer offset
         );
-
+    
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, new_size); // Starting from vertex 0; 3 vertices total -> 1 triangle
-    //glDrawElements(GL_TRIANGLES, position_buffer_size, GL_FLOAT, gp::g_position_burst_buffer);
+    glDrawArrays(GL_TRIANGLES, 0, new_size/3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    //glDrawElements(GL_TRIANGLES, new_size, GL_FLOAT, 0);
+
+    offset_in_bytes += new_size;
+    /**///glDrawElements(GL_TRIANGLES, position_buffer_size, GL_FLOAT, gp::g_position_burst_buffer);
     glDisableVertexAttribArray(0);
-
+    
     ///////////////////////////////////////////////////////////////////////
-
+  /*  
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, g_color0_buffer);
@@ -209,9 +181,9 @@ void RendererGL2::DrawPrimitive() {
         0,                                // stride
         (void*)0                          // array buffer offset
         );
-    //glDisableVertexAttribArray(1);
-
-
+    //glDisableVertexAttribArray(1);*/
+    
+    
     //printf("RendererGL2::DrawPrimitive()\n");
 }
 
@@ -246,7 +218,7 @@ void RendererGL2::SwapBuffers() {
     glFlush();
     
     render_window_->SwapBuffers();
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
     input_common::g_user_input->PollEvent();
@@ -265,6 +237,8 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         sprintf(title, "gekko-gl2 - %02.02f fps", fps);
         render_window_->SetTitle(title);
     }
+
+    offset_in_bytes = 0;
 }
 
 /// Set the window of the emulator
@@ -326,6 +300,12 @@ void RendererGL2::Init() {
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &g_position_buffer);
     glGenBuffers(1, &g_color0_buffer);
+
+    glBindBuffer(GL_ARRAY_BUFFER, g_position_buffer);
+    glBufferData(GL_ARRAY_BUFFER, 1024*1024*4, NULL, GL_DYNAMIC_DRAW); // 4MB VBO :-) NULL - allocate, but not initialize
+
+
+
     //glGenBuffers(1, &g_color1_buffer);
 
     char vs[1024] = "#version 120\n" \
@@ -343,7 +323,7 @@ void RendererGL2::Init() {
         "in vec3 fragmentColor;\n" \
         "out vec3 color;\n" \
         "void main() {\n" \
-        "    color = fragmentColor;\n" \
+        "    color = vec3(1.0, 0.0, 0.0);\n" \
         "}\n";
 
     shader_id_ = GenerateShader(vs, fs);

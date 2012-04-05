@@ -29,6 +29,7 @@
 #include <GL/glfw.h>
 
 #include "common.h"
+#include "gx_types.h"
 #include "renderer_base.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,11 +37,99 @@
 
 class RendererGL3  : virtual public RendererBase {
 public:
-    RendererGL3() : resolution_width_(640), resolution_height_(480) {};
+    RendererGL3();
     ~RendererGL3() {};
 
-    /// Draw a vertex array
-    void DrawPrimitive();
+    /**
+     * Begin renderering of a primitive
+     * @param prim Primitive type (e.g. GX_TRIANGLES)
+     * @param count Number of vertices to be drawn (used for appropriate memory management, only)
+     */
+    void BeginPrimitive(GXPrimitive prim, int count);
+
+    /**
+     * Set the type of postion vertex data
+     * @param type Position data type (e.g. GX_F32)
+     * @param count Position data count (e.g. GX_POS_XYZ)
+     */
+    void VertexPosition_SetType(GXCompType type, GXCompCnt count);
+
+    /**
+     * Send a position vector to the renderer as 32-bit floating point
+     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
+     */
+    void VertexPosition_SendFloat(f32* vec);
+
+    /**
+     * Send a position vector to the renderer as 16-bit short (signed or unsigned)
+     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
+     */
+    void VertexPosition_SendShort(u16* vec);
+
+    /**
+     * Send a position vector to the renderer an 8-bit byte (signed or unsigned)
+     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
+     */
+    void VertexPosition_SendByte(u8* vec);
+
+    /**
+     * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
+     * @param count Color data count (e.g. GX_CLR_RGBA)
+     */
+    void VertexColor0_SetType(GXCompCnt count);
+
+    /**
+     * Send a vertex color 0 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+     * @param color Color to send, packed as RRGGBBAA or RRGGBB00
+     */
+    void VertexColor0_Send(u32 color);
+    
+    /**
+     * Set the type of color 1 vertex data - type is always RGB8/RGBA8, just set count
+     * @param count Color data count (e.g. GX_CLR_RGBA)
+     */
+    void VertexColor1_SetType(GXCompCnt count);
+
+    /**
+     * Send a vertex color 1 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+     * @param color Color to send, packed as RRGGBBAA or RRGGBB00
+     */
+    void VertexColor1_Send(u32 color);
+
+    /**
+     * Set the type of texture coordinate vertex data
+     * @param texcoord 0-7 texcoord to set type of
+     * @param type Texcoord data type (e.g. GX_F32)
+     * @param count Texcoord data count (e.g. GX_TEX_ST)
+     */
+    void VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count);
+
+    /**
+     * Send a texcoord vector to the renderer as 32-bit floating point
+     * @param texcoord 0-7 texcoord to configure
+     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
+     */
+    void VertexTexcoord_SendFloat(int texcoord, f32* vec);
+
+    /**
+     * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
+     * @param texcoord 0-7 texcoord to configure
+     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
+     */
+    void VertexTexcoord_SendShort(int texcoord, u16* vec);
+
+    /**
+     * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
+     * @param texcoord 0-7 texcoord to configure
+     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
+     */
+    void VertexTexcoord_SendByte(int texcoord, u8* vec);
+
+    /// Done with the current vertex - go to the next
+    void VertexNext();
+
+    /// End a primitive (signal renderer to draw it)
+    void EndPrimitive();
 
     /// Sets the renderer viewport location, width, and height
     void SetViewport(int x, int y, int width, int height);
@@ -54,9 +143,14 @@ public:
     /// Sets the renderer culling mode
     void SetCullMode();
 
+    /// Swap the display buffers (finish drawing frame)
     void SwapBuffers();
-    void SetWindowText(const char* text);
-    void SetWindowSize(int width, int height);
+
+    /*! 
+     * \brief Set the window of the emulator
+     * \param window EmuWindow handle to emulator window to use for rendering
+     */
+    void SetWindow(EmuWindow* window);
 
     void Init();
     void PollEvent();
@@ -64,10 +158,28 @@ public:
 
 private:
 
+    void InitFramebuffer();
+    void RenderFramebuffer();
+
+    unsigned int fbo_;          ///< The frame buffer object  
+    unsigned int fbo_depth_;    ///< The depth buffer for the frame buffer object  
+    unsigned int fbo_texture_;  ///< The texture object to write our frame buffer object to  
+
     int resolution_width_;
     int resolution_height_;
 
-    GLuint shader_id_;
+    GLuint      vbo_handle_;                ///< Handle to the GL VBO
+    GXVertex*   vbo_;                       ///< Pointer to VBO data (when mapped)
+    GLintptr    vbo_write_ofs_;             ///< Pointer to end of the VBO
+    
+    GLuint      vertex_position_format_;            ///< OpenGL position format (e.g. GL_FLOAT)
+    int         vertex_position_format_size_;       ///< Number of bytes to represent one coordinate
+    GXCompCnt   vertex_position_component_count_;   ///< Number of coordinates (2 - XY, 3 - XYZ)
+    int         vertex_num_;                        ///< Number of vertices
+
+    EmuWindow*  render_window_;
+
+    GLuint      generic_shader_id_;
 
     DISALLOW_COPY_AND_ASSIGN(RendererGL3);
 };

@@ -31,8 +31,23 @@ RendererBase::RendererBase() {
 RendererBase::~RendererBase() {
 }
 
-/// Draw a vertex array
-void RendererBase::DrawPrimitive() {
+//// Send vertex position data to the renderer
+void RendererBase::SendVertexPosition(void* data, GXCompType type) {
+    printf("RendererBase::SendVertexPosition()\n");
+}
+
+/// Send vertex color data to the renderer
+void RendererBase::SendVertexColor0(void* data, GXCompType type) {
+    printf("RendererBase::SendVertexColor0()\n");
+}
+
+//// Send vertex color 1 data to the renderer
+void RendererBase::SendVertexColor1(void* data, GXCompType type) {
+    printf("RendererBase::SendVertexColor1()\n");
+}
+
+/// Draws a primitive from the previously decoded vertex array
+void RendererBase::DrawPrimitive(GXPrimitive prim_type, GXCompCnt cmp_cnt) {
     printf("RendererBase::DrawPrimitive()\n");
 }
 

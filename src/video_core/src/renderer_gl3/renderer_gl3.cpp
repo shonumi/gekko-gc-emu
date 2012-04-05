@@ -33,104 +33,269 @@
 #include "renderer_gl3.h"
 
 #include <glm/glm.hpp>  
-//#include <glm/gtc/matrix_projection.hpp>  
 #include <glm/gtc/matrix_transform.hpp> 
 
-GLuint g_position_buffer;
-GLuint g_color0_buffer;
-GLuint g_color1_buffer;
+GLuint g_fb_quad_buffer;
 
-/// Draw a vertex array
-void RendererGL3::DrawPrimitive() {
+static const f32 g_identity[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f, 
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f, 
+    0.0f, 0.0f, 0.0f, 1.0f
+};
 
-    int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
-    int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
+static int verts_per_frame = 0;
+//static int g_offset_in_bytes = 0;
 
+#define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
 
-    //position_buffer_size *= 2;
+/// RendererGL3 constructor
+RendererGL3::RendererGL3() {
+    fbo_ = 0;          
+    fbo_depth_;    
+    fbo_texture_;  
+    resolution_width_ = 640;
+    resolution_height_ = 480;
+    vbo_handle_ = 0;
+    vbo_ = NULL;
+    vbo_write_ofs_ = 0;
+    vertex_position_format_ = 0;
+    vertex_position_format_size_ = 0;
+    vertex_position_component_count_ = (GXCompCnt)0;
+    vertex_num_ = 0;                       
+    render_window_ = NULL;
+    generic_shader_id_ = 0;
+}
 
-    //f32* test =(f32*) malloc(position_buffer_size*4);
+/// Sets up the renderer for drawing a primitive
+void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
+    static u32 flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT; //GL_MAP_FLUSH_EXPLICIT_BIT;
+    int size = count * sizeof(GXVertex);
+    vertex_num_ = 0;
 
+    // Bind pointers to buffers
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
+    vbo_ = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, vbo_write_ofs_, size, flags);
+    if (vbo_ == NULL) {
+        LOG_ERROR(TVIDEO, "Unable to map vertex buffer object to system mem!");
+    }
 
-    
+    vbo_write_ofs_ += size;
+}
+
+/**
+ * Set the type of postion vertex data
+ * @param type Position data type (e.g. GX_F32)
+ * @param count Position data count (e.g. GX_POS_XYZ)
+ */
+void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
+    static GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
+    static GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
+    vertex_position_format_ = gl_types[type];
+    vertex_position_format_size_ = gl_types_size[type];
+    vertex_position_component_count_ = count;
+}
+
+/**
+ * Send a position vector to the renderer as 32-bit floating point
+ * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
+ */
+void RendererGL3::VertexPosition_SendFloat(f32* vec) {
+    f32* ptr = (f32*)vbo_->position;
+    ptr[0] = vec[0];
+    ptr[1] = vec[1];
+    ptr[2] = vec[2];
+}
+
+/**
+ * Send a position vector to the renderer as 16-bit short (signed or unsigned)
+ * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
+ */
+void RendererGL3::VertexPosition_SendShort(u16* vec) {
+    u16* ptr = (u16*)vbo_->position;
+    ptr[0] = vec[0];
+    ptr[1] = vec[1];
+    ptr[2] = vec[2];
+}
+
+/**
+ * Send a position vector to the renderer an 8-bit byte (signed or unsigned)
+ * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
+ */
+void RendererGL3::VertexPosition_SendByte(u8* vec) {
+    u8* ptr = (u8*)vbo_->position;
+    ptr[0] = vec[0];
+    ptr[1] = vec[1];
+    ptr[2] = vec[2];
+}
+
+/**
+ * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
+ * @param count Color data count (e.g. GX_CLR_RGBA)
+ */
+void RendererGL3::VertexColor0_SetType(GXCompCnt count) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Send a vertex color 0 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+ * @param color Color to send, packed as RRGGBBAA or RRGGBB00
+ */
+void RendererGL3::VertexColor0_Send(u32 color) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Set the type of color 1 vertex data - type is always RGB8/RGBA8, just set count
+ * @param count Color data count (e.g. GX_CLR_RGBA)
+ */
+void RendererGL3::VertexColor1_SetType(GXCompCnt count) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Send a vertex color 1 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+ * @param color Color to send, packed as RRGGBBAA or RRGGBB00
+ */
+void RendererGL3::VertexColor1_Send(u32 color) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Set the type of texture coordinate vertex data
+ * @param texcoord 0-7 texcoord to set type of
+ * @param type Texcoord data type (e.g. GX_F32)
+ * @param count Texcoord data count (e.g. GX_TEX_ST)
+ */
+void RendererGL3::VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Send a texcoord vector to the renderer as 32-bit floating point
+ * @param texcoord 0-7 texcoord to configure
+ * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
+ */
+void RendererGL3::VertexTexcoord_SendFloat(int texcoord, f32* vec) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
+ * @param texcoord 0-7 texcoord to configure
+ * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
+ */
+void RendererGL3::VertexTexcoord_SendShort(int texcoord, u16* vec) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/**
+ * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
+ * @param texcoord 0-7 texcoord to configure
+ * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
+ */
+void RendererGL3::VertexTexcoord_SendByte(int texcoord, u8* vec) {
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
+}
+
+/// Done with the current vertex - go to the next
+void RendererGL3::VertexNext() {
+    vbo_++;
+    vertex_num_++;
+}
+
+/// Draws a primitive from the previously decoded vertex array
+void RendererGL3::EndPrimitive() {
+    //glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
+    //int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
+    //int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
+
+    //glUnmapBuffer(GL_ARRAY_BUFFER);
+
     f32* pmtx = XF_GEOMETRY_MATRIX;
     f32 pmtx44[16];
 
-    //glm::mat4 Model      = glm::mat4(1.0f);
-
     int i = 0, j = 0, k = 15;
 
-	// convert 4x3 ode to gl 4x4
-	pmtx44[0]  = pmtx[0]; pmtx44[1]  = pmtx[4]; pmtx44[2]  = pmtx[8]; pmtx44[3]  = 0;
-	pmtx44[4]  = pmtx[1]; pmtx44[5]  = pmtx[5]; pmtx44[6]  = pmtx[9]; pmtx44[7]  = 0;
-	pmtx44[8]  = pmtx[2]; pmtx44[9]  = pmtx[6]; pmtx44[10] = pmtx[10];pmtx44[11] = 0;
-	pmtx44[12] = pmtx[3]; pmtx44[13] = pmtx[7]; pmtx44[14] = pmtx[11]; pmtx44[15] = 1;
-
-
-/*
-    glm::mat4 Projection      = glm::mat4(1.0f);
-
-    i = 0, j = 0, k = 0;
-
-    for (i=3;i>=0;i--) {
-        for (j=3;j>=0;j--) {
-            Projection[j][i] = gp::g_projection_matrix[k];
-            k++;
-        }
-    }*/
+    // convert 4x3 ode to gl 4x4
+    pmtx44[0]  = pmtx[0]; pmtx44[1]  = pmtx[4]; pmtx44[2]  = pmtx[8]; pmtx44[3]  = 0;
+    pmtx44[4]  = pmtx[1]; pmtx44[5]  = pmtx[5]; pmtx44[6]  = pmtx[9]; pmtx44[7]  = 0;
+    pmtx44[8]  = pmtx[2]; pmtx44[9]  = pmtx[6]; pmtx44[10] = pmtx[10];pmtx44[11] = 0;
+    pmtx44[12] = pmtx[3]; pmtx44[13] = pmtx[7]; pmtx44[14] = pmtx[11]; pmtx44[15] = 1;
 
     // Update XF matrices
-    GLuint m_id = glGetUniformLocation(shader_id_, "projectionMatrix");
+    GLuint m_id = glGetUniformLocation(generic_shader_id_, "projectionMatrix");
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &gp::g_projection_matrix[0]);
-    //m_id = glGetUniformLocation(shader_id_, "viewMatrix");
-    //glUniformMatrix4fv(m_id, 1, GL_FALSE, &identity[0][0]);
 
-
-    m_id = glGetUniformLocation(shader_id_, "modelMatrix");
+    m_id = glGetUniformLocation(generic_shader_id_, "modelMatrix");
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &pmtx44[0]);
-/*
-    f32 quad_buff[0x1000];
-
+    
+    /*
+    s16 quad_buff[0x1000];
+    int new_col_size = 0;
+    int new_color_size = 0;
     int new_size = 0;
+    int col_i = 0;
     for (int i = 0; i < position_buffer_size;) {
         quad_buff[new_size+0] = gp::g_position_burst_buffer[i+0];
         quad_buff[new_size+1] = gp::g_position_burst_buffer[i+1];
         quad_buff[new_size+2] = gp::g_position_burst_buffer[i+2];
-        quad_buff[new_size+3] = gp::g_position_burst_buffer[i+1];
-        quad_buff[new_size+4] = gp::g_position_burst_buffer[i+2];
-        quad_buff[new_size+5] = gp::g_position_burst_buffer[i+3];
-        new_size+=6;
-        i+=4;
-    }
-    */
 
+        quad_buff[new_size+3] = gp::g_position_burst_buffer[i+3];
+        quad_buff[new_size+4] = gp::g_position_burst_buffer[i+4];
+        quad_buff[new_size+5] = gp::g_position_burst_buffer[i+5];
 
+        quad_buff[new_size+6] = gp::g_position_burst_buffer[i+6];
+        quad_buff[new_size+7] = gp::g_position_burst_buffer[i+7];
+        quad_buff[new_size+8] = gp::g_position_burst_buffer[i+8];
+
+        quad_buff[new_size+9] = gp::g_position_burst_buffer[i+6];
+        quad_buff[new_size+10] = gp::g_position_burst_buffer[i+7];
+        quad_buff[new_size+11] = gp::g_position_burst_buffer[i+8];
+
+        quad_buff[new_size+12] = gp::g_position_burst_buffer[i+9];
+        quad_buff[new_size+13] = gp::g_position_burst_buffer[i+10];
+        quad_buff[new_size+14] = gp::g_position_burst_buffer[i+11];
+
+        quad_buff[new_size+15] = gp::g_position_burst_buffer[i+0];
+        quad_buff[new_size+16] = gp::g_position_burst_buffer[i+1];
+        quad_buff[new_size+17] = gp::g_position_burst_buffer[i+2];
+        
+        //quad_col_buff[new_size+0] = gp::g_color_burst_buffer[i+0]; // 0
+
+        new_size+=18;
+        i+=12;
+    }*/
+    
+    //new_size = position_buffer_size + position_buffer_size/2;
 
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, g_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, position_buffer_size*4, gp::g_position_burst_buffer, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    //glBufferSubData(GL_ARRAY_BUFFER, g_offset_in_bytes*4, new_size*4, quad_buff);
 
     glVertexAttribPointer(
-       0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-       3,                  // size
-       GL_FLOAT,           // type
-       GL_FALSE,           // normalized?
-       0,                  // stride
-       (void*)0            // array buffer offset
-    );
- 
+        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        3,                  // size
+        GL_SHORT,           // type
+        GL_FALSE,           // normalized?
+        sizeof(GXVertex),   // stride
+        BUFFER_OFFSET(0)            // array buffer offset
+        );
+    
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, position_buffer_size); // Starting from vertex 0; 3 vertices total -> 1 triangle
-    //glDrawElements(GL_TRIANGLES, position_buffer_size, GL_FLOAT, gp::g_position_burst_buffer);
+    glDrawArrays(GL_TRIANGLES, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    //g_offset_in_bytes += new_size;
+
     glDisableVertexAttribArray(0);
-
+    
     ///////////////////////////////////////////////////////////////////////
-
+  /*
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, g_color0_buffer);
-    glBufferData(GL_ARRAY_BUFFER, color0_buffer_size, gp::g_color_burst_buffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, new_size*4, quad_col_buff, GL_STATIC_DRAW);
 
     glVertexAttribPointer(
         1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
@@ -139,11 +304,8 @@ void RendererGL3::DrawPrimitive() {
         GL_FALSE,                         // normalized?
         0,                                // stride
         (void*)0                          // array buffer offset
-    );
-    //glDisableVertexAttribArray(1);
-
-
-    //printf("RendererGL3::DrawPrimitive()\n");
+        );
+        */
 }
 
 
@@ -165,23 +327,13 @@ void RendererGL3::SetDepthTest() {
 void RendererGL3::SetCullMode() {
 }
 
-/// Sets the projection matrix
-/*void RendererGL3::SetProjection(f32* mtx) {
-	glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf((GLfloat*)mtx);
-	glMatrixMode(GL_MODELVIEW);
-}*/
-
 /// Swap buffers (render frame)
-void RendererGL3::SwapBuffers() {	
+void RendererGL3::SwapBuffers() {
+    //RenderFramebuffer();
     glfwSwapBuffers();
-    glClear(GL_COLOR_BUFFER_BIT);
-
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	static u32 swaps = 0, last = 0;
-	//static int fps = 0;
-
 	u32 t = SDL_GetTicks();
 	swaps++;
 		
@@ -193,48 +345,86 @@ void RendererGL3::SwapBuffers() {
 		sprintf(title, "gekko-glfw - %02.02f fps", fps);
         glfwSetWindowTitle(title);
 	}
-
-    /*
-// setup code
-
-    static u32 startclock = SDL_GetTicks();
-    u32 deltaclock = 0;
-    u32 currentFPS = 0;
-
-// actual fps calculation inside loop
-
-    deltaclock = SDL_GetTicks() - startclock;
-    startclock = SDL_GetTicks();
-		
-    if (deltaclock != 0) {
-        char title[100];
-        currentFPS = 1000 / deltaclock;
-        sprintf(title, "gekko-glfw - %d fps", currentFPS);
-        glfwSetWindowTitle(title);
-    }*/
-  
+    vbo_write_ofs_ = 0; // Reset VBO position
 }
 
-/*! 
- * \brief Set the window text of the renderer
- * \param text Text so set the window title bar to
- */
-void RendererGL3::SetWindowText(const char* text) {
-    printf("RendererGL3::SetWindowText()\n");
-}
-
-/*! 
- * \brief Set the window size of the renderer
- * \param text Text so set the window title bar to
- */
-void RendererGL3::SetWindowSize(int width, int height) {
-    printf("RendererGL3::SetWindowSize()\n");
+/// Set the window of the emulator
+void RendererGL3::SetWindow(EmuWindow* window) {
+    render_window_ = window;
 }
 
 /// Shutdown the renderer
 void RendererGL3::ShutDown() {
     printf("RendererGL3::Init()\n");
 }
+
+/// Renders the framebuffer quad to the screen
+void RendererGL3::RenderFramebuffer() {
+/*    // Framebuffer quad: XXXYY : X is position, Y is texcoordd
+    static f32 fb_quad_verts[30] = {
+        -1.0f,  -1.0f,  0.0f,   0.0f,   0.0f, 
+        -1.0f,  1.0f,   0.0f,   0.0f,   1.0f,
+        1.0f,   1.0f,   0.0f,   1.0f,   1.0f,
+        1.0f,   1.0f,   0.0f,   1.0f,   1.0f,
+        1.0f,   -1.0f,  0.0f,   1.0f,   0.0f,
+        -1.0f,  -1.0f,  0.0f,   0.0f,   0.0f
+    };
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+    // Don't transform - Load identity matrix
+    glUniformMatrix4fv(glGetUniformLocation(generic_shader_id_, "projectionMatrix"), 1, GL_FALSE, g_identity);
+    glUniformMatrix4fv(glGetUniformLocation(generic_shader_id_, "modelMatrix"), 1, GL_FALSE, g_identity);
+
+    // Load vertex data
+    glBindBuffer(GL_ARRAY_BUFFER, g_fb_quad_buffer);
+    glBufferData(GL_ARRAY_BUFFER, 30*4, fb_quad_verts, GL_STATIC_DRAW);
+
+    // Draw framebuffer quad
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, g_fb_quad_buffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    /*
+    glClientActiveTexture(GL_TEXTURE0);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, g_fb_quad_buffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, BUFFER_OFFSET(12));
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    */
+
+    //glDisableVertexAttribArray(0);
+
+
+}
+
+void RendererGL3::InitFramebuffer() {
+    // Init the depth buffer
+  /*  glGenRenderbuffers(1, &fbo_depth); // Generate one render buffer and store the ID in fbo_depth  
+    glBindRenderbuffer(GL_RENDERBUFFER, fbo_depth); // Bind the fbo_depth render buffer 
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, resolution_width_, 
+        resolution_height_); // Set the render buffer storage to be a depth component
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 
+        fbo_depth); // Set the render buffer of this buffer to the depth buffer 
+    glBindRenderbuffer(GL_RENDERBUFFER, 0); // Unbind the render buffer  
+
+    // Init the framebuffer texture
+    glGenTextures(1, &fbo_texture); // Generate one texture  
+    glBindTexture(GL_TEXTURE_2D, fbo_texture); // Bind the texture fbo_texture  
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resolution_width_, resolution_height_, 0, GL_RGBA, 
+        GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture  
+
+    // Init the framebuffer display quad
+    glGenBuffers(1, &g_fb_quad_buffer);
+    */
+} 
 
 /// Generate vertex and fragment shader programs
 GLuint GenerateShader(const char * vertex_shader,const char * fragment_shader){
@@ -271,15 +461,15 @@ void RendererGL3::Init() {
         exit(E_ERR);
     }
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
-    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0);
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
     glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-   // glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16); // 2X AA
+    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16); // 2X AA
 
     
 
-    if(!glfwOpenWindow(resolution_width_, resolution_height_, 0, 0, 0, 0, 32, 0, GLFW_WINDOW)) {
+    if(!glfwOpenWindow(640, 480, 0, 0, 0, 0, 32, 0, GLFW_WINDOW)) {
         LOG_ERROR(TVIDEO, "Failed to open GLFW window! Exiting...");
         glfwTerminate();
         exit(E_ERR);
@@ -292,6 +482,11 @@ void RendererGL3::Init() {
     //glfwSwapInterval( 1 );
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture  
+    glEnable(GL_DEPTH_TEST); // Enable depth testing
+    glPolygonMode(GL_FRONT, GL_FILL);
+    glFrontFace(GL_CW);
+    glShadeModel(GL_SMOOTH);
 
     glfwEnable( GLFW_STICKY_KEYS );
 
@@ -305,33 +500,38 @@ void RendererGL3::Init() {
         exit(E_ERR);
 	}
 
-    // This will identify our vertex buffer
-   // GLuint vertexbuffer;
- 
-    // Generate 1 buffer, put the resulting identifier in vertexbuffer
-    glGenBuffers(1, &g_position_buffer);
-    glGenBuffers(1, &g_color0_buffer);
-    //glGenBuffers(1, &g_color1_buffer);
- 
-    // The following commands will talk about our 'vertexbuffer' buffer
-  //  glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer);
- 
-
-
-
-    /*
+    // Initialize vertex buffers
+    // -------------------------
 
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
-    glGenBuffers(1, &g_vertex_buffer);
- 
-    // The following commands will talk about our 'vertexbuffer' buffer
-    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer);
- 
-    // Give our vertices to OpenGL.
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gp::g_position_burst_buffer), gp::g_position_burst_buffer, GL_DYNAMIC_DRAW);
+    glGenBuffers(1, &vbo_handle_);
 
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
+    glBufferData(GL_ARRAY_BUFFER, 1024*1024*16, NULL, GL_DYNAMIC_DRAW); // 16MB VBO - bigger? :D
+                                                        // NULL - allocate, but not initialize
 
-    */
+    // Initialize the framebuffer
+    // --------------------------
+/*
+    InitFramebuffer();
+
+    glGenFramebuffers(1, &fbo); // Generate one frame buffer and store the ID in fbo  
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo); // Bind our frame buffer  
+
+    // Attach the texture fbo_texture to the color buffer in our frame buffer 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
+
+    // Attach the depth buffer fbo_depth to our frame buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo_depth);  
+
+    // Check that the FBO initialized OK
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); 
+    if (status != GL_FRAMEBUFFER_COMPLETE) {  
+        LOG_ERROR(TVIDEO, "Couldn't create frame buffer");
+        exit(1);
+    } 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
+*/
 
 	char vs[1024] = "#version 150\n" \
                     "layout(location = 0) in vec3 position;\n" \
@@ -348,11 +548,11 @@ void RendererGL3::Init() {
                     "in vec3 fragmentColor;\n" \
                     "out vec3 color;\n" \
                     "void main() {\n" \
-                    "    color = fragmentColor;\n" \
+                    "    color = vec3(1.0f, 1.0f, 1.0f);\n" \
                     "}\n";
 
-    shader_id_ = GenerateShader(vs, fs);
-    glUseProgram(shader_id_);
+    generic_shader_id_ = GenerateShader(vs, fs);
+    glUseProgram(generic_shader_id_);
 
     glm::mat4 identity  = glm::mat4(1.0f);  // Changes for each model !
     glm::mat4 proj = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
@@ -371,14 +571,14 @@ glm::mat4 Model      = glm::mat4(1.0f);  // Changes for each model !
 glm::mat4 MVP        = Projection * View * Model; // Remember, matrix multiplication is the other way around
     
     
-    GLuint proj_id = glGetUniformLocation(shader_id_, "projectionMatrix");
+    GLuint proj_id = glGetUniformLocation(generic_shader_id_, "projectionMatrix");
     glUniformMatrix4fv(proj_id, 1, GL_FALSE, &identity[0][0]);
 
 
 
-   // GLuint view_id = glGetUniformLocation(shader_id_, "viewMatrix");
+   // GLuint view_id = glGetUniformLocation(generic_shader_id_, "viewMatrix");
    // glUniformMatrix4fv(view_id, 1, GL_FALSE, &Model[0][0]);
     
-    GLuint model_id = glGetUniformLocation(shader_id_, "modelMatrix");
+    GLuint model_id = glGetUniformLocation(generic_shader_id_, "modelMatrix");
     glUniformMatrix4fv(model_id, 1, GL_FALSE, &identity[0][0]);
 }
