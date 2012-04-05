@@ -196,7 +196,7 @@ bool FifoNextCommandReady() {
     
     case 2: // LOAD XF
         if (bytes_in_fifo >= 5) { // if header is present
-            u16 size = (4 * (FIFO_GET16(1) & 0xf) + 1);
+            u16 size = (4 * (FIFO_GET16(3) & 0xf) + 1);
             size += 5;
             if(bytes_in_fifo >= size)
             {
@@ -276,19 +276,19 @@ GP_OPCODE(UNKNOWN) {
 
 /// nop - do nothing
 GP_OPCODE(NOP) {
-    LOG_DEBUG(TGP, "Called NOP");  
+    //LOG_DEBUG(TGP, "Called NOP");  
 }
 
 // load cp register with data
 GP_OPCODE(LOAD_CP_REG) {
-	u8 addr = FIFO_POP8();
-	u32 data = FIFO_POP32();
+	u8 addr = FifoPop8();
+	u32 data = FifoPop32();
 	CPRegisterWrite(addr, data);
 }
 
 /// load xf register with data
 GP_OPCODE(LOAD_XF_REG) {
-	u32 temp    = FIFO_POP32();
+	u32 temp    = FifoPop32();
 	u16 length  = (temp >> 16) + 1;
     u16 addr    = temp & 0xFFFF;
     u32 regs[64];
@@ -296,7 +296,7 @@ GP_OPCODE(LOAD_XF_REG) {
     //ASSERT_T(length <= 64, "GP core fu***d up....");
 
 	for(int i = 0; i < length; i++) {
-        regs[i] = FIFO_POP32();
+        regs[i] = FifoPop32();
     }
 
     XFRegisterWrite(length, addr, regs);
@@ -306,8 +306,8 @@ GP_OPCODE(LOAD_XF_REG) {
 /// load xf register with data indexed A
 GP_OPCODE(LOAD_IDX_A) {
 	u8 length;
-	u16 index = FIFO_POP16();
-    u16 data = FIFO_POP16();
+	u16 index = FifoPop16();
+    u16 data = FifoPop16();
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
@@ -318,8 +318,8 @@ GP_OPCODE(LOAD_IDX_A) {
 /// load xf register with data indexed B
 GP_OPCODE(LOAD_IDX_B) {
 	u8 length;
-	u16 index = FIFO_POP16();
-    u16 data = FIFO_POP16();
+	u16 index = FifoPop16();
+    u16 data = FifoPop16();
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
@@ -330,8 +330,8 @@ GP_OPCODE(LOAD_IDX_B) {
 /// load xf register with data indexed C
 GP_OPCODE(LOAD_IDX_C) {
 	u8 length;
-	u16 index = FIFO_POP16();
-    u16 data = FIFO_POP16();
+	u16 index = FifoPop16();
+    u16 data = FifoPop16();
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
@@ -342,8 +342,8 @@ GP_OPCODE(LOAD_IDX_C) {
 /// load xf register with data indexed D
 GP_OPCODE(LOAD_IDX_D) {
 	u8 length;
-	u16 index = FIFO_POP16();
-    u16 data = FIFO_POP16();
+	u16 index = FifoPop16();
+    u16 data = FifoPop16();
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
@@ -353,8 +353,8 @@ GP_OPCODE(LOAD_IDX_D) {
 
 /// call a display list
 GP_OPCODE(CALL_DISPLAYLIST) {
-	u32 addr = FIFO_POP32();
-    u32 size = FIFO_POP32();
+	u32 addr = FifoPop32();
+    u32 size = FifoPop32();
 	//call_displaylist(addr, size);
     LOG_DEBUG(TGP, "Called CALL_DISPLAYLIST");
 }
@@ -366,20 +366,20 @@ GP_OPCODE(INVALIDATE_VERTEX_CACHE) {
 
 /// load bp register with data
 GP_OPCODE(LOAD_BP_REG) {
-    u32 data = FIFO_POP32();
+    u32 data = FifoPop32();
 	BPRegisterWrite(data >> 24, data & 0x00FFFFFF);
 }
 
 /// draw a primitive - quads
 GP_OPCODE(DRAW_QUADS) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
 	DecodePrimitive(GX_QUADS, count, g_cur_vat);
     LOG_DEBUG(TGP, "Called DRAW_QUADS");
 }
 
 /// draw a primitive - triangles
 GP_OPCODE(DRAW_TRIANGLES) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
     DecodePrimitive(GX_TRIANGLES, count, g_cur_vat);
 	//gx_vertex::draw_primitive(_gxlist, , count, vat);
     LOG_DEBUG(TGP, "Called DRAW_TRIANGLES");
@@ -387,35 +387,35 @@ GP_OPCODE(DRAW_TRIANGLES) {
 
 /// draw a primitive - trianglestrip
 GP_OPCODE(DRAW_TRIANGLESTRIP) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
 	//gx_vertex::draw_primitive(_gxlist, GL_TRIANGLE_STRIP, count, vat);
     LOG_DEBUG(TGP, "Called DRAW_TRIANGLESTRIP");
 }
 
 /// draw a primitive - trianglefan
 GP_OPCODE(DRAW_TRIANGLEFAN) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
 	//gx_vertex::draw_primitive(_gxlist, GL_TRIANGLE_FAN, count, vat);
     LOG_DEBUG(TGP, "Called DRAW_TRIANGLEFAN");
 }
 
 /// draw a primitive - lines
 GP_OPCODE(DRAW_LINES) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
 	//gx_vertex::draw_primitive(_gxlist, GL_LINES, count, vat);
     LOG_DEBUG(TGP, "Called DRAW_LINES");
 }
 
 /// draw a primitive - linestrip
 GP_OPCODE(DRAW_LINESTRIP) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
 	//gx_vertex::draw_primitive(_gxlist, GL_LINE_STRIP, count, vat);
     LOG_DEBUG(TGP, "Called DRAW_LINESTRIP");
 }
 
 /// draw a primitive - points
 GP_OPCODE(DRAW_POINTS) {
-	u16 count = FIFO_POP16();
+	u16 count = FifoPop16();
 	//gx_vertex::draw_primitive(_gxlist, GL_POINTS, count, vat);
     LOG_DEBUG(TGP, "Called DRAW_POINTS");
 }
@@ -452,7 +452,7 @@ int DecodeThread(void *unused) {
 
         // Get the next GP opcode and decode it
         if (FifoNextCommandReady()) {
-            g_cur_cmd = FIFO_POP8();
+            g_cur_cmd = FifoPop8();
             g_cur_vat = g_cur_cmd & 0x7;
             g_exec_op[GP_OPMASK(g_cur_cmd)]();
         }
