@@ -30,6 +30,8 @@ private:
     void SetGameBrowserStyle(GGameBrowser::Style style);
 
     void closeEvent(QCloseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
+    void keyReleaseEvent(QKeyEvent* event);
 
 private slots:
     void OnStartGame();

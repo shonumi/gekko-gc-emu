@@ -38,6 +38,9 @@ public:
     virtual bool Init();
     virtual void PollEvent();
     virtual void ShutDown();
+
+    virtual void PressKey(int key);
+    virtual void ReleaseKey(int key);
 private:
     DISALLOW_COPY_AND_ASSIGN(InputBase);
 };

@@ -20,6 +20,8 @@
 #include "dvd/gcm.h"
 #include "version.h"
 
+#include "input_common.h"
+
 
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
@@ -202,6 +204,7 @@ void GMainWindow::SetupEmuWindowMode()
         ui.horizontalLayout->addWidget(render_window);
         render_window->setVisible(true);
         render_window->DoneCurrent();
+        setFocus();
     }
     else if (!enable && render_window->parent() != NULL) // switch to multiple windows mode
     {
@@ -211,6 +214,7 @@ void GMainWindow::SetupEmuWindowMode()
         render_window->setVisible(true);
         render_window->DoneCurrent();
         render_window->RestoreGeometry();
+        render_window->setFocus();
     }
 }
 
@@ -271,9 +275,29 @@ void GMainWindow::closeEvent(QCloseEvent* event)
 
     // TODO: Should save Gekko config here
 
+    // Probably best to quit SDL here
+    SDL_Quit();
+
     render_window->close();
 
     QWidget::closeEvent(event);
+}
+
+// Send key events to input plugin
+void GMainWindow::keyPressEvent(QKeyEvent* event)
+{
+    if(input_common::g_user_input != NULL) {
+        int key = event->key();
+        input_common::g_user_input->PressKey(key);
+    }
+}
+
+void GMainWindow::keyReleaseEvent(QKeyEvent* event)
+{
+    if(input_common::g_user_input != NULL) {
+        int key = event->key();
+        input_common::g_user_input->ReleaseKey(key);
+    }
 }
 
 
@@ -287,6 +311,9 @@ int __cdecl main(int argc, char* argv[])
     QApplication app(argc, argv);
     GMainWindow main_window;
 
+    // Init SDL for input, events activated with VIDEO
+    if(SDL_Init(SDL_INIT_VIDEO) != 0)
+        printf("SDL input could not initialize\n");
 
     char program_dir[MAX_PATH];
     _getcwd(program_dir, MAX_PATH-1);
