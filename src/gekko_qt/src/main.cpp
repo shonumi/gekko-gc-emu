@@ -22,8 +22,6 @@
 
 #include "input_common.h"
 
-#include "X11/Xlib.h"
-
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
     ui.setupUi(this);
@@ -305,8 +303,7 @@ void GMainWindow::keyReleaseEvent(QKeyEvent* event)
 
 int __cdecl main(int argc, char* argv[])
 {
-    XInitThreads();
-    //QApplication::setAttribute(Qt::AA_X11InitThreads);
+    QApplication::setAttribute(Qt::AA_X11InitThreads);
     QApplication app(argc, argv);
     GMainWindow main_window;
 
