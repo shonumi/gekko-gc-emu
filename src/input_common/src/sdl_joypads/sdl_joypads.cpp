@@ -255,6 +255,19 @@ void SDLJoypads::ShutDown() {
 
 // Initialize the joypad - Only init 1, for testing now
 bool SDLJoypads::Init() {
+
+    // Init SDL VIDEO for input events, don't init twice
+    if(SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+        
+        if(SDL_Init(SDL_INIT_VIDEO) != 0) {
+            LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin not initialized");
+            return false;
+        }
+        
+        // Quit SDL later if initialized here
+        atexit(SDL_Quit);        
+    }
+
     //Initalize SDL joypad subsystem first of all
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 

@@ -22,6 +22,7 @@
 
 #include "input_common.h"
 
+#include "X11/Xlib.h"
 
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
@@ -275,9 +276,6 @@ void GMainWindow::closeEvent(QCloseEvent* event)
 
     // TODO: Should save Gekko config here
 
-    // Probably best to quit SDL here
-    SDL_Quit();
-
     render_window->close();
 
     QWidget::closeEvent(event);
@@ -307,13 +305,10 @@ void GMainWindow::keyReleaseEvent(QKeyEvent* event)
 
 int __cdecl main(int argc, char* argv[])
 {
-    QApplication::setAttribute(Qt::AA_X11InitThreads);
+    XInitThreads();
+    //QApplication::setAttribute(Qt::AA_X11InitThreads);
     QApplication app(argc, argv);
     GMainWindow main_window;
-
-    // Init SDL for input, events activated with VIDEO
-    if(SDL_Init(SDL_INIT_VIDEO) != 0)
-        printf("SDL input could not initialize\n");
 
     char program_dir[MAX_PATH];
     _getcwd(program_dir, MAX_PATH-1);
