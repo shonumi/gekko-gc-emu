@@ -127,6 +127,9 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent />
+    <Link>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -150,6 +153,7 @@
     <Link>
       <SpecifySectionAttributes>
       </SpecifySectionAttributes>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -200,6 +204,7 @@
       </SpecifySectionAttributes>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Outputs>
@@ -263,10 +268,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\emuwindow\emuwindow_glfw.cpp" />
+    <ClCompile Include="src\emuwindow\emuwindow_sdl.cpp" />
     <ClCompile Include="src\pcafe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="src\emuwindow\emuwindow_glfw.h" />
+    <ClInclude Include="src\emuwindow\emuwindow_sdl.h" />
     <ClInclude Include="src\pcafe.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
