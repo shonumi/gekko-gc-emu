@@ -335,7 +335,6 @@
     <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp">
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
     </ClCompile>
-    <ClCompile Include="src\video\emuwindow_sdl.cpp" />
     <ClCompile Include="src\video\gx_fifo.cpp" />
     <ClCompile Include="src\video\gx_states.cpp" />
     <ClCompile Include="src\video\gx_tev.cpp" />
@@ -386,7 +385,6 @@
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h" />
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h" />
     <ClInclude Include="src\video\emuwindow.h" />
-    <ClInclude Include="src\video\emuwindow_sdl.h" />
     <ClInclude Include="src\video\gx_fifo.h" />
     <ClInclude Include="src\video\gx_states.h" />
     <ClInclude Include="src\video\gx_tev.h" />

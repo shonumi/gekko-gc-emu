@@ -209,9 +209,6 @@
     <ClCompile Include="src\debugger\debugger.cpp">
       <Filter>debugger</Filter>
     </ClCompile>
-    <ClCompile Include="src\video\emuwindow_sdl.cpp">
-      <Filter>video</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\hw\hw.h">
@@ -352,9 +349,6 @@
       <Filter>debugger</Filter>
     </ClInclude>
     <ClInclude Include="src\video\emuwindow.h">
-      <Filter>video</Filter>
-    </ClInclude>
-    <ClInclude Include="src\video\emuwindow_sdl.h">
       <Filter>video</Filter>
     </ClInclude>
   </ItemGroup>
