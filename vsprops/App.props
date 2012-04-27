@@ -12,7 +12,7 @@
     <PostBuildEvent>
       <Command>xcopy $(SolutionDir)data $(GekkoBinDir) /Y /S /D
 xcopy $(ExternalsDir)glew-1.6.0\bin$(PlatformArchitecture)\glew32.dll $(GekkoBinDir) /Y /S /D
-xcopy $(ExternalsDir)sdl-1.2.15\lib\$(PlatformName)\SDL.dll $(GekkoBinDir) /Y /S /D</Command>
+xcopy $(ExternalsDir)sdl-2.0.0\lib\$(PlatformName)\SDL.dll $(GekkoBinDir) /Y /S /D</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

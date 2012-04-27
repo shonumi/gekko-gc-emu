@@ -14,7 +14,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\common\src;$(SolutionDir)src\input_common\src;$(SolutionDir)src\video_core\src;$(SolutionDir)src\core\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\common\src;$(SolutionDir)src\input_common\src;$(SolutionDir)src\video_core\src;$(SolutionDir)src\core\src;$(SolutionDir)src\pcafe\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
