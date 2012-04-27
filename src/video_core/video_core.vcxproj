@@ -31,7 +31,6 @@
     <ClCompile Include="src\cp_mem.cpp" />
     <ClCompile Include="src\fifo.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
-    <ClCompile Include="src\renderer_gl3\shader_manager.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
     <ClCompile Include="src\video_core.cpp" />
     <ClCompile Include="src\xf_mem.cpp" />
