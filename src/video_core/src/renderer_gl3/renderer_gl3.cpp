@@ -285,7 +285,7 @@ void RendererGL3::EndPrimitive() {
         );
     
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    glDrawArrays(GL_LINES_ADJACENCY, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
     //g_offset_in_bytes += new_size;
 
     glDisableVertexAttribArray(0);
@@ -330,7 +330,7 @@ void RendererGL3::SetCullMode() {
 /// Swap buffers (render frame)
 void RendererGL3::SwapBuffers() {
     //RenderFramebuffer();
-    glfwSwapBuffers();
+    render_window_->SwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	static u32 swaps = 0, last = 0;
@@ -343,7 +343,7 @@ void RendererGL3::SwapBuffers() {
 		swaps = 0;
 		last = t;
 		sprintf(title, "gekko-glfw - %02.02f fps", fps);
-        glfwSetWindowTitle(title);
+        render_window_->SetTitle(title);
 	}
     vbo_write_ofs_ = 0; // Reset VBO position
 }
@@ -427,28 +427,35 @@ void RendererGL3::InitFramebuffer() {
 } 
 
 /// Generate vertex and fragment shader programs
-GLuint GenerateShader(const char * vertex_shader,const char * fragment_shader){
+GLuint GenerateShader(const char * vs, const char* gs, const char* fs){
     // Create the shaders
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint vs_id = glCreateShader(GL_VERTEX_SHADER);
+    GLuint gs_id = glCreateShader(GL_GEOMETRY_SHADER);
+    GLuint fs_id = glCreateShader(GL_FRAGMENT_SHADER);
  
     // Compile Vertex Shader
-    glShaderSource(VertexShaderID, 1, &vertex_shader , NULL);
-    glCompileShader(VertexShaderID);
+    glShaderSource(vs_id, 1, &vs , NULL);
+    glCompileShader(vs_id);
+ 
+    // Compile Geometry Shader
+    glShaderSource(gs_id, 1, &gs , NULL);
+    glCompileShader(gs_id);
  
     // Compile Fragment Shader
-    glShaderSource(FragmentShaderID, 1, &fragment_shader , NULL);
-    glCompileShader(FragmentShaderID);
+    glShaderSource(fs_id, 1, &fs , NULL);
+    glCompileShader(fs_id);
  
     // Link the program
     GLuint program_id = glCreateProgram();
-    glAttachShader(program_id, VertexShaderID);
-    glAttachShader(program_id, FragmentShaderID);
+    glAttachShader(program_id, vs_id);
+    glAttachShader(program_id, gs_id);
+    glAttachShader(program_id, fs_id);
     glLinkProgram(program_id);
  
     // Cleanup
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
+    glDeleteShader(vs_id);
+    glDeleteShader(gs_id);
+    glDeleteShader(fs_id);
  
     return program_id;
 }
@@ -456,29 +463,7 @@ GLuint GenerateShader(const char * vertex_shader,const char * fragment_shader){
 /// Initialize the renderer and create a window
 void RendererGL3::Init() {
 
-    if(!glfwInit()) {
-        LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
-        exit(E_ERR);
-    }
-    glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16); // 2X AA
 
-    
-
-    if(!glfwOpenWindow(640, 480, 0, 0, 0, 0, 32, 0, GLFW_WINDOW)) {
-        LOG_ERROR(TVIDEO, "Failed to open GLFW window! Exiting...");
-        glfwTerminate();
-        exit(E_ERR);
-    }
-    LOG_NOTICE(TVIDEO, "OpenGL Context: %d.%d initialzed ok\n", 
-        glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR), 
-        glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR));
-
-    glfwSetWindowTitle("gekko-glfw");
     //glfwSwapInterval( 1 );
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -543,6 +528,24 @@ void RendererGL3::Init() {
                     "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
                     "    fragmentColor = vertexColor;\n" \
                     "}";
+
+    char gs[1024] = "#version 150\n" \
+                    "precision highp float;\n" \
+                    "layout (lines_adjacency) in;\n" \
+                    "layout (triangle_strip) out;\n" \
+                    "layout (max_vertices = 4) out;\n" \
+                    "void main(void) {\n" \
+                    "   int i;\n" \
+                    "   gl_Position = gl_in[0].gl_Position;\n" \
+                    "   EmitVertex();\n" \
+                    "   gl_Position = gl_in[1].gl_Position;\n" \
+                    "   EmitVertex();\n" \
+                    "   gl_Position = gl_in[3].gl_Position;\n" \
+                    "   EmitVertex();\n" \
+                    "   gl_Position = gl_in[2].gl_Position;\n" \
+                    "   EmitVertex();\n" \
+                    "   EndPrimitive();\n" \
+                    "}";
  
     char fs[1024] = "#version 150\n" \
                     "in vec3 fragmentColor;\n" \
@@ -551,7 +554,7 @@ void RendererGL3::Init() {
                     "    color = vec3(1.0f, 1.0f, 1.0f);\n" \
                     "}\n";
 
-    generic_shader_id_ = GenerateShader(vs, fs);
+    generic_shader_id_ = GenerateShader(vs, gs, fs);
     glUseProgram(generic_shader_id_);
 
     glm::mat4 identity  = glm::mat4(1.0f);  // Changes for each model !
