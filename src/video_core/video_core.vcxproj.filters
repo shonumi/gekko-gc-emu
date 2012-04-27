@@ -10,6 +10,9 @@
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer_gl3\shader_manager.cpp">
+      <Filter>renderer_gl3</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />

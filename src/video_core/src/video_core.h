@@ -1,12 +1,12 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    video_core.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-08
- * \brief   Main module for new video core
+ * @file    video_core.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-08
+ * @brief   Main module for new video core
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -28,7 +28,7 @@
 #include "common.h"
 #include "renderer_base.h"
 
-//#define USE_NEW_VIDEO_CORE
+#define USE_NEW_VIDEO_CORE
 
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
