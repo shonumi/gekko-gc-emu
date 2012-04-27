@@ -33,7 +33,7 @@
 #include "hw/hw.h"
 #include "video_core.h"
 #include "video/opengl.h"
-#include "video/emuwindow_sdl.h"
+#include "emuwindow/emuwindow_sdl.h"
 
 #include "pcafe.h"
 
