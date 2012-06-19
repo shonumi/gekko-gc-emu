@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    renderer_gl3.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-09
- * \brief   Implementation of a OpenGL 3.3 renderer
+ * @file    renderer_gl3.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-09
+ * @brief   Implementation of a OpenGL 3.3 renderer
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
