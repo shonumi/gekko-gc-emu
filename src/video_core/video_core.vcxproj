@@ -31,6 +31,7 @@
     <ClCompile Include="src\cp_mem.cpp" />
     <ClCompile Include="src\fifo.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
+    <ClCompile Include="src\renderer_gl3\shader_manager.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
     <ClCompile Include="src\video_core.cpp" />
     <ClCompile Include="src\xf_mem.cpp" />
@@ -42,6 +43,8 @@
     <ClInclude Include="src\gx_types.h" />
     <ClInclude Include="src\renderer_base.h" />
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h" />
+    <ClInclude Include="src\renderer_gl3\shader_base_types.h" />
+    <ClInclude Include="src\renderer_gl3\shader_manager.h" />
     <ClInclude Include="src\vertex_loader.h" />
     <ClInclude Include="src\video_core.h" />
     <ClInclude Include="src\xf_mem.h" />
