@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "video_core", "src\video_cor
 		{DFE335FC-755D-4BAA-8452-94434F8A1EDB} = {DFE335FC-755D-4BAA-8452-94434F8A1EDB}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gekko", "src\gekko\gekko.vcxproj", "{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -97,6 +99,18 @@ Global
 		{6678D1A3-33A6-48A9-878B-48E5D2903D27}.Release|Win32.Build.0 = Release|Win32
 		{6678D1A3-33A6-48A9-878B-48E5D2903D27}.Release|x64.ActiveCfg = Release|x64
 		{6678D1A3-33A6-48A9-878B-48E5D2903D27}.Release|x64.Build.0 = Release|x64
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Debug|Win32.Build.0 = Debug|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Debug|x64.ActiveCfg = Debug|x64
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Debug|x64.Build.0 = Debug|x64
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.DebugFast|Win32.ActiveCfg = DebugFast|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.DebugFast|Win32.Build.0 = DebugFast|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.DebugFast|x64.ActiveCfg = DebugFast|x64
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.DebugFast|x64.Build.0 = DebugFast|x64
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Release|Win32.ActiveCfg = Release|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Release|Win32.Build.0 = Release|Win32
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Release|x64.ActiveCfg = Release|x64
+		{CE7D2C07-21CE-4590-81AB-2ADA88A2B85F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
