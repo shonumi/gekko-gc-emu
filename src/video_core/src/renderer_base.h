@@ -35,7 +35,8 @@ public:
     RendererBase() {
     }
 
-    ~RendererBase();
+    ~RendererBase() {
+    }
 
     /**
      * Begin renderering of a primitive
