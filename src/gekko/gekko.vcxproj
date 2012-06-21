@@ -66,6 +66,7 @@
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\CodeGen_Debug.props" />
     <Import Project="..\..\vsprops\App.props" />
+    <Import Project="..\..\vsprops\Optimization_Debug.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -73,6 +74,7 @@
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\CodeGen_Debug.props" />
     <Import Project="..\..\vsprops\App.props" />
+    <Import Project="..\..\vsprops\Optimization_Debug.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -80,6 +82,7 @@
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\CodeGen_Release.props" />
     <Import Project="..\..\vsprops\App.props" />
+    <Import Project="..\..\vsprops\Optimization_Release.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -87,6 +90,7 @@
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\CodeGen_Release.props" />
     <Import Project="..\..\vsprops\App.props" />
+    <Import Project="..\..\vsprops\Optimization_Release.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -94,6 +98,7 @@
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
     <Import Project="..\..\vsprops\App.props" />
+    <Import Project="..\..\vsprops\Optimization_DebugFast.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -101,6 +106,7 @@
     <Import Project="..\..\vsprops\Externals.props" />
     <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
     <Import Project="..\..\vsprops\App.props" />
+    <Import Project="..\..\vsprops\Optimization_DebugFast.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
@@ -127,8 +133,10 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent />
+    <Link />
     <Link>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
