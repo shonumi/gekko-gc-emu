@@ -42,11 +42,14 @@ RendererBase*   g_renderer;         ///< Renderer plugin
 SDL_Thread      *g_video_thread;
 
 int VideoThreadEntry(void *unused) {
-    EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
-    g_renderer = new RendererGL3();
-    g_renderer->SetWindow(emu_window);
-    g_renderer->Init();
-    gp::DecodeThread(NULL);
+    #if EMU_PLATFORM == PLATFORM_WINDOWS
+        EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
+        g_renderer = new RendererGL3();
+        g_renderer->SetWindow(emu_window);
+        g_renderer->Init();
+        gp::DecodeThread(NULL);
+    #endif
+
     return 0;
 }
 

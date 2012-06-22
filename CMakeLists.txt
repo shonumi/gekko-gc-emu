@@ -44,6 +44,7 @@ include_directories(src/core/src)
 include_directories(src/video_core/src)
 include_directories(src/input_common/src)
 include_directories(src/win32/src)
+include_directories(src/gekko/src)
 
 # process subdirectories
 if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND AND QT_QTOPENGL_FOUND AND NOT DISABLE_QT4)

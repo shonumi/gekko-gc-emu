@@ -28,7 +28,9 @@
 #include "common.h"
 #include "renderer_base.h"
 
-#define USE_NEW_VIDEO_CORE
+#if EMU_PLATFORM == PLATFORM_WINDOWS
+    #define USE_NEW_VIDEO_CORE
+#endif
 
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
