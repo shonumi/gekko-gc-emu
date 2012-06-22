@@ -216,8 +216,8 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     // Position
     pos->vcd = VCD_POS;
     if (pos->vcd) {
-        pos->cnt = VAT_POSCNT;
-        pos->fmt = VAT_POSFMT;
+        pos->cnt = (GXCompCnt)VAT_POSCNT;
+        pos->fmt = (GXCompType)VAT_POSFMT;
         pos->dqf = 1.0f / (1 << VAT_POSSHFT);
         pos->vtx_format = kVertexPositionSize[VTX_FORMAT_PTR(pos)];
        // pos->vtx_format_vcd = (void*)gx_send_pos_if32_XYz;
@@ -226,8 +226,8 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     // Normal
     nrm->vcd = VCD_NRM;
     if (nrm->vcd) {
-        nrm->cnt = VAT_NRMCNT;
-        nrm->fmt = VAT_NRMFMT;
+        nrm->cnt = (GXCompCnt)VAT_NRMCNT;
+        nrm->fmt = (GXCompType)VAT_NRMFMT;
         nrm->vtx_format = kVertexNormalSize[VTX_FORMAT_PTR(nrm)];
 //        nrm->vtx_format_vcd = (void*)gx_send_col_irgba8;
     }
@@ -235,8 +235,8 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     // Color 0
     col0->vcd = VCD_COL0;
     if (col0->vcd) {
-        col0->cnt = VAT_COL0CNT;
-        col0->fmt = VAT_COL0FMT;
+        col0->cnt = (GXCompCnt)VAT_COL0CNT;
+        col0->fmt = (GXCompType)VAT_COL0FMT;
         col0->vtx_format = kVertexColorSize[VTX_FORMAT_PTR(col0)];
        // col0->vtx_format_vcd = (void *)gx_send_col_irgba8;
     }
@@ -244,8 +244,8 @@ inline void DecodeVertexFormat(u8 vat, VertexData* pos, VertexData* nrm, VertexD
     // Color 1
     col1->vcd = VCD_COL1;
     if (col1->vcd) {
-        col1->cnt = VAT_COL1CNT;
-        col1->fmt = VAT_COL1FMT;
+        col1->cnt = (GXCompCnt)VAT_COL1CNT;
+        col1->fmt = (GXCompType)VAT_COL1FMT;
         col1->vtx_format = kVertexColorSize[VTX_FORMAT_PTR(col1)];
 //        col1->vtx_format_vcd = (void *)gx_send_col[VTX_FORMAT_VCD(col1)];
     }
@@ -385,7 +385,7 @@ void DecodePrimitive(GXPrimitive type, int count, u8 vat) {
     //get_vertex(vat);
 
     video_core::g_renderer->BeginPrimitive(type, count);
-    //video_core::g_renderer->VertexPosition_SetType(type, count);
+    video_core::g_renderer->VertexPosition_SetType(pos.fmt, pos.cnt);
 
     for (int i = 0; i < count; i++) {
         DecodeVertex(vat, pos, nrm, col0, col1);
