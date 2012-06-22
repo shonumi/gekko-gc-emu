@@ -32,7 +32,7 @@
 #include "gx_types.h"
 #include "renderer_base.h"
 
-#define USE_GEOMETRY_SHADERS        1
+//#define USE_GEOMETRY_SHADERS        1
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.3 Renderer
@@ -170,9 +170,19 @@ private:
     int resolution_width_;
     int resolution_height_;
 
+    // Framebuffer object
+    // ------------------
+
+    GLuint      fbo_primary_;               ///< Primary framebuffer object that things render to
+    GLuint      fbo_primary_rbo_;           ///< Primary framebuffer object's render bugger object
+    GLuint      fbo_primary_depth_buffer_;
+
+    // Vertex buffer object
+    // --------------------
+
     GLuint      vbo_handle_;                ///< Handle to the GL VBO
     GXVertex*   vbo_;                       ///< Pointer to VBO data (when mapped, in GPU mem)
-    GXVertex**  vbo_ptr_;                   ///< Pointer to VBO
+    GXVertex**  vbo_ptr_;                   ///< Pointer to VBO (used for switching to quad buff)
     GXVertex*   quad_vbo_;                  ///< Buffer for temporarily storing quads in CPU mem
     GXVertex*   quad_vbo_ptr_;              ///< Ptr to quad_vbo_
     GLintptr    vbo_write_ofs_;             ///< Pointer to end of the VBO

@@ -34,12 +34,6 @@
 
 namespace gp {
 
-extern s16* g_position_burst_ptr;
-extern s16  g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
-
-extern u8*  g_color_burst_ptr;
-extern u8   g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
-
 /*!
  * \brief Decode a primitive type
  * \param type Type of primitive (e.g. points, lines, triangles, etc.)

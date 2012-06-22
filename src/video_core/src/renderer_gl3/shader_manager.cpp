@@ -116,10 +116,13 @@ void Init() {
     shader_default_id = CompileShaderProgram(kDefaultVertexShader, 
                                              NULL, 
                                              kDefaultFragmentShader);
-
+#ifdef USE_GEOMETRY_SHADERS
     shader_default_quads_id = CompileShaderProgram(kDefaultVertexShader, 
                                                    kDefaultGeometryShaderQuads,
-                                                   kDefaultFragmentShader);
+                                                   kDefaultFragmentShaderQuads);
+#else
+    shader_default_quads_id = shader_default_id;
+#endif
 
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }

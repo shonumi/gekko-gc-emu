@@ -29,13 +29,13 @@
 const char kDefaultVertexShader[] = 
     "#version 150\n" \
     "layout(location = 0) in vec3 position;\n" \
-    "layout(location = 1) in vec3 vertexColor;\n" \
-    "out vec3 fragmentColor;\n" \
+    "layout(location = 1) in vec4 col0;\n" \
     "uniform mat4 projectionMatrix;\n" \
     "uniform mat4 modelMatrix;\n" \
+    "out vec4 vertexColor;\n" \
     "void main() {\n" \
     "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
-    "    fragmentColor = vertexColor;\n" \
+    "    vertexColor = vec4(col0[3]/255.0f, col0[2]/255.0f, col0[1]/255.0f, col0[0]/255.0f);\n" \
     "}";
 
 /// Default Geometry Shader (Quads), otherwise disabled
@@ -45,14 +45,20 @@ const char kDefaultGeometryShaderQuads[] =
     "layout (lines_adjacency) in;\n" \
     "layout (triangle_strip) out;\n" \
     "layout (max_vertices = 4) out;\n" \
+    "in vec4 vertexColor[];\n" \
+    "out vec4 gsColor;\n" \
     "void main(void) {\n" \
     "   gl_Position = gl_in[0].gl_Position;\n" \
+    "   gsColor = vertexColor[0];\n" \
     "   EmitVertex();\n" \
     "   gl_Position = gl_in[1].gl_Position;\n" \
+    "   gsColor = vertexColor[1];\n" \
     "   EmitVertex();\n" \
     "   gl_Position = gl_in[3].gl_Position;\n" \
+    "   gsColor = vertexColor[2];\n" \
     "   EmitVertex();\n" \
     "   gl_Position = gl_in[2].gl_Position;\n" \
+    "   gsColor = vertexColor[3];\n" \
     "   EmitVertex();\n" \
     "   EndPrimitive();\n" \
     "}";
@@ -60,10 +66,19 @@ const char kDefaultGeometryShaderQuads[] =
 /// Default fragment shader
 const char kDefaultFragmentShader[] =
     "#version 150\n" \
-    "in vec3 fragmentColor;\n" \
-    "out vec3 color;\n" \
+    "in vec4 vertexColor;\n" \
+    "out vec3 fragmentColor;\n" \
     "void main() {\n" \
-    "    color = vec3(1.0f, 0.0f, 0.0f);\n" \
-    "}\n";;
+    "    fragmentColor = vertexColor.rgb;\n" \
+    "}\n";
+
+/// Default fragment shader for Quads
+const char kDefaultFragmentShaderQuads[] =
+    "#version 150\n" \
+    "in vec4 gsColor;\n" \
+    "out vec3 fragmentColor;\n" \
+    "void main() {\n" \
+    "    fragmentColor = gsColor.rgb;\n" \
+    "}\n";
 
 #endif // VIDEO_CORE_SHADER_BASE_TYPES_H_

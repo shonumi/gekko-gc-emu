@@ -33,62 +33,6 @@ namespace gp {
 
 typedef void (*VertexLoaderTable)(u16);	
 
-s16*    g_position_burst_ptr;
-s16     g_position_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
-
-u8*    g_color_burst_ptr;
-u8     g_color_burst_buffer[0x10000]; // TODO(ShizZy): Find a good size for this
-
-/*!
- * \brief Send a 2D position vertex to be rendered
- * \param x x-position
- * \param y y-position
- */
-static inline void SendPositionXY(f32 x, f32 y) {
-    *g_position_burst_ptr = x;
-    g_position_burst_ptr++;
-    *g_position_burst_ptr = y;
-    g_position_burst_ptr++;
-}
-
-/*!
- * \brief Send a 3D position vertex to be rendered
- * \param x x-position
- * \param y y-position
- * \param z z-position
- */
-static inline void SendPositionXYZ(s16 x, s16 y, s16 z) {
-    *g_position_burst_ptr = x;
-    g_position_burst_ptr++;
-    *g_position_burst_ptr = y;
-    g_position_burst_ptr++;
-    *g_position_burst_ptr = z;
-    g_position_burst_ptr++;
-
-    LOG_DEBUG(TGP, "SentVertex-> %02.04f %02.04f %02.04f", x, y, z);
-    //LOG_DEBUG(TGP, "SentPosition-> \t%f\t%f\t%f", x, y, z);
-}
-
-/*!
- * \brief Send a RGB color for the previously specified vertex
- * \param r Red component  
- * \param g Green component
- * \param b Blue component 
- * \param a Alpha component
- */
-static inline void SendColorRGBA(u8 r, u8 g, u8 b, u8 a) {
-    *g_color_burst_ptr = r;
-    g_color_burst_ptr++;
-    *g_color_burst_ptr = g;
-    g_color_burst_ptr++;
-    *g_color_burst_ptr = b;
-    g_color_burst_ptr++;
-   // *g_color_burst_ptr = a;
-   // g_color_burst_ptr++;
-  //  LOG_DEBUG(TGP, "SendColorRGBA-> \t%f\t%f\t%f\t%f", r, g, b, a);
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __inline u16 MemoryRead16(u32 addr)
@@ -134,6 +78,7 @@ static void VertexPosition_IF32_XYZ(u16 index) {
 	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
+// correct
 static void VertexPosition_IS16_XYZ(u16 index)
 {
 	s16 v[3];
@@ -177,7 +122,7 @@ VERTEXLOADER_POSITION_UNDEF(IU16_XYZ);
 //VERTEXLOADER_POSITION_UNDEF(IS16_XYZ);
 //VERTEXLOADER_POSITION_UNDEF(IF32_XYZ);
 
-VertexLoaderTable VertexLoad[0x40] = {
+VertexLoaderTable LookupPosition[0x40] = {
     VertexPosition_Unk, VertexPosition_DU8_XY,  VertexPosition_IU8_XY,  VertexPosition_IU8_XY,  	 
     VertexPosition_Unk, VertexPosition_DS8_XY,  VertexPosition_IS8_XY,  VertexPosition_IS8_XY,  
     VertexPosition_Unk, VertexPosition_DU16_XY, VertexPosition_IU16_XY, VertexPosition_IU16_XY, 	 
@@ -199,15 +144,53 @@ VertexLoaderTable VertexLoad[0x40] = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Color Decoding
 
-// correct
-static void VertexColor_I8_RGBA8(VertexData *vtx) {
-	u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(vtx->index));
-    u8 r = (rgba >> 24);
-    u8 g = ((rgba >> 16) & 0xff);
-    u8 b = ((rgba >> 8) & 0xff);
-    u8 a = (rgba & 0xff);
-   // SendColorRGBA(r, g, b, a);
+
+#define VERTEXLOADER_COLOR_UNDEF(name)   void VertexColor_##name(u16 index) { \
+    LOG_ERROR(TGP, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__ ); \
+    logger::Crash(); \
 }
+
+static void VertexColor_Unk(u16 index) {
+    LOG_ERROR(TGP, "Unknown Vertex position!!! Ask neobrain to implement me!");
+    logger::Crash();
+}
+
+// correct
+static void VertexColor_IRGBA8(u16 index) {
+	u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(index));
+    video_core::g_renderer->VertexColor0_Send(rgba);
+}
+
+VERTEXLOADER_COLOR_UNDEF(DRGB565);
+VERTEXLOADER_COLOR_UNDEF(DRGB8)
+VERTEXLOADER_COLOR_UNDEF(DRGBA4);
+VERTEXLOADER_COLOR_UNDEF(DRGBA6);
+VERTEXLOADER_COLOR_UNDEF(DRGBA8);
+
+VERTEXLOADER_COLOR_UNDEF(IRGB565);
+VERTEXLOADER_COLOR_UNDEF(IRGB8);
+VERTEXLOADER_COLOR_UNDEF(IRGBA4);
+VERTEXLOADER_COLOR_UNDEF(IRGBA6);
+//VERTEXLOADER_COLOR_UNDEF(IRGBA8);
+
+VertexLoaderTable LookupColor[0x40] = {
+	VertexColor_Unk,    VertexColor_DRGB565,    VertexColor_IRGB565,    VertexColor_IRGB565, 
+	VertexColor_Unk,    VertexColor_DRGB8,      VertexColor_IRGB8,      VertexColor_IRGB8, // 7
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_IRGB8,      VertexColor_IRGB8, 
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, // 15
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, 
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_IRGBA8,     VertexColor_IRGBA8, // 23
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, 
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, // 31
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, 
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, // 39
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, 
+	VertexColor_Unk,    VertexColor_DRGBA4,     VertexColor_IRGBA4,     VertexColor_IRGBA4, // 47
+	VertexColor_Unk,    VertexColor_DRGBA6,     VertexColor_IRGBA6,     VertexColor_IRGBA6, 
+	VertexColor_Unk,    VertexColor_DRGBA8,     VertexColor_IRGBA8,     VertexColor_IRGBA8, // 55
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk, 
+	VertexColor_Unk,    VertexColor_Unk,        VertexColor_Unk,        VertexColor_Unk
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIMITIVE DECODING
@@ -263,20 +246,15 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
     case 0: // no data present
         break;
     case 1: // direct
-        //pos.position = offset; // store vertex data position
-        //offset+=pos.vtx_format; // offset over data..
-        //pos.vtx_format_vcd(&pos); 
+        LookupPosition[VTX_FORMAT_VCD(pos)](0);
         break;
     case 2: // 8bit index
         pos.index = FifoPop8();
-        //VertexPosition_I8_F32_XYZ(pos.index);
-        VertexLoad[VTX_FORMAT_VCD(pos)](pos.index);
+        LookupPosition[VTX_FORMAT_VCD(pos)](pos.index);
         break;
     case 3: // 16bit index
         pos.index = FifoPop16();
-        //pos.index = _gxlist->get16(offset);
-        //offset+=2;
-        //((gxtable)pos.vtx_format_vcd)(_gxlist, &pos); 
+        LookupPosition[VTX_FORMAT_VCD(pos)](pos.index);
         break;
     }
 
@@ -310,31 +288,17 @@ inline void DecodeVertex(u8 vat, VertexData pos, VertexData nrm, VertexData col0
     switch(col0.vcd)
     {
     case 0: // no data present
-        //glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         break;
     case 1: // direct
-        //col0.position = offset; // store vertex data position
-        //offset+=col0.vtx_format; // offset over data
-        //((gxtable)col0.vtx_format_vcd)(_gxlist, &col0); 
-        //glColor4bv((GLbyte *)cv->color);
-
-
+        LookupColor[VTX_FORMAT_VCD(col0)](0);
         break;
     case 2: // 8bit index
-        //col0.index = _gxlist->get8(offset++);
-        //((gxtable)col0.vtx_format_vcd)(_gxlist, &col0); 
-        //glColor4bv((GLbyte *)cv->color);
-
         col0.index = FifoPop8();
-        VertexColor_I8_RGBA8(&col0);
-
+        LookupColor[VTX_FORMAT_VCD(col0)](col0.index);
         break;
     case 3: // 16bit index 
-        FifoPop16();
-        //col0.index = _gxlist->get16(offset);
-        //offset+=2;
-        //((gxtable)col0.vtx_format_vcd)(_gxlist, &col0); 
-        //glColor4bv((GLbyte *)cv->color);
+        col0.index = FifoPop16();
+        LookupColor[VTX_FORMAT_VCD(col0)](col0.index);
         break;
     }
 
@@ -393,10 +357,6 @@ void DecodePrimitive(GXPrimitive type, int count, u8 vat) {
     }
     
     video_core::g_renderer->EndPrimitive();
-
-    // End of burst - Reset buffers
-    g_position_burst_ptr    = g_position_burst_buffer;
-    g_color_burst_ptr       = g_color_burst_buffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -404,8 +364,6 @@ void DecodePrimitive(GXPrimitive type, int count, u8 vat) {
 
 /// Initialize the Vertex Loader
 void VertexLoaderInit() {
-    g_position_burst_ptr = g_position_burst_buffer;
-    g_color_burst_ptr = g_color_burst_buffer;
 }
 
 /// Shutdown the Vertex Loader

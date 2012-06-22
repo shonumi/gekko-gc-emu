@@ -181,8 +181,8 @@ void RendererGL3::VertexColor0_SetType(GXCompCnt count) {
  * Send a vertex color 0 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
  * @param color Color to send, packed as RRGGBBAA or RRGGBB00
  */
-void RendererGL3::VertexColor0_Send(u32 color) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+void RendererGL3::VertexColor0_Send(u32 rgba) {
+    (*vbo_ptr_)->color0 = rgba;
 }
 
 /**
@@ -198,7 +198,7 @@ void RendererGL3::VertexColor1_SetType(GXCompCnt count) {
  * @param color Color to send, packed as RRGGBBAA or RRGGBB00
  */
 void RendererGL3::VertexColor1_Send(u32 color) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+    //(*vbo_ptr_)->color1 = color;
 }
 
 /**
@@ -274,9 +274,6 @@ void RendererGL3::VertexNext() {
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive() {
-    int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
-    //int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
-
     //glUnmapBuffer(GL_ARRAY_BUFFER);
 
     f32* pmtx = XF_GEOMETRY_MATRIX;
@@ -298,18 +295,13 @@ void RendererGL3::EndPrimitive() {
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &pmtx44[0]);
 
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                          // size
-        vertex_position_format_,    // type
-        GL_FALSE,                   // normalized?
-        sizeof(GXVertex),           // stride
-        BUFFER_OFFSET(0)            // array buffer offset
-        );
+    glVertexAttribPointer(0, 3, vertex_position_format_, GL_FALSE, sizeof(GXVertex), BUFFER_OFFSET(0));
+    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), BUFFER_OFFSET(12));
     
     // When quads, compensate for extra triangles (4 vertices->6)
 #ifndef USE_GEOMETRY_SHADERS
@@ -320,7 +312,8 @@ void RendererGL3::EndPrimitive() {
 
     glDrawArrays(gl_prim_type_, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
 
-    //glDisableVertexAttribArray(0); ? I don't think this needs to be called
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 }
 
 
@@ -344,10 +337,22 @@ void RendererGL3::SetCullMode() {
 
 /// Swap buffers (render frame)
 void RendererGL3::SwapBuffers() {
-    //RenderFramebuffer();
+
+    GLenum fbo_buffs[] = { GL_COLOR_ATTACHMENT0 };
+
+    // FBO->Window copy
+    RenderFramebuffer();
+    
+    // Swap buffers
     render_window_->SwapBuffers();
+
+    // Switch back to FBO and clear
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_primary_);
+    glDrawBuffers(1, fbo_buffs);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // FPS stuff
+    // TODO(ShizZy): this doesn't belong here.. move elsewhere
 	static u32 swaps = 0, last = 0;
 	u32 t = SDL_GetTicks();
 	swaps++;
@@ -360,6 +365,7 @@ void RendererGL3::SwapBuffers() {
 		sprintf(title, "gekko-glfw - %02.02f fps | OMGZ new video", fps);
         render_window_->SetTitle(title);
 	}
+
     vbo_write_ofs_ = 0; // Reset VBO position
 }
 
@@ -370,63 +376,90 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 
 /// Shutdown the renderer
 void RendererGL3::ShutDown() {
-    printf("RendererGL3::Shutdown()\n");
+
+    // Framebuffer object
+    // ------------------
+
+    glDeleteFramebuffers(1, &fbo_primary_);
+
+    // TODO(ShizZy): There is a lot more stuff we should be cleaning up here...
 }
 
 /// Renders the framebuffer quad to the screen
 void RendererGL3::RenderFramebuffer() {
-/*    // Framebuffer quad: XXXYY : X is position, Y is texcoordd
-    static f32 fb_quad_verts[30] = {
-        -1.0f,  -1.0f,  0.0f,   0.0f,   0.0f, 
-        -1.0f,  1.0f,   0.0f,   0.0f,   1.0f,
-        1.0f,   1.0f,   0.0f,   1.0f,   1.0f,
-        1.0f,   1.0f,   0.0f,   1.0f,   1.0f,
-        1.0f,   -1.0f,  0.0f,   1.0f,   0.0f,
-        -1.0f,  -1.0f,  0.0f,   0.0f,   0.0f
-    };
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-    // Don't transform - Load identity matrix
-    glUniformMatrix4fv(glGetUniformLocation(generic_shader_id_, "projectionMatrix"), 1, GL_FALSE, g_identity);
-    glUniformMatrix4fv(glGetUniformLocation(generic_shader_id_, "modelMatrix"), 1, GL_FALSE, g_identity);
+    // Render target is default framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glViewport(0, 0, resolution_width_, resolution_height_);
 
-    // Load vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, g_fb_quad_buffer);
-    glBufferData(GL_ARRAY_BUFFER, 30*4, fb_quad_verts, GL_STATIC_DRAW);
+    // Render source is our primary FBO
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_primary_);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    // Draw framebuffer quad
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, g_fb_quad_buffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, 0);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    /*
-    glClientActiveTexture(GL_TEXTURE0);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, g_fb_quad_buffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, BUFFER_OFFSET(12));
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    */
-
-    //glDisableVertexAttribArray(0);
-
-
+    // Blit
+    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
+                      0, 0, resolution_width_, resolution_height_,
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST );
 }
 
 void RendererGL3::InitFramebuffer() {
-    // Init the depth buffer
-  /*  glGenRenderbuffers(1, &fbo_depth); // Generate one render buffer and store the ID in fbo_depth  
-    glBindRenderbuffer(GL_RENDERBUFFER, fbo_depth); // Bind the fbo_depth render buffer 
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, resolution_width_, 
-        resolution_height_); // Set the render buffer storage to be a depth component
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 
-        fbo_depth); // Set the render buffer of this buffer to the depth buffer 
-    glBindRenderbuffer(GL_RENDERBUFFER, 0); // Unbind the render buffer  
+
+    // Init the framebuffer
+    // --------------------
+
+    glGenFramebuffers(1, &fbo_primary_); // Generate primary framebuffer
+    //glBindFramebuffer(GL_FRAMEBUFFER, fbo_primary_); // Bind our frame buffer  
+
+    // Attach the texture fbo_texture to the color buffer in our frame buffer 
+/*    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
+
+    // Attach the depth buffer fbo_depth to our frame buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo_depth);  
+
+    // Check that the FBO initialized OK
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); 
+    if (status != GL_FRAMEBUFFER_COMPLETE) {  
+        LOG_ERROR(TVIDEO, "Couldn't create frame buffer");
+        exit(1);
+    } 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
+
+    */
+
+
+
+    // Init the render buffer
+    // ----------------------
+
+    glGenRenderbuffers(1, &fbo_primary_rbo_); // Generate primary RBOs
+    glGenRenderbuffers(1, &fbo_primary_depth_buffer_); // Generate primary depth buffer
+    
+    glBindRenderbuffer(GL_RENDERBUFFER, fbo_primary_rbo_); // Bind the RBO color buffer
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, 640, 480);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, fbo_primary_depth_buffer_); // Bind the depth buffer
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, 640, 480);
+
+
+    // Attach buffers
+    // --------------
+
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_primary_);
+    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, fbo_primary_depth_buffer_);
+    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                              GL_RENDERBUFFER, fbo_primary_rbo_);
+
+
+
+
+   // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 
+   //     fbo_primary_rbo_); // Set the render buffer of this buffer to the depth buffer 
+   // glBindRenderbuffer(GL_RENDERBUFFER, 0); // Unbind the render buffer  
 
     // Init the framebuffer texture
-    glGenTextures(1, &fbo_texture); // Generate one texture  
+    /*glGenTextures(1, &fbo_texture); // Generate one texture  
     glBindTexture(GL_TEXTURE_2D, fbo_texture); // Bind the texture fbo_texture  
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resolution_width_, resolution_height_, 0, GL_RGBA, 
         GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height
@@ -437,8 +470,24 @@ void RendererGL3::InitFramebuffer() {
     glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture  
 
     // Init the framebuffer display quad
-    glGenBuffers(1, &g_fb_quad_buffer);
-    */
+    glGenBuffers(1, &g_fb_quad_buffer);*/
+
+    //GLenum fboStatus = 
+
+    if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)) {
+        LOG_NOTICE(TGP, "framebuffer initialized ok");
+    } else {
+        LOG_ERROR(TVIDEO, "Couldn't create OpenGL frame buffer");
+        exit(1);
+    } 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
+
+    /////////////////////////////////////
+
+
+
+
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
 } 
 
 /// Initialize the renderer and create a window
@@ -480,28 +529,8 @@ void RendererGL3::Init() {
 
     // Initialize the framebuffer
     // --------------------------
-/*
+
     InitFramebuffer();
-
-    glGenFramebuffers(1, &fbo); // Generate one frame buffer and store the ID in fbo  
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo); // Bind our frame buffer  
-
-    // Attach the texture fbo_texture to the color buffer in our frame buffer 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
-
-    // Attach the depth buffer fbo_depth to our frame buffer
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo_depth);  
-
-    // Check that the FBO initialized OK
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); 
-    if (status != GL_FRAMEBUFFER_COMPLETE) {  
-        LOG_ERROR(TVIDEO, "Couldn't create frame buffer");
-        exit(1);
-    } 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
-*/
-
-
 
     shader_manager::Init();
 
