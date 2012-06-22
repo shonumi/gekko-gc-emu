@@ -29,14 +29,14 @@
 const char kDefaultVertexShader[] = 
     "#version 150\n" \
     "layout(location = 0) in vec3 position;\n" \
-     "layout(location = 1) in vec3 vertexColor;\n" \
-     "out vec3 fragmentColor;\n" \
-     "uniform mat4 projectionMatrix;\n" \
-     "uniform mat4 modelMatrix;\n" \
-     "void main() {\n" \
-     "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
-     "    fragmentColor = vertexColor;\n" \
-     "}";
+    "layout(location = 1) in vec3 vertexColor;\n" \
+    "out vec3 fragmentColor;\n" \
+    "uniform mat4 projectionMatrix;\n" \
+    "uniform mat4 modelMatrix;\n" \
+    "void main() {\n" \
+    "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
+    "    fragmentColor = vertexColor;\n" \
+    "}";
 
 /// Default Geometry Shader (Quads), otherwise disabled
 const char kDefaultGeometryShaderQuads[] =
