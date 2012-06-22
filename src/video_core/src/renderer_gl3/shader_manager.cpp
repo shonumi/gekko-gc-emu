@@ -30,6 +30,8 @@
 
 namespace shader_manager {
 
+GLuint current_shader_id;       ///< Handle to current shader program
+
 GLuint shader_default_id;       ///< Handle to default shader program
 GLuint shader_default_quads_id; ///< Handle to default quads shader program
 
@@ -38,95 +40,86 @@ GLuint shader_default_quads_id; ///< Handle to default quads shader program
  * @param type GXPrimitive type of current primitive
  */
 void SetPrimitive(GXPrimitive type) {
-    //if (type == GX_QUADS) {
-        glUseProgram(shader_default_quads_id);
-    //} else {
-    //    glUseProgram(shader_default_id);
-   /// }
+    if (type == GX_QUADS) {
+        current_shader_id = shader_default_quads_id;
+    } else {
+        current_shader_id = shader_default_id;
+    }
+    glUseProgram(current_shader_id);
 }
 
-/// Initializes the default shaders for general use
-GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs){
+/**
+ * @brief Gets the shader ID of the current shader program
+ * @return GLuint of current shader ID
+ */
+GLuint GetCurrentShaderID() {
+    return current_shader_id;
+}
+
+/**
+ * @brief Compiles a shader program
+ * @param vs Vertex shader program source string
+ * @param gs Geometry shader program source string (optional)
+ * @param fs Fragment shader program source string
+ * @remark When geometry shaders are not available (e.g. OpenGL ES), the "gs" parameter is unused
+ * @return GLuint of new shader program
+ */
+GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
     // Create the shaders
+    GLuint gs_id = 0;
     GLuint vs_id = glCreateShader(GL_VERTEX_SHADER);
-    GLuint gs_id = glCreateShader(GL_GEOMETRY_SHADER);
     GLuint fs_id = glCreateShader(GL_FRAGMENT_SHADER);
- 
+
+#ifdef USE_GEOMETRY_SHADERS
+    if (NULL != gs) {
+        gs_id = glCreateShader(GL_GEOMETRY_SHADER);
+
+        // Compile Geometry Shader
+        glShaderSource(gs_id, 1, &gs , NULL);
+        glCompileShader(gs_id);
+    }
+#endif
+
     // Compile Vertex Shader
     glShaderSource(vs_id, 1, &vs , NULL);
     glCompileShader(vs_id);
- 
-    // Compile Geometry Shader
-    glShaderSource(gs_id, 1, &gs , NULL);
-    glCompileShader(gs_id);
  
     // Compile Fragment Shader
     glShaderSource(fs_id, 1, &fs , NULL);
     glCompileShader(fs_id);
  
-    // Link the program
+    // Create the program
     GLuint program_id = glCreateProgram();
     glAttachShader(program_id, vs_id);
-    glAttachShader(program_id, gs_id);
+#ifdef USE_GEOMETRY_SHADERS
+    if (NULL != gs) {
+        glAttachShader(program_id, gs_id);
+    }
+#endif
     glAttachShader(program_id, fs_id);
     glLinkProgram(program_id);
- 
+
     // Cleanup
     glDeleteShader(vs_id);
+#ifdef USE_GEOMETRY_SHADERS
     glDeleteShader(gs_id);
+#endif
     glDeleteShader(fs_id);
- 
+
+
     return program_id;
 }
 
 /// Initialize the shader manager
 void Init() {
 
-	char vs[1024] = "#version 150\n" \
-                    "layout(location = 0) in vec3 position;\n" \
-                    "layout(location = 1) in vec3 vertexColor;\n" \
-                    "out vec3 fragmentColor;\n" \
-                    "uniform mat4 projectionMatrix;\n" \
-                    "uniform mat4 modelMatrix;\n" \
-                    "void main() {\n" \
-                    "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
-                    "    fragmentColor = vertexColor;\n" \
-                    "}";
+    shader_default_id = CompileShaderProgram(kDefaultVertexShader, 
+                                             NULL, 
+                                             kDefaultFragmentShader);
 
-    char gs[1024] = "#version 150\n" \
-                    "precision highp float;\n" \
-                    "layout (lines_adjacency) in;\n" \
-                    "layout (triangle_strip) out;\n" \
-                    "layout (max_vertices = 4) out;\n" \
-                    "void main(void) {\n" \
-                    "   int i;\n" \
-                    "   gl_Position = gl_in[0].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   gl_Position = gl_in[1].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   gl_Position = gl_in[3].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   gl_Position = gl_in[2].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   EndPrimitive();\n" \
-                    "}";
- 
-    char fs[1024] = "#version 150\n" \
-                    "in vec3 fragmentColor;\n" \
-                    "out vec3 color;\n" \
-                    "void main() {\n" \
-                    "    color = vec3(1.0f, 1.0f, 1.0f);\n" \
-                    "}\n";
-
-    //shader_default_id = CompileShaderProgram(kDefaultVertexShader, 
-    //                                         NULL, 
-    //                                         kDefaultFragmentShader);
-
-    shader_default_quads_id = CompileShaderProgram(vs, 
-                                                   gs,
-                                                   fs);
-
-    glUseProgram(shader_default_quads_id);
+    shader_default_quads_id = CompileShaderProgram(kDefaultVertexShader, 
+                                                   kDefaultGeometryShaderQuads,
+                                                   kDefaultFragmentShader);
 
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }

@@ -32,6 +32,8 @@
 #include "gx_types.h"
 #include "renderer_base.h"
 
+#define USE_GEOMETRY_SHADERS        1
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.3 Renderer
 
@@ -125,7 +127,7 @@ public:
      */
     void VertexTexcoord_SendByte(int texcoord, u8* vec);
 
-    /// Done with the current vertex - go to the next
+    /// Used for specifying next GX vertex is being sent to the renderer
     void VertexNext();
 
     /// End a primitive (signal renderer to draw it)
@@ -169,13 +171,19 @@ private:
     int resolution_height_;
 
     GLuint      vbo_handle_;                ///< Handle to the GL VBO
-    GXVertex*   vbo_;                       ///< Pointer to VBO data (when mapped)
+    GXVertex*   vbo_;                       ///< Pointer to VBO data (when mapped, in GPU mem)
+    GXVertex**  vbo_ptr_;                   ///< Pointer to VBO
+    GXVertex*   quad_vbo_;                  ///< Buffer for temporarily storing quads in CPU mem
+    GXVertex*   quad_vbo_ptr_;              ///< Ptr to quad_vbo_
     GLintptr    vbo_write_ofs_;             ///< Pointer to end of the VBO
+    
+    GXPrimitive prim_type_;                         ///< GX primitive type (e.g. GX_QUADS)
+    GLuint      gl_prim_type_;                      ///< OpenGL primitive type (e.g. GL_TRIANGLES)
     
     GLuint      vertex_position_format_;            ///< OpenGL position format (e.g. GL_FLOAT)
     int         vertex_position_format_size_;       ///< Number of bytes to represent one coordinate
     GXCompCnt   vertex_position_component_count_;   ///< Number of coordinates (2 - XY, 3 - XYZ)
-    int         vertex_num_;                        ///< Number of vertices
+    int         vertex_num_;                        ///< Number of vertices per primitive
 
     EmuWindow*  render_window_;
 

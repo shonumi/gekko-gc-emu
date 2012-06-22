@@ -31,6 +31,7 @@
 #include "xf_mem.h"
 
 #include "renderer_gl3.h"
+#include "shader_manager.h"
 
 #include <glm/glm.hpp>  
 #include <glm/gtc/matrix_transform.hpp> 
@@ -58,20 +59,46 @@ RendererGL3::RendererGL3() {
     resolution_height_ = 480;
     vbo_handle_ = 0;
     vbo_ = NULL;
+    vbo_ptr_ = NULL;
+    quad_vbo_ = NULL;
+    quad_vbo_ptr_ = NULL;
     vbo_write_ofs_ = 0;
     vertex_position_format_ = 0;
     vertex_position_format_size_ = 0;
     vertex_position_component_count_ = (GXCompCnt)0;
-    vertex_num_ = 0;                       
+    vertex_num_ = 0;
     render_window_ = NULL;
     generic_shader_id_ = 0;
+    prim_type_ = (GXPrimitive)0;
+    gl_prim_type_ = 0;
 }
+
+
+#define MINIMIZE_GX_PRIMITIVE_TYPE(x)   (x >> 3) - 16   ///< Shortens GX primitive type value to 0-7
 
 /// Sets up the renderer for drawing a primitive
 void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
+#ifdef USE_GEOMETRY_SHADERS
+    // Use geometry shaders to emulate GX_QUADS via GL_LINES_ADJACENCY
+    static GLenum gl_types[8] = {GL_LINES_ADJACENCY, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
+                                 GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
+#else
+    // Use software to emulate GX_QUADS via GL_TRIANGLES
+    static GLenum gl_types[8] = {GL_TRIANGLES, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
+                                 GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
+#endif
     static u32 flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT; //GL_MAP_FLUSH_EXPLICIT_BIT;
     int size = count * sizeof(GXVertex);
+    
+    // Beginning of primitive - reset vertex number
     vertex_num_ = 0;
+
+    // Set the renderer primitive type
+    prim_type_ = prim;
+    gl_prim_type_ = gl_types[MINIMIZE_GX_PRIMITIVE_TYPE(prim)];
+
+    // Set the shader manager primitive type (only used for geometry shaders)
+    shader_manager::SetPrimitive(prim);
 
     // Bind pointers to buffers
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
@@ -79,6 +106,19 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
     if (vbo_ == NULL) {
         LOG_ERROR(TVIDEO, "Unable to map vertex buffer object to system mem!");
     }
+    
+#ifndef USE_GEOMETRY_SHADERS
+    // When sending quads, store them in a temporary sys mem buffer so we can rearrange
+    // them to triangles before copying to GPU mem
+    if (prim_type_ == GX_QUADS) {
+        quad_vbo_ptr_ = quad_vbo_;
+        vbo_ptr_ = &quad_vbo_ptr_;
+    } else {
+        vbo_ptr_ = &vbo_;
+    }
+#else
+    vbo_ptr_ = &vbo_;
+#endif
 
     vbo_write_ofs_ += size;
 }
@@ -101,7 +141,7 @@ void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
  * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
  */
 void RendererGL3::VertexPosition_SendFloat(f32* vec) {
-    f32* ptr = (f32*)vbo_->position;
+    f32* ptr = (f32*)(*vbo_ptr_)->position;
     ptr[0] = vec[0];
     ptr[1] = vec[1];
     ptr[2] = vec[2];
@@ -112,7 +152,7 @@ void RendererGL3::VertexPosition_SendFloat(f32* vec) {
  * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
  */
 void RendererGL3::VertexPosition_SendShort(u16* vec) {
-    u16* ptr = (u16*)vbo_->position;
+    u16* ptr = (u16*)(*vbo_ptr_)->position;
     ptr[0] = vec[0];
     ptr[1] = vec[1];
     ptr[2] = vec[2];
@@ -123,7 +163,7 @@ void RendererGL3::VertexPosition_SendShort(u16* vec) {
  * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
  */
 void RendererGL3::VertexPosition_SendByte(u8* vec) {
-    u8* ptr = (u8*)vbo_->position;
+    u8* ptr = (u8*)(*vbo_ptr_)->position;
     ptr[0] = vec[0];
     ptr[1] = vec[1];
     ptr[2] = vec[2];
@@ -198,16 +238,43 @@ void RendererGL3::VertexTexcoord_SendByte(int texcoord, u8* vec) {
     LOG_ERROR(TVIDEO, "Unimplemented method!");
 }
 
-/// Done with the current vertex - go to the next
+/// Used for specifying next GX vertex is being sent to the renderer
 void RendererGL3::VertexNext() {
+#ifndef USE_GEOMETRY_SHADERS
+    if (prim_type_ == GX_QUADS) {
+
+        // End of quad
+        if ((vertex_num_ & 3) == 3) {
+
+            // Copy quad to GPU mem has 2 triangles
+            vbo_[0] = quad_vbo_[0];
+            vbo_[1] = quad_vbo_[1];
+            vbo_[2] = quad_vbo_[2];
+            vbo_[3] = quad_vbo_[2];
+            vbo_[4] = quad_vbo_[3];
+            vbo_[5] = quad_vbo_[0];
+            vbo_+=6;
+
+            // Reset quad buffer
+            quad_vbo_ptr_ = quad_vbo_;
+
+        } else {
+            quad_vbo_ptr_++;
+        }
+
+    // All other primitives write directly to GPU mem
+    } else {
+        vbo_++;
+    }
+#else
     vbo_++;
+#endif
     vertex_num_++;
 }
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive() {
-    //glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
-    //int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
+    int position_buffer_size = (gp::g_position_burst_ptr - gp::g_position_burst_buffer);
     //int color0_buffer_size = (gp::g_color_burst_ptr - gp::g_color_burst_buffer) * 4;
 
     //glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -224,88 +291,36 @@ void RendererGL3::EndPrimitive() {
     pmtx44[12] = pmtx[3]; pmtx44[13] = pmtx[7]; pmtx44[14] = pmtx[11]; pmtx44[15] = 1;
 
     // Update XF matrices
-    GLuint m_id = glGetUniformLocation(generic_shader_id_, "projectionMatrix");
+    GLuint m_id = glGetUniformLocation(shader_manager::GetCurrentShaderID(), "projectionMatrix");
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &gp::g_projection_matrix[0]);
 
-    m_id = glGetUniformLocation(generic_shader_id_, "modelMatrix");
+    m_id = glGetUniformLocation(shader_manager::GetCurrentShaderID(), "modelMatrix");
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &pmtx44[0]);
-    
-    /*
-    s16 quad_buff[0x1000];
-    int new_col_size = 0;
-    int new_color_size = 0;
-    int new_size = 0;
-    int col_i = 0;
-    for (int i = 0; i < position_buffer_size;) {
-        quad_buff[new_size+0] = gp::g_position_burst_buffer[i+0];
-        quad_buff[new_size+1] = gp::g_position_burst_buffer[i+1];
-        quad_buff[new_size+2] = gp::g_position_burst_buffer[i+2];
-
-        quad_buff[new_size+3] = gp::g_position_burst_buffer[i+3];
-        quad_buff[new_size+4] = gp::g_position_burst_buffer[i+4];
-        quad_buff[new_size+5] = gp::g_position_burst_buffer[i+5];
-
-        quad_buff[new_size+6] = gp::g_position_burst_buffer[i+6];
-        quad_buff[new_size+7] = gp::g_position_burst_buffer[i+7];
-        quad_buff[new_size+8] = gp::g_position_burst_buffer[i+8];
-
-        quad_buff[new_size+9] = gp::g_position_burst_buffer[i+6];
-        quad_buff[new_size+10] = gp::g_position_burst_buffer[i+7];
-        quad_buff[new_size+11] = gp::g_position_burst_buffer[i+8];
-
-        quad_buff[new_size+12] = gp::g_position_burst_buffer[i+9];
-        quad_buff[new_size+13] = gp::g_position_burst_buffer[i+10];
-        quad_buff[new_size+14] = gp::g_position_burst_buffer[i+11];
-
-        quad_buff[new_size+15] = gp::g_position_burst_buffer[i+0];
-        quad_buff[new_size+16] = gp::g_position_burst_buffer[i+1];
-        quad_buff[new_size+17] = gp::g_position_burst_buffer[i+2];
-        
-        //quad_col_buff[new_size+0] = gp::g_color_burst_buffer[i+0]; // 0
-
-        new_size+=18;
-        i+=12;
-    }*/
-    
-    //new_size = position_buffer_size + position_buffer_size/2;
 
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glUnmapBuffer(GL_ARRAY_BUFFER);
-    //glBufferSubData(GL_ARRAY_BUFFER, g_offset_in_bytes*4, new_size*4, quad_buff);
 
     glVertexAttribPointer(
         0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_SHORT,           // type
-        GL_FALSE,           // normalized?
-        sizeof(GXVertex),   // stride
+        3,                          // size
+        vertex_position_format_,    // type
+        GL_FALSE,                   // normalized?
+        sizeof(GXVertex),           // stride
         BUFFER_OFFSET(0)            // array buffer offset
         );
     
-    // Draw the triangle !
-    glDrawArrays(GL_LINES_ADJACENCY, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
-    //g_offset_in_bytes += new_size;
+    // When quads, compensate for extra triangles (4 vertices->6)
+#ifndef USE_GEOMETRY_SHADERS
+    if (prim_type_ == GX_QUADS) {
+        vertex_num_*=1.5;
+    }
+#endif
 
-    glDisableVertexAttribArray(0);
-    
-    ///////////////////////////////////////////////////////////////////////
-  /*
-    glEnableVertexAttribArray(1);
+    glDrawArrays(gl_prim_type_, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
 
-    glBindBuffer(GL_ARRAY_BUFFER, g_color0_buffer);
-    glBufferData(GL_ARRAY_BUFFER, new_size*4, quad_col_buff, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(
-        1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-        3,                                // size
-        GL_FLOAT,                  // type
-        GL_FALSE,                         // normalized?
-        0,                                // stride
-        (void*)0                          // array buffer offset
-        );
-        */
+    //glDisableVertexAttribArray(0); ? I don't think this needs to be called
 }
 
 
@@ -342,7 +357,7 @@ void RendererGL3::SwapBuffers() {
 		f32 fps = 1000.0f * swaps / (t - last);
 		swaps = 0;
 		last = t;
-		sprintf(title, "gekko-glfw - %02.02f fps", fps);
+		sprintf(title, "gekko-glfw - %02.02f fps | OMGZ new video", fps);
         render_window_->SetTitle(title);
 	}
     vbo_write_ofs_ = 0; // Reset VBO position
@@ -355,7 +370,7 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 
 /// Shutdown the renderer
 void RendererGL3::ShutDown() {
-    printf("RendererGL3::Init()\n");
+    printf("RendererGL3::Shutdown()\n");
 }
 
 /// Renders the framebuffer quad to the screen
@@ -426,43 +441,8 @@ void RendererGL3::InitFramebuffer() {
     */
 } 
 
-/// Generate vertex and fragment shader programs
-GLuint GenerateShader(const char * vs, const char* gs, const char* fs){
-    // Create the shaders
-    GLuint vs_id = glCreateShader(GL_VERTEX_SHADER);
-    GLuint gs_id = glCreateShader(GL_GEOMETRY_SHADER);
-    GLuint fs_id = glCreateShader(GL_FRAGMENT_SHADER);
- 
-    // Compile Vertex Shader
-    glShaderSource(vs_id, 1, &vs , NULL);
-    glCompileShader(vs_id);
- 
-    // Compile Geometry Shader
-    glShaderSource(gs_id, 1, &gs , NULL);
-    glCompileShader(gs_id);
- 
-    // Compile Fragment Shader
-    glShaderSource(fs_id, 1, &fs , NULL);
-    glCompileShader(fs_id);
- 
-    // Link the program
-    GLuint program_id = glCreateProgram();
-    glAttachShader(program_id, vs_id);
-    glAttachShader(program_id, gs_id);
-    glAttachShader(program_id, fs_id);
-    glLinkProgram(program_id);
- 
-    // Cleanup
-    glDeleteShader(vs_id);
-    glDeleteShader(gs_id);
-    glDeleteShader(fs_id);
- 
-    return program_id;
-}
-
 /// Initialize the renderer and create a window
 void RendererGL3::Init() {
-
 
     //glfwSwapInterval( 1 );
 
@@ -495,6 +475,9 @@ void RendererGL3::Init() {
     glBufferData(GL_ARRAY_BUFFER, 1024*1024*16, NULL, GL_DYNAMIC_DRAW); // 16MB VBO - bigger? :D
                                                         // NULL - allocate, but not initialize
 
+    // Allocate a buffer for storing a quad in CPU mem
+    quad_vbo_ = (GXVertex*) malloc(4 * sizeof(GXVertex));
+
     // Initialize the framebuffer
     // --------------------------
 /*
@@ -518,70 +501,8 @@ void RendererGL3::Init() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
 */
 
-	char vs[1024] = "#version 150\n" \
-                    "layout(location = 0) in vec3 position;\n" \
-                    "layout(location = 1) in vec3 vertexColor;\n" \
-                    "out vec3 fragmentColor;\n" \
-                    "uniform mat4 projectionMatrix;\n" \
-                    "uniform mat4 modelMatrix;\n" \
-                    "void main() {\n" \
-                    "    gl_Position = projectionMatrix * modelMatrix * vec4(position, 1.0);\n" \
-                    "    fragmentColor = vertexColor;\n" \
-                    "}";
-
-    char gs[1024] = "#version 150\n" \
-                    "precision highp float;\n" \
-                    "layout (lines_adjacency) in;\n" \
-                    "layout (triangle_strip) out;\n" \
-                    "layout (max_vertices = 4) out;\n" \
-                    "void main(void) {\n" \
-                    "   int i;\n" \
-                    "   gl_Position = gl_in[0].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   gl_Position = gl_in[1].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   gl_Position = gl_in[3].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   gl_Position = gl_in[2].gl_Position;\n" \
-                    "   EmitVertex();\n" \
-                    "   EndPrimitive();\n" \
-                    "}";
- 
-    char fs[1024] = "#version 150\n" \
-                    "in vec3 fragmentColor;\n" \
-                    "out vec3 color;\n" \
-                    "void main() {\n" \
-                    "    color = vec3(1.0f, 1.0f, 1.0f);\n" \
-                    "}\n";
-
-    generic_shader_id_ = GenerateShader(vs, gs, fs);
-    glUseProgram(generic_shader_id_);
-
-    glm::mat4 identity  = glm::mat4(1.0f);  // Changes for each model !
-    glm::mat4 proj = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
-
-// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-glm::mat4 Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
-// Camera matrix
-glm::mat4 View       = glm::lookAt(
-    glm::vec3(4,3,3), // Camera is at (4,3,3), in World Space
-    glm::vec3(0,0,0), // and looks at the origin
-    glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
-);
-// Model matrix : an identity matrix (model will be at the origin)
-glm::mat4 Model      = glm::mat4(1.0f);  // Changes for each model !
-// Our ModelViewProjection : multiplication of our 3 matrices
-glm::mat4 MVP        = Projection * View * Model; // Remember, matrix multiplication is the other way around
-    
-    
-    GLuint proj_id = glGetUniformLocation(generic_shader_id_, "projectionMatrix");
-    glUniformMatrix4fv(proj_id, 1, GL_FALSE, &identity[0][0]);
 
 
+    shader_manager::Init();
 
-   // GLuint view_id = glGetUniformLocation(generic_shader_id_, "viewMatrix");
-   // glUniformMatrix4fv(view_id, 1, GL_FALSE, &Model[0][0]);
-    
-    GLuint model_id = glGetUniformLocation(generic_shader_id_, "modelMatrix");
-    glUniformMatrix4fv(model_id, 1, GL_FALSE, &identity[0][0]);
 }

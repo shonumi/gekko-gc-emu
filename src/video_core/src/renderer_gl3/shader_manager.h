@@ -25,6 +25,8 @@
 #ifndef VIDEO_CORE_SHADER_BASE_TYPES_H_
 #define VIDEO_CORE_SHADER_BASE_TYPES_H_
 
+#include "renderer_gl3.h"
+
 #include "gx_types.h"
 
 namespace shader_manager {
@@ -34,6 +36,22 @@ namespace shader_manager {
  * @param type GXPrimitive type of current primitive
  */
 void SetPrimitive(GXPrimitive type);
+
+/**
+ * @brief Gets the shader ID of the current shader program
+ * @return GLuint of current shader ID
+ */
+GLuint GetCurrentShaderID();
+
+/**
+ * @brief Compiles a shader program
+ * @param vs Vertex shader program source string
+ * @param gs Geometry shader program source string (optional)
+ * @param fs Fragment shader program source string
+ * @remark When geometry shaders are not available (e.g. OpenGL ES), the "gs" parameter is unused
+ * @return GLuint of new shader program
+ */
+GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs);
 
 /// Initializes the default shaders for general use
 void InitDefaults();
