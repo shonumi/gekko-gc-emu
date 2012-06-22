@@ -27,6 +27,8 @@
 
 #include "common.h"
 
+#include "gx_types.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // VERTEX PROCESSOR MACROS
 
@@ -151,15 +153,15 @@ struct Vertex
 /// vertex base data structure
 struct VertexData
 {
-    u8      cnt;                // count
-    u8      fmt;                // format
-    u8      vcd;                // type
-    u8      num;                // number (textures)
-    u16     index;              // offset (indexed, 8 or 18bit)
-    u32     position;           // offset (direct)
-    f32     dqf;                // scale factor
-    void*   vtx_format_vcd;     // ptr to func[(vtx_format << 2) | vcd](...);
-    u32     vtx_format;         // (cnt << 3) | fmt
+    GXCompCnt   cnt;            // count
+    GXCompType  fmt;            // format
+    u8          vcd;            // type
+    u8          num;            // number (textures)
+    u16         index;          // offset (indexed, 8 or 18bit)
+    u32         position;       // offset (direct)
+    f32         dqf;            // scale factor
+    void*       vtx_format_vcd; // ptr to func[(vtx_format << 2) | vcd](...);
+    u32         vtx_format;     // (cnt << 3) | fmt
 };
 
 ////////////////////////////////////////////////////////////////////////////////
