@@ -48,18 +48,107 @@ GPFuncPtr g_exec_op[0x20];  ///< GPOpcode table
 u8 g_cur_cmd = 0;           ///< Current command to be executed
 u8 g_cur_vat = 0;           ///< Current vertex attribute table
 
-u8* volatile g_fifo_write_ptr;       ///< FIFO write location
-u8* volatile g_fifo_read_ptr;        ///< FIFO read location
-u8* volatile g_fifo_tail_ptr;        ///< Tail of the primary FIFO buffer
-u8* volatile g_fifo_head_ptr;        ///< Head of the primary FIFO buffer
-u8* volatile g_fifo_end_ptr;         ///< End of the primary FIFO buffer
+u8* volatile g_fifo_write_ptr;  ///< FIFO write location
+u8* volatile g_fifo_read_ptr;   ///< FIFO read location
+u8* volatile g_fifo_tail_ptr;   ///< Tail of the primary FIFO buffer
+u8* volatile g_fifo_head_ptr;   ///< Head of the primary FIFO buffer
+u8* volatile g_fifo_end_ptr;    ///< End of the primary FIFO buffer
+
+u8* volatile g_dl_read_ptr;     ///< Display list read location
 
 u8 g_fifo_buffer[FIFO_SIZE];    ///< Primary FIFO buffer storage - Don't use directly
 
 SDL_mutex*  g_fifo_synch_mutex;
-SDL_mutex*  g_fifo_write_ptr_mutex;
+//SDL_mutex*  g_fifo_write_ptr_mutex;
 
 bool volatile g_reset_fifo = false;
+
+u32 g_dl_read_addr = 0;
+u32 g_dl_read_offset = 0;
+
+/**
+ * @brief Pop a 8-bit byte off FIFO, increment read pointer
+ * @return 8-bit byte from FIFO
+ */
+inline u8 __fifo_pop_8() {
+    return *(g_fifo_read_ptr++);
+}
+
+/**
+ * @brief Pop a 16-bit halfword off a display list, increment read pointer
+ * @return 16-bit halfword from display list
+ */
+inline u16 __fifo_pop_16() {
+    u16 res = *((u16*)(g_fifo_read_ptr));
+    g_fifo_read_ptr+=2;
+    return res;
+}
+
+/**
+ * @brief Pop a 32-bit word off a display list, increment read pointer
+ * @return 32-bit word from display list
+ */
+inline u32 __fifo_pop_32() {
+    u32 res = *((u32*)(g_fifo_read_ptr));
+    g_fifo_read_ptr+=4;
+    return res;
+}
+
+/**
+ * @brief Pop a 8-bit byte off a display list, increment read pointer
+ * @return 8-bit byte from display list
+ */
+inline u8 __displaylist_pop_8() {
+    //u8 res = *((u8*)((uintptr_t)g_dl_read_ptr ^ 3));
+    u32 ret2 = ((uintptr_t)(g_dl_read_addr + g_dl_read_offset)) & RAM_MASK;
+	u32 res = Mem_RAM[(ret2+0) ^ 3];
+    g_dl_read_offset+=1;
+    return res;
+}
+
+/**
+ * @brief Pop a 16-bit halfword off a display list, increment read pointer
+ * @return 16-bit halfword from display list
+ */
+inline u16 __displaylist_pop_16() {
+    // TODO(ShizZy): I tried to be cute here... but it's just completely 
+    //  unreadable. This should be refactored.
+	/*u16 res = (*(u8*)(((uintptr_t)g_dl_read_ptr + 0) ^ 3) << 8) | 
+               *(u8*)(((uintptr_t)g_dl_read_ptr + 1) ^ 3);*/
+    u32 ret2 = (g_dl_read_addr + g_dl_read_offset) & RAM_MASK;
+    u16 res = (Mem_RAM[(ret2+0) ^ 3] << 8) |
+              (Mem_RAM[(ret2+1) ^ 3]);
+
+
+    g_dl_read_offset+=2;
+    return res;
+}
+
+/**
+ * @brief Pop a 32-bit word off a display list, increment read pointer
+ * @return 32-bit word from display list
+ */
+inline u32 __displaylist_pop_32() {
+    // TODO(ShizZy): I tried to be cute here... but it's just completely 
+    //  unreadable. This should be refactored.
+	/*u32 res = (*(u8*)(((uintptr_t)g_dl_read_ptr + 0) ^ 3) << 24) |
+              (*(u8*)(((uintptr_t)g_dl_read_ptr + 1) ^ 3) << 16) |
+              (*(u8*)(((uintptr_t)g_dl_read_ptr + 2) ^ 3) << 8) |
+               *(u8*)(((uintptr_t)g_dl_read_ptr + 3) ^ 3);
+               */
+    u32 res = (g_dl_read_addr + g_dl_read_offset) & RAM_MASK;
+    res = (Mem_RAM[(res+0) ^ 3] << 24) |
+          (Mem_RAM[(res+1) ^ 3] << 16) |
+          (Mem_RAM[(res+2) ^ 3] << 8) |
+          (Mem_RAM[(res+3) ^ 3]);
+
+    g_dl_read_offset+=4;
+    return res;
+}
+
+u8 (*FifoPop8)() = __fifo_pop_8;
+u16 (*FifoPop16)() = __fifo_pop_16;
+u32 (*FifoPop32)() = __fifo_pop_32;
 
 
 /********************************* TEST CODE ***********************************/
@@ -353,9 +442,28 @@ GP_OPCODE(LOAD_IDX_D) {
 
 /// call a display list
 GP_OPCODE(CALL_DISPLAYLIST) {
-	u32 addr = FifoPop32();
+    // Get DL meta
+	u32 addr = ((uintptr_t)((u8*)FifoPop32())) & RAM_MASK;
     u32 size = FifoPop32();
-	//call_displaylist(addr, size);
+
+    g_dl_read_addr = addr;
+    g_dl_read_offset = 0;
+
+    FifoPop8  = __displaylist_pop_8;
+    FifoPop16 = __displaylist_pop_16;
+    FifoPop32 = __displaylist_pop_32;
+
+    // While before end of DL, decode data
+    while (g_dl_read_offset < size) {
+        g_cur_cmd = FifoPop8();
+        g_cur_vat = g_cur_cmd & 0x7;
+        g_exec_op[GP_OPMASK(g_cur_cmd)]();
+    }
+
+    FifoPop8  = __fifo_pop_8;
+    FifoPop16 = __fifo_pop_16;
+    FifoPop32 = __fifo_pop_32;
+
     LOG_DEBUG(TGP, "Called CALL_DISPLAYLIST");
 }
 
@@ -465,10 +573,9 @@ int DecodeThread(void *unused) {
 void FifoInit() {
     // Synchronization mutex
     g_fifo_synch_mutex = SDL_CreateMutex();
-    g_fifo_write_ptr_mutex = SDL_CreateMutex();
+    //g_fifo_write_ptr_mutex = SDL_CreateMutex();
 
     // FIFO pointers
-	///g_fifo_buffer = (u8*)malloc(FIFO_SIZE);
     FifoReset();
     g_fifo_tail_ptr = g_fifo_buffer + FIFO_TAIL_END;
     g_fifo_head_ptr = g_fifo_buffer + FIFO_HEAD_END;
@@ -509,7 +616,7 @@ void FifoInit() {
 /// Shutdown GP FIFO
 void FifoShutdown() {
     SDL_DestroyMutex(g_fifo_synch_mutex);
-    SDL_DestroyMutex(g_fifo_write_ptr_mutex);
+    //SDL_DestroyMutex(g_fifo_write_ptr_mutex);
     VertexLoaderShutdown();
 }
 

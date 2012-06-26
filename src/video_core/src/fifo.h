@@ -35,10 +35,14 @@ typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 #define GP_SETOP(n, op)         g_exec_op[n] = (GPFuncPtr)op
 
 // FIFO information
-#define FIFO_SIZE           0x100000                // 1MB
-#define FIFO_HEAD_END       0x4000                  // First 16kb of FIFO
-#define FIFO_TAIL_END       (FIFO_SIZE - FIFO_HEAD_END)    // Last 16kb of FIFO... Reset to beginning ASAP
-#define FIFO_MASK           (FIFO_SIZE - 1)         // mask
+//  TODO(ShizZy) These numbers affect performance a *lot*. Generally, smaller FIFO size favors 
+//  display lists, while a larger FIFO size favors direct data. The current setting seems to be
+//  a prettygood balance (given the limited set of demos tested), but should be reevaluated once
+//  the video plugin is more mature
+#define FIFO_SIZE           (192 * 1024)                // 192kb
+#define FIFO_HEAD_END       (8 * 1024)                  // First 8kb of FIFO
+#define FIFO_TAIL_END       (FIFO_SIZE - FIFO_HEAD_END) // Last 16kb of FIFO... Resets to beginning
+#define FIFO_MASK           (FIFO_SIZE - 1)             // mask
 
 /// Get last byte from FIFO
 #define FIFO_GET8(ofs)      *(gp::g_fifo_read_ptr + ofs)
@@ -95,24 +99,9 @@ static inline void FifoPush32(u32 data) {
     g_fifo_write_ptr+=4;
 }
 
-/// Pop an 8-bit byte off the FIFO
-static inline u8 FifoPop8() {
-    return *(g_fifo_read_ptr++);;
-}
-
-/// Pop a 16-bit halfword off the FIFO
-static inline u16 FifoPop16() {
-    u16 res = *((u16*)(g_fifo_read_ptr));
-    g_fifo_read_ptr+=2;
-    return res;
-}
-
-/// Pop a 32-bit word off the FIFO
-static inline u32 FifoPop32() {
-    u32 res = *((u32*)(g_fifo_read_ptr));
-    g_fifo_read_ptr+=4;
-    return res;
-}
+extern u8 (*FifoPop8)();
+extern u16 (*FifoPop16)();
+extern u32 (*FifoPop32)();
 
 /// Called by CPU core to catch up
 void EMU_FASTCALL FifoSynchronize();
