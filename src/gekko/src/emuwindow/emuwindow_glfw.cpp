@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * @file    fifo.h
+ * @file    emuwindow_glfw.h
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-04-20
  * @brief   Implementation implementation of EmuWindow class for GLFW
@@ -25,39 +25,58 @@
 #include "common.h"
 #include "emuwindow_glfw.h"
 
+/// EmuWindow_GLFW constructor
 EmuWindow_GLFW::EmuWindow_GLFW()
 {
     if(glfwInit() != GL_TRUE) {
         LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
         exit(E_ERR);
     }
-    //glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
-    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16); // 2X AA
-    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-    //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    
+    glfwOpenWindowHint(GLFW_WINDOW_RESIZABLE, GL_FALSE);
+    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 
-    if(glfwOpenWindow(0, 0, 0, 0, 0, 0, 0, 0, GLFW_WINDOW) != GL_TRUE) {
-        LOG_ERROR(TVIDEO, "Failed to open GLFW window! Exiting...");
-        glfwTerminate();
-        exit(E_ERR);
-    }
-    LOG_NOTICE(TVIDEO, "OpenGL Context: %d.%d initialzed ok\n", 
-        glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR), 
-        glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR));
-
-    glfwSetWindowTitle("gekko-glfw");
-}
-EmuWindow_GLFW::~EmuWindow_GLFW()
-{
-    // TODO..
+    render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko-glfw3", 0);
 }
 
-void EmuWindow_GLFW::SwapBuffers()
-{
+/// EmuWindow_GLFW destructor
+EmuWindow_GLFW::~EmuWindow_GLFW() {
+    glfwTerminate();
+}
+
+/// Swap buffers to display the next frame
+void EmuWindow_GLFW::SwapBuffers() {
+    glfwPollEvents();
     glfwSwapBuffers();
 }
-void EmuWindow_GLFW::SetTitle(const char* title)
-{
-    glfwSetWindowTitle(title);
+
+/**
+ * @brief Sets the window title
+ * @param title Title to set the window to
+ */
+void EmuWindow_GLFW::SetTitle(const char* title) {
+    glfwSetWindowTitle(render_window_, title);
+}
+
+/// Makes the GLFW OpenGL context current for the caller thread
+void EmuWindow_GLFW::MakeCurrent() {
+}
+
+/// Releases (dunno if this is the "right" word) the GLFW context from the caller thread
+void EmuWindow_GLFW::DoneCurrent() {
+}
+
+/**
+ * @brief gets the window size, used by the renderer to properly scale video output
+ * @param width Window width in pixels
+ * @param height Window height in pixels
+ */
+void EmuWindow_GLFW::GetWindowSize(int &width, int &height) {
+}
+
+/**
+ * @brief Sets the window configuration
+ * @param config Configuration to set the window to, includes fullscreen, size, etc
+ */
+void EmuWindow_GLFW::SetConfig(EmuWindow::Config config) {
 }

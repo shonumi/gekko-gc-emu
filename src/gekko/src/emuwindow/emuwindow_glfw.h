@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * @file    fifo.h
+ * @file    emuwindow_glfw.h
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-04-20
  * @brief   Implementation implementation of EmuWindow class for GLFW
@@ -26,18 +26,45 @@
 #define VIDEO_CORE_EMUWINDOW_GLFW_
 
 #include <GL/glew.h>
-#include <GL/glfw.h>
+#include <GL/glfw3.h>
 
 #include "video/emuwindow.h"
 
-class EmuWindow_GLFW : public EmuWindow
-{
+class EmuWindow_GLFW : public EmuWindow {
 public:
     EmuWindow_GLFW();
     ~EmuWindow_GLFW();
 
+    /// Swap buffers to display the next frame
     void SwapBuffers();
+
+    /**
+     * @brief Sets the window title
+     * @param title Title to set the window to
+     */
     void SetTitle(const char* title);
+
+    /// Makes the graphics context current for the caller thread
+    void MakeCurrent();
+    
+    /// Releases (dunno if this is the "right" word) the GLFW context from the caller thread
+    void DoneCurrent();
+
+    /**
+     * @brief gets the window size, used by the renderer to properly scale video output
+     * @param width Window width in pixels
+     * @param height Window height in pixels
+     */
+    void GetWindowSize(int &width, int &height);
+
+    /**
+     * @brief Sets the window configuration
+     * @param config Configuration to set the window to, includes fullscreen, size, etc
+     */
+    void SetConfig(Config config);
+
+private:
+    GLFWwindow render_window_;      ///< Internal GLFW render window
 };
 
 #endif // VIDEO_CORE_EMUWINDOW_GLFW_
