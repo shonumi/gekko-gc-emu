@@ -362,7 +362,7 @@ void RendererGL3::SwapBuffers() {
 		f32 fps = 1000.0f * swaps / (t - last);
 		swaps = 0;
 		last = t;
-		sprintf(title, "gekko-glfw - %02.02f fps | OMGZ new video", fps);
+		sprintf(title, "gekko-glfw - %02.02f fps | Write a fuckin video plugin", fps);
         render_window_->SetTitle(title);
 	}
 
@@ -399,34 +399,13 @@ void RendererGL3::RenderFramebuffer() {
     // Blit
     glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
                       0, 0, resolution_width_, resolution_height_,
-                      GL_COLOR_BUFFER_BIT, GL_NEAREST );
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
 void RendererGL3::InitFramebuffer() {
 
     // Init the framebuffer
-    // --------------------
-
     glGenFramebuffers(1, &fbo_primary_); // Generate primary framebuffer
-    //glBindFramebuffer(GL_FRAMEBUFFER, fbo_primary_); // Bind our frame buffer  
-
-    // Attach the texture fbo_texture to the color buffer in our frame buffer 
-/*    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
-
-    // Attach the depth buffer fbo_depth to our frame buffer
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo_depth);  
-
-    // Check that the FBO initialized OK
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); 
-    if (status != GL_FRAMEBUFFER_COMPLETE) {  
-        LOG_ERROR(TVIDEO, "Couldn't create frame buffer");
-        exit(1);
-    } 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
-
-    */
-
-
 
     // Init the render buffer
     // ----------------------
@@ -440,10 +419,8 @@ void RendererGL3::InitFramebuffer() {
     glBindRenderbuffer(GL_RENDERBUFFER, fbo_primary_depth_buffer_); // Bind the depth buffer
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, 640, 480);
 
-
     // Attach buffers
     // --------------
-
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_primary_);
     glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -451,29 +428,7 @@ void RendererGL3::InitFramebuffer() {
     glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                               GL_RENDERBUFFER, fbo_primary_rbo_);
 
-
-
-
-   // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 
-   //     fbo_primary_rbo_); // Set the render buffer of this buffer to the depth buffer 
-   // glBindRenderbuffer(GL_RENDERBUFFER, 0); // Unbind the render buffer  
-
-    // Init the framebuffer texture
-    /*glGenTextures(1, &fbo_texture); // Generate one texture  
-    glBindTexture(GL_TEXTURE_2D, fbo_texture); // Bind the texture fbo_texture  
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resolution_width_, resolution_height_, 0, GL_RGBA, 
-        GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
-    glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture  
-
-    // Init the framebuffer display quad
-    glGenBuffers(1, &g_fb_quad_buffer);*/
-
-    //GLenum fboStatus = 
-
+    // Check for completeness
     if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)) {
         LOG_NOTICE(TGP, "framebuffer initialized ok");
     } else {
@@ -481,28 +436,18 @@ void RendererGL3::InitFramebuffer() {
         exit(1);
     } 
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
-
-    /////////////////////////////////////
-
-
-
-
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
 } 
 
 /// Initialize the renderer and create a window
 void RendererGL3::Init() {
 
-    //glfwSwapInterval( 1 );
-
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture  
     glEnable(GL_DEPTH_TEST); // Enable depth testing
     glPolygonMode(GL_FRONT, GL_FILL);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glFrontFace(GL_CW);
     glShadeModel(GL_SMOOTH);
-
-    glfwEnable( GLFW_STICKY_KEYS );
 
     // GL extensions
     // -------------
@@ -510,7 +455,6 @@ void RendererGL3::Init() {
     GLenum err = glewInit();
 	if (GLEW_OK != err) {
         LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Exiting...");
-        glfwTerminate();
         exit(E_ERR);
 	}
 
@@ -525,12 +469,15 @@ void RendererGL3::Init() {
                                                         // NULL - allocate, but not initialize
 
     // Allocate a buffer for storing a quad in CPU mem
-    quad_vbo_ = (GXVertex*) malloc(4 * sizeof(GXVertex));
+    quad_vbo_ = (GXVertex*) malloc(3 * sizeof(GXVertex));
 
     // Initialize the framebuffer
     // --------------------------
 
     InitFramebuffer();
+
+
+
 
     shader_manager::Init();
 

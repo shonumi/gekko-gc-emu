@@ -26,7 +26,6 @@
 #define VIDEO_CORE_RENDERER_GL3_H_
 
 #include <GL/glew.h>
-#include <GL/glfw.h>
 
 #include "common.h"
 #include "gx_types.h"
@@ -35,7 +34,7 @@
 //#define USE_GEOMETRY_SHADERS        1
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL 3.3 Renderer
+// OpenGL 3.x Renderer
 
 class RendererGL3  : virtual public RendererBase {
 public:
