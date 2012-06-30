@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -43,15 +35,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
@@ -86,15 +70,6 @@
     <Import Project="..\..\vsprops\CodeGen_Release.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\vsprops\Base.props" />
-    <Import Project="..\..\vsprops\Externals.props" />
-    <Import Project="..\..\vsprops\Qt.props" />
-    <Import Project="..\..\vsprops\QtReleaseLibs.props" />
-    <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
-    <Import Project="..\..\vsprops\App.props" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\vsprops\Base.props" />
@@ -104,20 +79,9 @@
     <Import Project="..\..\vsprops\CodeGen_Release.props" />
     <Import Project="..\..\vsprops\App.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\vsprops\Base.props" />
-    <Import Project="..\..\vsprops\Externals.props" />
-    <Import Project="..\..\vsprops\Qt.props" />
-    <Import Project="..\..\vsprops\QtReleaseLibs.props" />
-    <Import Project="..\..\vsprops\CodeGen_DebugFast.props" />
-    <Import Project="..\..\vsprops\App.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
@@ -147,21 +111,7 @@
     <UIC />
     <MOC />
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile />
-    <Link />
-    <UIC />
-    <UIC />
-    <MOC />
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile />
-    <Link />
-    <UIC />
-    <UIC />
-    <MOC />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile />
     <Link />
     <UIC />
@@ -195,9 +145,7 @@
     <MOC Include="src\image_info.hxx" />
     <MOC Include="src\main.hxx">
       <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</QtKeywords>
-      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">false</QtKeywords>
       <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</QtKeywords>
-      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">false</QtKeywords>
     </MOC>
     <MOC Include="src\path_list.hxx" />
     <MOC Include="src\ramview.hxx" />
