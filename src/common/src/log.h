@@ -77,14 +77,14 @@
     if (!(_cond_)) { \
         LOG_ERROR(_type_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n", \
                   __LINE__, __FILE__, __TIME__); \
-        if (!PanicYesNo("*** Assertion (see log)***\n")) Crash(); \
+        if (!logger::AskYesNo("*** Assertion (see log)***\n")) logger::Crash(); \
     }
 
 /// Used for message-specified debug-mode assertions
 #define _ASSERT_DBG_MSG(_type_, _cond_, ...) \
     if (!(_cond_)) { \
         LOG_ERROR(_type_, __VA_ARGS__); \
-        if (!PanicYesNo(__VA_ARGS__)) Crash(); \
+        if (!logger::AskYesNo(__VA_ARGS__)) logger::Crash(); \
     }
 #else
 #define _ASSERT_DBG(_type_, _cond_, ...)
@@ -95,7 +95,7 @@
 /// Used for general purpose assertions, CRITICAL operations only
 #define _ASSERT_MSG(_type_, _cond_, ...) \
     if (!(_cond_)) { \
-        if (!PanicYesNo(__VA_ARGS__)) Crash(); \
+        if (!logger::AskYesNo(__VA_ARGS__)) logger::Crash(); \
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////// 
