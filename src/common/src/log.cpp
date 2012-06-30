@@ -45,11 +45,11 @@ SysUserResponse AskYesNo(const char* fmt, ...) {
     va_list arg;
 
     va_start(arg, fmt);
-    printf("** Question **\n");
+    printf("\n** Question **\n");
     vprintf(fmt, arg);
     va_end(arg);
 
-    printf("\tResponse? (y/n) ");
+    printf("  Response? (y/n) ");
     while (1) {
         c = getchar();
         if (c == 'y' || c == 'Y') {
