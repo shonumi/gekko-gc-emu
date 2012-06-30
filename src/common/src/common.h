@@ -177,6 +177,7 @@ void DisplayError (char * Message, ...);
 
 #include "types.h"
 #include "log.h"
+#include "atomic.h"
 #include "misc_utils.h"
 
 ////////////////////////////////////////////////////////////////////////////////
