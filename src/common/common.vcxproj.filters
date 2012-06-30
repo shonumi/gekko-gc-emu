@@ -20,5 +20,8 @@
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\xml.h" />
     <ClInclude Include="src\misc_utils.h" />
+    <ClInclude Include="src\atomic.h" />
+    <ClInclude Include="src\atomic_win32.h" />
+    <ClInclude Include="src\atomic_gcc.h" />
   </ItemGroup>
 </Project>
