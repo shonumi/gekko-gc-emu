@@ -25,8 +25,6 @@
 #ifndef VIDEO_CORE_VERTEX_LOADER_H_
 #define VIDEO_CORE_VERTEX_LOADER_H_
 
-#include "common.h"
-#include "fifo.h"
 #include "gx_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +38,7 @@ namespace gp {
  * \param count Number of vertices
  * \param vat Vertex attribute table
  */
-void DecodePrimitive(GXPrimitive type, int count, u8 vat); 
+void DecodePrimitive(GXPrimitive type, int count); 
 
 /// Initialize the Vertex Loader
 void VertexLoaderInit();
