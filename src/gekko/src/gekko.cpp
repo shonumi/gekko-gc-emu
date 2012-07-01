@@ -33,7 +33,7 @@
 #include "hw/hw.h"
 #include "video_core.h"
 #include "video/opengl.h"
-#include "emuwindow/emuwindow_sdl.h"
+#include "emuwindow/emuwindow_glfw.h"
 
 #include "gekko.h"
 
@@ -56,7 +56,7 @@ int __cdecl main(int argc, char **argv)
     program_dir[cwd_len+1] = '\0';
 
 #ifndef USE_NEW_VIDEO_CORE
-    EmuWindow_SDL* emu_window = new EmuWindow_SDL;
+    EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
     OPENGL_SetWindow(emu_window);
     OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
 #endif
