@@ -32,7 +32,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Logging Macros
 
-#if defined(DEBUG) || defined(LOGGING)
+#if defined(_DEBUG) || defined(DEBUG) || defined(LOGGING)
 /// Debug mode, show all logs
 #define MAX_LOG_LEVEL logger::LDEBUG
 #else
@@ -67,7 +67,7 @@
 /// Use this for printing general information to the logger
 #define LOG_INFO(type, ...) _LOG_GENERIC(logger::LINFO, logger::type, __VA_ARGS__)
 
-#if defined(DEBUG) || defined(LOGGING)
+#if defined(_DEBUG) || defined(DEBUG) || defined(LOGGING)
 
 /// Use this for printing a debug message to the logger
 #define LOG_DEBUG(type, ...) _LOG_GENERIC(logger::LDEBUG, logger::type, __VA_ARGS__)
