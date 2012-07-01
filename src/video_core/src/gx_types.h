@@ -25,15 +25,18 @@
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
 
+#define GX_VCD_DIRECT   1   ///< GX vertex VCD type direct data
+#define GX_VCD_INDEX8   2   ///< GX vertex VCD type indexed 8-bit
+#define GX_VCD_INDEX16  3   ///< GX vertex VCD type indexed 16-bit
+
 /**
  * General struct used for describing a GX Vertex
  *
  * @remark
  * This struct is designed to hold the maximum possible information describing a GX vertex, it's
  * not necessarily all used.  Individual fields are tightly packed.  For example, if the position
- * format is GX_S16, position[3] would look like XXXXYYYY ZZZZ0000 0000000.
+ * format is GX_S16, 'position' would look like XXXXYYYY ZZZZ0000 0000000.
  */
-
 struct GXVertex {
     u32 position[3];    ///< Position coords - XY or XYZ
     u32 color0;         ///< Color0 RGB/A8
@@ -87,6 +90,17 @@ enum GXCompCnt {
     GX_CLR_RGBA  = 1,
     GX_TEX_S     = 0,
     GX_TEX_ST    = 1
+};
+
+/**
+ * @brief Vertex format for an individual vertex component (e.g. position)
+ * @todo Clean up unused data here
+ */
+struct GXVertexFormat {
+    GXCompCnt   cnt;            ///< Count
+    GXCompType  fmt;            ///< Format
+    u8          vcd;            ///< Type
+    f32         dqf;            ///< Scale factor
 };
 
 #endif // VIDEO_CORE_GX_TYPES_H_
