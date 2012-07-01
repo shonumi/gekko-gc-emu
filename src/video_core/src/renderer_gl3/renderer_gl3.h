@@ -4,7 +4,7 @@
  * @file    renderer_gl3.h
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-03-09
- * @brief   Implementation of a OpenGL 3.3 renderer
+ * @brief   Implementation of a OpenGL 3 renderer
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,9 @@
 #include "gx_types.h"
 #include "renderer_base.h"
 
-//#define USE_GEOMETRY_SHADERS        1
+#define VBO_SIZE                    (1024 * 1024 * 32)
+#define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
+#define USE_GEOMETRY_SHADERS        1
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.x Renderer
@@ -182,6 +184,7 @@ private:
     GLuint      vbo_handle_;                ///< Handle to the GL VBO
     GXVertex*   vbo_;                       ///< Pointer to VBO data (when mapped, in GPU mem)
     GXVertex**  vbo_ptr_;                   ///< Pointer to VBO (used for switching to quad buff)
+    u32         vbo_write_offset_;          ///< Offset into VBO of current vertex writes
     GXVertex*   quad_vbo_;                  ///< Buffer for temporarily storing quads in CPU mem
     GXVertex*   quad_vbo_ptr_;              ///< Ptr to quad_vbo_
     GLintptr    vbo_write_ofs_;             ///< Pointer to end of the VBO

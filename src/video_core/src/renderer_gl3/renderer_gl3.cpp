@@ -33,23 +33,6 @@
 #include "renderer_gl3.h"
 #include "shader_manager.h"
 
-#include <glm/glm.hpp>  
-#include <glm/gtc/matrix_transform.hpp> 
-
-GLuint g_fb_quad_buffer;
-
-static const f32 g_identity[16] = {
-    1.0f, 0.0f, 0.0f, 0.0f, 
-    0.0f, 1.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 1.0f, 0.0f, 
-    0.0f, 0.0f, 0.0f, 1.0f
-};
-
-static int verts_per_frame = 0;
-//static int g_offset_in_bytes = 0;
-
-#define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
-
 /// RendererGL3 constructor
 RendererGL3::RendererGL3() {
     fbo_ = 0;          
@@ -60,6 +43,7 @@ RendererGL3::RendererGL3() {
     vbo_handle_ = 0;
     vbo_ = NULL;
     vbo_ptr_ = NULL;
+    vbo_write_offset_ = 0;
     quad_vbo_ = NULL;
     quad_vbo_ptr_ = NULL;
     vbo_write_ofs_ = 0;
@@ -73,11 +57,10 @@ RendererGL3::RendererGL3() {
     gl_prim_type_ = 0;
 }
 
-
-#define MINIMIZE_GX_PRIMITIVE_TYPE(x)   (x >> 3) - 16   ///< Shortens GX primitive type value to 0-7
-
 /// Sets up the renderer for drawing a primitive
 void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
+    int vertex_burst_size = count * sizeof(GXVertex);
+
 #ifdef USE_GEOMETRY_SHADERS
     // Use geometry shaders to emulate GX_QUADS via GL_LINES_ADJACENCY
     static GLenum gl_types[8] = {GL_LINES_ADJACENCY, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
@@ -87,24 +70,32 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
     static GLenum gl_types[8] = {GL_TRIANGLES, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
                                  GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
 #endif
-    static u32 flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT; //GL_MAP_FLUSH_EXPLICIT_BIT;
-    int size = count * sizeof(GXVertex);
-    
+
     // Beginning of primitive - reset vertex number
     vertex_num_ = 0;
 
     // Set the renderer primitive type
     prim_type_ = prim;
-    gl_prim_type_ = gl_types[MINIMIZE_GX_PRIMITIVE_TYPE(prim)];
+    gl_prim_type_ = gl_types[(prim >> 3) - 16];
+
+    // If no data sent, we are done here
+    if (0 == count) {
+        return;
+    }
 
     // Set the shader manager primitive type (only used for geometry shaders)
     shader_manager::SetPrimitive(prim);
 
     // Bind pointers to buffers
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
-    vbo_ = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, vbo_write_ofs_, size, flags);
+    vbo_ = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, vbo_write_ofs_, vertex_burst_size, 
+                                       GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | 
+                                       GL_MAP_FLUSH_EXPLICIT_BIT);
     if (vbo_ == NULL) {
-        LOG_ERROR(TVIDEO, "Unable to map vertex buffer object to system mem!");
+        LOG_ERROR(TVIDEO, 
+                  "Unable to map vertex buffer object to system mem! (vbo_write_ofs_=%d count=%d)",
+                  vbo_write_ofs_,
+                  vertex_burst_size);
     }
     
 #ifndef USE_GEOMETRY_SHADERS
@@ -120,7 +111,7 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
     vbo_ptr_ = &vbo_;
 #endif
 
-    vbo_write_ofs_ += size;
+    vbo_write_ofs_ += vertex_burst_size;
 }
 
 /**
@@ -198,7 +189,7 @@ void RendererGL3::VertexColor1_SetType(GXCompCnt count) {
  * @param color Color to send, packed as RRGGBBAA or RRGGBB00
  */
 void RendererGL3::VertexColor1_Send(u32 color) {
-    //(*vbo_ptr_)->color1 = color;
+    LOG_ERROR(TVIDEO, "Unimplemented method!");
 }
 
 /**
@@ -274,18 +265,19 @@ void RendererGL3::VertexNext() {
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive() {
-    //glUnmapBuffer(GL_ARRAY_BUFFER);
-
     f32* pmtx = XF_GEOMETRY_MATRIX;
     f32 pmtx44[16];
 
-    int i = 0, j = 0, k = 15;
-
     // convert 4x3 ode to gl 4x4
-    pmtx44[0]  = pmtx[0]; pmtx44[1]  = pmtx[4]; pmtx44[2]  = pmtx[8]; pmtx44[3]  = 0;
-    pmtx44[4]  = pmtx[1]; pmtx44[5]  = pmtx[5]; pmtx44[6]  = pmtx[9]; pmtx44[7]  = 0;
-    pmtx44[8]  = pmtx[2]; pmtx44[9]  = pmtx[6]; pmtx44[10] = pmtx[10];pmtx44[11] = 0;
-    pmtx44[12] = pmtx[3]; pmtx44[13] = pmtx[7]; pmtx44[14] = pmtx[11]; pmtx44[15] = 1;
+    pmtx44[0]  = pmtx[0];   pmtx44[1]  = pmtx[4];   pmtx44[2]  = pmtx[8];   pmtx44[3]  = 0;
+    pmtx44[4]  = pmtx[1];   pmtx44[5]  = pmtx[5];   pmtx44[6]  = pmtx[9];   pmtx44[7]  = 0;
+    pmtx44[8]  = pmtx[2];   pmtx44[9]  = pmtx[6];   pmtx44[10] = pmtx[10];  pmtx44[11] = 0;
+    pmtx44[12] = pmtx[3];   pmtx44[13] = pmtx[7];   pmtx44[14] = pmtx[11];  pmtx44[15] = 1;
+
+    // Do nothing if no data sent
+    if (vertex_num_ == 0) {
+        return;
+    }
 
     // Update XF matrices
     GLuint m_id = glGetUniformLocation(shader_manager::GetCurrentShaderID(), "projectionMatrix");
@@ -300,8 +292,10 @@ void RendererGL3::EndPrimitive() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    glVertexAttribPointer(0, 3, vertex_position_format_, GL_FALSE, sizeof(GXVertex), BUFFER_OFFSET(0));
-    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), BUFFER_OFFSET(12));
+    glVertexAttribPointer(0, 3, vertex_position_format_, GL_FALSE, sizeof(GXVertex), 
+                          reinterpret_cast<void*>(0));
+    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+                          reinterpret_cast<void*>(12));
     
     // When quads, compensate for extra triangles (4 vertices->6)
 #ifndef USE_GEOMETRY_SHADERS
@@ -310,7 +304,12 @@ void RendererGL3::EndPrimitive() {
     }
 #endif
 
-    glDrawArrays(gl_prim_type_, 0, vertex_num_); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    glDrawArrays(gl_prim_type_, vbo_write_offset_, vertex_num_);
+    vbo_write_offset_ += vertex_num_;
+
+    _ASSERT_MSG(TVIDEO, (vbo_write_offset_ < VBO_MAX_VERTS), 
+                "VBO is filled up! There is either a bug or it must be > %dMB!", 
+                (VBO_SIZE / 1048576));
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -365,7 +364,7 @@ void RendererGL3::SwapBuffers() {
 		sprintf(title, "gekko-glfw - %02.02f fps | Write a fuckin video plugin", fps);
         render_window_->SetTitle(title);
 	}
-
+    vbo_write_offset_ = 0;
     vbo_write_ofs_ = 0; // Reset VBO position
 }
 
@@ -402,9 +401,8 @@ void RendererGL3::RenderFramebuffer() {
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
+/// Initialize the primary framebuffer used for drawing
 void RendererGL3::InitFramebuffer() {
-
-    // Init the framebuffer
     glGenFramebuffers(1, &fbo_primary_); // Generate primary framebuffer
 
     // Init the render buffer
@@ -432,7 +430,7 @@ void RendererGL3::InitFramebuffer() {
     if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)) {
         LOG_NOTICE(TGP, "framebuffer initialized ok");
     } else {
-        LOG_ERROR(TVIDEO, "Couldn't create OpenGL frame buffer");
+        LOG_ERROR(TVIDEO, "couldn't create OpenGL frame buffer");
         exit(1);
     } 
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
@@ -441,16 +439,13 @@ void RendererGL3::InitFramebuffer() {
 /// Initialize the renderer and create a window
 void RendererGL3::Init() {
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.30f, 0.05f, 0.65f, 1.0f); // GameCube purple :-)
     glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture  
     glEnable(GL_DEPTH_TEST); // Enable depth testing
-    glPolygonMode(GL_FRONT, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glFrontFace(GL_CW);
     glShadeModel(GL_SMOOTH);
-
-    // GL extensions
-    // -------------
 
     GLenum err = glewInit();
 	if (GLEW_OK != err) {
@@ -461,24 +456,17 @@ void RendererGL3::Init() {
     // Initialize vertex buffers
     // -------------------------
 
-    // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &vbo_handle_);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
-    glBufferData(GL_ARRAY_BUFFER, 1024*1024*16, NULL, GL_DYNAMIC_DRAW); // 16MB VBO - bigger? :D
-                                                        // NULL - allocate, but not initialize
+    glBufferData(GL_ARRAY_BUFFER, VBO_SIZE, NULL, GL_DYNAMIC_DRAW);
 
     // Allocate a buffer for storing a quad in CPU mem
     quad_vbo_ = (GXVertex*) malloc(3 * sizeof(GXVertex));
 
-    // Initialize the framebuffer
+    // Initialize everything else
     // --------------------------
 
     InitFramebuffer();
 
-
-
-
     shader_manager::Init();
-
 }
