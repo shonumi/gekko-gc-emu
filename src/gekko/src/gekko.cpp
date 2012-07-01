@@ -32,7 +32,9 @@
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
 #include "video_core.h"
+#ifndef USE_NEW_VIDEO_CORE
 #include "video/opengl.h"
+#endif
 #include "emuwindow/emuwindow_glfw.h"
 
 #include "gekko.h"
@@ -55,8 +57,8 @@ int __cdecl main(int argc, char **argv)
     program_dir[cwd_len] = '/';
     program_dir[cwd_len+1] = '\0';
 
-#ifndef USE_NEW_VIDEO_CORE
     EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
+#ifndef USE_NEW_VIDEO_CORE
     OPENGL_SetWindow(emu_window);
     OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
 #endif
@@ -71,12 +73,14 @@ int __cdecl main(int argc, char **argv)
         core::Kill();
         exit(1);
     }
+#ifndef USE_NEW_VIDEO_CORE
     OPENGL_Create();
+#endif
 
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
         if (common::g_config->enable_auto_boot()) {
-            core::Start();
+            core::Start(emu_window);
         } else {
             LOG_ERROR(TMASTER, "Autoboot required in no-GUI mode... Exiting!\n");
         }
@@ -98,8 +102,11 @@ int __cdecl main(int argc, char **argv)
             core::Stop();
         }
     }
+#ifndef USE_NEW_VIDEO_CORE
     OPENGL_Kill();
+#endif
     core::Kill();
+    delete emu_window;
 
 	return E_OK;
 }

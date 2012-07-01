@@ -28,9 +28,7 @@
 #include "common.h"
 #include "renderer_base.h"
 
-#if EMU_PLATFORM == PLATFORM_WINDOWS
-    #define USE_NEW_VIDEO_CORE
-#endif
+#define USE_NEW_VIDEO_CORE
 
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
@@ -43,7 +41,7 @@ namespace video_core {
 extern RendererBase*   g_renderer;  ///< Renderer plugin 
 
 /// Start the video core
-void Start();
+void Start(EmuWindow* emu_window);
 
 /// Initialize the video core
 void Init();

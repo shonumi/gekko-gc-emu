@@ -29,8 +29,6 @@
 #include "memory.h"
 #include "core.h"
 
-#include "video/opengl.h"
-
 #include "video_core.h"
 #include "vertex_loader.h"
 #include "fifo.h"

@@ -4,7 +4,9 @@
 #ifndef __gx_states_H__
 #define __gx_states_H__	
 
-#include "opengl.h"
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // GX MACROS

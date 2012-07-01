@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 include(FindSDL REQUIRED)
 include(FindOpenGL REQUIRED)
 include(FindGLFW REQUIRED)
+include(FindX11 REQUIRED)
 
 if(NOT GLFW_FOUND)
     message(FATAL_ERROR "glfw not found")
