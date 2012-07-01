@@ -54,9 +54,10 @@ void EmuWindow_GLFW::SwapBuffers() {
 /**
  * @brief Sets the window title
  * @param title Title to set the window to
+ * @todo Disabled for now until it's used thread-savely
  */
 void EmuWindow_GLFW::SetTitle(const char* title) {
-    glfwSetWindowTitle(render_window_, title);
+//    glfwSetWindowTitle(render_window_, title);
 }
 
 /// Makes the GLFW OpenGL context current for the caller thread
