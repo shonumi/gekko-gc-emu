@@ -43,9 +43,9 @@
 // cp: register reference
 #define CP_VCD_LO(idx)					gp::g_cp_regs.mem[0x50 + idx]
 #define CP_VCD_HI(idx)					gp::g_cp_regs.mem[0x60 + idx]
-#define CP_VAT_A						gp::g_cp_regs.mem[0x70 + vat]
-#define CP_VAT_B						gp::g_cp_regs.mem[0x80 + vat]
-#define CP_VAT_C						gp::g_cp_regs.mem[0x90 + vat]
+#define CP_VAT_A						gp::g_cp_regs.mem[0x70 + g_cur_vat]
+#define CP_VAT_B						gp::g_cp_regs.mem[0x80 + g_cur_vat]
+#define CP_VAT_C						gp::g_cp_regs.mem[0x90 + g_cur_vat]
 #define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + (idx) * gp::g_cp_regs.mem[0xb0])
 #define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + (idx) * gp::g_cp_regs.mem[0xb1])
 #define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.mem[0xa2] + (idx) * gp::g_cp_regs.mem[0xb2])
@@ -129,7 +129,6 @@
 
 // format decoding
 #define VTX_FORMAT(vtx)					((vtx.cnt << 3) | vtx.fmt)
-#define VTX_FORMAT_PTR(vtx)             ((vtx->cnt << 3) | vtx->fmt)
 #define VTX_FORMAT_VCD(vtx)				((VTX_FORMAT(vtx) << 2) | vtx.vcd)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,34 +136,7 @@
 
 namespace gp {
 
-// gx vertex 
-struct Vertex
-{
-    f32 pos[4];
-    f32 tpos[4];
-    f32 tex[8][2];
-    f32 tex_temp[2];
-    f32 ttex[4];
-    f32 nrm[4];
-    s8  color[4], col0[4], col1[3];
-    u8  is3d;
-};
-
-/// vertex base data structure
-struct VertexData
-{
-    GXCompCnt   cnt;            // count
-    GXCompType  fmt;            // format
-    u8          vcd;            // type
-    u8          num;            // number (textures)
-    u16         index;          // offset (indexed, 8 or 18bit)
-    u32         position;       // offset (direct)
-    f32         dqf;            // scale factor
-    void*       vtx_format_vcd; // ptr to func[(vtx_format << 2) | vcd](...);
-    u32         vtx_format;     // (cnt << 3) | fmt
-};
-
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // VERTEX PROCESSOR SIZE ARRAYS
 
 /// size (in bytes) of position format
