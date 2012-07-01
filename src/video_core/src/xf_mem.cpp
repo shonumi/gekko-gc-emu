@@ -66,7 +66,7 @@ void XFRegisterWrite(u16 length, u16 addr, u32* regs) {
 
     case 0x10: // registers
         u8 maddr = (addr & 0xff);
-        for (i = 0; i <length; i++) {
+        for (i = 0; i < length; i++) {
             g_xf_regs.mem[maddr + i] = regs[i];
         }
 
@@ -97,7 +97,6 @@ void XFRegisterWrite(u16 length, u16 addr, u32* regs) {
             break;
 
         case 0x20:
-	        t32 mtx[16] = {0};
 
 	        // Set orthographic mode...
 	        if(XF_PROJECTION_ORTHOGRAPHIC) { 
