@@ -39,10 +39,6 @@ void EmuThread::run()
     u32 tight_loop;
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
-    render_window->MakeCurrent();
-    OPENGL_SetWindow(render_window);
-    OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
-
     if (E_OK != core::Init()) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");
         core::Kill();
@@ -65,7 +61,7 @@ void EmuThread::run()
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(filename)) {
         if (common::g_config->enable_auto_boot()) {
-            core::Start();
+            core::Start(render_window);
         } else {
             LOG_ERROR(TMASTER, "Autoboot required in no-GUI mode... Exiting!\n");
         }
@@ -125,8 +121,6 @@ void EmuThread::run()
             core::Stop();
         }
     }
-    OPENGL_Kill();
-    render_window->DoneCurrent();
     core::Kill();
 }
 
@@ -163,12 +157,14 @@ public:
     GGLWidgetInternal(GRenderWindow* parent) : QGLWidget(parent)
     {
         setAutoBufferSwap(false);
+        doneCurrent();
     }
 
     void paintEvent(QPaintEvent* ev)
     {
         // Apparently, Windows doesn't display anything if we don't call this here.
-		makeCurrent();
+        // TODO: Breaks linux though because we aren't calling doneCurrent() ... -.-
+//        makeCurrent();
     }
     void resizeEvent(QResizeEvent*) {}
 };
