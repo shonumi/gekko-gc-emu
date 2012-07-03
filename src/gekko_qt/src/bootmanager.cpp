@@ -179,6 +179,7 @@ GRenderWindow::GRenderWindow(QWidget* parent) : QWidget(parent), emu_thread(this
 {
     // TODO: Enable layout code once core supports a different EmuWindow size than 640x480
     child = new GGLWidgetInternal(this);
+    // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground, WA_DontShowOnScreen, WA_DeleteOnClose
 //    QBoxLayout* layout = new QHBoxLayout(this);
     resize(640, 480);
     child->resize(640, 480);
