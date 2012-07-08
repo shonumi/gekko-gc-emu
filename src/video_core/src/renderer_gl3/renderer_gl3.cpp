@@ -447,11 +447,13 @@ void RendererGL3::Init() {
     glFrontFace(GL_CW);
     glShadeModel(GL_SMOOTH);
 
+
+    render_window_->MakeCurrent();
     GLenum err = glewInit();
-	if (GLEW_OK != err) {
-        LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Exiting...");
+    if (GLEW_OK != err) {
+        LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Error message: \"%s\". Exiting...", glewGetErrorString(err));
         exit(E_ERR);
-	}
+    }
 
     // Initialize vertex buffers
     // -------------------------

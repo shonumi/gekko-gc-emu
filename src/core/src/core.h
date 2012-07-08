@@ -32,6 +32,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class EmuWindow;
+
 namespace core {
 
 // State of the full emulator
@@ -60,7 +62,7 @@ void EMU_FASTCALL SetState(SystemState state);
 void SetConfigManager(common::ConfigManager* config_manager);
 
 /// Start the core
-void Start();
+void Start(EmuWindow* emu_window);
 
 /// Kill the core
 void Kill();
