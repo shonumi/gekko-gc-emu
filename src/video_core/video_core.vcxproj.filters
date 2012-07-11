@@ -16,7 +16,6 @@
     <ClCompile Include="src\renderer_gl3\raster_font.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
-    <ClCompile Include="src\fifo_player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
