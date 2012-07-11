@@ -1,12 +1,12 @@
-/*!
+/**
 * Copyright (C) 2005-2012 Gekko Emulator
 *
-* \file    vertex_loader.h
-* \author  ShizZy <shizzy247@gmail.com>
-* \date    2012-03-08
-* \brief   Loads and decodes vertex data from CP mem
+* @file    vertex_loader.h
+* @author  ShizZy <shizzy247@gmail.com>
+* @date    2012-03-08
+* @brief   Loads and decodes vertex data from CP mem
 *
-* \section LICENSE
+* @section LICENSE
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License as
 * published by the Free Software Foundation; either version 2 of
@@ -28,8 +28,11 @@
 #include "video_core.h"
 #include "fifo.h"
 #include "cp_mem.h"
+#include "xf_mem.h"
 
 namespace gp {
+
+u8 g_pm_index = 0;
 
 typedef void (*VertexLoaderTable)(u16);	
 
@@ -57,30 +60,75 @@ __inline u32 MemoryRead32(u32 addr)
 		   ((u32)Mem_RAM[(addr + 3) ^ 3]);
 }
 
+// transform 3d vertex position (software)
+void TransformVertexPosition(f32* d, f32 *v)
+{
+	f32 *pmtx = XF_POSITION_MATRIX(g_pm_index);
+
+	// transform 
+	d[0] = (pmtx[0])*v[0] + (pmtx[1])*v[1] + (pmtx[ 2])*v[2] + (pmtx[ 3]);
+	d[1] = (pmtx[4])*v[0] + (pmtx[5])*v[1] + (pmtx[ 6])*v[2] + (pmtx[ 7]);
+	d[2] = (pmtx[8])*v[0] + (pmtx[9])*v[1] + (pmtx[10])*v[2] + (pmtx[11]);
+}
+
+static __inline void __vertex_pos_send_byte(u8* vec) {
+    video_core::g_renderer->VertexPosition_SendByte(vec);
+}
+
+static __inline void __vertex_pos_send_short(u16* vec) {
+    video_core::g_renderer->VertexPosition_SendShort(vec);
+}
+
+static __inline void __vertex_pos_send_float(f32* vec) {
+    if (VCD_PMIDX) {
+        f32 *pmtx = XF_POSITION_MATRIX(g_pm_index);
+        f32 tf_vec[3];
+    
+        // transform 
+        tf_vec[0] = (pmtx[0])*vec[0] + (pmtx[1])*vec[1] + (pmtx[ 2])*vec[2] + (pmtx[ 3]);
+        tf_vec[1] = (pmtx[4])*vec[0] + (pmtx[5])*vec[1] + (pmtx[ 6])*vec[2] + (pmtx[ 7]);
+        tf_vec[2] = (pmtx[8])*vec[0] + (pmtx[9])*vec[1] + (pmtx[10])*vec[2] + (pmtx[11]);
+
+        video_core::g_renderer->VertexPosition_SendFloat(tf_vec);
+    } else {
+        video_core::g_renderer->VertexPosition_SendFloat(vec);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Position Decoding
 
 static void VertexPosition_Unk(u16 index) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex position!!! Ask neobrain to implement me!");
 }
-/*
+
 static void VertexPosition_D8_XY(u16 index) {
 	u16 v = FifoPop16();
-	video_core::g_renderer->VertexPosition_SendByte((u8*)&v);
+	__vertex_pos_send_byte((u8*)&v);
 }
-/*
+
 static void VertexPosition_D16_XY(u16 index) {
 	u16 v[2];
 	v[0] = FifoPop16();
 	v[1] = FifoPop16();
-	video_core::g_renderer->VertexPosition_SendShort(v);
-}*/
+	__vertex_pos_send_short(v);
+}
 
 static void VertexPosition_D32_XY(u16 index) {
 	u32 v[2];
 	v[0] = FifoPop32();
 	v[1] = FifoPop32();
-	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+	__vertex_pos_send_float((f32*)v);
+}
+
+static void VertexPosition_I8_XY(u16 index) {
+	u8 v[2];
+	
+    u32 data = MemoryRead16(CP_DATA_POS_ADDR(index));
+	v[0] = (u8)((data >> 8) & 0xFF);
+	v[1] = (u8)(data & 0xFF);
+
+	__vertex_pos_send_byte(v);
 }
 
 // correct
@@ -89,7 +137,7 @@ static void VertexPosition_I16_XY(u16 index) {
 	u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
 	v[0] = (data >> 16);
 	v[1] = (data & 0xFFFF);
-	video_core::g_renderer->VertexPosition_SendShort(v);
+	__vertex_pos_send_short(v);
 }
 
 // correct
@@ -97,18 +145,14 @@ static void VertexPosition_I32_XY(u16 index) {
 	u32 v[2];
 	v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
 	v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
-	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+	__vertex_pos_send_float((f32*)v);
 }
 
-/*
+// correct
 static void VertexPosition_D8_XYZ(u16 index) {
-	u8 v[3];
-	v[0] = FifoPop8();
-	v[1] = FifoPop8();
-    v[2] = FifoPop8();
-	video_core::g_renderer->VertexPosition_SendByte(v);
+	u32 v = FifoPop24();
+	__vertex_pos_send_byte((u8*)&v);
 }
-*/
 
 // correct
 static void VertexPosition_D16_XYZ(u16 index) {
@@ -116,15 +160,27 @@ static void VertexPosition_D16_XYZ(u16 index) {
 	v[0] = FifoPop16();
 	v[1] = FifoPop16();
 	v[2] = FifoPop16();
-	video_core::g_renderer->VertexPosition_SendShort(v);
+	__vertex_pos_send_short(v);
 }
 
+// correct
 static void VertexPosition_D32_XYZ(u16 index) {
 	u32 v[3];
 	v[0] = FifoPop32();
 	v[1] = FifoPop32();
 	v[2] = FifoPop32();
-	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+	__vertex_pos_send_float((f32*)v);
+}
+
+static void VertexPosition_I8_XYZ(u16 index) {
+	u8 v[3];
+	
+    u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
+	v[0] = (u8)((data >> 24) & 0xFF);
+	v[1] = (u8)((data >> 16) & 0xFF);
+	v[2] = (u8)((data >> 8) & 0xFF);
+
+	__vertex_pos_send_byte(v);
 }
 
 // correct
@@ -134,7 +190,7 @@ static void VertexPosition_I16_XYZ(u16 index) {
 	v[0] = (data >> 16);
 	v[1] = (data & 0xFFFF);
 	v[2] = MemoryRead16(CP_DATA_POS_ADDR(index) + 4);
-	video_core::g_renderer->VertexPosition_SendShort(v);
+	__vertex_pos_send_short(v);
 }
 
 // correct
@@ -143,27 +199,26 @@ static void VertexPosition_I32_XYZ(u16 index) {
 	v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
 	v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
 	v[2] = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
-	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+	__vertex_pos_send_float((f32*)v);
 }
 
 // unimplemented
-
 #define VERTEXLOADER_POSITION_UNDEF(name)   void VertexPosition_##name(u16 index) { \
     _ASSERT_MSG(TGP, 0, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__); \
 }
 
-VERTEXLOADER_POSITION_UNDEF(D8_XY);
-VERTEXLOADER_POSITION_UNDEF(D16_XY);
+//VERTEXLOADER_POSITION_UNDEF(D8_XY);
+//VERTEXLOADER_POSITION_UNDEF(D16_XY);
 //VERTEXLOADER_POSITION_UNDEF(D32_XY);
-VERTEXLOADER_POSITION_UNDEF(D8_XYZ);
+//VERTEXLOADER_POSITION_UNDEF(D8_XYZ);
 //VERTEXLOADER_POSITION_UNDEF(D16_XYZ);
 //VERTEXLOADER_POSITION_UNDEF(D32_XYZ);
 
-VERTEXLOADER_POSITION_UNDEF(I8_XY);
+//VERTEXLOADER_POSITION_UNDEF(I8_XY);
 //VERTEXLOADER_POSITION_UNDEF(I16_XY);
 //VERTEXLOADER_POSITION_UNDEF(I32_XY);
 
-VERTEXLOADER_POSITION_UNDEF(I8_XYZ);
+//VERTEXLOADER_POSITION_UNDEF(I8_XYZ);
 //VERTEXLOADER_POSITION_UNDEF(I16_XYZ);
 //VERTEXLOADER_POSITION_UNDEF(I32_XYZ);
 
@@ -197,7 +252,6 @@ VertexLoaderTable LookupPosition[0x40] = {
 static void VertexColor_Unk(u16 index) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex color!!! Ask neobrain to implement me!");
 }
-/*
 
 static void VertexColor_DRGB565(u16 index) {
     u16 rgb = FifoPop16();
@@ -210,7 +264,7 @@ static void VertexColor_DRGB565(u16 index) {
                                               (b << 8) |
                                               0xff);
 }
-*/
+
 // correct
 static void VertexColor_DRGB8(u16 index) {
     video_core::g_renderer->VertexColor0_Send((FifoPop24() << 8) | 0xff);
@@ -221,20 +275,25 @@ static void VertexColor_DRGBA8(u16 index) {
     video_core::g_renderer->VertexColor0_Send(FifoPop32());
 }
 
+static void VertexColor_IRGB8(u16 index) {
+	u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(index)) | 0xff;
+    video_core::g_renderer->VertexColor0_Send(rgba);
+}
+
 // correct
 static void VertexColor_IRGBA8(u16 index) {
 	u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(index));
     video_core::g_renderer->VertexColor0_Send(rgba);
 }
 
-VERTEXLOADER_COLOR_UNDEF(DRGB565);
+//VERTEXLOADER_COLOR_UNDEF(DRGB565);
 //VERTEXLOADER_COLOR_UNDEF(DRGB8)
 VERTEXLOADER_COLOR_UNDEF(DRGBA4);
 VERTEXLOADER_COLOR_UNDEF(DRGBA6);
 //VERTEXLOADER_COLOR_UNDEF(DRGBA8);
 
 VERTEXLOADER_COLOR_UNDEF(IRGB565);
-VERTEXLOADER_COLOR_UNDEF(IRGB8);
+//VERTEXLOADER_COLOR_UNDEF(IRGB8);
 VERTEXLOADER_COLOR_UNDEF(IRGBA4);
 VERTEXLOADER_COLOR_UNDEF(IRGBA6);
 //VERTEXLOADER_COLOR_UNDEF(IRGBA8);
@@ -268,18 +327,24 @@ VertexLoaderTable LookupColor[0x40] = {
 static void VertexNormal_Unk(u16 index) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex normal!!! Ask neobrain to implement me!");
 }
-/*
+
 static void VertexNormal_D8_3(u16 index) {
     // TODO(ShizZy): ImplementMe
     FifoPop24();
 }
-*/
+
+static void VertexNormal_D16_3(u16 index) {
+    // TODO(ShizZy): ImplementMe
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+}
+
 static void VertexNormal_D32_3(u16 index) {
     // TODO(ShizZy): ImplementMe
-    u32 v[3];
-    v[0] = FifoPop32();
-    v[1] = FifoPop32();
-    v[2] = FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
 }
 
 static void VertexNormal_I8_3(u16 index) {
@@ -294,8 +359,8 @@ static void VertexNormal_I32_3(u16 index) {
     // TODO(ShizZy): ImplementMe
 }
 
-VERTEXLOADER_NORMAL_UNDEF(D8_3);
-VERTEXLOADER_NORMAL_UNDEF(D16_3);
+//VERTEXLOADER_NORMAL_UNDEF(D8_3);
+//VERTEXLOADER_NORMAL_UNDEF(D16_3);
 //VERTEXLOADER_NORMAL_UNDEF(D32_3);
 //VERTEXLOADER_NORMAL_UNDEF(I8_3);
 //VERTEXLOADER_NORMAL_UNDEF(I16_3);
@@ -354,7 +419,7 @@ static void VertexTexCoord_D8_S(u16 index) {
 
 static void VertexTexCoord_D16_S(u16 index) {
     // TODO(ShizZy): ImplementMe
-    FifoPop8();
+    FifoPop16();
 }
 
 static void VertexTexCoord_D32_S(u16 index) {
@@ -362,12 +427,46 @@ static void VertexTexCoord_D32_S(u16 index) {
     FifoPop32();
 }
 
+//----------
+
+static void VertexTexCoord_I8_ST(u16 index) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexTexCoord_I16_ST(u16 index) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexTexCoord_I32_ST(u16 index) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexTexCoord_I8_S(u16 index) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexTexCoord_I16_S(u16 index) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexTexCoord_I32_S(u16 index) {
+    // TODO(ShizZy): ImplementMe
+}
+
+/*
 VERTEXLOADER_TEXCOORD_UNDEF(I8_S);
 VERTEXLOADER_TEXCOORD_UNDEF(I16_S);
 VERTEXLOADER_TEXCOORD_UNDEF(I32_S);
 VERTEXLOADER_TEXCOORD_UNDEF(I8_ST);
 VERTEXLOADER_TEXCOORD_UNDEF(I16_ST);
 VERTEXLOADER_TEXCOORD_UNDEF(I32_ST);
+*/
+//VERTEXLOADER_TEXCOORD_UNDEF(D8_S);
+//VERTEXLOADER_TEXCOORD_UNDEF(D16_S);
+//VERTEXLOADER_TEXCOORD_UNDEF(D32_S);
+//VERTEXLOADER_TEXCOORD_UNDEF(D8_ST);
+//VERTEXLOADER_TEXCOORD_UNDEF(D16_ST);
+//VERTEXLOADER_TEXCOORD_UNDEF(D32_ST);
 
 VertexLoaderTable LookupTexCoord[0x40] = {
 	VertexTexCoord_Unk, VertexTexCoord_D8_S,    VertexTexCoord_I8_S,    VertexTexCoord_I8_S, 
@@ -393,16 +492,18 @@ VertexLoaderTable LookupTexCoord[0x40] = {
 
 // send vertex to the renderer
 void DecodeVertex() {
-
+   
     GXVertexFormat pos, nrm, col[2], tex[8];
 
-        // Position
+    // Position
     pos.vcd = VCD_POS;
     if (pos.vcd) {
         pos.cnt = (GXCompCnt)VAT_POSCNT;
         pos.fmt = (GXCompType)VAT_POSFMT;
         pos.dqf = 1.0f / (1 << VAT_POSSHFT);
+        video_core::g_renderer->VertexPosition_SetType(pos.fmt, pos.cnt);
     }
+
 
     // Normal
     nrm.vcd = VCD_NRM;
@@ -425,8 +526,21 @@ void DecodeVertex() {
         col[1].fmt = (GXCompType)VAT_COL1FMT;
     }
 
-    // TexCoord 0
-    video_core::g_renderer->VertexPosition_SetType(pos.fmt, pos.cnt);
+    if (VCD_MIDX) {
+        //_ASSERT_MSG(TGP, 0, "VCD_MIDX decoding not implemented yet!");
+    }
+    if (VCD_PMIDX) {
+        //_ASSERT_MSG(TGP, 0, "VCD_PMIDX decoding not implemented yet!");
+        g_pm_index = FifoPop8();
+    }
+    // offset according to texture matrixes..
+    u32 data = CP_VCD_LO(0);
+    for(int i = 0; i < 8; i++) {
+        data >>= 1;
+        if(data & 1) {
+            FifoPop8();
+        }
+    }
 
     // DECODE POSITION FORMAT
 
@@ -492,8 +606,43 @@ void DecodeVertex() {
         
         if (VCD_TEX(n)) {
             tex[n].vcd         = VCD_TEX(n);
-            tex[n].cnt         = (GXCompCnt)VAT_TEX0CNT;
-            tex[n].fmt         = (GXCompType)VAT_TEX0FMT;
+
+
+            // TODO(ShizZy): Refactor this - it's terribly hax
+            switch (n) {
+            case 0:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX0CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX0FMT;
+                break;
+            case 1:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX1CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX1FMT;
+                break;
+            case 2:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX2CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX2FMT;
+                break;
+            case 3:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX3CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX3FMT;
+                break;
+            case 4:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX4CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX4FMT;
+                break;
+            case 5:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX5CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX5FMT;
+                break;
+            case 6:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX6CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX6FMT;
+                break;
+            case 7:
+                tex[n].cnt         = (GXCompCnt) VAT_TEX7CNT;
+                tex[n].fmt         = (GXCompType)VAT_TEX7FMT;
+                break;
+            }
 
             switch(tex[n].vcd) {
             case GX_VCD_DIRECT:
@@ -514,20 +663,7 @@ void DecodeVertex() {
 void DecodePrimitive(GXPrimitive type, int count) {
 
     video_core::g_renderer->BeginPrimitive(type, count);
-    
-    if (VCD_MIDX) {
-        _ASSERT_MSG(TGP, 0, "VCD_MIDX decoding not implemented yet!");
-    }
-    if (VCD_PMIDX) {
-        _ASSERT_MSG(TGP, 0, "VCD_PMIDX decoding not implemented yet!");
-        u8 g_xf_position_mtx_index = FifoPop8();
-    }
-    
-    for (int i = 0; i < count; i++) {
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    }
-    /*
+
     for (int i = 0; i < (count >> 3); i++) {
         DecodeVertex();
         video_core::g_renderer->VertexNext();
@@ -568,7 +704,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
     case 1:
         DecodeVertex();
         video_core::g_renderer->VertexNext();
-    }*/
+    }
     
     video_core::g_renderer->EndPrimitive();
 }
