@@ -14,7 +14,7 @@ EmuWindow_SDL::EmuWindow_SDL() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
-    main_window_ = SDL_CreateWindow("gekko", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    main_window_ = SDL_CreateWindow("ChronoBarkangel was here", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
             640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
     /* Create our opengl context and attach it to our window */
