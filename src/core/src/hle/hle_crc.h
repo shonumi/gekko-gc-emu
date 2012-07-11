@@ -779,5 +779,6 @@ HLEPatchData HLE_CRCPatch[] =
 {"OSReport",0x00000080,0x4F6A6158,""},
 {"OSPanic",0x00000138,0xAD2C6116,""},
 {"DBPrintf",0x00000050,0xB59B4703,""},
+//{"DVDOpen",0x000000C8,0x239BD2A0,""},
 {NULL,0,0}
 };

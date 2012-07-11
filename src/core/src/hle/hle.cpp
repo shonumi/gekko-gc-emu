@@ -64,6 +64,7 @@ HLEPatchFuncType	HLEPatchFuncs[] =
     {"osreport", (uintptr_t)HLE_PTR(OSReport)},
     {"dbprintf", (uintptr_t)HLE_PTR(DBPrintf)},
     {"ospanic", (uintptr_t)HLE_PTR(OSPanic)},
+    {"dvdopen", (uintptr_t)HLE_PTR(DVDOpen)},
     {0, 0}
 };
 
