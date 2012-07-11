@@ -41,19 +41,19 @@ public:
     ~Config() { }
 
     /// Struct used for defining game-specific patches
-    typedef struct {
+    struct Patch {
         u32 address;    ///< Address to patch
         u32 data;       ///< Data to write at the specified address
-    } Patch;
+    };
 
     /// Struct used for configuring what is inserted in a memory slot
-    typedef struct {
+    struct MemSlot {
         u8 device;      ///< Memory slot device (0 - memcard)
         bool enable;    ///< Enable (plugged in?)
-    } MemSlot;
+    };
 
     /// Struct used for defining a keyboard configuration for a GameCube controller
-    typedef struct {
+    struct KeyboardController {
         bool enable;                ///< Is the keyboard configation enabled?
         int a_key_code;
         int b_key_code;
@@ -75,11 +75,11 @@ public:
         int dpad_down_key_code;
         int dpad_left_key_code;
         int dpad_right_key_code;
-    } KeyboardController;
+    };
 
     /// Struct used for defining a joypad configuration for a GameCube controller
     /// We'll make another struct in case the user wants seperate joypad config
-    typedef struct {
+    struct JoypadController {
         bool enable;                ///< Is the joypad configation enabled?
         int a_key_code;
         int b_key_code;
@@ -101,7 +101,7 @@ public:
         int dpad_down_key_code;
         int dpad_left_key_code;
         int dpad_right_key_code;
-    } JoypadController;
+    };
 
     /// Struct used for configuring what is inserted in a controller port
     typedef struct {
@@ -112,31 +112,31 @@ public:
     } ControllerPort;
 
     /// Enum for supported CPU types
-    typedef enum {
+    enum CPUCoreType {
         CPU_NULL = 0,       ///< No CPU core
         CPU_INTERPRETER,    ///< Interpreter CPU core
         CPU_DYNAREC,        ///< Dynamic recompiler CPU core
         NUMBER_OF_CPU_CONFIGS
-    } CPUCoreType;
+    };
 
     /// Struct used for defining a renderer configuration
-    typedef struct {
+    struct RendererConfig {
         bool enable_wireframe;
         bool enable_shaders;
         bool enable_texture_dumping;
         bool enable_textures;
         int anti_aliasing_mode;
         int anistropic_filtering_mode;
-    } RendererConfig;
+    } ;
 
     /// Struct used for configuring a screen resolution
-    typedef struct {
+    struct ResolutionType {
         int width;
         int height;
-    } ResolutionType;
+    };
 
     /// Enum for supported video cores
-    typedef enum {
+    enum RendererType {
         RENDERER_NULL,          ///< No video core
         RENDERER_OPENGL_2_0,    ///< OpenGL 2.0 core
         RENDERER_OPENGL_3_3,    ///< OpenGL 3.0 core (not implemented)
@@ -146,7 +146,7 @@ public:
         RENDERER_SOFTWARE,      ///< Software  core (not implemented)
         RENDERER_HARDWARE,      ///< Hardware core (not implemented- this would be a driver)
         NUMBER_OF_VIDEO_CONFIGS
-    } RendererType;
+    };
     
     char* program_dir() { return program_dir_; }
     void set_program_dir(char* val, size_t size) { strcpy_s(program_dir_, size, val); }

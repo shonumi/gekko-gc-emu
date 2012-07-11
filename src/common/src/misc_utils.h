@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    misc_utils.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-06
- * \brief   Miscellaneous functions/utilities that are used everywhere
+ * @file    misc_utils.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-06
+ * @brief   Miscellaneous functions/utilities that are used everywhere
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -26,29 +26,29 @@
 
 namespace common {
 
-/*!
- * \brief Make a string lowercase
- * \param str String to make lowercase
+/**
+ * @brief Make a string lowercase
+ * @param str String to make lowercase
  */
 void LowerStr(char* str);
 
-/*!
- * \brief Make a string uppercase
- * \param str String to make uppercase
+/**
+ * @brief Make a string uppercase
+ * @param str String to make uppercase
  */
 void UpperStr(char* str);
 
-/*!
- * \brief Check if a file exists on the users computer
- * \param filename Filename of file to check for
- * \return true on exists, false otherwise
+/**
+ * @brief Check if a file exists on the users computer
+ * @param filename Filename of file to check for
+ * @return true on exists, false otherwise
  */
 bool FileExists(char* filename);
 
-/*!
- * \brief Gets the size of a file
- * \param file Pointer to file to get size of
- * \return true Size of file, in bytes
+/**
+ * @brief Gets the size of a file
+ * @param file Pointer to file to get size of
+ * @return true Size of file, in bytes
  */
 size_t FileSize(FILE* file);
 
