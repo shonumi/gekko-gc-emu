@@ -207,11 +207,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\emuwindow\emuwindow_glfw.cpp" />
+    <ClCompile Include="src\emuwindow\emuwindow_sdl.cpp" />
     <ClCompile Include="src\gekko.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\emuwindow\emuwindow_glfw.h" />
+    <ClInclude Include="src\emuwindow\emuwindow_sdl.h" />
     <ClInclude Include="src\gekko.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>

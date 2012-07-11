@@ -5,6 +5,9 @@
     <ClCompile Include="src\emuwindow\emuwindow_glfw.cpp">
       <Filter>emuwindow</Filter>
     </ClCompile>
+    <ClCompile Include="src\emuwindow\emuwindow_sdl.cpp">
+      <Filter>emuwindow</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -13,6 +16,9 @@
       <Filter>emuwindow</Filter>
     </ClInclude>
     <ClInclude Include="src\gekko.h" />
+    <ClInclude Include="src\emuwindow\emuwindow_sdl.h">
+      <Filter>emuwindow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="gekko.rc" />
