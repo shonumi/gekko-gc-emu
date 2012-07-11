@@ -36,7 +36,7 @@ namespace gp {
 // BP Register Decoding
 
 /// Gen Mode
-typedef struct {
+struct BPGenMode {
     union {
         struct {
             unsigned ntex : 4;
@@ -50,10 +50,10 @@ typedef struct {
         };
         u32 _u32;
     };
-}BPGenMode;
+};
 
 /// PE CMode 1
-typedef struct {
+struct BPCMode1{
     union {
         struct {
             unsigned alpha : 8;
@@ -65,10 +65,36 @@ typedef struct {
     };
 
     f32 getalpha() { return alpha / 255.0f; }
-}BPCMode1;
+};
+
+struct BPPECopyExecute {
+    union {
+        struct {
+            u32 clamp0              : 1; // if set clamp top
+            u32 clamp1              : 1; // if set clamp bottom
+            u32 yuv                 : 1; // if set, color conversion from RGB to YUV
+            u32 target_pixel_format : 4; // realformat is (fmt/2)+((fmt&1)*8).
+            u32 gamma               : 2; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 
+                                         // 3 is reserved
+            u32 half_scale          : 1; // "mipmap" filter... 0 = no filter (scale 1:1) ; 
+                                         // 1 = box filter (scale 2:1)
+            u32 scale_invert        : 1; // if set vertical scaling is on
+            u32 clear               : 1;
+            u32 frame_to_field      : 2; // 0 progressive ; 1 is reserved ; 
+                                         // 2 = interlaced (even lines) ; 3 = interlaced 1 (odd)
+            u32 copy_to_xfb         : 1;
+            u32 intensity_fmt       : 1; // if set, is an intensity format (I4,I8,IA4,IA8)
+            u32 auto_conv           : 1; // if 0 auto color conversion by texture format/pixel type
+        };
+        u32 _u32;
+    };
+    u32 tp_realFormat() { 
+        return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
+    }
+};
 
 /// TEV color / alpha combiners
-typedef struct {
+struct BPTevCombiner {
     union {
         struct {
             unsigned seld : 4;
@@ -102,10 +128,10 @@ typedef struct {
         };
         u32 _u32;
     }alpha;
-}BPTevCombiner;
+};
 
 /// TEV konstant color/alpha selector
-typedef struct {
+struct BPTevKSel {
     union {
         struct {
             unsigned xrb : 2;
@@ -121,10 +147,10 @@ typedef struct {
 
     int getkc (int stage) { return (stage&1) ? kcsel1 : kcsel0; }
     int getka (int stage) { return (stage&1) ? kasel1 : kasel0; }
-}BPTevKSel;
+};
 
 /// TEV raster color order
-typedef struct {
+struct BPTevOrder {
     union {
         struct {
             unsigned texmap0 : 3;
@@ -146,11 +172,11 @@ typedef struct {
     inline int get_texcoord(int stage) { return (stage&1) ? texcoord1 : texcoord0; }
     inline int get_enable(int stage) { return (stage&1) ? texmapenable1 : texmapenable0; }
     inline int get_colorchan(int stage) { return (stage&1) ? colorid1 : colorid0; }
-}BPTevOrder;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef union {
+union BPMemory {
     struct{
         BPGenMode       genmode;
         u32             pad0[0x27];
@@ -163,7 +189,7 @@ typedef union {
         BPTevKSel       ksel[0x8];
     };
     u32 mem[0x100];
-}BPMemory;
+};
 
 extern BPMemory g_bp_regs; ///< BP memory/registers
 

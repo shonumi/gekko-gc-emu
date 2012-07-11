@@ -102,20 +102,22 @@ void BPRegisterWrite(u8 addr, u32 data) {
         //gx_states::draw_done(); //do on write ~ShizZy
         LOG_DEBUG(TGP, "BP-> PE_DONE");
 
-	    if(g_bp_regs.mem[0x45] & 0x2) { // enable interrupt
-		    //GX_PE_FINISH = 1;
-            //FifoReset();
+	    if (g_bp_regs.mem[0x45] & 0x2) { // enable interrupt
+
+            FifoReset();
+            GX_PE_FINISH = 1;
+            video_core::g_renderer->SwapBuffers();
         }
         break;
 
     case 0x47: // PE_TOKEN
-        //GX_PE_TOKEN_VALUE = (_value & 0xffff);
+        GX_PE_TOKEN_VALUE = (data & 0xffff);
         LOG_DEBUG(TGP, "BP-> PE_TOKEN");
         break;
 
     case 0x48: // PE_TOKEN_INT
-        //GX_PE_TOKEN_VALUE = (_value & 0xffff); 
-        //GX_PE_TOKEN = 1; //seems to break mario
+        GX_PE_TOKEN_VALUE = (data & 0xffff); 
+        GX_PE_TOKEN = 1;
         LOG_DEBUG(TGP, "BP-> PE_TOKEN_INT");
         break;
 
@@ -134,9 +136,20 @@ void BPRegisterWrite(u8 addr, u32 data) {
         break;
 
     case 0x52: // pe copy execute
-        //gx_states::copy_efb();
-        video_core::g_renderer->SwapBuffers();
+
         LOG_DEBUG(TGP, "BP-> PE_COPY_EFB");
+
+        BPPECopyExecute pe_copy;
+        pe_copy._u32 = data;
+
+        if (pe_copy.copy_to_xfb) {
+            video_core::g_renderer->CopyEFB(RendererBase::kFramebuffer_VirtualXFB);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        } else {
+            // TODO(ShizZy): Implement copy to texture
+        }
+
+
         break;
 
     case 0x59: // Scissorbox Offset
