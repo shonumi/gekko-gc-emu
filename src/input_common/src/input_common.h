@@ -1,12 +1,12 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    input_common.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-03
- * \brief   Base class for defining user input plugins
+ * @file    input_common.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-03
+ * @brief   Base class for defining user input plugins
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of

@@ -1,12 +1,12 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    sdl_joypads.cpp
- * \author  Shonumi <shonumi@gmail.com>
- * \date    2012-03-12
- * \brief   Implementation of a SDL joypad GC controller interface
+ * @file    sdl_joypads.cpp
+ * @author  Shonumi <shonumi@gmail.com>
+ * @date    2012-03-12
+ * @brief   Implementation of a SDL joypad GC controller interface
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
