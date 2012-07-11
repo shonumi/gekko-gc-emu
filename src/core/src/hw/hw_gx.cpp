@@ -16,6 +16,7 @@
 #include "video/gx_tev.h"
 
 #include "video_core.h"
+#include "fifo_player.h"
 
 #ifdef USE_NEW_VIDEO_CORE
 #include "fifo.h"
@@ -283,13 +284,10 @@ void EMU_FASTCALL GX_Fifo_Write8(u32 addr, u32 data)
 		gx_fifo::command_parser(&gx_fifo::fifo);
 		gx_fifo::fifo.recirculate();
 	}
+    PE_Update();
 #else
-    gp::FifoSynchronize();
     gp::FifoPush8((u8)data);
-    
 #endif
-
-	PE_Update();
 }
 
 void EMU_FASTCALL GX_Fifo_Write16(u32 addr, u32 data)
@@ -302,13 +300,10 @@ void EMU_FASTCALL GX_Fifo_Write16(u32 addr, u32 data)
 		gx_fifo::command_parser(&gx_fifo::fifo);
 		gx_fifo::fifo.recirculate();
 	}
+    PE_Update();
 #else
-    gp::FifoSynchronize();
     gp::FifoPush16((u16)data);
-    
 #endif
-
-	PE_Update();
 }
 
 void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data)
@@ -327,17 +322,10 @@ void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data)
 		gx_fifo::command_parser(&gx_fifo::fifo);
 		gx_fifo::fifo.recirculate();
 	}
+    PE_Update();
 #else
-    gp::FifoSynchronize();
     gp::FifoPush32(data);
-
-	if((data == 0x45000002)) {
-	    GX_PE_FINISH = 1;
-	}
-    
 #endif
-
-	PE_Update();
 }
 
 u8 EMU_FASTCALL GX_Fifo_Read8(u32 addr)
@@ -371,6 +359,10 @@ void GX_Open(void)
 
 #ifdef USE_NEW_VIDEO_CORE
     video_core::Init();
+#endif
+
+#ifdef USE_FIFO_RECORDING
+    fifo_player::StartRecording("fifo_recording.gfp");
 #endif
 
 	// initialize OpenGL
