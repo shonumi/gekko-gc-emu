@@ -22,11 +22,9 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#include "SDL.h"
-#include "SDL_thread.h"
-
 #include "common.h"
 #include "memory.h"
+#include "std_mutex.h"
 #include "core.h"
 
 #include "video/opengl.h"
@@ -34,6 +32,7 @@
 #include "video_core.h"
 #include "vertex_loader.h"
 #include "fifo.h"
+#include "fifo_player.h"
 #include "bp_mem.h"
 #include "cp_mem.h"
 #include "xf_mem.h"
@@ -53,8 +52,6 @@ u8 g_cur_vat = 0;               ///< Current vertex attribute table
 
 u32 volatile g_fifo_write_ptr;  ///< FIFO write location
 u8* volatile g_fifo_read_ptr;   ///< FIFO read location
-u8* volatile g_fifo_tail_ptr;   ///< Tail of the primary FIFO buffer
-u8* volatile g_fifo_head_ptr;   ///< Head of the primary FIFO buffer
 u8* volatile g_fifo_end_ptr;    ///< End of the primary FIFO buffer
 
 u8* volatile g_dl_read_ptr;     ///< Display list read location
@@ -84,7 +81,7 @@ static inline u8 __fifo_pop_8() {
  * @return 16-bit halfword from display list
  */
 static inline u16 __fifo_pop_16() {
-    u16 res = *((u16*)(g_fifo_read_ptr));
+    u16 res = BSWAP16(*((u16*)(g_fifo_read_ptr)));
     g_fifo_read_ptr+=2;
     return res;
 }
@@ -94,9 +91,9 @@ static inline u16 __fifo_pop_16() {
  * @return 24-bit word from display list
  */
 static inline u32 __fifo_pop_24() {
-    u32 res = *((u32*)(g_fifo_read_ptr));
+    u32 res = BSWAP32(*((u32*)(g_fifo_read_ptr))) & 0xffffff;
     g_fifo_read_ptr+=3;
-    return res & 0xffffff;
+    return res;
 }
 
 /**
@@ -104,7 +101,7 @@ static inline u32 __fifo_pop_24() {
  * @return 32-bit word from display list
  */
 static inline u32 __fifo_pop_32() {
-    u32 res = *((u32*)(g_fifo_read_ptr));
+    u32 res = BSWAP32(*((u32*)(g_fifo_read_ptr)));
     g_fifo_read_ptr+=4;
     return res;
 }
@@ -180,6 +177,17 @@ static inline void _set_fifo_read_displaylists() {
 
 /********************************* TEST CODE ***********************************/
 
+// texture coordinate format decoding (size)
+#define TEXSIZELOOP(i, CNT, FMT)							\
+	switch(VCD_TEX(i))										\
+	{														\
+	case 1:													\
+		size+=kVertexTextureSize[((CNT << 3) | FMT)];			\
+		break;												\
+	case 2: size+=1; break;									\
+	case 3: size+=2; break;									\
+	}
+
 // retrieve the size of the next vertex in the fifo
 int GetVertexSize(u8 vat)
 {
@@ -188,12 +196,13 @@ int GetVertexSize(u8 vat)
     int i = 0;
 
     if(VCD_PMIDX) {
-        size+=1;
+        size += count;
     }
 
-
     for(; i < 8; i++) {
-        size += VCD_TMIDX(i);
+		if (VCD_TMIDX(i)) {
+			size += count;
+        }
     }
 
     switch(VCD_POS)
@@ -254,26 +263,20 @@ int GetVertexSize(u8 vat)
     case 3: size+=2; break; // index 16
     }
 
+	TEXSIZELOOP(0, VAT_TEX0CNT, VAT_TEX0FMT);
+	TEXSIZELOOP(1, VAT_TEX1CNT, VAT_TEX1FMT);
+	TEXSIZELOOP(2, VAT_TEX2CNT, VAT_TEX2FMT);
+	TEXSIZELOOP(3, VAT_TEX3CNT, VAT_TEX3FMT);
+	TEXSIZELOOP(4, VAT_TEX4CNT, VAT_TEX4FMT);
+	TEXSIZELOOP(5, VAT_TEX5CNT, VAT_TEX5FMT);
+	TEXSIZELOOP(6, VAT_TEX6CNT, VAT_TEX6FMT);
+	TEXSIZELOOP(7, VAT_TEX7CNT, VAT_TEX7FMT);
+
     return size;
 }
 
 /******************************************************************************/
 
-/// Called by CPU core to catch up
-void FifoSynchronize() {
-    if ((g_fifo_buffer + g_fifo_write_ptr) > g_fifo_tail_ptr) {
-        g_reset_fifo = 1;
-        while (g_reset_fifo) {
-        }
-    }
-}
-
-/// Called at end of frame to reset FIFO
-void FifoReset() {
-    g_fifo_write_ptr    = 0;
-    g_fifo_read_ptr     = g_fifo_buffer;
-    g_fifo_end_ptr      = &g_fifo_buffer[FIFO_SIZE-1];
-}
 
 bool FifoNextCommandReady() {
     static int last_required_size = -1;
@@ -309,7 +312,8 @@ bool FifoNextCommandReady() {
     
     case 2: // LOAD XF
         if (bytes_in_fifo >= 5) { // if header is present
-            u16 size = (4 * (FIFO_GET16(3) & 0xf) + 1);
+            u32 temp = FIFO_GET32(1);
+	        u16 size  = 4 * ((temp >> 16) + 1);
             size += 5;
             if(bytes_in_fifo >= size)
             {
@@ -396,8 +400,8 @@ GP_OPCODE(NOP) {
 GP_OPCODE(LOAD_CP_REG) {
 	u8 addr = FifoPop8();
 	u32 data = FifoPop32();
-	CPRegisterWrite(addr, data);
     LOG_DEBUG(TGP, "LOAD_CP_REG: addr=%02x data=%08x", addr, data);
+	CPRegisterWrite(addr, data);
 }
 
 /// load xf register with data
@@ -405,16 +409,17 @@ GP_OPCODE(LOAD_XF_REG) {
 	u32 temp    = FifoPop32();
 	u16 length  = (temp >> 16) + 1;
     u16 addr    = temp & 0xFFFF;
+    
+    LOG_DEBUG(TGP, "LOAD_XF_REG: length=%d addr=%04x", length, addr);
+
     u32 regs[64];
 
-    //ASSERT_T(length <= 64, "GP core fu***d up....");
-
+    _ASSERT_MSG(TGP, length <= 64, "LOAD_XF_REG invalid length=%d!", length);
 	for(int i = 0; i < length; i++) {
         regs[i] = FifoPop32();
     }
 
     XFRegisterWrite(length, addr, regs);
-    LOG_DEBUG(TGP, "LOAD_XF_REG: length=%d addr=%04x", length, addr);
 }
 
 /// load xf register with data indexed A
@@ -425,8 +430,8 @@ GP_OPCODE(LOAD_IDX_A) {
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
-	XFLoadIndexed(GX_IDX_A, index, length, addr);
     LOG_DEBUG(TGP, "LOAD_IDX_A: index=%04x addr=%04x length=%08x", index, addr, length);
+	XFLoadIndexed(GX_IDX_A, index, length, addr);
 }
 
 /// load xf register with data indexed B
@@ -437,8 +442,8 @@ GP_OPCODE(LOAD_IDX_B) {
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
-	XFLoadIndexed(GX_IDX_B, index, length, addr);
     LOG_DEBUG(TGP, "LOAD_IDX_B: index=%04x addr=%04x length=%08x", index, addr, length);
+	XFLoadIndexed(GX_IDX_B, index, length, addr);
 }
 
 /// load xf register with data indexed C
@@ -449,8 +454,8 @@ GP_OPCODE(LOAD_IDX_C) {
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
-	XFLoadIndexed(GX_IDX_C, index, length, addr);
     LOG_DEBUG(TGP, "LOAD_IDX_C: index=%04x addr=%04x length=%08x", index, addr, length);
+	XFLoadIndexed(GX_IDX_C, index, length, addr);
 }
 
 /// load xf register with data indexed D
@@ -461,8 +466,8 @@ GP_OPCODE(LOAD_IDX_D) {
     u16 addr;
 	length = (data >> 12) + 1;
 	addr = data & 0xfff;
-	XFLoadIndexed(GX_IDX_D, index, length, addr);
     LOG_DEBUG(TGP, "LOAD_IDX_D: index=%04x addr=%04x length=%08x", index, addr, length);
+	XFLoadIndexed(GX_IDX_D, index, length, addr);
 }
 
 /// call a display list
@@ -472,6 +477,7 @@ GP_OPCODE(CALL_DISPLAYLIST) {
 
     g_dl_read_addr = addr;
     g_dl_read_offset = 0;
+    LOG_DEBUG(TGP, "CALL_DISPLAYLIST: addr=%08x size=%08x", addr, size);
 
     _set_fifo_read_displaylists();
 
@@ -483,7 +489,7 @@ GP_OPCODE(CALL_DISPLAYLIST) {
 
     _set_fifo_read_normal();
 
-    LOG_DEBUG(TGP, "CALL_DISPLAYLIST: addr=%08x size=%08x", addr, size);
+    LOG_DEBUG(TGP, "CALL_DISPLAYLIST finished", addr, size);
 }
 
 /// invalidate vertex cache
@@ -494,57 +500,71 @@ GP_OPCODE(INVALIDATE_VERTEX_CACHE) {
 /// load bp register with data
 GP_OPCODE(LOAD_BP_REG) {
     u32 data = FifoPop32();
-	BPRegisterWrite(data >> 24, data & 0x00FFFFFF);
     LOG_DEBUG(TGP, "LOAD_BP_REG: addr=%02x data=%08x", data >> 24, data & 0x00FFFFFF);
+	BPRegisterWrite(data >> 24, data & 0x00FFFFFF);
 }
 
 /// draw a primitive - quads
 GP_OPCODE(DRAW_QUADS) {
 	u16 count = FifoPop16();
-	DecodePrimitive(GX_QUADS, count);
     LOG_DEBUG(TGP, "\t\tDRAW_QUADS: count=%04x", count);
+	DecodePrimitive(GX_QUADS, count);
 }
 
 /// draw a primitive - triangles
 GP_OPCODE(DRAW_TRIANGLES) {
 	u16 count = FifoPop16();
-    DecodePrimitive(GX_TRIANGLES, count);
     LOG_DEBUG(TGP, "\t\tDRAW_TRIANGLES: count=%04x", count);
+    DecodePrimitive(GX_TRIANGLES, count);
 }
 
 /// draw a primitive - trianglestrip
 GP_OPCODE(DRAW_TRIANGLESTRIP) {
 	u16 count = FifoPop16();
-	DecodePrimitive(GX_TRIANGLESTRIP, count);
     LOG_DEBUG(TGP, "\t\tDRAW_TRIANGLESTRIP: count=%04x", count);
+	DecodePrimitive(GX_TRIANGLESTRIP, count);
 }
 
 /// draw a primitive - trianglefan
 GP_OPCODE(DRAW_TRIANGLEFAN) {
 	u16 count = FifoPop16();
-	DecodePrimitive(GX_TRIANGLEFAN, count);
     LOG_DEBUG(TGP, "\t\tDRAW_TRIANGLEFAN: count=%04x", count);
+	DecodePrimitive(GX_TRIANGLEFAN, count);
 }
 
 /// draw a primitive - lines
 GP_OPCODE(DRAW_LINES) {
 	u16 count = FifoPop16();
-	DecodePrimitive(GX_LINES, count);
     LOG_DEBUG(TGP, "\t\tDRAW_LINES: count=%04x", count);
+	DecodePrimitive(GX_LINES, count);
 }
 
 /// draw a primitive - linestrip
 GP_OPCODE(DRAW_LINESTRIP) {
 	u16 count = FifoPop16();
-	DecodePrimitive(GX_LINESTRIP, count);
     LOG_DEBUG(TGP, "\t\tDRAW_LINESTRIP: count=%04x", count);
+	DecodePrimitive(GX_LINESTRIP, count);
 }
 
 /// draw a primitive - points
 GP_OPCODE(DRAW_POINTS) {
-	u16 count = FifoPop16();
-	DecodePrimitive(GX_POINTS, count);
+    u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_POINTS: count=%04x", count);
+	DecodePrimitive(GX_POINTS, count);
+}
+
+/// Called at end of frame to reset FIFO
+void FifoReset() {
+
+    //g_fifo_write_lock->lock();
+    if (g_fifo_write_ptr > FIFO_TAIL_END) {
+
+        // Move FIFO to beginning
+        g_fifo_write_ptr    = 0;
+        g_fifo_read_ptr     = g_fifo_buffer;
+
+        g_reset_fifo = 0;
+    }
 }
 
 /// Thread that sits and waits to decode the FIFO contents
@@ -552,6 +572,7 @@ int DecodeThread(void *unused) {
     LOG_NOTICE(TGP, "Thread starting...");
     
     while (core::SYS_RUNNING == core::g_state) {
+        
         int bytes_in_fifo = g_fifo_write_ptr - (g_fifo_read_ptr - g_fifo_buffer);
 
         if (bytes_in_fifo < 1) {
@@ -560,38 +581,34 @@ int DecodeThread(void *unused) {
             }
         }
 
-        // Synchronize the CPU<-->FIFO
-        if (g_reset_fifo) {
-            // Lock writes from CPU to FIFO, reset FIFO to beginning
-            bytes_in_fifo = g_fifo_write_ptr - (g_fifo_read_ptr - g_fifo_buffer);
-            common::AtomicStoreRelease(g_fifo_write_ptr, bytes_in_fifo);
-            memcpy(g_fifo_buffer, g_fifo_read_ptr, (size_t)bytes_in_fifo);
-
-            // Move FIFO to beginning
-            g_fifo_read_ptr = g_fifo_buffer;
-
-            g_reset_fifo = 0;
-        }
-
+        _ASSERT_MSG(TGP, g_fifo_write_ptr >=  (g_fifo_read_ptr - g_fifo_buffer), 
+            "GP decoding read_ptr > wrote_ptr, this should never happen!");
+        
         // Get the next GP opcode and decode it
         if (FifoNextCommandReady()) {
+            
             g_cur_cmd = FifoPop8();
             g_cur_vat = g_cur_cmd & 0x7;
             g_exec_op[GP_OPMASK(g_cur_cmd)]();
         }
+        
     }
     LOG_NOTICE(TGP, "Thread closing...");
     return E_OK;
 }
 
+
+
 /// Initialize GP FIFO
 void FifoInit() {
+    
     _set_fifo_read_normal();
 
     // FIFO pointers
-    FifoReset();
-    g_fifo_tail_ptr = g_fifo_buffer + FIFO_TAIL_END;
-    g_fifo_head_ptr = g_fifo_buffer + FIFO_HEAD_END;
+    g_fifo_write_ptr    = 0;
+    g_fifo_read_ptr     = g_fifo_buffer;
+
+    g_reset_fifo        = 0;
 
     // Zero FIFO memory
 	memset(g_fifo_buffer, 0, FIFO_SIZE);
@@ -600,12 +617,12 @@ void FifoInit() {
     g_dl_read_addr = 0;
     g_dl_read_offset = 0;
 
-	// init op table
+	// Init op table
 	for(int i = 0; i < 0x20; i++) {
 		GP_SETOP(i, GPOPCODE_UNKNOWN);
     }
 
-	// create op table
+	// Create op table
 	GP_SETOP(GP_OPMASK(GP_NOP), GPOPCODE_NOP);	
 	GP_SETOP(GP_OPMASK(GP_LOAD_CP_REG), GPOPCODE_LOAD_CP_REG);				
 	GP_SETOP(GP_OPMASK(GP_LOAD_XF_REG), GPOPCODE_LOAD_XF_REG);

@@ -35,17 +35,16 @@ typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 #define GP_SETOP(n, op)         g_exec_op[n] = (GPFuncPtr)op
 
 // FIFO information
-#define FIFO_SIZE           (32 * 1024 * 1024)          // 32mb
-#define FIFO_HEAD_END       (1024 * 1024)               // First 1mb of FIFO
-#define FIFO_TAIL_END       (FIFO_SIZE - FIFO_HEAD_END) // Last 1mb of FIFO... Resets to beginning
+#define FIFO_SIZE           (64 * 1024 * 1024)          // 64mb
+#define FIFO_TAIL_END       (60 * 1024 * 1024)          // First 60mb of FIFO
 #define FIFO_MASK           (FIFO_SIZE - 1)             // Mask
 
 /// Get last byte from FIFO
 #define FIFO_GET8(ofs)      *(gp::g_fifo_read_ptr + ofs)
 /// Get last half from FIFO
-#define FIFO_GET16(ofs)     *((u16*)(gp::g_fifo_read_ptr + ofs))
+#define FIFO_GET16(ofs)     BSWAP16(*((u16*)(gp::g_fifo_read_ptr + ofs)))
 /// Get last word from FIFO
-#define FIFO_GET32(ofs)     *((u32*)(gp::g_fifo_read_ptr + ofs))
+#define FIFO_GET32(ofs)     BSWAP32(*((u32*)(gp::g_fifo_read_ptr + ofs)))
 
 #define GX_IDX_A					0
 #define GX_IDX_B					1
@@ -95,19 +94,19 @@ extern u32 (*FifoPop32)();                  ///< Pointer to FIFO 32-bit pop meth
 /// Push 8-bit byte into the FIFO
 static inline void FifoPush8(u8 data) {
     g_fifo_buffer[g_fifo_write_ptr] = data;
-    common::AtomicIncrement(g_fifo_write_ptr);
+    g_fifo_write_ptr++;
 }
 
 /// Push 16-bit halfword into the FIFO
 static inline void FifoPush16(u16 data) {
-    *(u16*)(g_fifo_buffer + g_fifo_write_ptr) = data;
-    common::AtomicAdd(g_fifo_write_ptr, 2);
+    *(u16*)(g_fifo_buffer + g_fifo_write_ptr) = BSWAP16(data);
+    g_fifo_write_ptr += 2;
 }
 
 /// Push 32-bit word into the FIFO
 static inline void FifoPush32(u32 data) {
-    *(u32*)(g_fifo_buffer + g_fifo_write_ptr) = data;
-    common::AtomicAdd(g_fifo_write_ptr, 4);
+    *(u32*)(g_fifo_buffer + g_fifo_write_ptr) = BSWAP32(data);
+    g_fifo_write_ptr += 4;
 }
 
 /// Called by CPU core to catch up
