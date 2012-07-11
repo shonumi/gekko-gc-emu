@@ -10,9 +10,9 @@ void PE_Update(void);
 void PE_Token(u16 *token);
 void PE_Finish();
 
-extern long	GX_PE_FINISH;
-extern long	GX_PE_TOKEN;
-extern u16	GX_PE_TOKEN_VALUE;
+extern u32 GX_PE_FINISH;
+extern u32 GX_PE_TOKEN;
+extern u16 GX_PE_TOKEN_VALUE;
 
 u8		EMU_FASTCALL	PE_Read8(u32 addr);
 void	EMU_FASTCALL	PE_Write8(u32 addr, u32 data);
