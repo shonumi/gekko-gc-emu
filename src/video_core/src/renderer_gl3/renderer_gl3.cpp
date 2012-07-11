@@ -26,18 +26,22 @@
 
 #include "input_common.h"
 
+#include "fifo.h"
 #include "vertex_loader.h"
 #include "cp_mem.h"
 #include "xf_mem.h"
 
 #include "renderer_gl3.h"
 #include "shader_manager.h"
+#include "raster_font.h"
+
+RasterFont* g_raster_font;
 
 /// RendererGL3 constructor
 RendererGL3::RendererGL3() {
-    fbo_ = 0;          
-    fbo_depth_;    
-    fbo_texture_;  
+    memset(fbo_, 0, sizeof(fbo_));  
+    memset(fbo_rbo_, 0, sizeof(fbo_rbo_));  
+    memset(fbo_depth_buffers_, 0, sizeof(fbo_depth_buffers_));  
     resolution_width_ = 640;
     resolution_height_ = 480;
     vbo_handle_ = 0;
@@ -46,7 +50,6 @@ RendererGL3::RendererGL3() {
     vbo_write_offset_ = 0;
     quad_vbo_ = NULL;
     quad_vbo_ptr_ = NULL;
-    vbo_write_ofs_ = 0;
     vertex_position_format_ = 0;
     vertex_position_format_size_ = 0;
     vertex_position_component_count_ = (GXCompCnt)0;
@@ -59,7 +62,6 @@ RendererGL3::RendererGL3() {
 
 /// Sets up the renderer for drawing a primitive
 void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
-    int vertex_burst_size = count * sizeof(GXVertex);
 
 #ifdef USE_GEOMETRY_SHADERS
     // Use geometry shaders to emulate GX_QUADS via GL_LINES_ADJACENCY
@@ -88,14 +90,14 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
 
     // Bind pointers to buffers
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
-    vbo_ = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, vbo_write_ofs_, vertex_burst_size, 
-                                       GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | 
-                                       GL_MAP_FLUSH_EXPLICIT_BIT);
+
+    // Map CPU to GPU mem
+    static GLbitfield access_flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | 
+                                     GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
+    vbo_ = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, (vbo_write_offset_ * sizeof(GXVertex)),
+                                       (count * sizeof(GXVertex)), access_flags);
     if (vbo_ == NULL) {
-        LOG_ERROR(TVIDEO, 
-                  "Unable to map vertex buffer object to system mem! (vbo_write_ofs_=%d count=%d)",
-                  vbo_write_ofs_,
-                  vertex_burst_size);
+        LOG_ERROR(TVIDEO, "Unable to map vertex buffer object to system mem!");
     }
     
 #ifndef USE_GEOMETRY_SHADERS
@@ -110,8 +112,6 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
 #else
     vbo_ptr_ = &vbo_;
 #endif
-
-    vbo_write_ofs_ += vertex_burst_size;
 }
 
 /**
@@ -159,7 +159,6 @@ void RendererGL3::VertexPosition_SendByte(u8* vec) {
     ptr[1] = vec[1];
     ptr[2] = vec[2];
 }
-
 /**
  * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
  * @param count Color data count (e.g. GX_CLR_RGBA)
@@ -265,14 +264,22 @@ void RendererGL3::VertexNext() {
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive() {
-    f32* pmtx = XF_GEOMETRY_MATRIX;
-    f32 pmtx44[16];
+    f32*    gmtx = XF_GEOMETRY_MATRIX;
+    //f32*    pmtx = XF_POSITION_MATRIX;
+    f32     gmtx44[16];
 
     // convert 4x3 ode to gl 4x4
-    pmtx44[0]  = pmtx[0];   pmtx44[1]  = pmtx[4];   pmtx44[2]  = pmtx[8];   pmtx44[3]  = 0;
-    pmtx44[4]  = pmtx[1];   pmtx44[5]  = pmtx[5];   pmtx44[6]  = pmtx[9];   pmtx44[7]  = 0;
-    pmtx44[8]  = pmtx[2];   pmtx44[9]  = pmtx[6];   pmtx44[10] = pmtx[10];  pmtx44[11] = 0;
-    pmtx44[12] = pmtx[3];   pmtx44[13] = pmtx[7];   pmtx44[14] = pmtx[11];  pmtx44[15] = 1;
+    /*if (VCD_PMIDX) {
+        gmtx44[0]  = 1;   gmtx44[1]  = 0;   gmtx44[2]  = 0;  gmtx44[3]  = 0;
+        gmtx44[4]  = 0;   gmtx44[5]  = 1;   gmtx44[6]  = 0;  gmtx44[7]  = 0;
+        gmtx44[8]  = 0;   gmtx44[9]  = 0;   gmtx44[10] = 1;  gmtx44[11] = 0;
+        gmtx44[12] = 0;   gmtx44[13] = 0;   gmtx44[14] = 0;  gmtx44[15] = 1;
+    } else {*/
+        gmtx44[0]  = gmtx[0];   gmtx44[1]  = gmtx[4];   gmtx44[2]  = gmtx[8];   gmtx44[3]  = 0;
+        gmtx44[4]  = gmtx[1];   gmtx44[5]  = gmtx[5];   gmtx44[6]  = gmtx[9];   gmtx44[7]  = 0;
+        gmtx44[8]  = gmtx[2];   gmtx44[9]  = gmtx[6];   gmtx44[10] = gmtx[10];  gmtx44[11] = 0;
+        gmtx44[12] = gmtx[3];   gmtx44[13] = gmtx[7];   gmtx44[14] = gmtx[11];  gmtx44[15] = 1;
+    //}
 
     // Do nothing if no data sent
     if (vertex_num_ == 0) {
@@ -284,7 +291,7 @@ void RendererGL3::EndPrimitive() {
     glUniformMatrix4fv(m_id, 1, GL_FALSE, &gp::g_projection_matrix[0]);
 
     m_id = glGetUniformLocation(shader_manager::GetCurrentShaderID(), "modelMatrix");
-    glUniformMatrix4fv(m_id, 1, GL_FALSE, &pmtx44[0]);
+    glUniformMatrix4fv(m_id, 1, GL_FALSE, &gmtx44[0]);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -334,38 +341,52 @@ void RendererGL3::SetDepthTest() {
 void RendererGL3::SetCullMode() {
 }
 
-/// Swap buffers (render frame)
-void RendererGL3::SwapBuffers() {
-
-    GLenum fbo_buffs[] = { GL_COLOR_ATTACHMENT0 };
-
-    // FBO->Window copy
-    RenderFramebuffer();
-    
-    // Swap buffers
-    render_window_->SwapBuffers();
-
-    // Switch back to FBO and clear
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_primary_);
-    glDrawBuffers(1, fbo_buffs);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // FPS stuff
-    // TODO(ShizZy): this doesn't belong here.. move elsewhere
+/// Prints some useful debug information to the screen
+void RendererGL3::PrintDebugStats() {
 	static u32 swaps = 0, last = 0;
+    static f32 fps = 0;
+    static char str[255];
+
 	u32 t = SDL_GetTicks();
 	swaps++;
 		
 	if(t - last > 500) {
-        char title[100];
-		f32 fps = 1000.0f * swaps / (t - last);
+		fps = 1000.0f * swaps / (t - last);
 		swaps = 0;
 		last = t;
-		sprintf(title, "gekko-glfw - %02.02f fps | Write a fuckin video plugin", fps);
-        render_window_->SetTitle(title);
 	}
+
+    f32 read_pos    = 100.0f * ((f32)(gp::g_fifo_read_ptr - gp::g_fifo_buffer)) / FIFO_SIZE;
+    f32 write_pos   = 100.0f * ((f32)gp::g_fifo_write_ptr) / FIFO_SIZE;
+    
+    sprintf(str, 
+            "Framerate    : %02.02f\n"
+            "Vertex count : %d\n"
+            "FIFO in pos  : %02.01f%%\n"
+            "FIFO out pos : %02.01f%%", 
+            fps, vbo_write_offset_, write_pos, read_pos);
+
+    g_raster_font->printMultilineText(str, -0.98, 0.95, 0, 200, 400);
+}
+
+/// Swap buffers (render frame)
+void RendererGL3::SwapBuffers() {
+
+    // FBO->Window copy
+    RenderFramebuffer();
+
+    // Swap buffers
+    render_window_->SwapBuffers();
+
+    // Update input
+    input_common::g_user_input->PollEvent();
+
+    // Switch back to EFB and clear
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Reset VBO position
     vbo_write_offset_ = 0;
-    vbo_write_ofs_ = 0; // Reset VBO position
 }
 
 /// Set the window of the emulator
@@ -373,67 +394,99 @@ void RendererGL3::SetWindow(EmuWindow* window) {
     render_window_ = window;
 }
 
-/// Shutdown the renderer
-void RendererGL3::ShutDown() {
 
-    // Framebuffer object
-    // ------------------
+/** 
+ * @brief Blits the EFB to the specified destination buffer
+ * @param framebuffer Destination framebuffer
+ */
+void RendererGL3::CopyEFB(kFramebuffer dest) {
 
-    glDeleteFramebuffers(1, &fbo_primary_);
-
-    // TODO(ShizZy): There is a lot more stuff we should be cleaning up here...
-}
-
-/// Renders the framebuffer quad to the screen
-void RendererGL3::RenderFramebuffer() {
-
-    // Render target is default framebuffer
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    // Render target is destination framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
     glViewport(0, 0, resolution_width_, resolution_height_);
-
-    // Render source is our primary FBO
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_primary_);
+  
+    // Render source is our EFB
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
     glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
                       0, 0, resolution_width_, resolution_height_,
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    // Rebind EFB
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+}
+
+/// Shutdown the renderer
+void RendererGL3::ShutDown() {
+
+    // Framebuffer object
+    // ------------------
+    glDeleteFramebuffers(MAX_FRAMEBUFFERS, fbo_);
+
+    // TODO(ShizZy): There is a lot more stuff we should be cleaning up here...
+}
+
+/// Renders the XFB the screen
+void RendererGL3::RenderFramebuffer() {
+
+    // Render target is default framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glViewport(0, 0, resolution_width_, resolution_height_);
+  
+    // Render source is our XFB
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_VirtualXFB]);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    // Blit
+    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
+                      0, 0, resolution_width_, resolution_height_,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    // FPS stuff
+    PrintDebugStats();
+
+    // Rebind EFB
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
 }
 
 /// Initialize the primary framebuffer used for drawing
 void RendererGL3::InitFramebuffer() {
-    glGenFramebuffers(1, &fbo_primary_); // Generate primary framebuffer
 
-    // Init the render buffer
-    // ----------------------
+    // Init the FBOs
+    // -------------
 
-    glGenRenderbuffers(1, &fbo_primary_rbo_); // Generate primary RBOs
-    glGenRenderbuffers(1, &fbo_primary_depth_buffer_); // Generate primary depth buffer
+    glGenFramebuffers(MAX_FRAMEBUFFERS, fbo_); // Generate primary framebuffer
+    glGenRenderbuffers(MAX_FRAMEBUFFERS, fbo_rbo_); // Generate primary RBOs
+    glGenRenderbuffers(MAX_FRAMEBUFFERS, fbo_depth_buffers_); // Generate primary depth buffer
+
+    for (int i = 0; i < MAX_FRAMEBUFFERS; i++) {
+        // Generate color buffer storage
+        glBindRenderbuffer(GL_RENDERBUFFER, fbo_rbo_[i]);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, resolution_width_, resolution_height_);
+
+        // Generate depth buffer storage
+        glBindRenderbuffer(GL_RENDERBUFFER, fbo_depth_buffers_[i]);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, resolution_width_, 
+                              resolution_height_);
     
-    glBindRenderbuffer(GL_RENDERBUFFER, fbo_primary_rbo_); // Bind the RBO color buffer
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, 640, 480);
+        // Attach the buffers
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[i]);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                  GL_RENDERBUFFER, fbo_depth_buffers_[i]);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                  GL_RENDERBUFFER, fbo_rbo_[i]);
 
-    glBindRenderbuffer(GL_RENDERBUFFER, fbo_primary_depth_buffer_); // Bind the depth buffer
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, 640, 480);
-
-    // Attach buffers
-    // --------------
-
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_primary_);
-    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, fbo_primary_depth_buffer_);
-    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                              GL_RENDERBUFFER, fbo_primary_rbo_);
-
-    // Check for completeness
-    if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)) {
-        LOG_NOTICE(TGP, "framebuffer initialized ok");
-    } else {
-        LOG_ERROR(TVIDEO, "couldn't create OpenGL frame buffer");
-        exit(1);
-    } 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer 
+        // Check for completeness
+        if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)) {
+            LOG_NOTICE(TGP, "framebuffer(S) initialized ok");
+        } else {
+            LOG_ERROR(TVIDEO, "couldn't create OpenGL frame buffer");
+            exit(1);
+        } 
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer(s)
 } 
 
 /// Initialize the renderer and create a window
@@ -441,9 +494,9 @@ void RendererGL3::Init() {
 
     glClearColor(0.30f, 0.05f, 0.65f, 1.0f); // GameCube purple :-)
     glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture  
-    glEnable(GL_DEPTH_TEST); // Enable depth testing
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glEnable(GL_DEPTH_TEST); // Enable depth testing
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glFrontFace(GL_CW);
     glShadeModel(GL_SMOOTH);
 
@@ -469,4 +522,6 @@ void RendererGL3::Init() {
     InitFramebuffer();
 
     shader_manager::Init();
+
+    g_raster_font = new RasterFont();
 }

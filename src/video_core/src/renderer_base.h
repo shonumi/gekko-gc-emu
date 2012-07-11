@@ -32,6 +32,12 @@
 
 class RendererBase {
 public:
+
+    enum kFramebuffer {
+        kFramebuffer_VirtualXFB = 0,
+        kFramebuffer_EFB
+    };
+
     RendererBase() {
     }
 
@@ -143,6 +149,12 @@ public:
 
     /// Sets the renderer culling mode
     virtual void SetCullMode() = 0;
+
+    /** 
+     * @brief Blits the EFB to the specified destination buffer
+     * @param dest Destination framebuffer
+     */
+    virtual void CopyEFB(kFramebuffer dest) = 0;
 
     /** 
      * @brief Set the emulator window to use for renderer

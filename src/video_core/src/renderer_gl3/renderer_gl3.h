@@ -34,6 +34,7 @@
 #define VBO_SIZE                    (1024 * 1024 * 32)
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
 #define USE_GEOMETRY_SHADERS        1
+#define MAX_FRAMEBUFFERS            2
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.x Renderer
@@ -146,6 +147,12 @@ public:
     /// Sets the renderer culling mode
     void SetCullMode();
 
+    /** 
+     * @brief Blits the EFB to the specified destination buffer
+     * @param dest Destination framebuffer
+     */
+    void CopyEFB(kFramebuffer dest);
+
     /// Swap the display buffers (finish drawing frame)
     void SwapBuffers();
 
@@ -161,12 +168,14 @@ public:
 
 private:
 
-    void InitFramebuffer();
-    void RenderFramebuffer();
+    /// Prints some useful debug information to the screen
+    void PrintDebugStats();
 
-    unsigned int fbo_;          ///< The frame buffer object  
-    unsigned int fbo_depth_;    ///< The depth buffer for the frame buffer object  
-    unsigned int fbo_texture_;  ///< The texture object to write our frame buffer object to  
+    /// Initialize the FBO
+    void InitFramebuffer();
+
+    // Blit the FBO to the OpenGL default framebuffer
+    void RenderFramebuffer();
 
     int resolution_width_;
     int resolution_height_;
@@ -174,9 +183,9 @@ private:
     // Framebuffer object
     // ------------------
 
-    GLuint      fbo_primary_;               ///< Primary framebuffer object that things render to
-    GLuint      fbo_primary_rbo_;           ///< Primary framebuffer object's render bugger object
-    GLuint      fbo_primary_depth_buffer_;
+    GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
+    GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
+    GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
 
     // Vertex buffer object
     // --------------------
@@ -187,8 +196,7 @@ private:
     u32         vbo_write_offset_;          ///< Offset into VBO of current vertex writes
     GXVertex*   quad_vbo_;                  ///< Buffer for temporarily storing quads in CPU mem
     GXVertex*   quad_vbo_ptr_;              ///< Ptr to quad_vbo_
-    GLintptr    vbo_write_ofs_;             ///< Pointer to end of the VBO
-    
+
     GXPrimitive prim_type_;                         ///< GX primitive type (e.g. GX_QUADS)
     GLuint      gl_prim_type_;                      ///< OpenGL primitive type (e.g. GL_TRIANGLES)
     
