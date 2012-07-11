@@ -423,6 +423,7 @@ u32 ELF_CreateFileStructure(char *ELFFileName)
     //go thru the dvd root directory and create file entries in memory
 
     //if we have a path then use it, otherwise assume local
+    // TODO: Crashes if we pass "sample.elf" instead of "./sample.elf"
     if(DVDRootPath[0]) {
         strcpy(FilePath, DVDRootPath);
     } else {

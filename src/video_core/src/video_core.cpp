@@ -41,24 +41,21 @@ namespace video_core {
 RendererBase*   g_renderer;         ///< Renderer plugin
 SDL_Thread      *g_video_thread;
 
-int VideoThreadEntry(void *unused) {
-    #if EMU_PLATFORM == PLATFORM_WINDOWS
-        EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
-        g_renderer = new RendererGL3();
-        g_renderer->SetWindow(emu_window);
-        g_renderer->Init();
-        gp::DecodeThread(NULL);
-    #endif
+int VideoThreadEntry(void* emu_window) {
+    g_renderer = new RendererGL3();
+    g_renderer->SetWindow((EmuWindow*)emu_window);
+    g_renderer->Init();
+    gp::DecodeThread(NULL);
 
     return 0;
 }
 
 /// Start the video core
-void Start() {
+void Start(EmuWindow* emu_window) {
 #if SDL_MAJOR_VERSION == 2
-    g_video_thread = SDL_CreateThread(VideoThreadEntry, NULL, NULL);
+    g_video_thread = SDL_CreateThread(VideoThreadEntry, NULL, emu_window);
 #else
-    g_video_thread = SDL_CreateThread(VideoThreadEntry, NULL);
+    g_video_thread = SDL_CreateThread(VideoThreadEntry, emu_window);
 #endif
 
     if (g_video_thread == NULL) {

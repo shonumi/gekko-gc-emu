@@ -378,9 +378,6 @@ void RendererGL3::SwapBuffers() {
     // Swap buffers
     render_window_->SwapBuffers();
 
-    // Update input
-    input_common::g_user_input->PollEvent();
-
     // Switch back to EFB and clear
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -492,6 +489,8 @@ void RendererGL3::InitFramebuffer() {
 /// Initialize the renderer and create a window
 void RendererGL3::Init() {
 
+    render_window_->MakeCurrent();
+
     glClearColor(0.30f, 0.05f, 0.65f, 1.0f); // GameCube purple :-)
     glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture  
     //glEnable(GL_DEPTH_TEST); // Enable depth testing
@@ -501,10 +500,10 @@ void RendererGL3::Init() {
     glShadeModel(GL_SMOOTH);
 
     GLenum err = glewInit();
-	if (GLEW_OK != err) {
-        LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Exiting...");
+    if (GLEW_OK != err) {
+        LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Error message: \"%s\". Exiting...", glewGetErrorString(err));
         exit(E_ERR);
-	}
+    }
 
     // Initialize vertex buffers
     // -------------------------

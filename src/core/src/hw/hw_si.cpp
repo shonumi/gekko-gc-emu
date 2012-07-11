@@ -258,6 +258,10 @@ void SI_ProcessCommand(void)
 
 void SI_ReadKeys(int _channel)
 {
+    // Update input
+            
+    input_common::g_user_input->PollEvent();
+
 sec_0:
     // Analog Stick Y Axis Up
     if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_UP))) {

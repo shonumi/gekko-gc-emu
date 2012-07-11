@@ -85,6 +85,8 @@ public:
     void SetTitle(const char* title);
     void MakeCurrent();
     void DoneCurrent();
+    void GetWindowSize(int &width, int &height) {}
+    void SetConfig(EmuWindow::Config config) {}
 
     void BackupGeometry();
     void RestoreGeometry();

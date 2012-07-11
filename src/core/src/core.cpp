@@ -35,11 +35,15 @@
 #include "powerpc/cpu_core.h"
 #include "powerpc/interpreter/cpu_int.h"
 #include "powerpc/recompiler/cpu_rec.h"
+
+// TODO: Include logic is stupid... video_core shouldn't be included if USE_NEW_VIDEO_CORE is false, but that variable is defined in that header..
+#include "video_core.h"
+#ifndef USE_NEW_VIDEO_CORE
 #include "video/opengl.h"
 #include "video/gx_fifo.h"
-#include "dvd/loader.h"
+#endif
 
-#include "video_core.h"
+#include "dvd/loader.h"
 
 namespace core {
 
@@ -62,10 +66,10 @@ void SetConfigManager(common::ConfigManager* config_manager) {
 }
 
 /// Start the core
-void Start() {
+void Start(EmuWindow* emu_window) {
     SetState(SYS_RUNNING);
 #ifdef USE_NEW_VIDEO_CORE
-    video_core::Start();
+    video_core::Start(emu_window);
 #endif // USE_NEW_VIDEO_CORE
 }
 
@@ -76,7 +80,10 @@ void Kill() {
 	delete cpu;
     cpu = NULL;
 	Memory_Close();
+// TODO: Do anything about new video core here?
+#ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::destroy();
+#endif
 }
 
 /// Stop the core

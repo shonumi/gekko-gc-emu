@@ -1,3 +1,5 @@
+#include "common.h"
+
 #ifndef __EMUWINDOW_H__
 #define __EMUWINDOW_H__
 

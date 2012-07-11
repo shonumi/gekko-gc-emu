@@ -37,6 +37,7 @@ EmuWindow_GLFW::EmuWindow_GLFW()
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 
     render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko-glfw3", 0);
+    DoneCurrent();
 }
 
 /// EmuWindow_GLFW destructor
@@ -53,17 +54,20 @@ void EmuWindow_GLFW::SwapBuffers() {
 /**
  * @brief Sets the window title
  * @param title Title to set the window to
+ * @todo Disabled for now until it's used thread-savely
  */
 void EmuWindow_GLFW::SetTitle(const char* title) {
-    glfwSetWindowTitle(render_window_, title);
+//    glfwSetWindowTitle(render_window_, title);
 }
 
 /// Makes the GLFW OpenGL context current for the caller thread
 void EmuWindow_GLFW::MakeCurrent() {
+    glfwMakeContextCurrent(render_window_);
 }
 
 /// Releases (dunno if this is the "right" word) the GLFW context from the caller thread
 void EmuWindow_GLFW::DoneCurrent() {
+    glfwMakeContextCurrent(NULL);
 }
 
 /**
