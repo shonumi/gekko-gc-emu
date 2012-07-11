@@ -168,7 +168,9 @@
     <ClInclude Include="src\log.h" />
     <ClInclude Include="src\misc_utils.h" />
     <ClInclude Include="src\platform.h" />
-    <ClInclude Include="src\thread.h" />
+    <ClInclude Include="src\std_condition_variable.h" />
+    <ClInclude Include="src\std_mutex.h" />
+    <ClInclude Include="src\std_thread.h" />
     <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\types.h" />
     <ClInclude Include="src\x86_utils.h" />

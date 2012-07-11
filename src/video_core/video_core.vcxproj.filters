@@ -13,6 +13,10 @@
     <ClCompile Include="src\renderer_gl3\shader_manager.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer_gl3\raster_font.cpp">
+      <Filter>renderer_gl3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fifo_player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
@@ -32,6 +36,10 @@
     <ClInclude Include="src\renderer_gl3\shader_manager.h">
       <Filter>renderer_gl3</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer_gl3\raster_font.h">
+      <Filter>renderer_gl3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fifo_player.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="renderer_gl3">
