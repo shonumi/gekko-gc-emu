@@ -34,9 +34,6 @@ CPMemory g_cp_regs; ///< CP memory/registers
 
 /// Write a BP register
 void CPRegisterWrite(u8 addr, u32 data) {
-    LOG_DEBUG(TGP, "CP_LOAD [%02x] = %08x", addr, data);
-
-    // write data to bp memory
     g_cp_regs.mem[addr] = data;
 }
 
