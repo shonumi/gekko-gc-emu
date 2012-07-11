@@ -35,6 +35,7 @@ u32 EMU_FASTCALL Flipper_Update(void)
 			EXI_Update();
 			VI_Update();
 			AI_Update();
+            PE_Update();
 		}
 	}
 
