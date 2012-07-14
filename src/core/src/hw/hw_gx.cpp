@@ -276,62 +276,20 @@ void GX_XFLoadIndexed(u8 _n, u16 _index, u8 _length, u16 _addr)
 
 void EMU_FASTCALL GX_Fifo_Write8(u32 addr, u32 data)
 {
-#ifndef USE_NEW_VIDEO_CORE
-	gx_fifo::fifo.put8(data);
-
-	if(gx_fifo::check_size()) 
-	{
-		gx_fifo::command_parser(&gx_fifo::fifo);
-		gx_fifo::fifo.recirculate();
-	}
-    PE_Update();
-#else
-    gp::FifoPush8((u8)data);
-#endif
+    gp::g_fifo_buffer[gp::g_fifo_write_ptr++] = data;
 }
 
 void EMU_FASTCALL GX_Fifo_Write16(u32 addr, u32 data)
 {
-#ifndef USE_NEW_VIDEO_CORE
-	gx_fifo::fifo.put16(data);
-
-	if(gx_fifo::check_size()) 
-	{
-		gx_fifo::command_parser(&gx_fifo::fifo);
-		gx_fifo::fifo.recirculate();
-	}
-    PE_Update();
-#else
-    gp::FifoPush16((u16)data);
-#endif
+    *(u16*)(gp::g_fifo_buffer + gp::g_fifo_write_ptr) = BSWAP16(data);
+    gp::g_fifo_write_ptr += 2;
 }
 
-void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data)
-{
-#ifndef USE_NEW_VIDEO_CORE
-	gx_fifo::fifo.put32(data);
-
-	if((data == 0x45000002) && ((gx_fifo::fifo.lastcmd() & 0xf8) == 0x60))
-	{
-		bp.mem[0x45] = data;
-		gx_states::draw_done();
-	}
-
-	if(gx_fifo::check_size()) 
-	{
-		gx_fifo::command_parser(&gx_fifo::fifo);
-		gx_fifo::fifo.recirculate();
-	}
-    PE_Update();
-#else
-    gp::FifoPush32(data);
-#endif
+void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data) {
+    *(u32*)(gp::g_fifo_buffer + gp::g_fifo_write_ptr) = BSWAP32(data);
+    gp::g_fifo_write_ptr += 4;
 }
 
-u8 EMU_FASTCALL GX_Fifo_Read8(u32 addr)
-{
-	return 0;
-}
 
 u16 EMU_FASTCALL GX_Fifo_Read16(u32 addr)
 {
