@@ -159,6 +159,7 @@ void RendererGL3::VertexPosition_SendByte(u8* vec) {
     ptr[1] = vec[1];
     ptr[2] = vec[2];
 }
+
 /**
  * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
  * @param count Color data count (e.g. GX_CLR_RGBA)
@@ -228,6 +229,23 @@ void RendererGL3::VertexTexcoord_SendByte(int texcoord, u8* vec) {
     LOG_ERROR(TVIDEO, "Unimplemented method!");
 }
 
+/**
+ * @brief Sends position and texcoord matrix indices to the renderer
+ * @param pm_idx Position matrix index
+ * @param tm_idx Texture matrix indices,
+ */
+void RendererGL3::Vertex_SendMatrixIndices(u8 pm_idx, u8 tm_idx[]) {
+    (*vbo_ptr_)->pm_idx = pm_idx;
+   /* (*vbo_ptr_)->tm_idx[0] = tm_idx[0];
+    (*vbo_ptr_)->tm_idx[1] = tm_idx[1];
+    (*vbo_ptr_)->tm_idx[2] = tm_idx[2];
+    (*vbo_ptr_)->tm_idx[3] = tm_idx[3];
+    (*vbo_ptr_)->tm_idx[4] = tm_idx[4];
+    (*vbo_ptr_)->tm_idx[5] = tm_idx[5];
+    (*vbo_ptr_)->tm_idx[6] = tm_idx[6];
+    (*vbo_ptr_)->tm_idx[7] = tm_idx[7]; */
+}
+
 /// Used for specifying next GX vertex is being sent to the renderer
 void RendererGL3::VertexNext() {
 #ifndef USE_GEOMETRY_SHADERS
@@ -264,45 +282,30 @@ void RendererGL3::VertexNext() {
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive() {
-    f32*    gmtx = XF_GEOMETRY_MATRIX;
-    //f32*    pmtx = XF_POSITION_MATRIX;
-    f32     gmtx44[16];
-
-    // convert 4x3 ode to gl 4x4
-    /*if (VCD_PMIDX) {
-        gmtx44[0]  = 1;   gmtx44[1]  = 0;   gmtx44[2]  = 0;  gmtx44[3]  = 0;
-        gmtx44[4]  = 0;   gmtx44[5]  = 1;   gmtx44[6]  = 0;  gmtx44[7]  = 0;
-        gmtx44[8]  = 0;   gmtx44[9]  = 0;   gmtx44[10] = 1;  gmtx44[11] = 0;
-        gmtx44[12] = 0;   gmtx44[13] = 0;   gmtx44[14] = 0;  gmtx44[15] = 1;
-    } else {*/
-        gmtx44[0]  = gmtx[0];   gmtx44[1]  = gmtx[4];   gmtx44[2]  = gmtx[8];   gmtx44[3]  = 0;
-        gmtx44[4]  = gmtx[1];   gmtx44[5]  = gmtx[5];   gmtx44[6]  = gmtx[9];   gmtx44[7]  = 0;
-        gmtx44[8]  = gmtx[2];   gmtx44[9]  = gmtx[6];   gmtx44[10] = gmtx[10];  gmtx44[11] = 0;
-        gmtx44[12] = gmtx[3];   gmtx44[13] = gmtx[7];   gmtx44[14] = gmtx[11];  gmtx44[15] = 1;
-    //}
 
     // Do nothing if no data sent
     if (vertex_num_ == 0) {
         return;
     }
 
-    // Update XF matrices
-    GLuint m_id = glGetUniformLocation(shader_manager::GetCurrentShaderID(), "projectionMatrix");
-    glUniformMatrix4fv(m_id, 1, GL_FALSE, &gp::g_projection_matrix[0]);
-
-    m_id = glGetUniformLocation(shader_manager::GetCurrentShaderID(), "modelMatrix");
-    glUniformMatrix4fv(m_id, 1, GL_FALSE, &gmtx44[0]);
+    
+    shader_manager::SetVertexUniforms();
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(12);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
+    // Position
     glVertexAttribPointer(0, 3, vertex_position_format_, GL_FALSE, sizeof(GXVertex), 
                           reinterpret_cast<void*>(0));
+    // Color 0
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
                           reinterpret_cast<void*>(12));
+    // Position matrix index
+    glVertexAttribPointer(12, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(120));
     
     // When quads, compensate for extra triangles (4 vertices->6)
 #ifndef USE_GEOMETRY_SHADERS
@@ -318,8 +321,9 @@ void RendererGL3::EndPrimitive() {
                 "VBO is filled up! There is either a bug or it must be > %dMB!", 
                 (VBO_SIZE / 1048576));
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    //glDisableVertexAttribArray(0);
+    //glDisableVertexAttribArray(1);
+    //glDisableVertexAttribArray(12);
 }
 
 

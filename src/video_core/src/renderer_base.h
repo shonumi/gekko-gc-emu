@@ -129,6 +129,13 @@ public:
      */
     virtual void VertexTexcoord_SendByte(int texcoord, u8* vec) = 0;
 
+    /**
+     * @brief Sends position and texcoord matrix indices to the renderer
+     * @param pm_idx Position matrix index
+     * @param tm_idx Texture matrix indices
+     */
+    virtual void Vertex_SendMatrixIndices(u8 pm_idx, u8 tm_idx[]) = 0;
+
     /// Done with the current vertex - go to the next
     virtual void VertexNext() = 0;
 

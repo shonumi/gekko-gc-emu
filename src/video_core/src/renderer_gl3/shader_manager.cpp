@@ -24,8 +24,10 @@
 
 #include "common.h"
 
-#include "renderer_gl3.h"
 #include "gx_types.h"
+#include "xf_mem.h"
+
+#include "renderer_gl3.h"
 #include "shader_base_types.h"
 
 namespace shader_manager {
@@ -56,6 +58,23 @@ GLuint GetCurrentShaderID() {
     return current_shader_id;
 }
 
+/// Updates the uniform values for the vertex shader
+void SetVertexUniforms() {
+    // XF - projection matrix (already converted to GL4x4 format)
+    GLuint m_id = glGetUniformLocation(GetCurrentShaderID(), "projection_matrix");
+    glUniformMatrix4fv(m_id, 1, GL_FALSE, gp::g_projection_matrix);
+
+    // XF - modelview matrix, raw ODE4x3 format (3 vec4's)
+    m_id = glGetUniformLocation(GetCurrentShaderID(), "modelview_vectors");
+    glUniform4fv(m_id, 3, XF_MODELVIEW_MATRIX);
+
+    // XF - positition matrices
+    if (VCD_MIDX) {
+        m_id = glGetUniformLocation(GetCurrentShaderID(), "position_vectors");
+        glUniform4fv(m_id, gp::kXFMemEntriesNum, (f32*)gp::g_tf_mem);
+    }
+}
+
 /**
  * @brief Compiles a shader program
  * @param vs Vertex shader program source string
@@ -81,8 +100,25 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
 #endif
 
     // Compile Vertex Shader
+    int res;
     glShaderSource(vs_id, 1, &vs , NULL);
     glCompileShader(vs_id);
+    glGetShaderiv(vs_id, GL_COMPILE_STATUS, &res);
+
+
+    if (res == FALSE) {
+        
+	    glGetShaderiv(vs_id, GL_INFO_LOG_LENGTH, &res);
+ 
+	    /* The maxLength includes the NULL character */
+	    char* vs_log = new char[res];
+ 
+	    glGetShaderInfoLog(vs_id, res, &res, vs_log);
+ 
+        _ASSERT_MSG(TVIDEO, 0, "Vertex shader failed to compile! Error(s):\n%s", vs_log);
+        delete [] vs_log;
+    }
+    
  
     // Compile Fragment Shader
     glShaderSource(fs_id, 1, &fs , NULL);

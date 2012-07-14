@@ -129,6 +129,13 @@ public:
      */
     void VertexTexcoord_SendByte(int texcoord, u8* vec);
 
+    /**
+     * @brief Sends position and texcoord matrix indices to the renderer
+     * @param pm_idx Position matrix index
+     * @param tm_idx Texture matrix indices
+     */
+    void Vertex_SendMatrixIndices(u8 pm_idx, u8 tm_idx[]);
+
     /// Used for specifying next GX vertex is being sent to the renderer
     void VertexNext();
 

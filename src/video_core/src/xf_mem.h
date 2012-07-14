@@ -26,6 +26,7 @@
 #define VIDEO_CORE_XF_MEM_
 
 #include "common.h"
+#include "cp_mem.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Transformation Engine decoding
@@ -50,11 +51,11 @@
 #define XF_TEX_EMBOSS_LIGHT(n)          ((XF_TEX(n) >> 15) & 0x7)		
 
 // xf: transformation memory reference
-#define XF_POSITION_MATRIX(index)   &*(f32*)&gp::g_tf_mem[(index * 4)];
-#define XF_GEOMETRY_MATRIX			&*(f32*)&gp::g_tf_mem[(MIDX_POS * 4)];									
-#define XF_TEX_MATRIX(n)			&*(f32*)&gp::g_tf_mem[(gx_vertex::tm_index[n] * 4)];
-#define XF_TEXTURE_MATRIX03(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX03(n) * 4)];
-#define XF_TEXTURE_MATRIX47(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX47(n) * 4)];
+#define XF_POSITION_MATRIX(index)   (f32*)&gp::g_tf_mem[(index * 4)]
+#define XF_MODELVIEW_MATRIX			(f32*)&gp::g_tf_mem[(MIDX_POS * 4)]									
+#define XF_TEX_MATRIX(n)			&*(f32*)&gp::g_tf_mem[(gx_vertex::tm_index[n] * 4)]
+#define XF_TEXTURE_MATRIX03(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX03(n) * 4)]
+#define XF_TEXTURE_MATRIX47(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX47(n) * 4)]
 
 // xf: register reference
 #define XF_VIEWPORT_SCALE_X			g_xf_regs.mem[0x1a]
@@ -147,6 +148,11 @@ typedef struct {
 		u32 _u32;
 	};
 }XFColorControl;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// XF constants
+
+static const int kXFMemEntriesNum   = 64;   ///< Number of entries used in each block of XF memory
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // XF Registers

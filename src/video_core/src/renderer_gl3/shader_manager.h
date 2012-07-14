@@ -31,6 +31,9 @@
 
 namespace shader_manager {
 
+/// Updates the uniform values for the vertex shader
+void SetVertexUniforms();
+
 /**
  * @brief Sets the primitive type for shader use
  * @param type GXPrimitive type of current primitive
