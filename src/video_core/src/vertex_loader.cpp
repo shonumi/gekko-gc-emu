@@ -32,13 +32,13 @@
 
 namespace gp {
 
-u8 g_pm_index = 0;
+f32 g_cur_pos_dqf;  ///< Vertex position dequantization factor
 
 typedef void (*VertexLoaderTable)(u16);	
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__inline u16 MemoryRead16(u32 addr)
+static __inline u16 MemoryRead16(u32 addr)
 {
 	if(!(addr & 1))
 		return *(u16 *)(&Mem_RAM[(addr ^ 2) & RAM_MASK]);
@@ -48,7 +48,7 @@ __inline u16 MemoryRead16(u32 addr)
 		   (u16)(Mem_RAM[(addr + 1) ^ 3]);
 }
 
-__inline u32 MemoryRead32(u32 addr)
+static __inline u32 MemoryRead32(u32 addr)
 {
 	addr &= RAM_MASK;
 	if(!(addr & 3))
@@ -60,41 +60,6 @@ __inline u32 MemoryRead32(u32 addr)
 		   ((u32)Mem_RAM[(addr + 3) ^ 3]);
 }
 
-// transform 3d vertex position (software)
-void TransformVertexPosition(f32* d, f32 *v)
-{
-	f32 *pmtx = XF_POSITION_MATRIX(g_pm_index);
-
-	// transform 
-	d[0] = (pmtx[0])*v[0] + (pmtx[1])*v[1] + (pmtx[ 2])*v[2] + (pmtx[ 3]);
-	d[1] = (pmtx[4])*v[0] + (pmtx[5])*v[1] + (pmtx[ 6])*v[2] + (pmtx[ 7]);
-	d[2] = (pmtx[8])*v[0] + (pmtx[9])*v[1] + (pmtx[10])*v[2] + (pmtx[11]);
-}
-
-static __inline void __vertex_pos_send_byte(u8* vec) {
-    video_core::g_renderer->VertexPosition_SendByte(vec);
-}
-
-static __inline void __vertex_pos_send_short(u16* vec) {
-    video_core::g_renderer->VertexPosition_SendShort(vec);
-}
-
-static __inline void __vertex_pos_send_float(f32* vec) {
-    if (VCD_PMIDX) {
-        f32 *pmtx = XF_POSITION_MATRIX(g_pm_index);
-        f32 tf_vec[3];
-    
-        // transform 
-        tf_vec[0] = (pmtx[0])*vec[0] + (pmtx[1])*vec[1] + (pmtx[ 2])*vec[2] + (pmtx[ 3]);
-        tf_vec[1] = (pmtx[4])*vec[0] + (pmtx[5])*vec[1] + (pmtx[ 6])*vec[2] + (pmtx[ 7]);
-        tf_vec[2] = (pmtx[8])*vec[0] + (pmtx[9])*vec[1] + (pmtx[10])*vec[2] + (pmtx[11]);
-
-        video_core::g_renderer->VertexPosition_SendFloat(tf_vec);
-    } else {
-        video_core::g_renderer->VertexPosition_SendFloat(vec);
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Position Decoding
 
@@ -104,21 +69,21 @@ static void VertexPosition_Unk(u16 index) {
 
 static void VertexPosition_D8_XY(u16 index) {
 	u16 v = FifoPop16();
-	__vertex_pos_send_byte((u8*)&v);
+	video_core::g_renderer->VertexPosition_SendByte((u8*)&v);
 }
 
 static void VertexPosition_D16_XY(u16 index) {
 	u16 v[2];
 	v[0] = FifoPop16();
 	v[1] = FifoPop16();
-	__vertex_pos_send_short(v);
+	video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
 static void VertexPosition_D32_XY(u16 index) {
 	u32 v[2];
 	v[0] = FifoPop32();
 	v[1] = FifoPop32();
-	__vertex_pos_send_float((f32*)v);
+	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
 static void VertexPosition_I8_XY(u16 index) {
@@ -128,7 +93,7 @@ static void VertexPosition_I8_XY(u16 index) {
 	v[0] = (u8)((data >> 8) & 0xFF);
 	v[1] = (u8)(data & 0xFF);
 
-	__vertex_pos_send_byte(v);
+	video_core::g_renderer->VertexPosition_SendByte(v);
 }
 
 // correct
@@ -137,7 +102,7 @@ static void VertexPosition_I16_XY(u16 index) {
 	u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
 	v[0] = (data >> 16);
 	v[1] = (data & 0xFFFF);
-	__vertex_pos_send_short(v);
+	video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
 // correct
@@ -145,13 +110,17 @@ static void VertexPosition_I32_XY(u16 index) {
 	u32 v[2];
 	v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
 	v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
-	__vertex_pos_send_float((f32*)v);
+	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
-// correct
+
 static void VertexPosition_D8_XYZ(u16 index) {
-	u32 v = FifoPop24();
-	__vertex_pos_send_byte((u8*)&v);
+    u8 v[3];
+	v[0] = FifoPop8();
+	v[1] = FifoPop8();
+	v[2] = FifoPop8();
+
+	video_core::g_renderer->VertexPosition_SendByte(v);
 }
 
 // correct
@@ -160,7 +129,7 @@ static void VertexPosition_D16_XYZ(u16 index) {
 	v[0] = FifoPop16();
 	v[1] = FifoPop16();
 	v[2] = FifoPop16();
-	__vertex_pos_send_short(v);
+	video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
 // correct
@@ -169,7 +138,7 @@ static void VertexPosition_D32_XYZ(u16 index) {
 	v[0] = FifoPop32();
 	v[1] = FifoPop32();
 	v[2] = FifoPop32();
-	__vertex_pos_send_float((f32*)v);
+	video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
 static void VertexPosition_I8_XYZ(u16 index) {
@@ -180,7 +149,7 @@ static void VertexPosition_I8_XYZ(u16 index) {
 	v[1] = (u8)((data >> 16) & 0xFF);
 	v[2] = (u8)((data >> 8) & 0xFF);
 
-	__vertex_pos_send_byte(v);
+	video_core::g_renderer->VertexPosition_SendByte(v);
 }
 
 // correct
@@ -190,16 +159,16 @@ static void VertexPosition_I16_XYZ(u16 index) {
 	v[0] = (data >> 16);
 	v[1] = (data & 0xFFFF);
 	v[2] = MemoryRead16(CP_DATA_POS_ADDR(index) + 4);
-	__vertex_pos_send_short(v);
+	video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
 // correct
 static void VertexPosition_I32_XYZ(u16 index) {
-	u32 v[3];
-	v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
-	v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
-	v[2] = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
-	__vertex_pos_send_float((f32*)v);
+    u32 v[3];
+    v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
+    v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
+    v[2] = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
+    video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
 // unimplemented
@@ -368,7 +337,7 @@ static void VertexNormal_I32_3(u16 index) {
 
 // TODO(ShizZy): Decoding 9 normals.... needs to be added to this table
 VertexLoaderTable LookupNormal[0x40] = {
-	VertexNormal_Unk,   VertexNormal_D8_3,      VertexNormal_I8_3,      VertexNormal_I8_3, 
+	VertexNormal_Unk,   VertexNormal_D8_3,      VertexNormal_I8_3,      VertexNormal_Unk, 
 	VertexNormal_Unk,   VertexNormal_D8_3,      VertexNormal_I8_3,      VertexNormal_I8_3, // 7
 	VertexNormal_Unk,   VertexNormal_Unk,       VertexNormal_Unk,       VertexNormal_Unk, 
 	VertexNormal_Unk,   VertexNormal_D16_3,     VertexNormal_I16_3,     VertexNormal_I16_3, // 15
@@ -490,20 +459,23 @@ VertexLoaderTable LookupTexCoord[0x40] = {
 ////////////////////////////////////////////////////////////////////////////////
 // PRIMITIVE DECODING
 
-// send vertex to the renderer
-void DecodeVertex() {
-   
+// begin primitive drawing
+void DecodePrimitive(GXPrimitive type, int count) {
+
     GXVertexFormat pos, nrm, col[2], tex[8];
+    u32 vcd_lo = CP_VCD_LO(0);
+    u8 pm_midx = 0, tm_midx[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    video_core::g_renderer->BeginPrimitive(type, count);
 
     // Position
     pos.vcd = VCD_POS;
     if (pos.vcd) {
         pos.cnt = (GXCompCnt)VAT_POSCNT;
         pos.fmt = (GXCompType)VAT_POSFMT;
-        pos.dqf = 1.0f / (1 << VAT_POSSHFT);
+        //g_cur_pos_dqf = 1.0f / (1 << VAT_POSSHFT);
         video_core::g_renderer->VertexPosition_SetType(pos.fmt, pos.cnt);
     }
-
 
     // Normal
     nrm.vcd = VCD_NRM;
@@ -526,183 +498,137 @@ void DecodeVertex() {
         col[1].fmt = (GXCompType)VAT_COL1FMT;
     }
 
-    if (VCD_MIDX) {
-        //_ASSERT_MSG(TGP, 0, "VCD_MIDX decoding not implemented yet!");
-    }
-    if (VCD_PMIDX) {
-        //_ASSERT_MSG(TGP, 0, "VCD_PMIDX decoding not implemented yet!");
-        g_pm_index = FifoPop8();
-    }
-    // offset according to texture matrixes..
-    u32 data = CP_VCD_LO(0);
-    for(int i = 0; i < 8; i++) {
-        data >>= 1;
-        if(data & 1) {
-            FifoPop8();
-        }
-    }
-
-    // DECODE POSITION FORMAT
-
-    // get pos index (if used)
-    switch(pos.vcd) {
-    case GX_VCD_DIRECT:
-        LookupPosition[VTX_FORMAT_VCD(pos)](0);
-        break;
-    case GX_VCD_INDEX8:
-        LookupPosition[VTX_FORMAT_VCD(pos)](FifoPop8());
-        break;
-    case GX_VCD_INDEX16:
-        LookupPosition[VTX_FORMAT_VCD(pos)](FifoPop16());
-        break;
-    }
-
-    // DECODE NORMAL FORMAT (FAKE)
-
-    switch(nrm.vcd) {
-    case GX_VCD_DIRECT:
-        LookupNormal[VTX_FORMAT_VCD(nrm)](0);
-        break;
-    case GX_VCD_INDEX8:
-        LookupNormal[VTX_FORMAT_VCD(nrm)](FifoPop8());
-        break;
-    case GX_VCD_INDEX16:
-        LookupNormal[VTX_FORMAT_VCD(nrm)](FifoPop16());
-        break;
-    }
-
-    // DECODE DIFFUSE COLOR FORMAT
-
-    // get color index (if used)
-    switch(col[0].vcd) {
-    case GX_VCD_DIRECT:
-        LookupColor[VTX_FORMAT_VCD(col[0])](0);
-        break;
-    case GX_VCD_INDEX8:
-        LookupColor[VTX_FORMAT_VCD(col[0])](FifoPop8());
-        break;
-    case GX_VCD_INDEX16:
-        LookupColor[VTX_FORMAT_VCD(col[0])](FifoPop16());
-        break;
-    }
-
-    // DECODE SPECULAR COLOR FORMAT
-
-    switch(col[1].vcd) {
-    case GX_VCD_DIRECT:
-        LookupColor[VTX_FORMAT_VCD(col[1])](0);
-        break;
-    case GX_VCD_INDEX8:
-        LookupColor[VTX_FORMAT_VCD(col[1])](FifoPop8());
-        break;
-    case GX_VCD_INDEX16:
-        LookupColor[VTX_FORMAT_VCD(col[1])](FifoPop16());
-        break;
-    }
-
-    // DECODE TEXCOORDS
-    
-    for (int n = 0; n < 7; n++) {
+    for (int i = 0; i < count; i++) {
         
-        if (VCD_TEX(n)) {
-            tex[n].vcd         = VCD_TEX(n);
+    
+        // Matrix indices
+        if (vcd_lo&1) pm_midx = FifoPop8();
+        if (vcd_lo&2) tm_midx[0] = FifoPop8();
+        if (vcd_lo&4) tm_midx[1] = FifoPop8();
+        if (vcd_lo&8) tm_midx[2] = FifoPop8();
+        if (vcd_lo&16) tm_midx[3] = FifoPop8();
+        if (vcd_lo&32) tm_midx[4] = FifoPop8();
+        if (vcd_lo&64) tm_midx[5] = FifoPop8();
+        if (vcd_lo&128) tm_midx[6] = FifoPop8();
+        if (vcd_lo&256) tm_midx[7] = FifoPop8();
+
+        video_core::g_renderer->Vertex_SendMatrixIndices(pm_midx, tm_midx);
+
+        // DECODE POSITION FORMAT
+
+        // get pos index (if used)
+        switch(pos.vcd) {
+        case GX_VCD_DIRECT:
+            LookupPosition[VTX_FORMAT_VCD(pos)](0);
+            break;
+        case GX_VCD_INDEX8:
+            LookupPosition[VTX_FORMAT_VCD(pos)](FifoPop8());
+            break;
+        case GX_VCD_INDEX16:
+            LookupPosition[VTX_FORMAT_VCD(pos)](FifoPop16());
+            break;
+        }
+
+        // DECODE NORMAL FORMAT (FAKE)
+
+        switch(nrm.vcd) {
+        case GX_VCD_DIRECT:
+            LookupNormal[VTX_FORMAT_VCD(nrm)](0);
+            break;
+        case GX_VCD_INDEX8:
+            LookupNormal[VTX_FORMAT_VCD(nrm)](FifoPop8());
+            break;
+        case GX_VCD_INDEX16:
+            LookupNormal[VTX_FORMAT_VCD(nrm)](FifoPop16());
+            break;
+        }
+
+        // DECODE DIFFUSE COLOR FORMAT
+
+        // get color index (if used)
+        switch(col[0].vcd) {
+        case GX_VCD_DIRECT:
+            LookupColor[VTX_FORMAT_VCD(col[0])](0);
+            break;
+        case GX_VCD_INDEX8:
+            LookupColor[VTX_FORMAT_VCD(col[0])](FifoPop8());
+            break;
+        case GX_VCD_INDEX16:
+            LookupColor[VTX_FORMAT_VCD(col[0])](FifoPop16());
+            break;
+        }
+
+        // DECODE SPECULAR COLOR FORMAT
+
+        switch(col[1].vcd) {
+        case GX_VCD_DIRECT:
+            LookupColor[VTX_FORMAT_VCD(col[1])](0);
+            break;
+        case GX_VCD_INDEX8:
+            LookupColor[VTX_FORMAT_VCD(col[1])](FifoPop8());
+            break;
+        case GX_VCD_INDEX16:
+            LookupColor[VTX_FORMAT_VCD(col[1])](FifoPop16());
+            break;
+        }
+
+        // DECODE TEXCOORDS
+    
+        for (int n = 0; n < 7; n++) {
+        
+            if (VCD_TEX(n)) {
+                tex[n].vcd         = VCD_TEX(n);
 
 
-            // TODO(ShizZy): Refactor this - it's terribly hax
-            switch (n) {
-            case 0:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX0CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX0FMT;
-                break;
-            case 1:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX1CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX1FMT;
-                break;
-            case 2:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX2CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX2FMT;
-                break;
-            case 3:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX3CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX3FMT;
-                break;
-            case 4:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX4CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX4FMT;
-                break;
-            case 5:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX5CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX5FMT;
-                break;
-            case 6:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX6CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX6FMT;
-                break;
-            case 7:
-                tex[n].cnt         = (GXCompCnt) VAT_TEX7CNT;
-                tex[n].fmt         = (GXCompType)VAT_TEX7FMT;
-                break;
-            }
+                // TODO(ShizZy): Refactor this - it's terribly hax
+                switch (n) {
+                case 0:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX0CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX0FMT;
+                    break;
+                case 1:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX1CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX1FMT;
+                    break;
+                case 2:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX2CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX2FMT;
+                    break;
+                case 3:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX3CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX3FMT;
+                    break;
+                case 4:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX4CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX4FMT;
+                    break;
+                case 5:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX5CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX5FMT;
+                    break;
+                case 6:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX6CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX6FMT;
+                    break;
+                case 7:
+                    tex[n].cnt         = (GXCompCnt) VAT_TEX7CNT;
+                    tex[n].fmt         = (GXCompType)VAT_TEX7FMT;
+                    break;
+                }
 
-            switch(tex[n].vcd) {
-            case GX_VCD_DIRECT:
-                LookupTexCoord[VTX_FORMAT_VCD(tex[n])](0);
-                break;
-            case GX_VCD_INDEX8:
-                LookupTexCoord[VTX_FORMAT_VCD(tex[n])](FifoPop8());
-                break;
-            case GX_VCD_INDEX16:
-                LookupTexCoord[VTX_FORMAT_VCD(tex[n])](FifoPop16());
-                break;
+                switch(tex[n].vcd) {
+                case GX_VCD_DIRECT:
+                    LookupTexCoord[VTX_FORMAT_VCD(tex[n])](0);
+                    break;
+                case GX_VCD_INDEX8:
+                    LookupTexCoord[VTX_FORMAT_VCD(tex[n])](FifoPop8());
+                    break;
+                case GX_VCD_INDEX16:
+                    LookupTexCoord[VTX_FORMAT_VCD(tex[n])](FifoPop16());
+                    break;
+                }
             }
         }
-    }
-}
-
-// begin primitive drawing
-void DecodePrimitive(GXPrimitive type, int count) {
-
-    video_core::g_renderer->BeginPrimitive(type, count);
-
-    for (int i = 0; i < (count >> 3); i++) {
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    }
-    switch(count & 7) {
-	case 7:
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-	case 6:
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    case 5:
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    case 4:
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    case 3:
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    case 2:
-        DecodeVertex();
-        video_core::g_renderer->VertexNext();
-    case 1:
-        DecodeVertex();
         video_core::g_renderer->VertexNext();
     }
     
