@@ -38,6 +38,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(./src/)
 
 add_executable(gekko-qt ${SRCS} ${MOC_SRCS} ${UI_HDRS})
-target_link_libraries(gekko-qt core video_core input_common common qhexedit ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${SDL_LIBRARY} rt GLEW ${GLFW_LIBRARIES})
+target_link_libraries(gekko-qt core video_core input_common common qhexedit ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} rt GLEW ${GLFW_LIBRARIES})
 
 #install(TARGETS gekko-qt RUNTIME DESTINATION ${bindir})

@@ -5,19 +5,7 @@
 #include "video/emuwindow.h"
 
 
-#if SDL_MAJOR_VERSION == 1
-
-class EmuWindow_SDL : public EmuWindow
-{
-public:
-    EmuWindow_SDL();
-    ~EmuWindow_SDL();
-
-    void SwapBuffers();
-    void SetTitle(const char* title);
-};
-
-#elif SDL_MAJOR_VERSION == 2
+#if SDL_MAJOR_VERSION == 2
 
 class SDL_Window;
 class EmuWindow_SDL : public EmuWindow
@@ -60,7 +48,7 @@ private:
 };
 
 #else
-#error Unsupported SDL version?
+#error Unsupported SDL version
 #endif
 
 #endif // __EMUWINDOW_SDL_H__

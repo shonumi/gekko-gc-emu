@@ -8,7 +8,7 @@ add_definitions(-DSINGLETHREADED)
 
 # dependency checking
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-include(FindSDL REQUIRED)
+include(FindSDL2 REQUIRED)
 include(FindOpenGL REQUIRED)
 include(FindGLFW REQUIRED)
 include(FindX11 REQUIRED)
@@ -34,7 +34,7 @@ if(NOT DISABLE_QT4)
 endif()
 
 # external includes
-include_directories(${SDL_INCLUDE_DIR})
+include_directories(${SDL2_INCLUDE_DIR})
 include_directories(externals/rapidxml-1.13)
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(externals/glm-0.9.3.1)

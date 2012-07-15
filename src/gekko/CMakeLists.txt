@@ -8,6 +8,6 @@ if (NOT X11_xf86vmode_LIB)
 endif()
 
 add_executable(gekko ${SRCS})
-target_link_libraries(gekko core video_core input_common common ${OPENGL_LIBRARIES} ${SDL_LIBRARY} ${GLFW_LIBRARIES} GLEW rt ${X11_Xrandr_LIB} ${X11_xv86vmode_LIB})
+target_link_libraries(gekko core video_core input_common common ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${GLFW_LIBRARIES} GLEW rt ${X11_Xrandr_LIB} ${X11_xv86vmode_LIB})
 
 #install(TARGETS gekko RUNTIME DESTINATION ${bindir})

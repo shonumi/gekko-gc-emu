@@ -100,13 +100,13 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
 #endif
 
     // Compile Vertex Shader
-    int res;
+    GLint res;
     glShaderSource(vs_id, 1, &vs , NULL);
     glCompileShader(vs_id);
     glGetShaderiv(vs_id, GL_COMPILE_STATUS, &res);
 
 
-    if (res == FALSE) {
+    if (res == GL_FALSE) {
         
 	    glGetShaderiv(vs_id, GL_INFO_LOG_LENGTH, &res);
  
