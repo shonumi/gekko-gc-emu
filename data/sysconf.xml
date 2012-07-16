@@ -87,13 +87,13 @@
                     <!-- Default: Enter -->
                     <StartKey>13</StartKey>
                     <!-- Default: Up Arrow -->
-                    <AnalogUpKey>273</AnalogUpKey>
+                    <AnalogUpKey>82</AnalogUpKey>
                     <!-- Default: Down Arrow -->
-                    <AnalogDownKey>274</AnalogDownKey>
+                    <AnalogDownKey>81</AnalogDownKey>
                     <!-- Default: Left Arrow -->
-                    <AnalogLeftKey>276</AnalogLeftKey>
+                    <AnalogLeftKey>80</AnalogLeftKey>
                     <!-- Default: Right Arrow -->
-                    <AnalogRightKey>275</AnalogRightKey>
+                    <AnalogRightKey>79</AnalogRightKey>
                     <!-- Default: "I" key -->
                     <CUpKey>105</CUpKey>
                     <!-- Default: "K" key -->
