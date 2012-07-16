@@ -160,57 +160,6 @@ void SDLKeys::PollEvent() {
     }
 }
 
-// Handle external key press input
-void SDLKeys::PressKey(int key) {
-    key = DecodeQtKey(key);
-
-    if(GetControllerStatus(0, key) == GCController::RELEASED) {
-        SetControllerStatus(0, key, GCController::PRESSED);
-    }
-}
-
-// Handle external key release input
-void SDLKeys::ReleaseKey(int key) {
-    key = DecodeQtKey(key);
-
-    if(GetControllerStatus(0, key) == GCController::PRESSED) {
-        SetControllerStatus(0, key, GCController::RELEASED);
-    }
-}
-
-// Decodes Qt Key Codes
-int SDLKeys::DecodeQtKey(int key) {
-
-    // Convert ASCII, Keys lower than 65 seem as okay is
-    if((key > 64) && (key < 91)) {
-        key += 32;
-        return key;
-    } else if(key < 65) {
-        return key;
-    }
-
-    // Some specific keys need to be checked
-    switch(key) {
-        // Enter/Return
-        case 0x1000004:
-            return 13;
-        // Left Arrow
-        case 0x1000012:
-            return 276;
-        // Right Arrow
-        case 0x1000014:
-            return 275;
-        // Up Arrow
-        case 0x1000013:
-            return 273;
-        // Down Arrow
-        case 0x1000015:
-            return 274;
-        default:
-            return 0;
-    }
-}
-
 void SDLKeys::ShutDown() {
 }
 

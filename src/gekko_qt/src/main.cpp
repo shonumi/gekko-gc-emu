@@ -20,8 +20,6 @@
 #include "dvd/gcm.h"
 #include "version.h"
 
-#include "input_common.h"
-
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
     ui.setupUi(this);
@@ -203,7 +201,6 @@ void GMainWindow::SetupEmuWindowMode()
         ui.horizontalLayout->addWidget(render_window);
         render_window->setVisible(true);
         render_window->DoneCurrent();
-        setFocus();
     }
     else if (!enable && render_window->parent() != NULL) // switch to multiple windows mode
     {
@@ -213,7 +210,6 @@ void GMainWindow::SetupEmuWindowMode()
         render_window->setVisible(true);
         render_window->DoneCurrent();
         render_window->RestoreGeometry();
-        render_window->setFocus();
     }
 }
 
@@ -278,24 +274,6 @@ void GMainWindow::closeEvent(QCloseEvent* event)
 
     QWidget::closeEvent(event);
 }
-
-// Send key events to input plugin
-void GMainWindow::keyPressEvent(QKeyEvent* event)
-{
-    if(input_common::g_user_input != NULL) {
-        int key = event->key();
-        input_common::g_user_input->PressKey(key);
-    }
-}
-
-void GMainWindow::keyReleaseEvent(QKeyEvent* event)
-{
-    if(input_common::g_user_input != NULL) {
-        int key = event->key();
-        input_common::g_user_input->ReleaseKey(key);
-    }
-}
-
 
 #ifdef main
 #undef main

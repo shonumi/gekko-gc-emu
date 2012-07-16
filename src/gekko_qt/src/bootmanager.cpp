@@ -1,5 +1,4 @@
 #include <QHBoxLayout>
-#include <QKeyEvent>
 
 #include "common.h"
 #include "video/opengl.h"
@@ -17,8 +16,6 @@
 #include "debugger/debugger.h"
 
 #include "version.h"
-
-#include "input_common.h"
 
 #define APP_NAME        "gekko"
 #define APP_VERSION     "0.31-" VERSION
@@ -211,22 +208,6 @@ void GRenderWindow::closeEvent(QCloseEvent* event)
 {
     emu_thread.Stop();
     QWidget::closeEvent(event);
-}
-
-void GRenderWindow::keyPressEvent(QKeyEvent* event)
-{
-    if(input_common::g_user_input != NULL) {
-        int key = event->key();
-        input_common::g_user_input->PressKey(key);
-    }
-}
-
-void GRenderWindow::keyReleaseEvent(QKeyEvent* event)
-{
-    if(input_common::g_user_input != NULL) {
-        int key = event->key();
-        input_common::g_user_input->ReleaseKey(key);
-    }
 }
 
 void GRenderWindow::MakeCurrent()

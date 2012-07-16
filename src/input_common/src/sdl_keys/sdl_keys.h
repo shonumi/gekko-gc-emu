@@ -39,18 +39,6 @@ public:
     void PollEvent();
     void ShutDown();
 
-    /*!
-     * \brief Manually sets key press from external source
-     * \param key Key code sent from source
-     */
-    void PressKey(int key);
-
-    /*!
-     * \brief Manually sets key release from external source
-     * \param key Key code sent from source
-     */
-    void ReleaseKey(int key);
-
 private:
     /*!
      * \brief Sets the controller status from the keyboard using SDL
@@ -66,12 +54,6 @@ private:
      * \param key Keboard input that needs to be checked
      */
     GCController::GCButtonState GetControllerStatus(int channel, int key);
-
-    /*!
-     * \brief Decodes external key code based on Qt keys
-     * \param key Key code to decode
-     */
-    int DecodeQtKey(int key);
 
     DISALLOW_COPY_AND_ASSIGN(SDLKeys);
 };
