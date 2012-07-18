@@ -37,26 +37,20 @@
     </PowerPC>
 
     <!-- Settings applicable to the video core -->
-    <Video renderer="opengl_2_0">
-
+    <Video renderer="opengl3">
         <EnableFullscreen>true</EnableFullscreen> <!-- Not implemented -->
         <WindowResolution>1024_768</WindowResolution> <!-- Not implemented -->
         <FullscreenResolution>1440_900</FullscreenResolution> <!-- Not implemented -->
 
-        <!-- OpenGL 2.0 renderer -->
-        <Renderer name="opengl_2_0">
+        <!-- OpenGL 3 renderer -->
+        <Renderer name="opengl3">
             <EnableWireframe>false</EnableWireframe> <!-- Not implemented -->
             <EnableShaders>true</EnableShaders> <!-- Not implemented -->
-            <EnableTextures>false</EnableTextures> <!-- Not implemented -->
+            <EnableTextures>true</EnableTextures> <!-- Not implemented -->
             <EnableTextureDumping>false</EnableTextureDumping> <!-- Not implemented -->
             <EnableForceAlpha>false</EnableForceAlpha> <!-- Not implemented -->
             <AntiAliasingMode>0</AntiAliasingMode> <!-- Not implemented -->
             <AnistropicFilteringMode>0</AnistropicFilteringMode> <!-- Not implemented -->
-        </Renderer>
-
-        <!-- OpenGL 3.2 renderer -->
-        <Renderer name="opengl_3_3"> <!-- Not implemented -->
-            <EnableWireframe>false</EnableWireframe> <!-- Not implemented -->
         </Renderer>
     </Video>
 

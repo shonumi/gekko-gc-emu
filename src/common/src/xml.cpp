@@ -484,7 +484,7 @@ void LoadXMLConfig(Config& config, char* filename) {
     ParseDebugNode(node->first_node("Debug"),       config);
     ParseBootNode(node->first_node("Boot"),         config);
     ParsePowerPCNode(node->first_node("PowerPC"),   config);
-    //ParseVideoNode(node->first_node("Video"),       config); TODO(ShizZy): FIXME
+    ParseVideoNode(node->first_node("Video"),       config);
     ParseDevicesNode(node->first_node("Devices"),   config);
 }
 

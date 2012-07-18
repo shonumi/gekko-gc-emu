@@ -193,7 +193,8 @@ public:
     RendererType current_renderer() { return current_renderer_; }
     void set_current_renderer(RendererType val) { current_renderer_ = val; }
 
-    RendererConfig renderer_config(int val) { return renderer_config_[val]; }
+    RendererConfig renderer_config(RendererType val) { return renderer_config_[val]; }
+    RendererConfig current_renderer_config() { return renderer_config_[current_renderer_]; }
     void set_renderer_config(RendererType renderer, RendererConfig config) { 
         renderer_config_[renderer] = config;
     }
@@ -218,9 +219,9 @@ public:
      * @return Corresponding RenderType
      */
     static inline RendererType StringToRenderType(const char* renderer_str) {
-        if (E_OK == _stricmp(renderer_str, "opengl_2")) {
+        if (E_OK == _stricmp(renderer_str, "opengl2")) {
             return RENDERER_OPENGL_2;
-        } else if (E_OK == _stricmp(renderer_str, "opengl_3")) {
+        } else if (E_OK == _stricmp(renderer_str, "opengl3")) {
             return RENDERER_OPENGL_3;
         } else if (E_OK == _stricmp(renderer_str, "directx9")) {
             return RENDERER_DIRECTX9;

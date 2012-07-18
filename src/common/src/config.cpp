@@ -35,9 +35,9 @@ Config::Config() {
     RendererConfig default_renderer_config;
 
     default_renderer_config.enable_wireframe = false;
-    default_renderer_config.enable_shaders = false;
+    default_renderer_config.enable_shaders = true;
     default_renderer_config.enable_texture_dumping = false;
-    default_renderer_config.enable_textures = false;
+    default_renderer_config.enable_textures = true;
     default_renderer_config.anti_aliasing_mode = 0;
     default_renderer_config.anistropic_filtering_mode = 0;
 

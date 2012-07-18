@@ -11,7 +11,7 @@
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
         <EnableCheats>false</EnableCheats>
-        <DefaultBootFile></DefaultBootFile>
+        </DefaultBootFile>
 
         <!-- List of search paths for DVD images and bootable roms -->
         <DVDImagePaths/>
@@ -27,7 +27,7 @@
     <PowerPC core="interpreter" freq="486"/>
 
     <!-- Settings applicable to the video core -->
-    <Video renderer="opengl_2_0"/>
+    <Video renderer="opengl3"/>
 
     <!-- Settings for all GameCube peripheral devices -->
     <Devices/>
