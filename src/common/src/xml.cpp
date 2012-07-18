@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    xml.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-02-12
- * \brief   Used for parsing XML configurations
+ * @file    xml.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-02-12
+ * @brief   Used for parsing XML configurations
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -63,10 +63,10 @@ static int GetXMLElementAsInt(rapidxml::xml_node<> *node, const char* element_na
 
 namespace common {
 
-/*!
- * \brief Parse the "General" XML group
- * \param node RapidXML node for the "General" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "General" XML group
+ * @param node RapidXML node for the "General" XML group
+ * @param config Config class object to parse data into
  */
 void ParseGeneralNode(rapidxml::xml_node<> *node, Config& config) {
     // Don't parse the node if it doesn't exist!
@@ -102,10 +102,10 @@ void ParseGeneralNode(rapidxml::xml_node<> *node, Config& config) {
     }
 }
 
-/*!
- * \brief Parse the "Debug" XML group
- * \param node RapidXML node for the "Debug" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "Debug" XML group
+ * @param node RapidXML node for the "Debug" XML group
+ * @param config Config class object to parse data into
  */
 void ParseDebugNode(rapidxml::xml_node<> *node, Config& config) {
     // Don't parse the node if it doesn't exist!
@@ -119,10 +119,10 @@ void ParseDebugNode(rapidxml::xml_node<> *node, Config& config) {
     config.set_enable_dump_gcm_reads(GetXMLElementAsBool(node, "EnableDumpGCMReads"));
 }
 
-/*!
- * \brief Parse the "Patches" and "Cheats" XML group
- * \param node RapidXML node for the "Patches" or "Cheats" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "Patches" and "Cheats" XML group
+ * @param node RapidXML node for the "Patches" or "Cheats" XML group
+ * @param config Config class object to parse data into
  */
 void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_name) {
     int i = 0;
@@ -222,10 +222,10 @@ void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_nam
     }
 }
 
-/*!
- * \brief Parse the "Boot" XML group
- * \param node RapidXML node for the "Boot" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "Boot" XML group
+ * @param node RapidXML node for the "Boot" XML group
+ * @param config Config class object to parse data into
  */
 void ParseBootNode(rapidxml::xml_node<> *node, Config& config) {
     // Don't parse the node if it doesn't exist!
@@ -238,10 +238,10 @@ void ParseBootNode(rapidxml::xml_node<> *node, Config& config) {
     ParsePatchesNode(node, config, "Cheats");
 }
 
-/*!
- * \brief Parse the "Video" XML group
- * \param node RapidXML node for the "Video" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "Video" XML group
+ * @param node RapidXML node for the "Video" XML group
+ * @param config Config class object to parse data into
  */
 void ParsePowerPCNode(rapidxml::xml_node<> *node, Config& config) {
     // Don't parse the node if it doesn't exist!
@@ -281,10 +281,10 @@ void ParsePowerPCNode(rapidxml::xml_node<> *node, Config& config) {
     }
 }
 
-/*!
- * \brief Parse the "Video" XML group
- * \param node RapidXML node for the "Video" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "Video" XML group
+ * @param node RapidXML node for the "Video" XML group
+ * @param config Config class object to parse data into
  */
 void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
     char res_str[255];
@@ -319,16 +319,16 @@ void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
         renderer_config.anti_aliasing_mode = GetXMLElementAsInt(elem, "AntiAliasingMode");
         renderer_config.anistropic_filtering_mode = GetXMLElementAsInt(elem, "AnistropicFilteringMode");
 
-        config.set_renderer_config((int)type, renderer_config);
+        config.set_renderer_config(type, renderer_config);
 
         LOG_NOTICE(TCONFIG, "Renderer %s configured", attr->value());
     }
 }
 
-/*!
- * \brief Parse the "Devices" XML group
- * \param node RapidXML node for the "Devices" XML group
- * \param config Config class object to parse data into
+/**
+ * @brief Parse the "Devices" XML group
+ * @param node RapidXML node for the "Devices" XML group
+ * @param config Config class object to parse data into
  */
 void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
     // Don't parse the node if it doesn't exist!c

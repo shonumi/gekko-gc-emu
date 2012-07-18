@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    config.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-02-11
- * \brief   Emulator configuration class - all config settings stored here
+ * @file    config.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-02-11
+ * @brief   Emulator configuration class - all config settings stored here
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -37,8 +37,8 @@ namespace common {
 /// Class for storing emulator configuration(s)
 class Config {
 public:
-    Config() { };
-    ~Config() { }
+    Config();
+    ~Config();
 
     /// Struct used for defining game-specific patches
     struct Patch {
@@ -138,8 +138,8 @@ public:
     /// Enum for supported video cores
     enum RendererType {
         RENDERER_NULL,          ///< No video core
-        RENDERER_OPENGL_2_0,    ///< OpenGL 2.0 core
-        RENDERER_OPENGL_3_3,    ///< OpenGL 3.0 core (not implemented)
+        RENDERER_OPENGL_2,      ///< OpenGL 2.0 core
+        RENDERER_OPENGL_3,      ///< OpenGL 3.0 core (not implemented)
         RENDERER_DIRECTX9,      ///< DirectX9 core (not implemented)
         RENDERER_DIRECTX10,     ///< DirectX10 core (not implemented)
         RENDERER_DIRECTX11,     ///< DirectX11 core (not implemented)
@@ -194,7 +194,9 @@ public:
     void set_current_renderer(RendererType val) { current_renderer_ = val; }
 
     RendererConfig renderer_config(int val) { return renderer_config_[val]; }
-    void set_renderer_config(int val, RendererConfig config) {  }
+    void set_renderer_config(RendererType renderer, RendererConfig config) { 
+        renderer_config_[renderer] = config;
+    }
 
     bool enable_fullscreen() { return enable_fullscreen_; }
     void set_enable_fullscreen(bool val) { enable_fullscreen_ = val; }
@@ -210,16 +212,16 @@ public:
     MemSlot mem_slots(int slot) { return mem_slots_[slot]; }
     void set_mem_slots(int slot, MemSlot val) { mem_slots_[slot] = val; }
 
-    /*! 
-     * \brief Gets a RenderType from a string (used from XML)
-     * \param renderer_str Renderer name string, see XML schema for list
-     * \return Corresponding RenderType
+    /**
+     * @brief Gets a RenderType from a string (used from XML)
+     * @param renderer_str Renderer name string, see XML schema for list
+     * @return Corresponding RenderType
      */
     static inline RendererType StringToRenderType(const char* renderer_str) {
-        if (E_OK == _stricmp(renderer_str, "opengl_2_0")) {
-            return RENDERER_OPENGL_2_0;
-        } else if (E_OK == _stricmp(renderer_str, "opengl_3_3")) {
-            return RENDERER_OPENGL_3_3;
+        if (E_OK == _stricmp(renderer_str, "opengl_2")) {
+            return RENDERER_OPENGL_2;
+        } else if (E_OK == _stricmp(renderer_str, "opengl_3")) {
+            return RENDERER_OPENGL_3;
         } else if (E_OK == _stricmp(renderer_str, "directx9")) {
             return RENDERER_DIRECTX9;
         } else if (E_OK == _stricmp(renderer_str, "directx10")) {
@@ -277,14 +279,13 @@ private:
 };
 
 class ConfigManager {
-
 public:
-    ConfigManager() { }
-    ~ConfigManager() { }
+    ConfigManager();
+    ~ConfigManager();
 
-    /*!
-     * \brief Reload a game-specific configuration
-     * \param id Game id (to load game specific configuration)
+    /**
+     * @brief Reload a game-specific configuration
+     * @param id Game id (to load game specific configuration)
      */
     void ReloadGameConfig(const char* id);
 
@@ -301,7 +302,7 @@ public:
     void set_program_dir(char* val, size_t size) { strcpy_s(program_dir_, size, val); }
 
 private:
-    char    program_dir_[MAX_PATH]; ///< Program directory, used for loading config files
+    char program_dir_[MAX_PATH]; ///< Program directory, used for loading config files
 
     DISALLOW_COPY_AND_ASSIGN(ConfigManager);
 };
