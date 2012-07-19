@@ -287,7 +287,7 @@ void ParsePowerPCNode(rapidxml::xml_node<> *node, Config& config) {
  * @param config Config class object to parse data into
  */
 void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
-    char res_str[255];
+    char res_str[512];
     Config::ResolutionType res;
 
     // Don't parse the node if it doesn't exist!
@@ -298,16 +298,16 @@ void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
     
     // Set resolutions
     GetXMLElementAsString(node, "WindowResolution", res_str);
-    sscanf(res_str, "%d_%d", &res.width, &res.height);
+    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
     config.set_window_resolution(res);
     GetXMLElementAsString(node, "FullscreenResolution", res_str);
-    sscanf(res_str, "%d_%d", &res.width, &res.height);
+    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
     config.set_fullscreen_resolution(res);
 
     // Parse all search renderer nodes
-    for (rapidxml::xml_node<> *elem = node->first_node("Renderer"); elem; 
-        elem = elem->next_sibling("Renderer")) {
+    for (rapidxml::xml_node<> *elem = node->first_node("Renderer"); 1; ) {
         Config::RendererConfig renderer_config;
+
         rapidxml::xml_attribute<> *attr = elem->first_attribute("name");
 
         Config::RendererType type = Config::StringToRenderType(attr->value());
@@ -322,6 +322,8 @@ void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
         config.set_renderer_config(type, renderer_config);
 
         LOG_NOTICE(TCONFIG, "Renderer %s configured", attr->value());
+
+        break;
     }
 }
 
