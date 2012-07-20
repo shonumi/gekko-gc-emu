@@ -238,6 +238,61 @@ public:
         }
     }
 
+    /**
+     * @brief Gets the renderer string from the type
+     * @param renderer Renderer to get string for
+     * @param renderer_str String result
+     * @param size Max size to write to string
+     */
+    static inline void RenderTypeToString(RendererType renderer, char* renderer_str, size_t size) {
+        switch (renderer) {
+        case RENDERER_OPENGL_2:
+            strcpy_s(renderer_str, size, "opengl2");
+            break;
+        case RENDERER_OPENGL_3:
+            strcpy_s(renderer_str, size, "opengl3");
+            break;
+        case RENDERER_DIRECTX9:
+            strcpy_s(renderer_str, size, "directx9");
+            break;
+        case RENDERER_DIRECTX10:
+            strcpy_s(renderer_str, size, "directx10");
+            break;
+        case RENDERER_DIRECTX11:
+            strcpy_s(renderer_str, size, "directx11");
+            break;
+        case RENDERER_SOFTWARE:
+            strcpy_s(renderer_str, size, "software");
+            break;
+        case RENDERER_HARDWARE:
+            strcpy_s(renderer_str, size, "hardware");
+            break;
+        default:
+            strcpy_s(renderer_str, size, "null");
+            break;
+        }
+    }
+
+    /**
+     * @brief Gets the CPU string from the type
+     * @param cpu CPU to get string for
+     * @param cpu_str String result
+     * @param size Max size to write to string
+     */
+    static inline void CPUCoreTypeToString(CPUCoreType cpu, char* cpu_str, size_t size) {
+        switch (cpu) {
+        case CPU_INTERPRETER:
+            strcpy_s(cpu_str, size, "interpreter");
+            break;
+        case CPU_DYNAREC:
+            strcpy_s(cpu_str, size, "dynarec");
+            break;
+        default:
+            strcpy_s(cpu_str, size, "null");
+            break;
+        }
+    }
+
 private:
     char program_dir_[MAX_PATH];
 
