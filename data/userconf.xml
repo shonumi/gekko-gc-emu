@@ -11,7 +11,7 @@
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
         <EnableCheats>false</EnableCheats>
-        </DefaultBootFile>
+        <DefaultBootFile/>
 
         <!-- List of search paths for DVD images and bootable roms -->
         <DVDImagePaths/>
@@ -27,7 +27,22 @@
     <PowerPC core="interpreter" freq="486"/>
 
     <!-- Settings applicable to the video core -->
-    <Video renderer="opengl3"/>
+    <Video renderer="opengl3">
+        <EnableFullscreen>false</EnableFullscreen> <!-- Not implemented -->
+        <WindowResolution>1024_768</WindowResolution> <!-- Not implemented -->
+        <FullscreenResolution>1440_900</FullscreenResolution> <!-- Not implemented -->
+
+        <!-- OpenGL 3 renderer -->
+        <Renderer name="opengl3">
+            <EnableWireframe>true</EnableWireframe>
+            <EnableShaders>true</EnableShaders> <!-- Not implemented -->
+            <EnableTextures>true</EnableTextures> <!-- Not implemented -->
+            <EnableTextureDumping>false</EnableTextureDumping>
+            <EnableForceAlpha>false</EnableForceAlpha> <!-- Not implemented -->
+            <AntiAliasingMode>0</AntiAliasingMode> <!-- Not implemented -->
+            <AnistropicFilteringMode>0</AnistropicFilteringMode> <!-- Not implemented -->
+        </Renderer>
+    </Video>
 
     <!-- Settings for all GameCube peripheral devices -->
     <Devices/>
