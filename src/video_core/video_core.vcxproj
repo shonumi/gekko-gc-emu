@@ -25,6 +25,7 @@
     <ClCompile Include="src\renderer_gl3\raster_font.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
     <ClCompile Include="src\renderer_gl3\shader_manager.cpp" />
+    <ClCompile Include="src\texture_decoder.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
     <ClCompile Include="src\video_core.cpp" />
     <ClCompile Include="src\xf_mem.cpp" />
@@ -40,6 +41,7 @@
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h" />
     <ClInclude Include="src\renderer_gl3\shader_base_types.h" />
     <ClInclude Include="src\renderer_gl3\shader_manager.h" />
+    <ClInclude Include="src\texture_decoder.h" />
     <ClInclude Include="src\vertex_loader.h" />
     <ClInclude Include="src\video_core.h" />
     <ClInclude Include="src\xf_mem.h" />
