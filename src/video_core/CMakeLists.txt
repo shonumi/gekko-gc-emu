@@ -5,7 +5,8 @@ set(SRCS
             src/vertex_loader.cpp
             src/video_core.cpp
             src/xf_mem.cpp
-			src/renderer_gl3/raster_font.cpp
+            src/texture_decoder.cpp
+            src/renderer_gl3/raster_font.cpp
             src/renderer_gl3/renderer_gl3.cpp
             src/renderer_gl3/shader_manager.cpp)
 
