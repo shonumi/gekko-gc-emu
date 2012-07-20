@@ -60,27 +60,18 @@ int __cdecl main(int argc, char **argv)
     program_dir[cwd_len] = '/';
     program_dir[cwd_len+1] = '\0';
 
-    EmuWindow_SDL* emu_window = new EmuWindow_SDL;
-
-#ifndef USE_NEW_VIDEO_CORE
-    OPENGL_SetWindow(emu_window);
-    OPENGL_SetTitle(APP_TITLE); // TODO(ShizZy): Find a better place for this
-#endif
-
     common::ConfigManager config_manager;
     config_manager.set_program_dir(program_dir, MAX_PATH);
     config_manager.ReloadConfig(NULL);
     core::SetConfigManager(&config_manager);
+
+    EmuWindow_SDL* emu_window = new EmuWindow_SDL;
 
     if (E_OK != core::Init()) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");
         core::Kill();
         exit(1);
     }
-#ifndef USE_NEW_VIDEO_CORE
-    OPENGL_Create();
-#endif
-
 
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
@@ -107,9 +98,6 @@ int __cdecl main(int argc, char **argv)
             core::Stop();
         }
     }
-#ifndef USE_NEW_VIDEO_CORE
-    OPENGL_Kill();
-#endif
     core::Kill();
     delete emu_window;
 
