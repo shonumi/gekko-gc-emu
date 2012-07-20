@@ -77,29 +77,18 @@ public:
     virtual void VertexPosition_SendByte(u8* vec) = 0;
 
     /**
-     * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
+     * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
+     * @param color Which color to configure (0 or 1)
      * @param count Color data count (e.g. GX_CLR_RGBA)
      */
-    virtual void VertexColor0_SetType(GXCompCnt count) = 0;
+    virtual void VertexColor_SetType(int color, GXCompCnt count) = 0;
 
     /**
-     * Send a vertex color 0 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+     * Send a vertex color to the renderer (RGB8 or RGBA8, as set by VertexColor_SetType)
      * @param color Color to send, packed as RRGGBBAA or RRGGBB00
      */
-    virtual void VertexColor0_Send(u32 color) = 0;
+    virtual void VertexColor_Send(u32 color) = 0;
     
-    /**
-     * Set the type of color 1 vertex data - type is always RGB8/RGBA8, just set count
-     * @param count Color data count (e.g. GX_CLR_RGBA)
-     */
-    virtual void VertexColor1_SetType(GXCompCnt count) = 0;
-
-    /**
-     * Send a vertex color 1 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
-     * @param color Color to send, packed as RRGGBBAA or RRGGBB00
-     */
-    virtual void VertexColor1_Send(u32 color) = 0;
-
     /**
      * Set the type of texture coordinate vertex data
      * @param texcoord 0-7 texcoord to set type of
@@ -110,24 +99,21 @@ public:
 
     /**
      * Send a texcoord vector to the renderer as 32-bit floating point
-     * @param texcoord 0-7 texcoord to configure
      * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
      */
-    virtual void VertexTexcoord_SendFloat(int texcoord, f32* vec) = 0;
+    virtual void VertexTexcoord_SendFloat(f32* vec) = 0;
 
     /**
      * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
-     * @param texcoord 0-7 texcoord to configure
      * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
      */
-    virtual void VertexTexcoord_SendShort(int texcoord, u16* vec) = 0;
+    virtual void VertexTexcoord_SendShort(u16* vec) = 0;
 
     /**
      * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
-     * @param texcoord 0-7 texcoord to configure
      * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
      */
-    virtual void VertexTexcoord_SendByte(int texcoord, u8* vec) = 0;
+    virtual void VertexTexcoord_SendByte(u8* vec) = 0;
 
     /**
      * @brief Sends position and texcoord matrix indices to the renderer

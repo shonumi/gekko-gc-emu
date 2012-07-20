@@ -77,28 +77,17 @@ public:
     void VertexPosition_SendByte(u8* vec);
 
     /**
-     * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
+     * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
+     * @param color Which color to configure (0 or 1)
      * @param count Color data count (e.g. GX_CLR_RGBA)
      */
-    void VertexColor0_SetType(GXCompCnt count);
+    void VertexColor_SetType(int color, GXCompCnt count);
 
     /**
-     * Send a vertex color 0 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+     * Send a vertex color to the renderer (RGB8 or RGBA8, as set by VertexColor_SetType)
      * @param color Color to send, packed as RRGGBBAA or RRGGBB00
      */
-    void VertexColor0_Send(u32 color);
-    
-    /**
-     * Set the type of color 1 vertex data - type is always RGB8/RGBA8, just set count
-     * @param count Color data count (e.g. GX_CLR_RGBA)
-     */
-    void VertexColor1_SetType(GXCompCnt count);
-
-    /**
-     * Send a vertex color 1 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
-     * @param color Color to send, packed as RRGGBBAA or RRGGBB00
-     */
-    void VertexColor1_Send(u32 color);
+    void VertexColor_Send(u32 color);
 
     /**
      * Set the type of texture coordinate vertex data
@@ -110,24 +99,21 @@ public:
 
     /**
      * Send a texcoord vector to the renderer as 32-bit floating point
-     * @param texcoord 0-7 texcoord to configure
      * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
      */
-    void VertexTexcoord_SendFloat(int texcoord, f32* vec);
+    void VertexTexcoord_SendFloat(f32* vec);
 
     /**
      * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
-     * @param texcoord 0-7 texcoord to configure
      * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
      */
-    void VertexTexcoord_SendShort(int texcoord, u16* vec);
+    void VertexTexcoord_SendShort(u16* vec);
 
     /**
      * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
-     * @param texcoord 0-7 texcoord to configure
      * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
      */
-    void VertexTexcoord_SendByte(int texcoord, u8* vec);
+    void VertexTexcoord_SendByte(u8* vec);
 
     /**
      * @brief Sends position and texcoord matrix indices to the renderer
@@ -207,9 +193,24 @@ private:
     GXPrimitive prim_type_;                         ///< GX primitive type (e.g. GX_QUADS)
     GLuint      gl_prim_type_;                      ///< OpenGL primitive type (e.g. GL_TRIANGLES)
     
+    // Vertex format stuff
+    // -------------------
+
     GLuint      vertex_position_format_;            ///< OpenGL position format (e.g. GL_FLOAT)
     int         vertex_position_format_size_;       ///< Number of bytes to represent one coordinate
     GXCompCnt   vertex_position_component_count_;   ///< Number of coordinates (2 - XY, 3 - XYZ)
+
+    int         vertex_color_cur_;                  ///< Current color, 0 or 1
+    
+    int         vertex_texcoord_cur_;               ///< Current texcoord, 0-kNumTextures
+    int         vertex_texcoord_enable_[8];
+
+    GLuint      vertex_texcoord_format_[8];     
+
+    int         vertex_texcoord_format_size_[8];    
+
+    GXCompCnt   vertex_texcoord_component_count_[8];
+    
     int         vertex_num_;                        ///< Number of vertices per primitive
 
     EmuWindow*  render_window_;

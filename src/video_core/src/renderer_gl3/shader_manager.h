@@ -31,8 +31,8 @@
 
 namespace shader_manager {
 
-/// Updates the uniform values for the vertex shader
-void SetVertexUniforms();
+/// Updates the uniform values for the current shader
+void UpdateUniforms();
 
 /**
  * @brief Sets the primitive type for shader use

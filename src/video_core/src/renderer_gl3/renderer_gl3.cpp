@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "config.h"
 
 #include "input_common.h"
 
@@ -53,6 +54,14 @@ RendererGL3::RendererGL3() {
     vertex_position_format_ = 0;
     vertex_position_format_size_ = 0;
     vertex_position_component_count_ = (GXCompCnt)0;
+    vertex_color_cur_ = 0;
+    vertex_texcoord_cur_ = 0;
+    for (int i = 0; i < kNumTextures; i++) {
+        vertex_texcoord_format_[i] = 0;
+        vertex_texcoord_enable_[i] = 0;
+        vertex_texcoord_format_size_[i] = 0;
+        vertex_texcoord_component_count_[i] = (GXCompCnt)0;
+    }
     vertex_num_ = 0;
     render_window_ = NULL;
     generic_shader_id_ = 0;
@@ -73,8 +82,9 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
                                  GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
 #endif
 
-    // Beginning of primitive - reset vertex number
+    // Beginning of primitive - reset vertex info
     vertex_num_ = 0;
+    memset(vertex_texcoord_enable_, 0, sizeof(vertex_texcoord_enable_));
 
     // Set the renderer primitive type
     prim_type_ = prim;
@@ -87,6 +97,9 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
 
     // Set the shader manager primitive type (only used for geometry shaders)
     shader_manager::SetPrimitive(prim);
+
+    // Update shader manager uniforms
+    shader_manager::UpdateUniforms();
 
     // Bind pointers to buffers
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
@@ -161,35 +174,20 @@ void RendererGL3::VertexPosition_SendByte(u8* vec) {
 }
 
 /**
- * Set the type of color 0 vertex data - type is always RGB8/RGBA8, just set count
+ * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
+ * @param color Which color to configure (0 or 1)
  * @param count Color data count (e.g. GX_CLR_RGBA)
  */
-void RendererGL3::VertexColor0_SetType(GXCompCnt count) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+void RendererGL3::VertexColor_SetType(int color, GXCompCnt count) {
+    vertex_color_cur_ = color;
 }
 
 /**
- * Send a vertex color 0 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
+ * Send a vertex color to the renderer (RGB8 or RGBA8, as set by VertexColor_SetType)
  * @param color Color to send, packed as RRGGBBAA or RRGGBB00
  */
-void RendererGL3::VertexColor0_Send(u32 rgba) {
-    (*vbo_ptr_)->color0 = rgba;
-}
-
-/**
- * Set the type of color 1 vertex data - type is always RGB8/RGBA8, just set count
- * @param count Color data count (e.g. GX_CLR_RGBA)
- */
-void RendererGL3::VertexColor1_SetType(GXCompCnt count) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
-}
-
-/**
- * Send a vertex color 1 to the renderer (RGB8 or RGBA8, as set by VertexColor0_SetType)
- * @param color Color to send, packed as RRGGBBAA or RRGGBB00
- */
-void RendererGL3::VertexColor1_Send(u32 color) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+void RendererGL3::VertexColor_Send(u32 rgba) {
+    (*vbo_ptr_)->color[vertex_color_cur_] = rgba;
 }
 
 /**
@@ -198,35 +196,45 @@ void RendererGL3::VertexColor1_Send(u32 color) {
  * @param type Texcoord data type (e.g. GX_F32)
  * @param count Texcoord data count (e.g. GX_TEX_ST)
  */
+
 void RendererGL3::VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+    const GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
+    const GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
+    vertex_texcoord_cur_ = texcoord;
+    vertex_texcoord_format_[texcoord] = gl_types[type];
+    vertex_texcoord_format_size_[texcoord] = gl_types_size[type];
+    vertex_texcoord_component_count_[texcoord] = count;
+    vertex_texcoord_enable_[texcoord] = 1;
 }
 
 /**
  * Send a texcoord vector to the renderer as 32-bit floating point
- * @param texcoord 0-7 texcoord to configure
  * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
  */
-void RendererGL3::VertexTexcoord_SendFloat(int texcoord, f32* vec) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+void RendererGL3::VertexTexcoord_SendFloat(f32* vec) {
+    f32* ptr = (f32*)&(*vbo_ptr_)->texcoords[vertex_texcoord_cur_ << 1];
+    ptr[0] = vec[0];
+    ptr[1] = vec[1];
 }
 
 /**
  * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
- * @param texcoord 0-7 texcoord to configure
  * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
  */
-void RendererGL3::VertexTexcoord_SendShort(int texcoord, u16* vec) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+void RendererGL3::VertexTexcoord_SendShort(u16* vec) {
+    u16* ptr = (u16*)&(*vbo_ptr_)->texcoords[vertex_texcoord_cur_ << 1];
+    ptr[0] = vec[0];
+    ptr[1] = vec[1];
 }
 
 /**
  * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
- * @param texcoord 0-7 texcoord to configure
  * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
  */
-void RendererGL3::VertexTexcoord_SendByte(int texcoord, u8* vec) {
-    LOG_ERROR(TVIDEO, "Unimplemented method!");
+void RendererGL3::VertexTexcoord_SendByte(u8* vec) {
+    u8* ptr = (u8*)&(*vbo_ptr_)->texcoords[vertex_texcoord_cur_ << 1];
+    ptr[0] = vec[0];
+    ptr[1] = vec[1];
 }
 
 /**
@@ -288,25 +296,29 @@ void RendererGL3::EndPrimitive() {
         return;
     }
 
-    
-    shader_manager::SetVertexUniforms();
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(12);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
     // Position
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, vertex_position_format_, GL_FALSE, sizeof(GXVertex), 
                           reinterpret_cast<void*>(0));
     // Color 0
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
                           reinterpret_cast<void*>(12));
+
+    // TexCoords
+    if (vertex_texcoord_enable_[0]) {
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 3, vertex_texcoord_format_[0], GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(56));
+    }
+        
     // Position matrix index
-    glVertexAttribPointer(12, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(120));
-    
+    if (VCD_PMIDX) {
+        glEnableVertexAttribArray(8);
+        glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(120));
+    }
     // When quads, compensate for extra triangles (4 vertices->6)
 #ifndef USE_GEOMETRY_SHADERS
     if (prim_type_ == GX_QUADS) {
@@ -321,9 +333,10 @@ void RendererGL3::EndPrimitive() {
                 "VBO is filled up! There is either a bug or it must be > %dMB!", 
                 (VBO_SIZE / 1048576));
 
-    //glDisableVertexAttribArray(0);
-    //glDisableVertexAttribArray(1);
-    //glDisableVertexAttribArray(12);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(4);
+    glDisableVertexAttribArray(8);
 }
 
 
@@ -495,11 +508,21 @@ void RendererGL3::Init() {
 
     render_window_->MakeCurrent();
 
+    glShadeModel(GL_SMOOTH);
     glClearColor(0.30f, 0.05f, 0.65f, 1.0f); // GameCube purple :-)
-    glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture  
+    //glEnable(GL_TEXTURE_2D); // Enable texturing
+    glClearDepth(1.0f);
     //glEnable(GL_DEPTH_TEST); // Enable depth testing
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glFrontFace(GL_CW);
+    glCullFace(GL_FRONT_AND_BACK);
+
+    if (common::g_config->current_renderer_config().enable_wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    //
     glFrontFace(GL_CW);
     glShadeModel(GL_SMOOTH);
 

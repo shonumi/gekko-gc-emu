@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "config.h"
 
 #include "gx_types.h"
 #include "xf_mem.h"
@@ -32,7 +33,7 @@
 
 namespace shader_manager {
 
-GLuint current_shader_id;       ///< Handle to current shader program
+GLuint g_current_shader_id;       ///< Handle to current shader program
 
 GLuint shader_default_id;       ///< Handle to default shader program
 GLuint shader_default_quads_id; ///< Handle to default quads shader program
@@ -43,11 +44,11 @@ GLuint shader_default_quads_id; ///< Handle to default quads shader program
  */
 void SetPrimitive(GXPrimitive type) {
     if (type == GX_QUADS) {
-        current_shader_id = shader_default_quads_id;
+        g_current_shader_id = shader_default_quads_id;
     } else {
-        current_shader_id = shader_default_id;
+        g_current_shader_id = shader_default_id;
     }
-    glUseProgram(current_shader_id);
+    glUseProgram(g_current_shader_id);
 }
 
 /**
@@ -55,24 +56,31 @@ void SetPrimitive(GXPrimitive type) {
  * @return GLuint of current shader ID
  */
 GLuint GetCurrentShaderID() {
-    return current_shader_id;
+    return g_current_shader_id;
 }
 
-/// Updates the uniform values for the vertex shader
-void SetVertexUniforms() {
-    // XF - projection matrix (already converted to GL4x4 format)
-    GLuint m_id = glGetUniformLocation(GetCurrentShaderID(), "projection_matrix");
-    glUniformMatrix4fv(m_id, 1, GL_FALSE, gp::g_projection_matrix);
+/// Updates the uniform values for the current shader
+void UpdateUniforms() {
+    // Projection matrix (already converted to GL4x4 format)
+    glUniformMatrix4fv(glGetUniformLocation(g_current_shader_id, "projection_matrix"), 1, 
+        GL_FALSE, gp::g_projection_matrix);
 
     // XF - modelview matrix, raw ODE4x3 format (3 vec4's)
-    m_id = glGetUniformLocation(GetCurrentShaderID(), "modelview_vectors");
-    glUniform4fv(m_id, 3, XF_MODELVIEW_MATRIX);
+    f32* modelview = (f32*)&gp::g_tf_mem[(gp::g_cp_regs.matrix_index_a.pos_normal_midx * 4)];
+    glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_modelview_vectors"), 3, modelview);
 
     // XF - positition matrices
-    if (VCD_MIDX) {
-        m_id = glGetUniformLocation(GetCurrentShaderID(), "position_vectors");
-        glUniform4fv(m_id, gp::kXFMemEntriesNum, (f32*)gp::g_tf_mem);
+    if (VCD_PMIDX) {
+        glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_position_vectors"), 
+            gp::kXFMemEntriesNum, (f32*)gp::g_tf_mem);
     }
+
+    // CP - dequantization shift values
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_shift"), VAT_POSSHFT);
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_tex_shift_0"), VAT_TEX0SHFT);
+
+    // Textures
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "texture0"), 0);
 }
 
 /**
@@ -84,6 +92,8 @@ void SetVertexUniforms() {
  * @return GLuint of new shader program
  */
 GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
+    GLint res;
+
     // Create the shaders
     GLuint gs_id = 0;
     GLuint vs_id = glCreateShader(GL_VERTEX_SHADER);
@@ -96,34 +106,38 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
         // Compile Geometry Shader
         glShaderSource(gs_id, 1, &gs , NULL);
         glCompileShader(gs_id);
+        glGetShaderiv(gs_id, GL_COMPILE_STATUS, &res);
+        if (res == GL_FALSE) {
+	        glGetShaderiv(gs_id, GL_INFO_LOG_LENGTH, &res);
+	        char* log = new char[res];
+	        glGetShaderInfoLog(gs_id, res, &res, log);
+            _ASSERT_MSG(TVIDEO, 0, "Geometry shader failed to compile! Error(s):\n%s", log);
+            delete [] log;
+        }
     }
 #endif
-
     // Compile Vertex Shader
-    GLint res;
     glShaderSource(vs_id, 1, &vs , NULL);
     glCompileShader(vs_id);
     glGetShaderiv(vs_id, GL_COMPILE_STATUS, &res);
-
-
     if (res == GL_FALSE) {
-        
 	    glGetShaderiv(vs_id, GL_INFO_LOG_LENGTH, &res);
- 
-	    /* The maxLength includes the NULL character */
-	    char* vs_log = new char[res];
- 
-	    glGetShaderInfoLog(vs_id, res, &res, vs_log);
- 
-        _ASSERT_MSG(TVIDEO, 0, "Vertex shader failed to compile! Error(s):\n%s", vs_log);
-        delete [] vs_log;
+	    char* log = new char[res];
+	    glGetShaderInfoLog(vs_id, res, &res, log);
+        _ASSERT_MSG(TVIDEO, 0, "Vertex shader failed to compile! Error(s):\n%s", log);
+        delete [] log;
     }
-    
- 
     // Compile Fragment Shader
     glShaderSource(fs_id, 1, &fs , NULL);
     glCompileShader(fs_id);
- 
+    glGetShaderiv(fs_id, GL_COMPILE_STATUS, &res);
+    if (res == GL_FALSE) {
+	    glGetShaderiv(fs_id, GL_INFO_LOG_LENGTH, &res);
+	    char* log = new char[res];
+	    glGetShaderInfoLog(fs_id, res, &res, log);
+        _ASSERT_MSG(TVIDEO, 0, "Fragment shader failed to compile! Error(s):\n%s", log);
+        delete [] log;
+    }
     // Create the program
     GLuint program_id = glCreateProgram();
     glAttachShader(program_id, vs_id);
@@ -134,7 +148,14 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
 #endif
     glAttachShader(program_id, fs_id);
     glLinkProgram(program_id);
-
+    glGetShaderiv(program_id, GL_LINK_STATUS, &res);
+    if (res == GL_FALSE) {
+	    glGetShaderiv(program_id, GL_INFO_LOG_LENGTH, &res);
+	    char* log = new char[res];
+	    glGetShaderInfoLog(program_id, res, &res, log);
+        _ASSERT_MSG(TVIDEO, 0, "Shader program linker failed! Error(s):\n%s", log);
+        delete [] log;
+    }
     // Cleanup
     glDeleteShader(vs_id);
 #ifdef USE_GEOMETRY_SHADERS
@@ -142,23 +163,62 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
 #endif
     glDeleteShader(fs_id);
 
-
     return program_id;
+}
+
+// Loads a shader from VS, GS, and FS paths (absolute). GS is ignored if the path is NULL.
+// Returns 0 on error, otherwise the GLuint of the newly compiled shader.
+GLuint LoadShader(char* vs_path, char* gs_path, char* fs_path) {
+    std::ifstream vs_ifs(vs_path);
+    if (vs_ifs.fail()) {
+        LOG_ERROR(TVIDEO, "Failed to open shader %s", vs_path);
+        return 0;
+    }
+    std::ifstream fs_ifs(fs_path);
+    if (fs_ifs.fail()) {
+        LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fs_path);
+        return 0;
+    }
+    std::string vs_str((std::istreambuf_iterator<char>(vs_ifs)), std::istreambuf_iterator<char>());
+    std::string fs_str((std::istreambuf_iterator<char>(fs_ifs)), std::istreambuf_iterator<char>());
+
+    if (gs_path != NULL) {
+        std::ifstream gs_ifs(gs_path);
+        if (gs_ifs.fail()) {
+            LOG_ERROR(TVIDEO, "Failed to geometry shader %s", gs_path);
+            return 0;
+        }
+        std::string gs_str((std::istreambuf_iterator<char>(gs_ifs)), 
+            std::istreambuf_iterator<char>());
+
+        return CompileShaderProgram(vs_str.c_str(), gs_str.c_str(), fs_str.c_str());
+    } else {
+        return CompileShaderProgram(vs_str.c_str(), NULL, fs_str.c_str());
+    }
+    return 0;
 }
 
 /// Initialize the shader manager
 void Init() {
+    char vs_filename[MAX_PATH];
+    char gs_filename[MAX_PATH];
+    char fs_filename[MAX_PATH];
+    char fs_quads_filename[MAX_PATH];
 
-    shader_default_id = CompileShaderProgram(kDefaultVertexShader, 
-                                             NULL, 
-                                             kDefaultFragmentShader);
-#ifdef USE_GEOMETRY_SHADERS
-    shader_default_quads_id = CompileShaderProgram(kDefaultVertexShader, 
-                                                   kDefaultGeometryShaderQuads,
-                                                   kDefaultFragmentShaderQuads);
-#else
-    shader_default_quads_id = shader_default_id;
-#endif
+    strcpy_s(vs_filename, MAX_PATH, common::g_config->program_dir());
+    strcat_s(vs_filename, MAX_PATH, "sys/shaders/default.vs");
+
+    strcpy_s(gs_filename, MAX_PATH, common::g_config->program_dir());
+    strcat_s(gs_filename, MAX_PATH, "sys/shaders/default.gs");
+
+    strcpy_s(fs_filename, MAX_PATH, common::g_config->program_dir());
+    strcat_s(fs_filename, MAX_PATH, "sys/shaders/default.fs");
+
+    strcpy_s(fs_quads_filename, MAX_PATH, common::g_config->program_dir());
+    strcat_s(fs_quads_filename, MAX_PATH, "sys/shaders/default_quads.fs");
+
+    shader_default_id = LoadShader(vs_filename, NULL, fs_filename);
+    shader_default_quads_id = LoadShader(vs_filename, gs_filename, fs_quads_filename);
 
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }
