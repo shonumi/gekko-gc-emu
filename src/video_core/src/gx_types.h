@@ -25,9 +25,7 @@
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
 
-#define GX_VCD_DIRECT   1   ///< GX vertex VCD type direct data
-#define GX_VCD_INDEX8   2   ///< GX vertex VCD type indexed 8-bit
-#define GX_VCD_INDEX16  3   ///< GX vertex VCD type indexed 16-bit
+static const int kNumTextures = 8; ///< Number of textures supported
 
 /**
  * General struct used for describing a GX Vertex
@@ -38,20 +36,12 @@
  * format is GX_S16, 'position' would look like XXXXYYYY ZZZZ0000 0000000.
  */
 struct GXVertex {
-    u32 position[3];    ///< Position coords - XY or XYZ - Offset 0
-    u32 color0;         ///< Color0 RGB/A8 - Offset 12
-    u32 color1;         ///< Color1 RGB/A8 - Offset 16
-    u32 normal[9];      ///< Normals (3 or 9) - Offset 20
-    u32 texcoord0[2];   ///< Texture 0 coordinates (S or ST) - Offset 56
-    u32 texcoord1[2];   ///< Texture 1 coordinates (S or ST) - Offset 64
-    u32 texcoord2[2];   ///< Texture 2 coordinates (S or ST) - Offset 72
-    u32 texcoord3[2];   ///< Texture 3 coordinates (S or ST) - Offset 80
-    u32 texcoord4[2];   ///< Texture 4 coordinates (S or ST) - Offset 88
-    u32 texcoord5[2];   ///< Texture 5 coordinates (S or ST) - Offset 96
-    u32 texcoord6[2];   ///< Texture 6 coordinates (S or ST) - Offset 104
-    u32 texcoord7[2];   ///< Texture 7 coordinates (S or ST) - Offset 112
-    u8 pm_idx;          ///< Position matrix index - Offset 16
-    u8 tm_idx[8];       ///< Texture coord matrix index - Offset 124
+    u32 position[3];                ///< Position coords - XY or XYZ - Offset 0
+    u32 color[2];                   ///< Color0/1 RGB/A8 - Offset 12, 16
+    u32 normal[9];                  ///< Normals (3 or 9) - Offset 20
+    u32 texcoords[16];              ///< Texture 0 coordinates (S or ST) - Offset 56
+    u8 pm_idx;                      ///< Position matrix index - Offset 120
+    u8 tm_idx[8];                   ///< Texture coord matrix index - Offset 124
 };
 
 /// GX API primitive types
