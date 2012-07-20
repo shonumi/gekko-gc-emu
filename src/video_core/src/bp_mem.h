@@ -33,7 +33,7 @@
 namespace gp {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// BP Register Decoding
+// BP register decoding
 
 /// Gen Mode
 struct BPGenMode {
@@ -177,7 +177,7 @@ struct BPTevOrder {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 union BPMemory {
-    struct{
+    struct {
         BPGenMode       genmode;
         u32             pad0[0x27];
         BPTevOrder      tevorder[0x8];
@@ -199,6 +199,8 @@ extern BPMemory g_bp_regs; ///< BP memory/registers
  * \param data Data (32-bit) to write to register
  */
 void BPRegisterWrite(u8 addr, u32 data);
+
+void LoadTexture(u8 index);
 
 /// Initialize BP
 void BPInit();
