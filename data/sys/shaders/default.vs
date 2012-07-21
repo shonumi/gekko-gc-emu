@@ -40,9 +40,9 @@ void main() {
     float cp_tex_dqf_0 = 1.0 / float(1 << cp_tex_shift_0);
     
     if (m_idx_a[0] != 0) {
-        modelview_matrix = convert_matrix(xf_position_vectors[uint(m_idx_a[0])],
-                                          xf_position_vectors[uint(m_idx_a[0]) + 1],
-                                          xf_position_vectors[uint(m_idx_a[0]) + 2]);
+        modelview_matrix = convert_matrix(xf_position_vectors[int(m_idx_a[0])],
+                                          xf_position_vectors[int(m_idx_a[0]) + 1],
+                                          xf_position_vectors[int(m_idx_a[0]) + 2]);
     } else {
         modelview_matrix = convert_matrix(xf_modelview_vectors[0],
                                           xf_modelview_vectors[1],
