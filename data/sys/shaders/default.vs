@@ -1,4 +1,6 @@
 #version 150
+#extension GL_ARB_explicit_attrib_location : enable
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform mat4 projection_matrix;
 
