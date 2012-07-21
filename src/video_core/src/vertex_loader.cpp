@@ -35,12 +35,7 @@
 
 namespace gp {
 
-f32 g_cur_pos_dqf;      ///< Vertex position dequantization factor
-
-int g_cur_color = 0;    ///< Specifies the current color (0 or 1)
-int g_cur_texcoord = 0; ///< Specifies the current texcoord (0-7)
-
-typedef void (*VertexLoaderTable)(u16);	
+typedef void (*VertexLoaderTable)(u32);	
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,58 +64,58 @@ static __inline u32 MemoryRead32(u32 addr)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Position Decoding
 
-static void VertexPosition_Unk(u16 index) {
+static void VertexPosition_Unk(u32 addr) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex position!!! Ask neobrain to implement me!");
 }
 
-static void VertexPosition_D8_XY(u16 index) {
+static void VertexPosition_D8_XY(u32 addr) {
     u8 v[2];
     v[0] = FifoPop8();
     v[1] = FifoPop8();
     video_core::g_renderer->VertexPosition_SendByte(v);
 }
 
-static void VertexPosition_D16_XY(u16 index) {
+static void VertexPosition_D16_XY(u32 addr) {
     u16 v[2];
     v[0] = FifoPop16();
     v[1] = FifoPop16();
     video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
-static void VertexPosition_D32_XY(u16 index) {
+static void VertexPosition_D32_XY(u32 addr) {
     u32 v[2];
     v[0] = FifoPop32();
     v[1] = FifoPop32();
     video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
-static void VertexPosition_I8_XY(u16 index) {
+static void VertexPosition_I8_XY(u32 addr) {
     u8 v[2];
-    u16 data = MemoryRead16(CP_DATA_POS_ADDR(index));
+    u16 data = MemoryRead16(addr);
     v[0] = (u8)((data >> 8) & 0xFF);
     v[1] = (u8)(data & 0xFF);
     video_core::g_renderer->VertexPosition_SendByte(v);
 }
 
 // correct
-static void VertexPosition_I16_XY(u16 index) {
+static void VertexPosition_I16_XY(u32 addr) {
     u16 v[2];
-    u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
+    u32 data = MemoryRead32(addr);
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
     video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
 // correct
-static void VertexPosition_I32_XY(u16 index) {
+static void VertexPosition_I32_XY(u32 addr) {
     u32 v[2];
-    v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
-    v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
+    v[0] = MemoryRead32(addr + 0);
+    v[1] = MemoryRead32(addr + 4);
     video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
 
-static void VertexPosition_D8_XYZ(u16 index) {
+static void VertexPosition_D8_XYZ(u32 addr) {
     u8 v[3];
     v[0] = FifoPop8();
     v[1] = FifoPop8();
@@ -129,7 +124,7 @@ static void VertexPosition_D8_XYZ(u16 index) {
 }
 
 // correct
-static void VertexPosition_D16_XYZ(u16 index) {
+static void VertexPosition_D16_XYZ(u32 addr) {
     u16 v[3];
     v[0] = FifoPop16();
     v[1] = FifoPop16();
@@ -138,7 +133,7 @@ static void VertexPosition_D16_XYZ(u16 index) {
 }
 
 // correct
-static void VertexPosition_D32_XYZ(u16 index) {
+static void VertexPosition_D32_XYZ(u32 addr) {
     u32 v[3];
     v[0] = FifoPop32();
     v[1] = FifoPop32();
@@ -146,10 +141,10 @@ static void VertexPosition_D32_XYZ(u16 index) {
     video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
-static void VertexPosition_I8_XYZ(u16 index) {
+static void VertexPosition_I8_XYZ(u32 addr) {
     u8 v[3];
 
-    u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
+    u32 data = MemoryRead32(addr);
     v[0] = (u8)((data >> 24) & 0xFF);
     v[1] = (u8)((data >> 16) & 0xFF);
     v[2] = (u8)((data >> 8) & 0xFF);
@@ -158,26 +153,26 @@ static void VertexPosition_I8_XYZ(u16 index) {
 }
 
 // correct
-static void VertexPosition_I16_XYZ(u16 index) {
+static void VertexPosition_I16_XYZ(u32 addr) {
     u16 v[3];
-    u32 data = MemoryRead32(CP_DATA_POS_ADDR(index));
+    u32 data = MemoryRead32(addr);
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
-    v[2] = MemoryRead16(CP_DATA_POS_ADDR(index) + 4);
+    v[2] = MemoryRead16(addr + 4);
     video_core::g_renderer->VertexPosition_SendShort(v);
 }
 
 // correct
-static void VertexPosition_I32_XYZ(u16 index) {
+static void VertexPosition_I32_XYZ(u32 addr) {
     u32 v[3];
-    v[0] = MemoryRead32(CP_DATA_POS_ADDR(index) + 0);
-    v[1] = MemoryRead32(CP_DATA_POS_ADDR(index) + 4);
-    v[2] = MemoryRead32(CP_DATA_POS_ADDR(index) + 8);
+    v[0] = MemoryRead32(addr + 0);
+    v[1] = MemoryRead32(addr + 4);
+    v[2] = MemoryRead32(addr + 8);
     video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
 }
 
 // unimplemented
-#define VERTEXLOADER_POSITION_UNDEF(name)   void VertexPosition_##name(u16 index) { \
+#define VERTEXLOADER_POSITION_UNDEF(name)   void VertexPosition_##name(u32 addr) { \
     _ASSERT_MSG(TGP, 0, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__); \
 }
 
@@ -199,15 +194,15 @@ VertexLoaderTable LookupPositionIndexed[0x10] = {
 // Color Decoding
 
 
-#define VERTEXLOADER_COLOR_UNDEF(name)      void VertexColor_##name(u16 index) { \
+#define VERTEXLOADER_COLOR_UNDEF(name)      void VertexColor_##name(u32 addr) { \
     _ASSERT_MSG(TGP, 0, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__); \
     }
 
-static void VertexColor_Unk(u16 index) {
+static void VertexColor_Unk(u32 addr) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex color!!! Ask neobrain to implement me!");
 }
 
-static void VertexColor_DRGB565(u16 index) {
+static void VertexColor_DRGB565(u32 addr) {
     u16 rgb = FifoPop16();
     u8 r = ((rgb >> 11) & 0x1f) * 8;
     u8 g = ((rgb >> 5) & 0x3f) * 4;
@@ -216,23 +211,23 @@ static void VertexColor_DRGB565(u16 index) {
 }
 
 // correct
-static void VertexColor_DRGB8(u16 index) {
+static void VertexColor_DRGB8(u32 addr) {
     video_core::g_renderer->VertexColor_Send((FifoPop24() << 8) | 0xff);
 }
 
 // correct
-static void VertexColor_DRGBA8(u16 index) {
+static void VertexColor_DRGBA8(u32 addr) {
     video_core::g_renderer->VertexColor_Send(FifoPop32());
 }
 
-static void VertexColor_IRGB8(u16 index) {
-    u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(index)) | 0xff;
+static void VertexColor_IRGB8(u32 addr) {
+    u32 rgba = MemoryRead32(addr) | 0xff;
     video_core::g_renderer->VertexColor_Send(rgba);
 }
 
 // correct
-static void VertexColor_IRGBA8(u16 index) {
-    u32 rgba = MemoryRead32(CP_DATA_COL0_ADDR(index));
+static void VertexColor_IRGBA8(u32 addr) {
+    u32 rgba = MemoryRead32(addr);
     video_core::g_renderer->VertexColor_Send(rgba);
 }
 
@@ -259,42 +254,42 @@ VertexLoaderTable LookupColorIndexed[0x10] = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Normal Decoding
 
-#define VERTEXLOADER_NORMAL_UNDEF(name)     void VertexNormal_##name(u16 index) { \
+#define VERTEXLOADER_NORMAL_UNDEF(name)     void VertexNormal_##name(u32 addr) { \
     _ASSERT_MSG(TGP, 0, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__); \
     }
 
-static void VertexNormal_Unk(u16 index) {
+static void VertexNormal_Unk(u32 addr) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex normal!!! Ask neobrain to implement me!");
 }
 
-static void VertexNormal_D8_3(u16 index) {
+static void VertexNormal_D8_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
     FifoPop24();
 }
 
-static void VertexNormal_D16_3(u16 index) {
+static void VertexNormal_D16_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
     FifoPop16();
     FifoPop16();
     FifoPop16();
 }
 
-static void VertexNormal_D32_3(u16 index) {
+static void VertexNormal_D32_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
     FifoPop32();
     FifoPop32();
     FifoPop32();
 }
 
-static void VertexNormal_I8_3(u16 index) {
+static void VertexNormal_I8_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
 }
 
-static void VertexNormal_I16_3(u16 index) {
+static void VertexNormal_I16_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
 }
 
-static void VertexNormal_I32_3(u16 index) {
+static void VertexNormal_I32_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
 }
 
@@ -318,15 +313,15 @@ VertexLoaderTable LookupNormalIndexed[0x10] = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TexCoord Decoding
 
-#define VERTEXLOADER_TEXCOORD_UNDEF(name)   void VertexTexCoord_##name(u16 index) { \
+#define VERTEXLOADER_TEXCOORD_UNDEF(name)   void VertexTexCoord_##name(u32 addr) { \
     _ASSERT_MSG(TGP, 0, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__); \
     }
 
-static void VertexTexCoord_Unk(u16 index) {
+static void VertexTexCoord_Unk(u32 addr) {
     _ASSERT_MSG(TGP, 0, "Unknown Vertex texcoord!!! Ask neobrain to implement me!");
 }
 
-static void VertexTexCoord_D8_ST(u16 index) {
+static void VertexTexCoord_D8_ST(u32 addr) {
 	u8 v[2];
     v[0] = FifoPop8();
     v[1] = FifoPop8();
@@ -334,71 +329,71 @@ static void VertexTexCoord_D8_ST(u16 index) {
 }
 
 // correct
-static void VertexTexCoord_D16_ST(u16 index) {
+static void VertexTexCoord_D16_ST(u32 addr) {
 	u16 v[2];
     v[0] = FifoPop16();
     v[1] = FifoPop16();
 	video_core::g_renderer->VertexTexcoord_SendShort(v);
 }
 
-static void VertexTexCoord_D32_ST(u16 index) {
+static void VertexTexCoord_D32_ST(u32 addr) {
 	u32 v[2];
 	v[0] = FifoPop32();
 	v[1] = FifoPop32();
 	video_core::g_renderer->VertexTexcoord_SendFloat((f32*)v);
 }
 
-static void VertexTexCoord_D8_S(u16 index) {
+static void VertexTexCoord_D8_S(u32 addr) {
     u8 v = FifoPop8();
     video_core::g_renderer->VertexTexcoord_SendByte(&v);
 }
 
-static void VertexTexCoord_D16_S(u16 index) {
+static void VertexTexCoord_D16_S(u32 addr) {
     u16 v = FifoPop16();
     video_core::g_renderer->VertexTexcoord_SendShort(&v);
 }
 
-static void VertexTexCoord_D32_S(u16 index) {
+static void VertexTexCoord_D32_S(u32 addr) {
     u32 v = FifoPop32();
     video_core::g_renderer->VertexTexcoord_SendFloat((f32*)&v);
 }
 
-static void VertexTexCoord_I8_ST(u16 index) {
+static void VertexTexCoord_I8_ST(u32 addr) {
     u8 v[2];
-    u16 data = MemoryRead16(CP_DATA_TEX_ADDR(index, g_cur_texcoord));
+    u16 data = MemoryRead16(addr);
     v[0] = (u8)((data >> 8) & 0xFF);
     v[1] = (u8)(data & 0xFF);
     video_core::g_renderer->VertexTexcoord_SendByte(v);
 }
 
 // correct
-static void VertexTexCoord_I16_ST(u16 index) {
+static void VertexTexCoord_I16_ST(u32 addr) {
     u16 v[2];
-    u32 data = MemoryRead32(CP_DATA_TEX_ADDR(index, g_cur_texcoord));
+    u32 data = MemoryRead32(addr);
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
     video_core::g_renderer->VertexTexcoord_SendShort(v);
 }
 
-static void VertexTexCoord_I32_ST(u16 index) {
+static void VertexTexCoord_I32_ST(u32 addr) {
     u32 v[2];
-    v[0] = MemoryRead32(CP_DATA_TEX_ADDR(index, g_cur_texcoord) + 0);
-    v[1] = MemoryRead32(CP_DATA_TEX_ADDR(index, g_cur_texcoord) + 4);
+    v[0] = MemoryRead32(addr + 0);
+    v[1] = MemoryRead32(addr + 4);
     video_core::g_renderer->VertexTexcoord_SendFloat((f32*)v);
 }
 
-static void VertexTexCoord_I8_S(u16 index) {
-    u8 v = Mem_RAM[CP_DATA_TEX_ADDR(index, g_cur_texcoord) & RAM_MASK];
+static void VertexTexCoord_I8_S(u32 addr) {
+    u8 v = Mem_RAM[addr & RAM_MASK];
     video_core::g_renderer->VertexTexcoord_SendByte(&v);
 }
 
-static void VertexTexCoord_I16_S(u16 index) {
-    u16 v = MemoryRead16(CP_DATA_TEX_ADDR(index, g_cur_texcoord));
+static void VertexTexCoord_I16_S(u32 addr) {
+    u16 v = MemoryRead16(addr);
     video_core::g_renderer->VertexTexcoord_SendShort(&v);
 }
 
-static void VertexTexCoord_I32_S(u16 index) {
-    u32 v = MemoryRead32(CP_DATA_TEX_ADDR(index, g_cur_texcoord));
+static void VertexTexCoord_I32_S(u32 addr) {
+    u32 v = MemoryRead32(addr);
     video_core::g_renderer->VertexTexcoord_SendFloat((f32*)&v);
 }
 
@@ -428,10 +423,35 @@ void DecodePrimitive(GXPrimitive type, int count) {
 
     u8 pm_midx = 0, tm_midx[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
+    u32 pos_base        = g_cp_regs.array_base[0].addr_base;
+    u8  pos_stride      = g_cp_regs.array_stride[0].addr_stride;
+    u32 normal_base     = g_cp_regs.array_base[1].addr_base;
+    u8  normal_stride   = g_cp_regs.array_stride[1].addr_stride;
+    u32 col0_base       = g_cp_regs.array_base[2].addr_base;
+    u8  col0_stride     = g_cp_regs.array_stride[2].addr_stride;
+    u32 col1_base       = g_cp_regs.array_base[3].addr_base;
+    u8  col1_stride     = g_cp_regs.array_stride[3].addr_stride;
+    u32 tex0_base       = g_cp_regs.array_base[4].addr_base;
+    u8  tex0_stride     = g_cp_regs.array_stride[4].addr_stride;
+    u32 tex1_base       = g_cp_regs.array_base[5].addr_base;
+    u8  tex1_stride     = g_cp_regs.array_stride[5].addr_stride;
+    u32 tex2_base       = g_cp_regs.array_base[6].addr_base;
+    u8  tex2_stride     = g_cp_regs.array_stride[6].addr_stride;
+    u32 tex3_base       = g_cp_regs.array_base[7].addr_base;
+    u8  tex3_stride     = g_cp_regs.array_stride[7].addr_stride;
+    u32 tex4_base       = g_cp_regs.array_base[8].addr_base;
+    u8  tex4_stride     = g_cp_regs.array_stride[8].addr_stride;
+    u32 tex5_base       = g_cp_regs.array_base[9].addr_base;
+    u8  tex5_stride     = g_cp_regs.array_stride[9].addr_stride;
+    u32 tex6_base       = g_cp_regs.array_base[10].addr_base;
+    u8  tex6_stride     = g_cp_regs.array_stride[10].addr_stride;
+    u32 tex7_base       = g_cp_regs.array_base[11].addr_base;
+    u8  tex7_stride     = g_cp_regs.array_stride[11].addr_stride;
+
     video_core::g_renderer->BeginPrimitive(type, count);
 
     // Decode and apply texture
-	if(g_bp_regs.tevorder[0 >> 1].get_enable(0))
+	if(g_bp_regs.tevorder[0].get_enable(0))
 	{
 		glActiveTexture(GL_TEXTURE0);
 		LoadTexture(0x94 + 0);
@@ -497,10 +517,10 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupPositionDirect[vat_a->get_pos()](0);
             break;
         case CP_INDEX8:
-            LookupPositionIndexed[vat_a->get_pos()](FifoPop8());
+            LookupPositionIndexed[vat_a->get_pos()](pos_base + (FifoPop8() * pos_stride));
             break;
         case CP_INDEX16:
-            LookupPositionIndexed[vat_a->get_pos()](FifoPop16());
+            LookupPositionIndexed[vat_a->get_pos()](pos_base + (FifoPop16() * pos_stride));
             break;
         }
 
@@ -510,24 +530,28 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupNormalDirect[vat_a->get_normal()](0);
             break;
         case CP_INDEX8:
-            LookupNormalIndexed[vat_a->get_normal()](FifoPop8());
+            LookupNormalIndexed[vat_a->get_normal()](normal_base + (FifoPop8() * normal_stride));
             break;
         case CP_INDEX16:
-            LookupNormalIndexed[vat_a->get_normal()](FifoPop16());
+            LookupNormalIndexed[vat_a->get_normal()](normal_base + (FifoPop16() * normal_stride));
             break;
         }
 
         // Decode color 0
         video_core::g_renderer->VertexColor_SetType(0, (GXCompCnt)vat_a->col0_count);
         switch (g_cp_regs.vcd_lo[0].color0) {
+        case CP_NOT_PRESENT:
+            // Not sure if this is right, but assume white if disabled (not black)
+            video_core::g_renderer->VertexColor_Send(0xffffffff);
+            break;
         case CP_DIRECT:
             LookupColorDirect[vat_a->get_col0()](0);
             break;
         case CP_INDEX8:
-            LookupColorIndexed[vat_a->get_col0()](FifoPop8());
+            LookupColorIndexed[vat_a->get_col0()](col0_base + (FifoPop8() * col0_stride));
             break;
         case CP_INDEX16:
-            LookupColorIndexed[vat_a->get_col0()](FifoPop16());
+            LookupColorIndexed[vat_a->get_col0()](col0_base + (FifoPop16() * col0_stride));
             break;
         }
 
@@ -538,17 +562,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupColorDirect[vat_a->get_col1()](0);
             break;
         case CP_INDEX8:
-            LookupColorIndexed[vat_a->get_col1()](FifoPop8());
+            LookupColorIndexed[vat_a->get_col1()](col1_base + (FifoPop8() * col1_stride));
             break;
         case CP_INDEX16:
-            LookupColorIndexed[vat_a->get_col1()](FifoPop16());
+            LookupColorIndexed[vat_a->get_col1()](col1_base + (FifoPop16() * col1_stride));
             break;
         }
 
         // Decode texcoord 0
         if (g_cp_regs.vcd_hi[0].tex0_coord) {
-            g_cur_texcoord = 0;
-
             video_core::g_renderer->VertexTexcoord_SetType(0, (GXCompType)vat_a->tex0_format,
                 (GXCompCnt)vat_a->tex0_count);
 
@@ -557,17 +579,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_a->get_tex0()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_a->get_tex0()](FifoPop8());
+                LookupTexCoordIndexed[vat_a->get_tex0()](tex0_base + (FifoPop8() * tex0_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_a->get_tex0()](FifoPop16());
+                LookupTexCoordIndexed[vat_a->get_tex0()](tex0_base + (FifoPop16() * tex0_stride));
                 break;
             }
         }
         // Decode texcoord 1
         if (g_cp_regs.vcd_hi[0].tex1_coord) {
-            g_cur_texcoord = 1;
-
             video_core::g_renderer->VertexTexcoord_SetType(1, (GXCompType)vat_b->tex1_format,
                 (GXCompCnt)vat_b->tex1_count);
 
@@ -576,17 +596,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_b->get_tex1()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_b->get_tex1()](FifoPop8());
+                LookupTexCoordIndexed[vat_b->get_tex1()](tex1_base + (FifoPop8() * tex1_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_b->get_tex1()](FifoPop16());
+                LookupTexCoordIndexed[vat_b->get_tex1()](tex1_base + (FifoPop16() * tex1_stride));
                 break;
             }
         }
         // Decode texcoord 2
         if (g_cp_regs.vcd_hi[0].tex2_coord) {
-            g_cur_texcoord = 2;
-
             video_core::g_renderer->VertexTexcoord_SetType(2, (GXCompType)vat_b->tex2_format,
                 (GXCompCnt)vat_b->tex2_count);
 
@@ -595,17 +613,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_b->get_tex2()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_b->get_tex2()](FifoPop8());
+                LookupTexCoordIndexed[vat_b->get_tex2()](tex2_base + (FifoPop8() * tex2_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_b->get_tex2()](FifoPop16());
+                LookupTexCoordIndexed[vat_b->get_tex2()](tex2_base + (FifoPop16() * tex2_stride));
                 break;
             }
         }
         // Decode texcoord 3
         if (g_cp_regs.vcd_hi[0].tex3_coord) {
-            g_cur_texcoord = 3;
-
             video_core::g_renderer->VertexTexcoord_SetType(3, (GXCompType)vat_b->tex3_format,
                 (GXCompCnt)vat_b->tex3_count);
 
@@ -614,17 +630,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_b->get_tex3()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_b->get_tex3()](FifoPop8());
+                LookupTexCoordIndexed[vat_b->get_tex3()](tex3_base + (FifoPop8() * tex3_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_b->get_tex3()](FifoPop16());
+                LookupTexCoordIndexed[vat_b->get_tex3()](tex3_base + (FifoPop16() * tex3_stride));
                 break;
             }
         }
         // Decode texcoord 4
         if (g_cp_regs.vcd_hi[0].tex4_coord) {
-            g_cur_texcoord = 4;
-
             video_core::g_renderer->VertexTexcoord_SetType(4, (GXCompType)vat_b->tex4_format,
                 (GXCompCnt)vat_b->tex4_count);
 
@@ -633,17 +647,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_b->get_tex4()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_b->get_tex4()](FifoPop8());
+                LookupTexCoordIndexed[vat_b->get_tex4()](tex4_base + (FifoPop8() * tex4_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_b->get_tex4()](FifoPop16());
+                LookupTexCoordIndexed[vat_b->get_tex4()](tex4_base + (FifoPop16() * tex4_stride));
                 break;
             }
         }
         // Decode texcoord 5
         if (g_cp_regs.vcd_hi[0].tex5_coord) {
-            g_cur_texcoord = 5;
-
             video_core::g_renderer->VertexTexcoord_SetType(5, (GXCompType)vat_c->tex5_format,
                 (GXCompCnt)vat_c->tex5_count);
 
@@ -652,17 +664,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_c->get_tex5()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_c->get_tex5()](FifoPop8());
+                LookupTexCoordIndexed[vat_c->get_tex5()](tex5_base + (FifoPop8() * tex5_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_c->get_tex5()](FifoPop16());
+                LookupTexCoordIndexed[vat_c->get_tex5()](tex5_base + (FifoPop16() * tex5_stride));
                 break;
             }
         }
         // Decode texcoord 6
         if (g_cp_regs.vcd_hi[0].tex6_coord) {
-            g_cur_texcoord = 6;
-
             video_core::g_renderer->VertexTexcoord_SetType(6, (GXCompType)vat_c->tex6_format,
                 (GXCompCnt)vat_c->tex6_count);
 
@@ -671,17 +681,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_c->get_tex6()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_c->get_tex6()](FifoPop8());
+                LookupTexCoordIndexed[vat_c->get_tex6()](tex6_base + (FifoPop8() * tex6_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_c->get_tex6()](FifoPop16());
+                LookupTexCoordIndexed[vat_c->get_tex6()](tex6_base + (FifoPop16() * tex6_stride));
                 break;
             }
         }
         // Decode texcoord 7
         if (g_cp_regs.vcd_hi[0].tex7_coord) {
-            g_cur_texcoord = 7;
-
             video_core::g_renderer->VertexTexcoord_SetType(7, (GXCompType)vat_c->tex7_format,
                 (GXCompCnt)vat_c->tex7_count);
 
@@ -690,10 +698,10 @@ void DecodePrimitive(GXPrimitive type, int count) {
                 LookupTexCoordDirect[vat_c->get_tex7()](0);
                 break;
             case CP_INDEX8:
-                LookupTexCoordIndexed[vat_c->get_tex7()](FifoPop8());
+                LookupTexCoordIndexed[vat_c->get_tex7()](tex7_base + (FifoPop8() * tex7_stride));
                 break;
             case CP_INDEX16:
-                LookupTexCoordIndexed[vat_c->get_tex7()](FifoPop16());
+                LookupTexCoordIndexed[vat_c->get_tex7()](tex7_base + (FifoPop16() * tex7_stride));
                 break;
             }
         }

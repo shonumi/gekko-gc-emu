@@ -192,16 +192,34 @@ union CPMatrixIndexB {
     u32 _u32;
 };
 
+/// Array base
+union CPArrayBase {
+    struct {
+        u32 addr_base       : 26;
+        u32 unused          : 6;
+    };
+    u32 _u32;
+};
+
+/// Array stride
+union CPArrayStride {
+    struct {
+        u32 addr_stride     : 8;
+        u32 unused          : 24;
+    };
+    u32 _u32;
+};
+
 // cp: register reference
 #define CP_VCD_LO(idx)					gp::g_cp_regs.mem[0x50 + idx]
 #define CP_VCD_HI(idx)					gp::g_cp_regs.mem[0x60 + idx]
 #define CP_VAT_A						gp::g_cp_regs.mem[0x70 + gp::g_cur_vat]
 #define CP_VAT_B						gp::g_cp_regs.mem[0x80 + gp::g_cur_vat]
 #define CP_VAT_C						gp::g_cp_regs.mem[0x90 + gp::g_cur_vat]
-#define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + (idx) * gp::g_cp_regs.mem[0xb0])
-#define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + (idx) * gp::g_cp_regs.mem[0xb1])
-#define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.mem[0xa2] + (idx) * gp::g_cp_regs.mem[0xb2])
-#define CP_DATA_TEX_ADDR(idx, n)		(gp::g_cp_regs.mem[0xa4 + n] + (idx) * gp::g_cp_regs.mem[0xb4 + n])		
+/*#define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.array_base[0] + (idx) * gp::g_cp_regs.array_stride[0])
+#define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.array_base[1] + (idx) * gp::g_cp_regs.array_stride[1])
+#define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.array_base[2] + (idx) * gp::g_cp_regs.array_stride[2])
+#define CP_DATA_TEX_ADDR(idx, n)		(gp::g_cp_regs.array_base[4+n] + (idx) * gp::g_cp_regs.array_stride[4+n])*/		
 #define CP_MATIDX_REG_A					gp::g_cp_regs.mem[0x30]
 #define CP_MATIDX_REG_B					gp::g_cp_regs.mem[0x40]
 
@@ -345,16 +363,15 @@ union CPMemory {
         u32             pad3[0x8];
         CPVertDescHi    vcd_hi[0x8];         // 0x60
         u32             pad4[0x8];
-
         CPVatRegA       vat_reg_a[0x8];     // 0x70
         u32             pad5[0x8];
         CPVatRegB       vat_reg_b[0x8];     // 0x80
         u32             pad6[0x8];
         CPVatRegC       vat_reg_c[0x8];     // 0x90
         u32             pad7[0x8];
-
-        u32 pad8[0x60];
-        
+        CPArrayBase     array_base[0x10];   // 0xA0
+        CPArrayStride   array_stride[0x10]; // 0xB0
+        u32 pad8[0x50];
     };
     u32 mem[0x100];
 };

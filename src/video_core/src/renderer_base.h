@@ -138,10 +138,25 @@ public:
     virtual void SetDepthRange(double znear, double zfar) = 0;
 
     /// Sets the renderer depth test mode
-    virtual void SetDepthTest() = 0;
+    virtual void SetDepthMode() = 0;
 
-    /// Sets the renderer culling mode
-    virtual void SetCullMode() = 0;
+    /// Sets the renderer generation mode
+    virtual void SetGenerationMode() = 0;
+
+    /** 
+     * @brief Sets the renderer blend mode
+     * @param blend_mode_ Forces blend mode to update
+     */
+    virtual void SetBlendMode(bool force_update) = 0;
+
+    /// Sets the renderer logic op mode
+    virtual void SetLogicOpMode() = 0;
+
+    /// Sets the renderer dither mode
+    virtual void SetDitherMode() = 0;
+
+    /// Sets the renderer color mask mode
+    virtual void SetColorMask() = 0;
 
     /** 
      * @brief Blits the EFB to the specified destination buffer

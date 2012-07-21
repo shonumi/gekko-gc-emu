@@ -26,6 +26,8 @@
 #include "config.h"
 
 #include "gx_types.h"
+#include "bp_mem.h"
+#include "cp_mem.h"
 #include "xf_mem.h"
 
 #include "renderer_gl3.h"
@@ -80,7 +82,10 @@ void UpdateUniforms() {
     glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_tex_shift_0"), VAT_TEX0SHFT);
 
     // Textures
+    // TODO(ShizZy): Enable the remaining textures
+    int tex_enable[8] = { gp::g_bp_regs.tevorder[0].get_enable(0), 0, 0, 0, 0, 0, 0, 0 };
     glUniform1i(glGetUniformLocation(g_current_shader_id, "texture0"), 0);
+    glUniform1iv(glGetUniformLocation(g_current_shader_id, "tex_enable"), 8, tex_enable);
 }
 
 /**
