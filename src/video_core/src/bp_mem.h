@@ -28,9 +28,107 @@
 #include "common.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// BP registers
+
+#define BP_REG_GENMODE          0x00
+#define BP_REG_DISPLAYCOPYFILER 0x01 // 0x01 + 4
+#define BP_REG_IND_MTXA         0x06 // 0x06 + (3 * 3)
+#define BP_REG_IND_MTXB         0x07 // 0x07 + (3 * 3)
+#define BP_REG_IND_MTXC         0x08 // 0x08 + (3 * 3)
+#define BP_REG_IND_IMASK        0x0F
+#define BP_REG_IND_CMD          0x10 // 0x10 + 16
+#define BP_REG_SCISSORTL        0x20
+#define BP_REG_SCISSORBR        0x21
+#define BP_REG_LINEPTWIDTH      0x22
+#define BP_REG_PERF0_TRI        0x23
+#define BP_REG_PERF0_QUAD       0x24
+#define BP_REG_RAS1_SS0         0x25
+#define BP_REG_RAS1_SS1         0x26
+#define BP_REG_IREF             0x27
+#define BP_REG_TREF             0x28 // 0x28 + 8
+#define BP_REG_SU_SSIZE         0x30 // 0x30 + (2 * 8)
+#define BP_REG_SU_TSIZE         0x31 // 0x31 + (2 * 8)
+#define BP_REG_PE_ZMODE         0x40
+#define BP_REG_PE_CMODE0        0x41
+#define BP_REG_PE_CMODE1        0x42
+#define BP_REG_PE_CONTROL       0x43
+#define BP_REG_FIELDMASK        0x44
+#define BP_REG_PE_DRAWDONE      0x45
+#define BP_REG_BUSCLOCK0        0x46
+#define BP_REG_PE_TOKEN	        0x47
+#define BP_REG_PE_TOKEN_INT     0x48
+#define BP_REG_EFB_TL           0x49
+#define BP_REG_EFB_BR           0x4A
+#define BP_REG_EFB_ADDR         0x4B
+#define BP_REG_MIPMAP_STRIDE    0x4D
+#define BP_REG_COPYYSCALE       0x4E
+#define BP_REG_PE_CLEAR_AR      0x4F
+#define BP_REG_PE_CLEAR_GB      0x50
+#define BP_REG_PE_CLEAR_Z       0x51
+#define BP_REG_PE_COPY_EXECUTE  0x52
+#define BP_REG_COPYFILTER0      0x53
+#define BP_REG_COPYFILTER1      0x54
+#define BP_REG_CLEARBBOX1       0x55
+#define BP_REG_CLEARBBOX2       0x56
+#define BP_REG_UNKOWN_57        0x57
+#define BP_REG_REVBITS          0x58
+#define BP_REG_SCISSOROFFSET    0x59
+#define BP_REG_UNKNOWN_60       0x60
+#define BP_REG_UNKNOWN_61       0x61
+#define BP_REG_UNKNOWN_62       0x62
+#define BP_REG_TEXMODESYNC      0x63
+#define BP_REG_LOADTLUT0        0x64
+#define BP_REG_LOADTLUT1        0x65
+#define BP_REG_TEXINVALIDATE    0x66
+#define BP_REG_PERF1            0x67
+#define BP_REG_FIELDMODE        0x68
+#define BP_REG_BUSCLOCK1        0x69
+#define BP_REG_TX_SETMODE0      0x80 // 0x80 + 4
+#define BP_REG_TX_SETMODE1      0x84 // 0x84 + 4
+#define BP_REG_TX_SETIMAGE0     0x88 // 0x88 + 4
+#define BP_REG_TX_SETIMAGE1     0x8C // 0x8C + 4
+#define BP_REG_TX_SETIMAGE2     0x90 // 0x90 + 4
+#define BP_REG_TX_SETIMAGE3     0x94 // 0x94 + 4
+#define BP_REG_TX_SETTLUT       0x98 // 0x98 + 4
+#define BP_REG_TX_SETMODE0_4    0xA0 // 0xA0 + 4
+#define BP_REG_TX_SETMODE1_4    0xA4 // 0xA4 + 4
+#define BP_REG_TX_SETIMAGE0_4   0xA8 // 0xA8 + 4
+#define BP_REG_TX_SETIMAGE1_4   0xAC // 0xA4 + 4
+#define BP_REG_TX_SETIMAGE2_4   0xB0 // 0xB0 + 4
+#define BP_REG_TX_SETIMAGE3_4   0xB4 // 0xB4 + 4
+#define BP_REG_TX_SETLUT_4      0xB8 // 0xB8 + 4
+#define BP_REG_TEV_COLOR_ENV    0xC0 // 0xC0 + (2 * 16)
+#define BP_REG_TEV_ALPHA_ENV    0xC1 // 0xC1 + (2 * 16)
+#define BP_REG_TEV_REGISTER_L   0xE0 // 0xE0 + (2 * 4)
+#define BP_REG_TEV_REGISTER_H   0xE1 // 0xE1 + (2 * 4)
+#define BP_REG_FOGRANGE         0xE8
+#define BP_REG_FOGPARAM0        0xEE
+#define BP_REG_FOGBMAGNITUDE    0xEF
+#define BP_REG_FOGBEXPONENT     0xF0
+#define BP_REG_FOGPARAM3        0xF1
+#define BP_REG_FOGCOLOR         0xF2
+#define BP_REG_ALPHACOMPARE     0xF3
+#define BP_REG_BIAS			    0xF4
+#define BP_REG_ZTEX2		    0xF5
+#define BP_REG_TEV_KSEL         0xF6 // 0xF6 + 8
+#define BP_REG_BP_MASK          0xFE
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
 
 namespace gp {
+
+/// BP pixel formats
+enum BPPixelFormat {
+    BP_PIXELFORMAT_RGB8_Z24     = 0,
+    BP_PIXELFORMAT_RGBA6_Z24    = 1,
+    BP_PIXELFORMAT_RGB565_Z16   = 2,
+    BP_PIXELFORMAT_Z24          = 3,
+    BP_PIXELFORMAT_Y8           = 4,
+    BP_PIXELFORMAT_U8           = 5,
+    BP_PIXELFORMAT_V8           = 6,
+    BP_PIXELFORMAT_YUV420       = 7
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // BP register decoding
@@ -39,12 +137,12 @@ namespace gp {
 struct BPGenMode {
     union {
         struct {
-            unsigned ntex : 4;
-            unsigned ncol : 5;
+            unsigned num_texgens : 4;
+            unsigned num_colchans : 5;
             unsigned ms_en : 1;
-            unsigned ntev : 4;
-            unsigned reject_en : 2;
-            unsigned nbmp : 3;
+            unsigned num_tevstages : 4;
+            unsigned cull_mode : 2;
+            unsigned num_indstages : 3;
             unsigned zfreeze : 5;
             unsigned rid : 8;
         };
@@ -52,8 +150,40 @@ struct BPGenMode {
     };
 };
 
+
+
+/// PE Z mode
+struct BPPEZMode {
+    union {
+        struct {
+            u32 test_enable     : 1;
+            u32 function        : 3;
+            u32 update_enable   : 1;
+        };
+        u32 _u32;
+    };
+};
+
+/// PE CMode 0
+struct BPPECMode0 {
+    union {
+        struct {
+            u32 blend_enable   : 1;
+            u32 logicop_enable : 1;
+            u32 dither : 1;
+            u32 color_update : 1;
+            u32 alpha_update : 1;
+            u32 dst_factor : 3;
+            u32 src_factor : 3;
+            u32 subtract : 1;
+            u32 logic_mode : 4;
+        };
+        u32 _u32;
+    };
+};
+
 /// PE CMode 1
-struct BPCMode1{
+struct BPPECMode1{
     union {
         struct {
             unsigned alpha : 8;
@@ -67,6 +197,20 @@ struct BPCMode1{
     f32 getalpha() { return alpha / 255.0f; }
 };
 
+/// PE control
+struct BPPEControl {
+    union {
+        struct {
+            u32 pixel_format        : 3;    // 
+            u32 z_format            : 3;    // Z Compression for 16-bit Z format
+            u32 z_comploc           : 1;    // 1: before tex stage
+            u32 rid                 : 25;
+        };
+        u32 _u32;
+    };
+};
+
+/// PE Copy Execute
 struct BPPECopyExecute {
     union {
         struct {
@@ -178,12 +322,15 @@ struct BPTevOrder {
 
 union BPMemory {
     struct {
-        BPGenMode       genmode;
-        u32             pad0[0x27];
-        BPTevOrder      tevorder[0x8];
-        u32             pad1[0x12];
-        BPCMode1        cmode1;
-        u32             pad2[0x7D];
+        BPGenMode       genmode;        // 0x00
+        u32             pad0[0x27];     // 0x01
+        BPTevOrder      tevorder[0x8];  // 0x28
+        u32             pad1[0x10];     // 0x30
+        BPPEZMode       zmode;          // 0x40
+        BPPECMode0      cmode0;         // 0x41
+        BPPECMode1      cmode1;         // 0x42
+        BPPEControl     zcontrol;       // 0x43
+        u32             pad2[0x7C];
         BPTevCombiner   combiner[0x10];
         u32             pad3[0x16];
         BPTevKSel       ksel[0x8];

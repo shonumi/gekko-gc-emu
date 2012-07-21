@@ -55,52 +55,70 @@ void BPRegisterWrite(u8 addr, u32 data) {
 
     // adjust gx globals accordingly
     switch(addr) {
-    case 0x0: // GEN_MODE
-        //video_core::g_renderer->SetCullMode();
-        //gx_tev::active_stages = bp.genmode.ntev + 1;
-        //gx_tev::set_modifed();
+    case BP_REG_GENMODE: // GEN_MODE
+        video_core::g_renderer->SetGenerationMode();
         break;
 
-    case 0x20: // SU_SCIS0 - Scissorbox Top Left Corner
-    case 0x21: // SU_SCIS1 - Scissorbox Bottom Right Corner
+    case BP_REG_SCISSORTL: // SU_SCIS0 - Scissorbox Top Left Corner
+    case BP_REG_SCISSORBR: // SU_SCIS1 - Scissorbox Bottom Right Corner
         //gx_states::set_scissors();
         LOG_DEBUG(TGP, "BP-> SU_SCISx");
         break;
 
-    case 0x22: // SU_LPSIZE - Line and Point Size
+    case BP_REG_LINEPTWIDTH: // SU_LPSIZE - Line and Point Size
         //gx_states::set_lpsize();
         LOG_DEBUG(TGP, "BP-> SU_LPSIZE");
         break;
 
-    case 0x28: // RAS_TREF0
-    case 0x29: // RAS_TREF1
-    case 0x2a: // RAS_TREF2
-    case 0x2b: // RAS_TREF3
-    case 0x2c: // RAS_TREF4
-    case 0x2d: // RAS_TREF5
-    case 0x2e: // RAS_TREF6
-    case 0x2f: // RAS_TREF7
+    case BP_REG_TREF + 0: // RAS_TREF0
+    case BP_REG_TREF + 1: // RAS_TREF1
+    case BP_REG_TREF + 2: // RAS_TREF2
+    case BP_REG_TREF + 3: // RAS_TREF3
+    case BP_REG_TREF + 4: // RAS_TREF4
+    case BP_REG_TREF + 5: // RAS_TREF5
+    case BP_REG_TREF + 6: // RAS_TREF6
+    case BP_REG_TREF + 7: // RAS_TREF7
         //gx_tev::set_modifed();
         LOG_DEBUG(TGP, "BP-> RAS_TREFx");
         break;
 
-    case 0x40: // PE_ZMODE
-        //video_core::g_renderer->SetDepthTest();
-        LOG_DEBUG(TGP, "BP-> PE_ZMODE");
+    case BP_REG_PE_ZMODE: // PE_ZMODE set z mode
+        video_core::g_renderer->SetDepthMode();
         break;
 
-    case 0x41: // PE_CMODE0
+    case BP_REG_PE_CMODE0: // PE_CMODE0 dithering / blend mode/color_update/alpha_update/set_dither
         //gx_states::set_cmode0();
-        LOG_DEBUG(TGP, "BP-> PE_CMODE0");
+        if (data & 0xFFFF) {
+            // Set LogicOp Blending Mode
+            if (data & 2) {
+                video_core::g_renderer->SetLogicOpMode();
+            }
+            // Set Dithering Mode
+            if (data & 4) {
+                video_core::g_renderer->SetDitherMode();
+            }
+            // Set Blending Mode
+            if (data & 0xFE1) {
+                video_core::g_renderer->SetBlendMode(false);
+            }
+            // Set Color Mask
+            if (data & 0x18) {
+                // TODO(ShizZy): Renable when we have EFB emulated
+                //video_core::g_renderer->SetColorMask();
+            }
+        }
         break;
 
-    case 0x42: // PE_CMODE1
+    case BP_REG_PE_CMODE1: // PE_CMODE1 destination alpha
         //gx_tev::set_modifed();
         LOG_DEBUG(TGP, "BP-> PE_CMODE1");
         break;
 
-    case 0x45: // PE_DONE - draw done
-        //gx_states::draw_done(); //do on write ~ShizZy
+    case BP_REG_PE_CONTROL: // PE_CONTROL comp z location z_comp_loc(0x43000040)pixel_fmt(0x43000041)
+        //video_core::g_renderer->SetColorMask(); TODO(ShizZy): Renable when we have EFB emulated
+        break;
+
+    case BP_REG_PE_DRAWDONE: // PE_DONE - draw done
         LOG_DEBUG(TGP, "BP-> PE_DONE");
 
 	    if (g_bp_regs.mem[0x45] & 0x2) { // enable interrupt
@@ -111,24 +129,24 @@ void BPRegisterWrite(u8 addr, u32 data) {
         }
         break;
 
-    case 0x47: // PE_TOKEN
+    case BP_REG_PE_TOKEN: // PE_TOKEN
         GX_PE_TOKEN_VALUE = (data & 0xffff);
         LOG_DEBUG(TGP, "BP-> PE_TOKEN");
         break;
 
-    case 0x48: // PE_TOKEN_INT
+    case BP_REG_PE_TOKEN_INT: // PE_TOKEN_INT
         GX_PE_TOKEN_VALUE = (data & 0xffff); 
         GX_PE_TOKEN = 1;
         LOG_DEBUG(TGP, "BP-> PE_TOKEN_INT");
         break;
 
-    case 0x4f: // PE copy clear AR - set clear alpha and red components
-    case 0x50: // PE copy clear GB - green and blue
+    case BP_REG_PE_CLEAR_AR: // PE copy clear AR - set clear alpha and red components
+    case BP_REG_PE_CLEAR_GB: // PE copy clear GB - green and blue
         //gx_states::set_copyclearcolor();
         LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_COLOR");
         break;
 
-    case 0x51: // PE copy clear Z - 24-bit Z value
+    case BP_REG_PE_CLEAR_Z: // PE copy clear Z - 24-bit Z value
         //gx_states::set_copyclearz();
 	    // unpack z data
 	    // send to efb
@@ -136,7 +154,7 @@ void BPRegisterWrite(u8 addr, u32 data) {
         LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_X");
         break;
 
-    case 0x52: // pe copy execute
+    case BP_REG_PE_COPY_EXECUTE: // pe copy execute
 
         LOG_DEBUG(TGP, "BP-> PE_COPY_EFB");
 
@@ -149,29 +167,28 @@ void BPRegisterWrite(u8 addr, u32 data) {
         } else {
             // TODO(ShizZy): Implement copy to texture
         }
-
-
         break;
 
-    case 0x59: // Scissorbox Offset
+    case BP_REG_SCISSOROFFSET: // Scissorbox Offset
         //gx_states::set_scissors();
         LOG_DEBUG(TGP, "BP-> Set scissors");
         break;
 
-    case 0x64: // TX_LOADTLUT0
-    case 0x65: // TX_LOADTLUT1
+    case BP_REG_LOADTLUT0: // TX_LOADTLUT0
+    case BP_REG_LOADTLUT1: // TX_LOADTLUT1
         //gx_states::load_tlut();
         LOG_DEBUG(TGP, "BP-> TX_LOADTLUTx");
         break;
 
-    case 0x80: // TX_SETMODE0_I0 - Texture lookup and filtering mode
-    case 0x81: // TX_SETMODE0_I1
-    case 0x82: // TX_SETMODE0_I2
-    case 0x83: // TX_SETMODE0_I3
-    case 0xa0: // TX_SETMODE0_I4
-    case 0xa1: // TX_SETMODE0_I5
-    case 0xa2: // TX_SETMODE0_I6
-    case 0xa3: // TX_SETMODE0_I7
+/*
+    case BP_REG_TX_SETMODE0 + 0: // TX_SETMODE0_I0 - Texture lookup and filtering mode
+    case BP_REG_TX_SETMODE0 + 1: // TX_SETMODE0_I1
+    case BP_REG_TX_SETMODE0 + 2: // TX_SETMODE0_I2
+    case BP_REG_TX_SETMODE0 + 3: // TX_SETMODE0_I3
+    case BP_REG_TX_SETMODE0_4 + 0: // TX_SETMODE0_I4
+    case BP_REG_TX_SETMODE0_4 + 1: // TX_SETMODE0_I5
+    case BP_REG_TX_SETMODE0_4 + 2: // TX_SETMODE0_I6
+    case BP_REG_TX_SETMODE0_4 + 3: // TX_SETMODE0_I7
         //gx_states::tx_setmode0(_addr);
         LOG_DEBUG(TGP, "BP-> TX_SETMODE0_Ix");
         break;
@@ -243,7 +260,7 @@ void BPRegisterWrite(u8 addr, u32 data) {
     case 0xfd: // TEV_KSEL_7
         //gx_tev::set_modifed();
         LOG_DEBUG(TGP, "BP-> TEV_KSEL_x");
-        break;
+        break;*/
     }
 }
 

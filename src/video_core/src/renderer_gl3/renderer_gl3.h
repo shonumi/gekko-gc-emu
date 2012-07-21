@@ -39,7 +39,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.x Renderer
 
-class RendererGL3  : virtual public RendererBase {
+class RendererGL3 : virtual public RendererBase {
 public:
     RendererGL3();
     ~RendererGL3() {};
@@ -135,10 +135,25 @@ public:
     void SetDepthRange(double znear, double zfar);
 
     /// Sets the renderer depth test mode
-    void SetDepthTest();
+    void SetDepthMode();
 
-    /// Sets the renderer culling mode
-    void SetCullMode();
+    /// Sets the renderer generation mode
+    void SetGenerationMode();
+
+    /** 
+     * @brief Sets the renderer blend mode
+     * @param blend_mode_ Forces blend mode to update
+     */
+    void SetBlendMode(bool force_update);
+
+    /// Sets the renderer logic op mode
+    void SetLogicOpMode();
+
+    /// Sets the renderer dither mode
+    void SetDitherMode();
+
+    /// Sets the renderer color mask mode
+    void SetColorMask();
 
     /** 
      * @brief Blits the EFB to the specified destination buffer
@@ -216,6 +231,11 @@ private:
     EmuWindow*  render_window_;
 
     GLuint      generic_shader_id_;
+
+    // BP stuff
+    // --------
+
+    u32         blend_mode_;
 
     DISALLOW_COPY_AND_ASSIGN(RendererGL3);
 };

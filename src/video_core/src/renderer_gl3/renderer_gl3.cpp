@@ -29,6 +29,7 @@
 
 #include "fifo.h"
 #include "vertex_loader.h"
+#include "bp_mem.h"
 #include "cp_mem.h"
 #include "xf_mem.h"
 
@@ -37,6 +38,63 @@
 #include "raster_font.h"
 
 RasterFont* g_raster_font;
+
+/// OpenGL color source factors
+static const GLenum g_src_factors[8] =
+{
+    GL_ZERO,
+    GL_ONE,
+    GL_DST_COLOR,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_ALPHA
+};
+
+/// OpenGL color destination factors
+static const GLenum g_dst_factors[8] = {
+    GL_ZERO,
+    GL_ONE,
+    GL_SRC_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_ALPHA
+};
+
+/// OpenGL Z compare functions factors
+static const GLenum g_compare_funcs[8] = {
+    GL_NEVER,
+    GL_LESS,
+    GL_EQUAL,
+    GL_LEQUAL,
+    GL_GREATER,
+    GL_NOTEQUAL,
+    GL_GEQUAL,
+    GL_ALWAYS
+};
+
+/// OpenGL color logic opcodes
+static const GLenum g_logic_opcodes[16] = {
+    GL_CLEAR,
+    GL_AND,
+    GL_AND_REVERSE,
+    GL_COPY,
+    GL_AND_INVERTED,
+    GL_NOOP,
+    GL_XOR,
+    GL_OR,
+    GL_NOR,
+    GL_EQUIV,
+    GL_INVERT,
+    GL_OR_REVERSE,
+    GL_COPY_INVERTED,
+    GL_OR_INVERTED,
+    GL_NAND,
+    GL_SET
+};
 
 /// RendererGL3 constructor
 RendererGL3::RendererGL3() {
@@ -63,6 +121,7 @@ RendererGL3::RendererGL3() {
         vertex_texcoord_component_count_[i] = (GXCompCnt)0;
     }
     vertex_num_ = 0;
+    blend_mode_ = 0;
     render_window_ = NULL;
     generic_shader_id_ = 0;
     prim_type_ = (GXPrimitive)0;
@@ -351,11 +410,92 @@ void RendererGL3::SetDepthRange(double znear, double zfar) {
 }
 
 /// Sets the renderer depth test mode
-void RendererGL3::SetDepthTest() {
+void RendererGL3::SetDepthMode() {
+    if (gp::g_bp_regs.zmode.test_enable) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(gp::g_bp_regs.zmode.update_enable ? GL_TRUE : GL_FALSE);
+        glDepthFunc(g_compare_funcs[gp::g_bp_regs.zmode.function]);
+    } else {
+        // If the test is disabled write is disabled too
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+    }
 }
 
-/// Sets the renderer culling mode
-void RendererGL3::SetCullMode() {
+/// Sets the renderer generation mode
+void RendererGL3::SetGenerationMode() {
+    // None, CCW, CW, CCW
+    if (gp::g_bp_regs.genmode.cull_mode > 0) {
+        glEnable(GL_CULL_FACE);
+        glFrontFace(gp::g_bp_regs.genmode.cull_mode == 2 ? GL_CCW : GL_CW);
+    } else {
+        glDisable(GL_CULL_FACE);
+    }
+}
+
+/** 
+ * @brief Sets the renderer blend mode
+ * @param blend_mode_ Forces blend mode to update
+ */
+void RendererGL3::SetBlendMode(bool force_update) {
+    u32 temp = gp::g_bp_regs.cmode0.subtract << 2;
+
+    if (gp::g_bp_regs.cmode0.subtract) {
+        temp |= 0x0049;                             // Enable blending src 1 dst 1
+    } else if (gp::g_bp_regs.cmode0.blend_enable) {
+        temp |= 1;                                  // Enable blending
+        temp |= gp::g_bp_regs.cmode0.src_factor << 3;
+        temp |= gp::g_bp_regs.cmode0.dst_factor << 6;
+    }
+
+    u32 changes = force_update ? 0xFFFFFFFF : temp ^ blend_mode_;
+
+    // Blend enable change
+    if (changes & 1) {
+        (temp & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    }
+
+    if (changes & 4) {
+        glBlendEquation(temp & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
+    }
+
+    if (changes & 0x1F8) {
+        glBlendFunc(g_src_factors[(temp >> 3) & 7], g_dst_factors[(temp >> 6) & 7]);
+    }
+
+    blend_mode_ = temp;
+}
+
+/// Sets the renderer logic op mode
+void RendererGL3::SetLogicOpMode() {
+    if (gp::g_bp_regs.cmode0.logicop_enable && gp::g_bp_regs.cmode0.logic_mode != 3) {
+        glEnable(GL_COLOR_LOGIC_OP);
+        glLogicOp(g_logic_opcodes[gp::g_bp_regs.cmode0.logic_mode]);
+    } else {
+        glDisable(GL_COLOR_LOGIC_OP);
+    }
+}
+
+/// Sets the renderer dither mode
+void RendererGL3::SetDitherMode() {
+    if (gp::g_bp_regs.cmode0.dither) {
+        glEnable(GL_DITHER);
+    } else {
+        glDisable(GL_DITHER);
+    }
+}
+
+/// Sets the renderer color mask mode
+void RendererGL3::SetColorMask() {
+	GLenum cmask = gp::g_bp_regs.cmode0.color_update ? GL_TRUE : GL_FALSE;
+    GLenum amask = GL_FALSE;
+
+    // Enable alpha channel if supported by the current EFB format
+	if (gp::g_bp_regs.cmode0.alpha_update && 
+        (gp::g_bp_regs.zcontrol.pixel_format == gp::BP_PIXELFORMAT_RGBA6_Z24)) {
+		amask = GL_TRUE;
+    }
+	glColorMask(cmask,  cmask,  cmask,  amask);
 }
 
 /// Prints some useful debug information to the screen
@@ -444,6 +584,8 @@ void RendererGL3::ShutDown() {
 
 /// Renders the XFB the screen
 void RendererGL3::RenderFramebuffer() {
+    // FPS stuff
+    PrintDebugStats();
 
     // Render target is default framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -457,9 +599,6 @@ void RendererGL3::RenderFramebuffer() {
     glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
                       0, 0, resolution_width_, resolution_height_,
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-    // FPS stuff
-    PrintDebugStats();
 
     // Rebind EFB
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
@@ -511,20 +650,16 @@ void RendererGL3::Init() {
     glShadeModel(GL_SMOOTH);
     glClearColor(0.30f, 0.05f, 0.65f, 1.0f); // GameCube purple :-)
     //glEnable(GL_TEXTURE_2D); // Enable texturing
-    glClearDepth(1.0f);
+    //glClearDepth(1.0f);
     //glEnable(GL_DEPTH_TEST); // Enable depth testing
-    glFrontFace(GL_CW);
-    glCullFace(GL_FRONT_AND_BACK);
+    //glFrontFace(GL_CW);
+    //glCullFace(GL_FRONT_AND_BACK);
 
     if (common::g_config->current_renderer_config().enable_wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-
-    //
-    glFrontFace(GL_CW);
-    glShadeModel(GL_SMOOTH);
 
     GLenum err = glewInit();
     if (GLEW_OK != err) {
