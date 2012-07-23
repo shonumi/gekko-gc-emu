@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    types.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-02-11
- * \brief   Common types used throughout the project
+ * @file    types.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-02-11
+ * @brief   Common types used throughout the project
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -22,8 +22,8 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#ifndef COMMON_TYPES_
-#define COMMON_TYPES_
+#ifndef COMMON_TYPES_H_
+#define COMMON_TYPES_H_
 
 #include <xmmintrin.h> // data_types__m128.cpp
 
@@ -56,22 +56,22 @@ typedef unsigned long long  u64;    ///< 64-bit signed int
 #endif
 
 /// Union for fast 16-bit type casting
-typedef union {
+union t16 {
 	u8	_u8[2];             ///< 8-bit unsigned char(s)
 	u16 _u16;               ///< 16-bit unsigned shorts(s)
-} t16;
+};
 
 /// Union for fast 32-bit type casting
-typedef union {
+union t32 {
     f32 _f32;               ///< 32-bit floating point(s)
     u32 _u32;               ///< 32-bit unsigned int(s)
     x32 _x32;               ///< 32-bit fixed point(s)
     u16 _u16[2];            ///< 16-bit unsigned shorts(s)
     u8  _u8[4];             ///< 8-bit unsigned char(s)
-} t32;
+};
 
 /// Union for fast 64-bit type casting
-typedef union {
+union t64 {
     f64 _f64;               ///< 64-bit floating point
     u64 _u64;               ///< 64-bit unsigned long
     f32 _f32[2];            ///< 32-bit floating point(s)
@@ -79,16 +79,24 @@ typedef union {
     x32 _x32[2];            ///< 32-bit fixed point(s)
     u16 _u16[4];            ///< 16-bit unsigned shorts(s)
     u8  _u8[8];             ///< 8-bit unsigned char(s)
-} t64;
+};
 
 /// Union for fast 128-bit type casting
-typedef union {
+union t128 {
     struct
     {
         t64 ps0;            ///< 64-bit paired single 0
         t64 ps1;            ///< 64-bit paired single 1
     };
     __m128  a;              ///< 128-bit floating point (__m128 maps to the XMM[0-7] registers)
-} t128;
+};
 
-#endif // COMMON_TYPES_
+/// Rectangle data structure
+struct Rect {
+    int x;                  ///< X-coordinate
+    int y;                  ///< Y-coordinate
+    int width;              ///< Width
+    int height;             ///< Height
+};
+
+#endif // COMMON_TYPES_H_
