@@ -263,7 +263,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
                         memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
 
                     //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
                     break;
 
     case 1: // i8
@@ -290,7 +290,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
                         memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
 
                     //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 
                     break; 
 
@@ -317,7 +317,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
                         memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
 
                     gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
 
                     break;
 
@@ -344,7 +344,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
                         memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
 
                     //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 
                     break;
 
@@ -499,7 +499,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
         {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
         }else{  
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
         }
         
 
