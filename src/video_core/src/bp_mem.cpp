@@ -39,9 +39,6 @@
 #undef LOG_DEBUG
 #define LOG_DEBUG(x,y, ...)
 
-#define BP_PE_COPYCLEAR_Z			gp::g_bp_regs.mem[0x51]
-#define BP_PE_COPYCLEAR_Z_VALUE		(BP_PE_COPYCLEAR_Z & 0xffffff)
-#define GX_VIEWPORT_ZMAX				16777215.0f
 namespace gp {
 
 BPMemory g_bp_regs; ///< BP memory/registers
@@ -104,7 +101,7 @@ void BPRegisterWrite(u8 addr, u32 data) {
             // Set Color Mask
             if (data & 0x18) {
                 // TODO(ShizZy): Renable when we have EFB emulated
-                //video_core::g_renderer->SetColorMask();
+                video_core::g_renderer->SetColorMask();
             }
         }
         break;
@@ -156,16 +153,62 @@ void BPRegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_PE_COPY_EXECUTE: // pe copy execute
 
-        LOG_DEBUG(TGP, "BP-> PE_COPY_EFB");
+        Rect rect;
+        rect.x = gp::g_bp_regs.efb_top_left.x;
+        rect.y = gp::g_bp_regs.efb_top_left.y;
+        rect.width = gp::g_bp_regs.efb_height_width.x + 1;
+        rect.height = gp::g_bp_regs.efb_height_width.y + 1;
 
         BPPECopyExecute pe_copy;
         pe_copy._u32 = data;
 
         if (pe_copy.copy_to_xfb) {
-            video_core::g_renderer->CopyEFB(RendererBase::kFramebuffer_VirtualXFB);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            f32 scale_y;
+            if (pe_copy.scale_invert) {
+                scale_y = 256.0f / (f32)gp::g_bp_regs.disp_copy_y_scale;
+            } else {
+                scale_y = (f32)gp::g_bp_regs.disp_copy_y_scale / 256.0f;
+            }
+            
+            u32 xfb_height = (u32)(((f32)gp::g_bp_regs.efb_height_width.y + 1.0f) * scale_y);
+            u32 xfb_width = gp::g_bp_regs.disp_stride << 4;
+
+            video_core::g_renderer->CopyEFB(
+                RendererBase::kFramebuffer_VirtualXFB,
+                rect,
+                xfb_width,
+                xfb_height);
         } else {
             // TODO(ShizZy): Implement copy to texture
+        }
+
+        if (pe_copy.clear) {
+            bool enable_color = gp::g_bp_regs.cmode0.color_update;
+            bool enable_alpha = gp::g_bp_regs.cmode0.alpha_update;
+            bool enable_z = gp::g_bp_regs.zmode.update_enable;
+
+            // Forcibly disable alpha if the pixel format does not support it
+            if (gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_RGB8_Z24 || 
+                gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_RGB565_Z16 || 
+                gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_Z24) {
+                enable_alpha = false;
+            }
+
+            if (enable_color || enable_alpha || enable_z) {
+                u32 color = ((gp::g_bp_regs.clear_ar & 0xffff) << 16) | 
+                    (gp::g_bp_regs.clear_gb & 0xffff);
+
+                u32 z = gp::g_bp_regs.clear_z & 0xffffff;
+
+                video_core::g_renderer->Clear(
+                    rect,                               // Clear rectangle
+                    enable_color,                       // Enable color clearing
+                    enable_alpha,                       // Enable alpha clearing
+                    enable_z,                           // Enable depth clearing
+                    color,                              // Clear color
+                    z);                                 // Clear depth
+            }
+        
         }
         break;
 
@@ -290,19 +333,18 @@ void tx_setmode0(u8 _addr)
 	GLint mag_filter = ((g_bp_regs.mem[_addr] >> 4) & 1) ? GL_LINEAR : GL_NEAREST; 
 	GLint wrap_s = gx_type_wrapst[g_bp_regs.mem[_addr] & 3];
 	GLint wrap_t = gx_type_wrapst[(g_bp_regs.mem[_addr] >> 2) & 3];
-	//GLfloat lodbias = (((f32)(s8)((g_bp_regs.mem[_addr] >> 9) & 0xff)) / 32.0f);
-	//int use_mips = ((g_bp_regs.mem[_addr] >> 5) & 7); // use mip maps
-	//GLint min_filter = gx_min_filter[use_mips];
-	//use_mips &= 3;
+	GLfloat lodbias = (((f32)(s8)((g_bp_regs.mem[_addr] >> 9) & 0xff)) / 32.0f);
+	int use_mips = ((g_bp_regs.mem[_addr] >> 5) & 7); // use mip maps
+	GLint min_filter = gx_min_filter[use_mips];
+	use_mips &= 3;
 
-	//if(use_mips)
-	//	glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-	//else
-	//	glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+	if(use_mips)
+		glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+	else
+		glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 
-	//glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, lodbias);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, lodbias);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
@@ -337,12 +379,7 @@ void LoadTexture(u8 index) {
 		if(num < 4) 
 			tx_setmode0(0x80 + num); 
 		else 
-			tx_setmode0(0xa0 + (num - 4));/*
-
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
+			tx_setmode0(0xa0 + (num - 4));
 
 		glEnable(GL_TEXTURE_2D);
 	}else{

@@ -114,6 +114,7 @@ RendererGL3::RendererGL3() {
     vertex_position_component_count_ = (GXCompCnt)0;
     vertex_color_cur_ = 0;
     vertex_texcoord_cur_ = 0;
+    last_mode_ = 0;
     for (int i = 0; i < kNumTextures; i++) {
         vertex_texcoord_format_[i] = 0;
         vertex_texcoord_enable_[i] = 0;
@@ -498,6 +499,71 @@ void RendererGL3::SetColorMask() {
 	glColorMask(cmask,  cmask,  cmask,  amask);
 }
 
+
+/**
+ * @brief Set a specific render mode
+ * @param flag Render flag mode to set
+ */
+void RendererGL3::SetMode(kRenderMode flags) {
+    if(flags & kRenderMode_ZComp) {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    }
+    if(flags & kRenderMode_Multipass) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);          
+        glDepthFunc(GL_EQUAL);
+    }
+    if (flags & kRenderMode_UseDstAlpha) {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+        glDisable(GL_BLEND);
+    }
+    last_mode_ |= flags;
+}
+
+/// Restore the render mode
+void RendererGL3::RestoreMode() {
+    if(last_mode_ & kRenderMode_ZComp) {
+        SetColorMask();
+    }
+    if(last_mode_ & kRenderMode_Multipass) {
+        SetDepthMode();
+    }
+    if (last_mode_ & kRenderMode_UseDstAlpha) {
+        SetColorMask();
+        if (gp::g_bp_regs.cmode0.blend_enable || gp::g_bp_regs.cmode0.subtract) {
+            glEnable(GL_BLEND);
+        }
+    }
+    last_mode_ = kRenderMode_None;
+}
+
+/// Reset the full renderer API to the NULL state
+void RendererGL3::ResetRenderState() {
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_FALSE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+}
+
+/// Restore the full renderer API state - As the game set it
+void RendererGL3::RestoreRenderState() {
+    // TODO(ShizZy):
+    //  - Scissor mode
+    //  - Viewport
+    glDisable(GL_SCISSOR_TEST);
+    SetGenerationMode();
+    SetColorMask();
+    SetDepthMode();
+    SetBlendMode(true);
+    if (common::g_config->current_renderer_config().enable_wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+}
+
 /// Prints some useful debug information to the screen
 void RendererGL3::PrintDebugStats() {
 	static u32 swaps = 0, last = 0;
@@ -529,6 +595,8 @@ void RendererGL3::PrintDebugStats() {
 /// Swap buffers (render frame)
 void RendererGL3::SwapBuffers() {
 
+    ResetRenderState();
+
     // FBO->Window copy
     RenderFramebuffer();
 
@@ -541,6 +609,8 @@ void RendererGL3::SwapBuffers() {
 
     // Reset VBO position
     vbo_write_offset_ = 0;
+
+    RestoreRenderState();
 }
 
 /// Set the window of the emulator
@@ -551,9 +621,14 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 
 /** 
  * @brief Blits the EFB to the specified destination buffer
- * @param framebuffer Destination framebuffer
+ * @param dest Destination framebuffer
+ * @param rect EFB rectangle to copy
+ * @param dest_width Destination width in pixels 
+ * @param dest_height Destination height in pixels
  */
-void RendererGL3::CopyEFB(kFramebuffer dest) {
+void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) {
+
+    ResetRenderState();
 
     // Render target is destination framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
@@ -564,13 +639,52 @@ void RendererGL3::CopyEFB(kFramebuffer dest) {
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
-    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
-                      0, 0, resolution_width_, resolution_height_,
+    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height,
+                      0, 0, dest_width, dest_height,
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     // Rebind EFB
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+
+    RestoreRenderState();
 }
+
+/**
+ * @brief Clear the screen
+ * @param rect Screen rectangle to clear
+ * @param enable_color Enable color clearing
+ * @param enable_alpha Enable alpha clearing
+ * @param enable_z Enable depth clearing
+ * @param color Clear color
+ * @param z Clear depth
+ */
+void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
+    u32 z) {
+    
+    GLboolean const color_mask = enable_color ? GL_TRUE : GL_FALSE;
+    GLboolean const alpha_mask = enable_alpha ? GL_TRUE : GL_FALSE;
+
+    ResetRenderState();
+
+    // Clear color
+    glColorMask(color_mask,  color_mask,  color_mask,  alpha_mask);
+    glClearColor(float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
+        float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
+
+    // Clear depth
+    glDepthMask(enable_z ? GL_TRUE : GL_FALSE);
+    glClearDepth(float(z & 0xFFFFFF) / float(0xFFFFFF));
+
+    // Specify the rectangle of the EFB to clear
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(rect.x, rect.y, rect.width, rect.height);
+
+    // Clear it!
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    RestoreRenderState();
+}
+
 
 /// Shutdown the renderer
 void RendererGL3::ShutDown() {
@@ -648,12 +762,7 @@ void RendererGL3::Init() {
     render_window_->MakeCurrent();
 
     glShadeModel(GL_SMOOTH);
-    glClearColor(0.30f, 0.05f, 0.65f, 1.0f); // GameCube purple :-)
-    //glEnable(GL_TEXTURE_2D); // Enable texturing
-    //glClearDepth(1.0f);
-    //glEnable(GL_DEPTH_TEST); // Enable depth testing
-    //glFrontFace(GL_CW);
-    //glCullFace(GL_FRONT_AND_BACK);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     if (common::g_config->current_renderer_config().enable_wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

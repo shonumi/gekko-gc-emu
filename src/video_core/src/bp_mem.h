@@ -237,6 +237,16 @@ struct BPPECopyExecute {
     }
 };
 
+/// BP EFB X/Y coordinates
+union BPEFBCoords {
+    struct {
+        unsigned x              : 10; ///< X-component
+        unsigned y              : 10; ///< Y-component
+        unsigned rid            : 12; ///< Unused
+    };
+    u32 _u32;
+};
+
 /// TEV color / alpha combiners
 struct BPTevCombiner {
     union {
@@ -322,17 +332,26 @@ struct BPTevOrder {
 
 union BPMemory {
     struct {
-        BPGenMode       genmode;        // 0x00
-        u32             pad0[0x27];     // 0x01
-        BPTevOrder      tevorder[0x8];  // 0x28
-        u32             pad1[0x10];     // 0x30
-        BPPEZMode       zmode;          // 0x40
-        BPPECMode0      cmode0;         // 0x41
-        BPPECMode1      cmode1;         // 0x42
-        BPPEControl     zcontrol;       // 0x43
-        u32             pad2[0x7C];
+        BPGenMode       genmode;            // 0x00
+        u32             pad0[0x27];         // 0x01
+        BPTevOrder      tevorder[0x8];      // 0x28
+        u32             pad1[0x10];         // 0x30
+        BPPEZMode       zmode;              // 0x40
+        BPPECMode0      cmode0;             // 0x41
+        BPPECMode1      cmode1;             // 0x42
+        BPPEControl     zcontrol;           // 0x43
+        u32             pad2[0x5];          // 0x44
+        BPEFBCoords     efb_top_left;       // 0x49
+        BPEFBCoords     efb_height_width;   // 0x4a
+        u32             pad3[0x2];
+        u32             disp_stride;        // 0x4d
+        u32             disp_copy_y_scale;  // 0x4e
+        u32             clear_ar;           // 0x4f
+        u32             clear_gb;           // 0x50
+        u32             clear_z;            // 0x51
+        u32             pad4[0x6E];
         BPTevCombiner   combiner[0x10];
-        u32             pad3[0x16];
+        u32             pad5[0x16];
         BPTevKSel       ksel[0x8];
     };
     u32 mem[0x100];

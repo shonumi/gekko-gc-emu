@@ -33,9 +33,18 @@
 class RendererBase {
 public:
 
+    /// Used to reference a framebuffer
     enum kFramebuffer {
         kFramebuffer_VirtualXFB = 0,
         kFramebuffer_EFB
+    };
+
+    /// Used for referencing the render modes
+    enum kRenderMode {
+        kRenderMode_None = 0,
+        kRenderMode_Multipass = 1,
+        kRenderMode_ZComp = 2,
+        kRenderMode_UseDstAlpha = 4
     };
 
     RendererBase() {
@@ -161,8 +170,38 @@ public:
     /** 
      * @brief Blits the EFB to the specified destination buffer
      * @param dest Destination framebuffer
+     * @param rect EFB rectangle to copy
+     * @param dest_width Destination width in pixels 
+     * @param dest_height Destination height in pixels
      */
-    virtual void CopyEFB(kFramebuffer dest) = 0;
+    virtual void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) = 0;
+
+    /**
+     * @brief Clear the screen
+     * @param rect Screen rectangle to clear
+     * @param enable_color Enable color clearing
+     * @param enable_alpha Enable alpha clearing
+     * @param enable_z Enable depth clearing
+     * @param color Clear color
+     * @param z Clear depth
+     */
+    virtual void Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
+        u32 z) = 0;
+
+    /**
+     * @brief Set a specific render mode
+     * @param flag Render flags mode to enable
+     */
+    virtual void SetMode(kRenderMode flags) = 0;
+
+    /// Restore the render mode
+    virtual void RestoreMode() = 0;
+
+    /// Reset the full renderer API to the NULL state
+    virtual void ResetRenderState() = 0;
+
+    /// Restore the full renderer API state - As the game set it
+    virtual void RestoreRenderState() = 0;
 
     /** 
      * @brief Set the emulator window to use for renderer

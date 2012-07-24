@@ -158,8 +158,37 @@ public:
     /** 
      * @brief Blits the EFB to the specified destination buffer
      * @param dest Destination framebuffer
+     * @param rect EFB rectangle to copy
+     * @param dest_width Destination width in pixels 
+     * @param dest_height Destination height in pixels
      */
-    void CopyEFB(kFramebuffer dest);
+    void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height);
+
+    /**
+     * @brief Clear the screen
+     * @param rect Screen rectangle to clear
+     * @param enable_color Enable color clearing
+     * @param enable_alpha Enable alpha clearing
+     * @param enable_z Enable depth clearing
+     * @param color Clear color
+     * @param z Clear depth
+     */
+    void Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, u32 z);
+
+    /**
+     * @brief Set a specific render mode
+     * @param flags Render flag mode to enable
+     */
+    void SetMode(kRenderMode flags);
+
+    /// Restore the render mode
+    void RestoreMode();
+
+    /// Reset the full renderer API to the NULL state
+    void ResetRenderState();
+
+    /// Restore the full renderer API state - As the game set it
+    void RestoreRenderState();
 
     /// Swap the display buffers (finish drawing frame)
     void SwapBuffers();
@@ -231,6 +260,8 @@ private:
     EmuWindow*  render_window_;
 
     GLuint      generic_shader_id_;
+
+    u32         last_mode_;                         ///< Last render mode
 
     // BP stuff
     // --------
