@@ -14,4 +14,4 @@ void main() {
     } else {
         fragmentColor = gsColor;
     }
-}; 
+}
