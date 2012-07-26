@@ -30,7 +30,7 @@ EmuWindow_SDL::EmuWindow_SDL() {
     main_context_ = SDL_GL_CreateContext(main_window_);
 
     /* This makes our buffer swap syncronized with the monitor's vertical refresh */
-    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(1);
 
     DoneCurrent();
 }
