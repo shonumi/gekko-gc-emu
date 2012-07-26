@@ -237,12 +237,22 @@ struct BPPECopyExecute {
     }
 };
 
-/// BP EFB X/Y coordinates
-union BPEFBCoords {
+/// BP EFB X/Y coordinates - 10-bit
+union BPEFBCoords10 {
     struct {
-        unsigned x              : 10; ///< X-component
-        unsigned y              : 10; ///< Y-component
-        unsigned rid            : 12; ///< Unused
+        unsigned x              : 10;   ///< X-component
+        unsigned y              : 10;   ///< Y-component
+        unsigned rid            : 12;   ///< Unused
+    };
+    u32 _u32;
+};
+
+/// BP EFB X/Y coordinates - 12-bit
+union BPEFBCoords12 {
+    struct {
+        unsigned y              : 12;   ///< Y-component
+        unsigned x              : 12;   ///< X-component
+        unsigned rid            : 8;    ///< Unused
     };
     u32 _u32;
 };
@@ -332,26 +342,31 @@ struct BPTevOrder {
 
 union BPMemory {
     struct {
-        BPGenMode       genmode;            // 0x00
-        u32             pad0[0x27];         // 0x01
-        BPTevOrder      tevorder[0x8];      // 0x28
-        u32             pad1[0x10];         // 0x30
-        BPPEZMode       zmode;              // 0x40
-        BPPECMode0      cmode0;             // 0x41
-        BPPECMode1      cmode1;             // 0x42
-        BPPEControl     zcontrol;           // 0x43
-        u32             pad2[0x5];          // 0x44
-        BPEFBCoords     efb_top_left;       // 0x49
-        BPEFBCoords     efb_height_width;   // 0x4a
-        u32             pad3[0x2];
-        u32             disp_stride;        // 0x4d
-        u32             disp_copy_y_scale;  // 0x4e
-        u32             clear_ar;           // 0x4f
-        u32             clear_gb;           // 0x50
-        u32             clear_z;            // 0x51
-        u32             pad4[0x6E];
+        BPGenMode       genmode;                // 0x00
+        u32             pad0[0x1F];             // 0x01
+        BPEFBCoords12   scissor_top_left;       // 0x20
+        BPEFBCoords12   scissor_bottom_right;   // 0x21
+        u32             pad1[0x6];              // 0x22
+        BPTevOrder      tevorder[0x8];          // 0x28
+        u32             pad2[0x10];             // 0x30
+        BPPEZMode       zmode;                  // 0x40
+        BPPECMode0      cmode0;                 // 0x41
+        BPPECMode1      cmode1;                 // 0x42
+        BPPEControl     zcontrol;               // 0x43
+        u32             pad3[0x5];              // 0x44
+        BPEFBCoords10   efb_top_left;           // 0x49
+        BPEFBCoords10   efb_height_width;       // 0x4a
+        u32             pad4[0x2];              // 0x4b
+        u32             disp_stride;            // 0x4d
+        u32             disp_copy_y_scale;      // 0x4e
+        u32             clear_ar;               // 0x4f
+        u32             clear_gb;               // 0x50
+        u32             clear_z;                // 0x51
+        u32             pad5[0x7];              // 0x52
+        BPEFBCoords10   scissor_offset;         // 0x59
+        u32             pad6[0x6E];
         BPTevCombiner   combiner[0x10];
-        u32             pad5[0x16];
+        u32             pad7[0x16];
         BPTevKSel       ksel[0x8];
     };
     u32 mem[0x100];
