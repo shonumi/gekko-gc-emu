@@ -54,11 +54,13 @@ public:
     }
 
     /**
-     * Begin renderering of a primitive
+     * @brief Begin renderering of a primitive
      * @param prim Primitive type (e.g. GX_TRIANGLES)
      * @param count Number of vertices to be drawn (used for appropriate memory management, only)
+     * @param vbo Pointer to VBO, which will be set by API in this function
+     * @param vbo_offset Offset into VBO to use (in bytes)
      */
-    virtual void BeginPrimitive(GXPrimitive prim, int count) = 0;
+    virtual void BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset) = 0;
 
     /**
      * Set the type of postion vertex data
@@ -68,36 +70,12 @@ public:
     virtual void VertexPosition_SetType(GXCompType type, GXCompCnt count) = 0;
 
     /**
-     * Send a position vector to the renderer as 32-bit floating point
-     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
-     */
-    virtual void VertexPosition_SendFloat(f32* vec) = 0;
-
-    /**
-     * Send a position vector to the renderer as 16-bit short (signed or unsigned)
-     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
-     */
-    virtual void VertexPosition_SendShort(u16* vec) = 0;
-
-    /**
-     * Send a position vector to the renderer an 8-bit byte (signed or unsigned)
-     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
-     */
-    virtual void VertexPosition_SendByte(u8* vec) = 0;
-
-    /**
      * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
      * @param color Which color to configure (0 or 1)
      * @param count Color data count (e.g. GX_CLR_RGBA)
      */
     virtual void VertexColor_SetType(int color, GXCompCnt count) = 0;
 
-    /**
-     * Send a vertex color to the renderer (RGB8 or RGBA8, as set by VertexColor_SetType)
-     * @param color Color to send, packed as RRGGBBAA or RRGGBB00
-     */
-    virtual void VertexColor_Send(u32 color) = 0;
-    
     /**
      * Set the type of texture coordinate vertex data
      * @param texcoord 0-7 texcoord to set type of
@@ -106,36 +84,8 @@ public:
      */
     virtual void VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count) = 0;
 
-    /**
-     * Send a texcoord vector to the renderer as 32-bit floating point
-     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
-     */
-    virtual void VertexTexcoord_SendFloat(f32* vec) = 0;
-
-    /**
-     * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
-     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
-     */
-    virtual void VertexTexcoord_SendShort(u16* vec) = 0;
-
-    /**
-     * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
-     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
-     */
-    virtual void VertexTexcoord_SendByte(u8* vec) = 0;
-
-    /**
-     * @brief Sends position and texcoord matrix indices to the renderer
-     * @param pm_idx Position matrix index
-     * @param tm_idx Texture matrix indices
-     */
-    virtual void Vertex_SendMatrixIndices(u8 pm_idx, u8 tm_idx[]) = 0;
-
-    /// Done with the current vertex - go to the next
-    virtual void VertexNext() = 0;
-
     /// End a primitive (signal renderer to draw it)
-    virtual void EndPrimitive() = 0;
+    virtual void EndPrimitive(u32 vbo_offset, u32 vertex_num) = 0;
    
     /// Sets the render viewport location, width, and height
     virtual void SetViewport(int x, int y, int width, int height) = 0;
@@ -166,6 +116,16 @@ public:
 
     /// Sets the renderer color mask mode
     virtual void SetColorMask() = 0;
+
+    /// Sets the scissor box
+    virtual void SetScissorBox() = 0;
+
+    /**
+     * @brief Sets the line and point size
+     * @param line_width Line width to use
+     * @param point_size Point size to use
+     */
+    virtual void SetLinePointSize(f32 line_width, f32 point_size) = 0;
 
     /** 
      * @brief Blits the EFB to the specified destination buffer

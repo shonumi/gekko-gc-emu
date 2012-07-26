@@ -31,7 +31,6 @@
 #include "gx_types.h"
 #include "renderer_base.h"
 
-#define VBO_SIZE                    (1024 * 1024 * 32)
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
 #define USE_GEOMETRY_SHADERS        1
 #define MAX_FRAMEBUFFERS            2
@@ -45,11 +44,13 @@ public:
     ~RendererGL3() {};
 
     /**
-     * Begin renderering of a primitive
+     * @brief Begin renderering of a primitive
      * @param prim Primitive type (e.g. GX_TRIANGLES)
      * @param count Number of vertices to be drawn (used for appropriate memory management, only)
+     * @param vbo Pointer to VBO, which will be set by API in this function
+     * @param vbo_offset Offset into VBO to use (in bytes)
      */
-    void BeginPrimitive(GXPrimitive prim, int count);
+    void BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset);
 
     /**
      * Set the type of postion vertex data
@@ -59,35 +60,11 @@ public:
     void VertexPosition_SetType(GXCompType type, GXCompCnt count);
 
     /**
-     * Send a position vector to the renderer as 32-bit floating point
-     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
-     */
-    void VertexPosition_SendFloat(f32* vec);
-
-    /**
-     * Send a position vector to the renderer as 16-bit short (signed or unsigned)
-     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
-     */
-    void VertexPosition_SendShort(u16* vec);
-
-    /**
-     * Send a position vector to the renderer an 8-bit byte (signed or unsigned)
-     * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
-     */
-    void VertexPosition_SendByte(u8* vec);
-
-    /**
      * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
      * @param color Which color to configure (0 or 1)
      * @param count Color data count (e.g. GX_CLR_RGBA)
      */
     void VertexColor_SetType(int color, GXCompCnt count);
-
-    /**
-     * Send a vertex color to the renderer (RGB8 or RGBA8, as set by VertexColor_SetType)
-     * @param color Color to send, packed as RRGGBBAA or RRGGBB00
-     */
-    void VertexColor_Send(u32 color);
 
     /**
      * Set the type of texture coordinate vertex data
@@ -97,36 +74,8 @@ public:
      */
     void VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count);
 
-    /**
-     * Send a texcoord vector to the renderer as 32-bit floating point
-     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
-     */
-    void VertexTexcoord_SendFloat(f32* vec);
-
-    /**
-     * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
-     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
-     */
-    void VertexTexcoord_SendShort(u16* vec);
-
-    /**
-     * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
-     * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
-     */
-    void VertexTexcoord_SendByte(u8* vec);
-
-    /**
-     * @brief Sends position and texcoord matrix indices to the renderer
-     * @param pm_idx Position matrix index
-     * @param tm_idx Texture matrix indices
-     */
-    void Vertex_SendMatrixIndices(u8 pm_idx, u8 tm_idx[]);
-
-    /// Used for specifying next GX vertex is being sent to the renderer
-    void VertexNext();
-
     /// End a primitive (signal renderer to draw it)
-    void EndPrimitive();
+    void EndPrimitive(u32 vbo_offset, u32 vertex_num);
 
     /// Sets the renderer viewport location, width, and height
     void SetViewport(int x, int y, int width, int height);
@@ -154,6 +103,16 @@ public:
 
     /// Sets the renderer color mask mode
     void SetColorMask();
+
+    /// Sets the scissor box
+    void SetScissorBox();
+
+    /**
+     * @brief Sets the line and point size
+     * @param line_width Line width to use
+     * @param point_size Point size to use
+     */
+    void SetLinePointSize(f32 line_width, f32 point_size);
 
     /** 
      * @brief Blits the EFB to the specified destination buffer
@@ -193,9 +152,9 @@ public:
     /// Swap the display buffers (finish drawing frame)
     void SwapBuffers();
 
-    /*! 
-     * \brief Set the window of the emulator
-     * \param window EmuWindow handle to emulator window to use for rendering
+    /**
+     * @brief Set the window of the emulator
+     * @param window EmuWindow handle to emulator window to use for rendering
      */
     void SetWindow(EmuWindow* window);
 
@@ -224,16 +183,10 @@ private:
     GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
     GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
 
-    // Vertex buffer object
-    // --------------------
+    // Vertex buffer stuff
+    // -------------------
 
-    GLuint      vbo_handle_;                ///< Handle to the GL VBO
-    GXVertex*   vbo_;                       ///< Pointer to VBO data (when mapped, in GPU mem)
-    GXVertex**  vbo_ptr_;                   ///< Pointer to VBO (used for switching to quad buff)
-    u32         vbo_write_offset_;          ///< Offset into VBO of current vertex writes
-    GXVertex*   quad_vbo_;                  ///< Buffer for temporarily storing quads in CPU mem
-    GXVertex*   quad_vbo_ptr_;              ///< Ptr to quad_vbo_
-
+    GLuint      vbo_handle_;                        ///< Handle of vertex buffer object
     GXPrimitive prim_type_;                         ///< GX primitive type (e.g. GX_QUADS)
     GLuint      gl_prim_type_;                      ///< OpenGL primitive type (e.g. GL_TRIANGLES)
     
@@ -254,8 +207,6 @@ private:
     int         vertex_texcoord_format_size_[8];    
 
     GXCompCnt   vertex_texcoord_component_count_[8];
-    
-    int         vertex_num_;                        ///< Number of vertices per primitive
 
     EmuWindow*  render_window_;
 

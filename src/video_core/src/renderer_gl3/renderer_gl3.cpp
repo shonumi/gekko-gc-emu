@@ -28,6 +28,7 @@
 #include "input_common.h"
 
 #include "fifo.h"
+#include "vertex_manager.h"
 #include "vertex_loader.h"
 #include "bp_mem.h"
 #include "cp_mem.h"
@@ -104,11 +105,6 @@ RendererGL3::RendererGL3() {
     resolution_width_ = 640;
     resolution_height_ = 480;
     vbo_handle_ = 0;
-    vbo_ = NULL;
-    vbo_ptr_ = NULL;
-    vbo_write_offset_ = 0;
-    quad_vbo_ = NULL;
-    quad_vbo_ptr_ = NULL;
     vertex_position_format_ = 0;
     vertex_position_format_size_ = 0;
     vertex_position_component_count_ = (GXCompCnt)0;
@@ -121,7 +117,6 @@ RendererGL3::RendererGL3() {
         vertex_texcoord_format_size_[i] = 0;
         vertex_texcoord_component_count_[i] = (GXCompCnt)0;
     }
-    vertex_num_ = 0;
     blend_mode_ = 0;
     render_window_ = NULL;
     generic_shader_id_ = 0;
@@ -129,8 +124,14 @@ RendererGL3::RendererGL3() {
     gl_prim_type_ = 0;
 }
 
-/// Sets up the renderer for drawing a primitive
-void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
+/**
+ * @brief Begin renderering of a primitive
+ * @param prim Primitive type (e.g. GX_TRIANGLES)
+ * @param count Number of vertices to be drawn (used for appropriate memory management, only)
+ * @param vbo Pointer to VBO, which will be set by API in this function
+ * @param vbo_offset Offset into VBO to use (in bytes)
+ */
+void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset) {
 
 #ifdef USE_GEOMETRY_SHADERS
     // Use geometry shaders to emulate GX_QUADS via GL_LINES_ADJACENCY
@@ -143,7 +144,6 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
 #endif
 
     // Beginning of primitive - reset vertex info
-    vertex_num_ = 0;
     memset(vertex_texcoord_enable_, 0, sizeof(vertex_texcoord_enable_));
 
     // Set the renderer primitive type
@@ -167,24 +167,11 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count) {
     // Map CPU to GPU mem
     static GLbitfield access_flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | 
                                      GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
-    vbo_ = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, (vbo_write_offset_ * sizeof(GXVertex)),
+    *vbo = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, (vbo_offset * sizeof(GXVertex)),
                                        (count * sizeof(GXVertex)), access_flags);
-    if (vbo_ == NULL) {
+    if (vbo == NULL) {
         LOG_ERROR(TVIDEO, "Unable to map vertex buffer object to system mem!");
     }
-    
-#ifndef USE_GEOMETRY_SHADERS
-    // When sending quads, store them in a temporary sys mem buffer so we can rearrange
-    // them to triangles before copying to GPU mem
-    if (prim_type_ == GX_QUADS) {
-        quad_vbo_ptr_ = quad_vbo_;
-        vbo_ptr_ = &quad_vbo_ptr_;
-    } else {
-        vbo_ptr_ = &vbo_;
-    }
-#else
-    vbo_ptr_ = &vbo_;
-#endif
 }
 
 /**
@@ -201,53 +188,12 @@ void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
 }
 
 /**
- * Send a position vector to the renderer as 32-bit floating point
- * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
- */
-void RendererGL3::VertexPosition_SendFloat(f32* vec) {
-    f32* ptr = (f32*)(*vbo_ptr_)->position;
-    ptr[0] = vec[0];
-    ptr[1] = vec[1];
-    ptr[2] = vec[2];
-}
-
-/**
- * Send a position vector to the renderer as 16-bit short (signed or unsigned)
- * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
- */
-void RendererGL3::VertexPosition_SendShort(u16* vec) {
-    u16* ptr = (u16*)(*vbo_ptr_)->position;
-    ptr[0] = vec[0];
-    ptr[1] = vec[1];
-    ptr[2] = vec[2];
-}
-
-/**
- * Send a position vector to the renderer an 8-bit byte (signed or unsigned)
- * @param vec Position vector, XY or XYZ, depending on VertexPosition_SetType
- */
-void RendererGL3::VertexPosition_SendByte(u8* vec) {
-    u8* ptr = (u8*)(*vbo_ptr_)->position;
-    ptr[0] = vec[0];
-    ptr[1] = vec[1];
-    ptr[2] = vec[2];
-}
-
-/**
  * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
  * @param color Which color to configure (0 or 1)
  * @param count Color data count (e.g. GX_CLR_RGBA)
  */
 void RendererGL3::VertexColor_SetType(int color, GXCompCnt count) {
     vertex_color_cur_ = color;
-}
-
-/**
- * Send a vertex color to the renderer (RGB8 or RGBA8, as set by VertexColor_SetType)
- * @param color Color to send, packed as RRGGBBAA or RRGGBB00
- */
-void RendererGL3::VertexColor_Send(u32 rgba) {
-    (*vbo_ptr_)->color[vertex_color_cur_] = rgba;
 }
 
 /**
@@ -267,92 +213,11 @@ void RendererGL3::VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCn
     vertex_texcoord_enable_[texcoord] = 1;
 }
 
-/**
- * Send a texcoord vector to the renderer as 32-bit floating point
- * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
- */
-void RendererGL3::VertexTexcoord_SendFloat(f32* vec) {
-    f32* ptr = (f32*)&(*vbo_ptr_)->texcoords[vertex_texcoord_cur_ << 1];
-    ptr[0] = vec[0];
-    ptr[1] = vec[1];
-}
-
-/**
- * Send a texcoord vector to the renderer as 16-bit short (signed or unsigned)
- * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
- */
-void RendererGL3::VertexTexcoord_SendShort(u16* vec) {
-    u16* ptr = (u16*)&(*vbo_ptr_)->texcoords[vertex_texcoord_cur_ << 1];
-    ptr[0] = vec[0];
-    ptr[1] = vec[1];
-}
-
-/**
- * Send a texcoord vector to the renderer as 8-bit byte (signed or unsigned)
- * @param vec Texcoord vector, XY or XYZ, depending on VertexTexcoord_SetType
- */
-void RendererGL3::VertexTexcoord_SendByte(u8* vec) {
-    u8* ptr = (u8*)&(*vbo_ptr_)->texcoords[vertex_texcoord_cur_ << 1];
-    ptr[0] = vec[0];
-    ptr[1] = vec[1];
-}
-
-/**
- * @brief Sends position and texcoord matrix indices to the renderer
- * @param pm_idx Position matrix index
- * @param tm_idx Texture matrix indices,
- */
-void RendererGL3::Vertex_SendMatrixIndices(u8 pm_idx, u8 tm_idx[]) {
-    (*vbo_ptr_)->pm_idx = pm_idx;
-   /* (*vbo_ptr_)->tm_idx[0] = tm_idx[0];
-    (*vbo_ptr_)->tm_idx[1] = tm_idx[1];
-    (*vbo_ptr_)->tm_idx[2] = tm_idx[2];
-    (*vbo_ptr_)->tm_idx[3] = tm_idx[3];
-    (*vbo_ptr_)->tm_idx[4] = tm_idx[4];
-    (*vbo_ptr_)->tm_idx[5] = tm_idx[5];
-    (*vbo_ptr_)->tm_idx[6] = tm_idx[6];
-    (*vbo_ptr_)->tm_idx[7] = tm_idx[7]; */
-}
-
-/// Used for specifying next GX vertex is being sent to the renderer
-void RendererGL3::VertexNext() {
-#ifndef USE_GEOMETRY_SHADERS
-    if (prim_type_ == GX_QUADS) {
-
-        // End of quad
-        if ((vertex_num_ & 3) == 3) {
-
-            // Copy quad to GPU mem has 2 triangles
-            vbo_[0] = quad_vbo_[0];
-            vbo_[1] = quad_vbo_[1];
-            vbo_[2] = quad_vbo_[2];
-            vbo_[3] = quad_vbo_[2];
-            vbo_[4] = quad_vbo_[3];
-            vbo_[5] = quad_vbo_[0];
-            vbo_+=6;
-
-            // Reset quad buffer
-            quad_vbo_ptr_ = quad_vbo_;
-
-        } else {
-            quad_vbo_ptr_++;
-        }
-
-    // All other primitives write directly to GPU mem
-    } else {
-        vbo_++;
-    }
-#else
-    vbo_++;
-#endif
-    vertex_num_++;
-}
-
 /// Draws a primitive from the previously decoded vertex array
-void RendererGL3::EndPrimitive() {
+void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
 
     // Do nothing if no data sent
-    if (vertex_num_ == 0) {
+    if (vertex_num == 0) {
         return;
     }
 
@@ -379,18 +244,11 @@ void RendererGL3::EndPrimitive() {
         glEnableVertexAttribArray(8);
         glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(120));
     }
-    // When quads, compensate for extra triangles (4 vertices->6)
-#ifndef USE_GEOMETRY_SHADERS
-    if (prim_type_ == GX_QUADS) {
-        vertex_num_*=1.5;
-    }
-#endif
 
-    glDrawArrays(gl_prim_type_, vbo_write_offset_, vertex_num_);
-    vbo_write_offset_ += vertex_num_;
+    glDrawArrays(gl_prim_type_, vbo_offset, vertex_num);
 
-    _ASSERT_MSG(TVIDEO, (vbo_write_offset_ < VBO_MAX_VERTS), 
-                "VBO is filled up! There is either a bug or it must be > %dMB!", 
+    _ASSERT_MSG(TVIDEO, (vbo_offset < VBO_MAX_VERTS), 
+                "VBO is full! There is either a bug or it must be > %dMB!", 
                 (VBO_SIZE / 1048576));
 
     glDisableVertexAttribArray(0);
@@ -499,6 +357,31 @@ void RendererGL3::SetColorMask() {
 	glColorMask(cmask,  cmask,  cmask,  amask);
 }
 
+/// Sets the scissor box
+void RendererGL3::SetScissorBox() {
+    Rect rect;
+    const int x_ofs = gp::g_bp_regs.scissor_offset.x * 2 - 342;
+    const int y_ofs = gp::g_bp_regs.scissor_offset.y * 2 - 342;
+
+    GLint x = CLAMP((gp::g_bp_regs.scissor_top_left.x - x_ofs - 342), 0, 640);
+    GLint y = CLAMP((gp::g_bp_regs.scissor_top_left.y - y_ofs - 342), 0, 480);
+    GLsizei width = CLAMP((gp::g_bp_regs.scissor_bottom_right.x - x_ofs - 341), 0, 640) - rect.x;
+    GLsizei height = CLAMP((gp::g_bp_regs.scissor_bottom_right.y - y_ofs - 341), 0, 480) - rect.y;
+
+    if (rect.x > rect.width) rect.x = rect.width;
+    if (rect.y > rect.height) rect.y = rect.height;
+
+    //glScissor(x, y, width, height); TODO(ShizZy): broken for some games (e.g. SMS), fixme
+    glScissor(0, 0, 640, 480);
+}
+
+/**
+ * @brief Sets the line and point size
+ * @param line_width Line width to use
+ * @param point_size Point size to use
+ */
+void RendererGL3::SetLinePointSize(f32 line_width, f32 point_size) {
+}
 
 /**
  * @brief Set a specific render mode
@@ -550,10 +433,10 @@ void RendererGL3::ResetRenderState() {
 /// Restore the full renderer API state - As the game set it
 void RendererGL3::RestoreRenderState() {
     // TODO(ShizZy):
-    //  - Scissor mode
     //  - Viewport
-    glDisable(GL_SCISSOR_TEST);
     SetGenerationMode();
+    glEnable(GL_SCISSOR_TEST);
+    SetScissorBox();
     SetColorMask();
     SetDepthMode();
     SetBlendMode(true);
@@ -578,18 +461,21 @@ void RendererGL3::PrintDebugStats() {
 		swaps = 0;
 		last = t;
 	}
-
+    /*
     f32 read_pos    = 100.0f * ((f32)(gp::g_fifo_read_ptr - gp::g_fifo_buffer)) / FIFO_SIZE;
     f32 write_pos   = 100.0f * ((f32)gp::g_fifo_write_ptr) / FIFO_SIZE;
+    
     
     sprintf(str, 
             "Framerate    : %02.02f\n"
             "Vertex count : %d\n"
             "FIFO in pos  : %02.01f%%\n"
             "FIFO out pos : %02.01f%%", 
-            fps, vbo_write_offset_, write_pos, read_pos);
+            fps, 0, write_pos, read_pos);
+            */
+    sprintf(str, "%02.02f", fps);
 
-    g_raster_font->printMultilineText(str, -0.98, 0.95, 0, 200, 400);
+    g_raster_font->printMultilineText(str, -0.98, 0.93, 0, 200, 400);
 }
 
 /// Swap buffers (render frame)
@@ -605,10 +491,6 @@ void RendererGL3::SwapBuffers() {
 
     // Switch back to EFB and clear
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Reset VBO position
-    vbo_write_offset_ = 0;
 
     RestoreRenderState();
 }
@@ -617,7 +499,6 @@ void RendererGL3::SwapBuffers() {
 void RendererGL3::SetWindow(EmuWindow* window) {
     render_window_ = window;
 }
-
 
 /** 
  * @brief Blits the EFB to the specified destination buffer
@@ -698,8 +579,6 @@ void RendererGL3::ShutDown() {
 
 /// Renders the XFB the screen
 void RendererGL3::RenderFramebuffer() {
-    // FPS stuff
-    PrintDebugStats();
 
     // Render target is default framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -713,6 +592,9 @@ void RendererGL3::RenderFramebuffer() {
     glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
                       0, 0, resolution_width_, resolution_height_,
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    // FPS stuff
+    PrintDebugStats();
 
     // Rebind EFB
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
@@ -762,8 +644,26 @@ void RendererGL3::Init() {
     render_window_->MakeCurrent();
 
     glShadeModel(GL_SMOOTH);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    glStencilFunc(GL_ALWAYS, 0, 0);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    glViewport(0, 0, 640, 480);
+
+    glClearDepth(1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDepthFunc(GL_LEQUAL);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    
+    glDisable(GL_STENCIL_TEST);
+    glEnable(GL_SCISSOR_TEST);
+
+    glScissor(0, 0, 640, 480);
+    glClearDepth(1.0f);
+    
     if (common::g_config->current_renderer_config().enable_wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
@@ -772,19 +672,17 @@ void RendererGL3::Init() {
 
     GLenum err = glewInit();
     if (GLEW_OK != err) {
-        LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Error message: \"%s\". Exiting...", glewGetErrorString(err));
+        LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Error message: \"%s\". Exiting...", 
+            glewGetErrorString(err));
         exit(E_ERR);
     }
 
-    // Initialize vertex buffers
-    // -------------------------
+    // Initialize primary VBO
+    // ----------------------
 
     glGenBuffers(1, &vbo_handle_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glBufferData(GL_ARRAY_BUFFER, VBO_SIZE, NULL, GL_DYNAMIC_DRAW);
-
-    // Allocate a buffer for storing a quad in CPU mem
-    quad_vbo_ = (GXVertex*) malloc(3 * sizeof(GXVertex));
 
     // Initialize everything else
     // --------------------------

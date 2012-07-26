@@ -28,6 +28,8 @@
 #include "renderer_gl3\renderer_gl3.h"
 
 #include "video_core.h"
+#include "vertex_manager.h"
+#include "vertex_loader.h"
 #include "fifo.h"
 #include "bp_mem.h"
 #include "cp_mem.h"
@@ -72,21 +74,21 @@ static void VertexPosition_D8_XY(u32 addr) {
     u8 v[2];
     v[0] = FifoPop8();
     v[1] = FifoPop8();
-    video_core::g_renderer->VertexPosition_SendByte(v);
+    vertex_manager::Position_SendByte(v);
 }
 
 static void VertexPosition_D16_XY(u32 addr) {
     u16 v[2];
     v[0] = FifoPop16();
     v[1] = FifoPop16();
-    video_core::g_renderer->VertexPosition_SendShort(v);
+    vertex_manager::Position_SendShort(v);
 }
 
 static void VertexPosition_D32_XY(u32 addr) {
     u32 v[2];
     v[0] = FifoPop32();
     v[1] = FifoPop32();
-    video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+    vertex_manager::Position_SendFloat((f32*)v);
 }
 
 static void VertexPosition_I8_XY(u32 addr) {
@@ -94,7 +96,7 @@ static void VertexPosition_I8_XY(u32 addr) {
     u16 data = MemoryRead16(addr);
     v[0] = (u8)((data >> 8) & 0xFF);
     v[1] = (u8)(data & 0xFF);
-    video_core::g_renderer->VertexPosition_SendByte(v);
+    vertex_manager::Position_SendByte(v);
 }
 
 // correct
@@ -103,7 +105,7 @@ static void VertexPosition_I16_XY(u32 addr) {
     u32 data = MemoryRead32(addr);
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
-    video_core::g_renderer->VertexPosition_SendShort(v);
+    vertex_manager::Position_SendShort(v);
 }
 
 // correct
@@ -111,7 +113,7 @@ static void VertexPosition_I32_XY(u32 addr) {
     u32 v[2];
     v[0] = MemoryRead32(addr + 0);
     v[1] = MemoryRead32(addr + 4);
-    video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+    vertex_manager::Position_SendFloat((f32*)v);
 }
 
 
@@ -120,7 +122,7 @@ static void VertexPosition_D8_XYZ(u32 addr) {
     v[0] = FifoPop8();
     v[1] = FifoPop8();
     v[2] = FifoPop8();
-    video_core::g_renderer->VertexPosition_SendByte(v);
+    vertex_manager::Position_SendByte(v);
 }
 
 // correct
@@ -129,7 +131,7 @@ static void VertexPosition_D16_XYZ(u32 addr) {
     v[0] = FifoPop16();
     v[1] = FifoPop16();
     v[2] = FifoPop16();
-    video_core::g_renderer->VertexPosition_SendShort(v);
+    vertex_manager::Position_SendShort(v);
 }
 
 // correct
@@ -138,7 +140,7 @@ static void VertexPosition_D32_XYZ(u32 addr) {
     v[0] = FifoPop32();
     v[1] = FifoPop32();
     v[2] = FifoPop32();
-    video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+    vertex_manager::Position_SendFloat((f32*)v);
 }
 
 static void VertexPosition_I8_XYZ(u32 addr) {
@@ -149,7 +151,7 @@ static void VertexPosition_I8_XYZ(u32 addr) {
     v[1] = (u8)((data >> 16) & 0xFF);
     v[2] = (u8)((data >> 8) & 0xFF);
 
-    video_core::g_renderer->VertexPosition_SendByte(v);
+    vertex_manager::Position_SendByte(v);
 }
 
 // correct
@@ -159,7 +161,7 @@ static void VertexPosition_I16_XYZ(u32 addr) {
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
     v[2] = MemoryRead16(addr + 4);
-    video_core::g_renderer->VertexPosition_SendShort(v);
+    vertex_manager::Position_SendShort(v);
 }
 
 // correct
@@ -168,7 +170,7 @@ static void VertexPosition_I32_XYZ(u32 addr) {
     v[0] = MemoryRead32(addr + 0);
     v[1] = MemoryRead32(addr + 4);
     v[2] = MemoryRead32(addr + 8);
-    video_core::g_renderer->VertexPosition_SendFloat((f32*)v);
+    vertex_manager::Position_SendFloat((f32*)v);
 }
 
 // unimplemented
@@ -207,34 +209,62 @@ static void VertexColor_DRGB565(u32 addr) {
     u8 r = ((rgb >> 11) & 0x1f) * 8;
     u8 g = ((rgb >> 5) & 0x3f) * 4;
     u8 b = ((rgb >> 0) & 0x1f) * 8;
-    video_core::g_renderer->VertexColor_Send((r << 24) | (g << 16) | (b << 8) | 0xff);
+    vertex_manager::Color_Send((r << 24) | (g << 16) | (b << 8) | 0xff);
 }
 
 // correct
 static void VertexColor_DRGB8(u32 addr) {
-    video_core::g_renderer->VertexColor_Send((FifoPop24() << 8) | 0xff);
+    vertex_manager::Color_Send((FifoPop24() << 8) | 0xff);
 }
+
+static void VertexColor_DRGBA4(u32 addr) {
+    u8 v[4];
+    u16 rgba = FifoPop16();
+	v[0] = ((rgba >> 12)&0xf) * 8;
+	v[1] = ((rgba >> 8)&0xf) * 8;
+	v[2] = ((rgba >> 4)&0xf) * 8;
+	v[3] = ((rgba >> 0)&0xf) * 8;	
+    vertex_manager::Color_Send(*(u32*)v);
+}
+
+static void VertexColor_DRGBA6(u32 addr) {
+    u8 v[4];
+    u16 rgba = FifoPop24();
+	v[0] = (rgba & 0x3f) << 1;
+	v[1] = ((rgba >> 6) & 0x3f) << 1;
+	v[2] = ((rgba >> 12) & 0x3f) << 1;
+	v[3] = ((rgba >> 18) & 0x3f) << 1;
+    vertex_manager::Color_Send(*(u32*)v);
+}
+
 
 // correct
 static void VertexColor_DRGBA8(u32 addr) {
-    video_core::g_renderer->VertexColor_Send(FifoPop32());
+    vertex_manager::Color_Send(FifoPop32());
 }
 
 static void VertexColor_IRGB8(u32 addr) {
     u32 rgba = MemoryRead32(addr) | 0xff;
-    video_core::g_renderer->VertexColor_Send(rgba);
+    vertex_manager::Color_Send(rgba);
+}
+
+static void VertexColor_IRGBA4(u32 addr) {
+    u8 v[4];
+    u32 rgba = MemoryRead16(addr);
+	v[0] = ((rgba >> 12)&0xf) * 8;
+	v[1] = ((rgba >> 8)&0xf) * 8;
+	v[2] = ((rgba >> 4)&0xf) * 8;
+	v[3] = ((rgba >> 0)&0xf) * 8;	
+    vertex_manager::Color_Send(*(u32*)v);
 }
 
 // correct
 static void VertexColor_IRGBA8(u32 addr) {
     u32 rgba = MemoryRead32(addr);
-    video_core::g_renderer->VertexColor_Send(rgba);
+    vertex_manager::Color_Send(rgba);
 }
 
-VERTEXLOADER_COLOR_UNDEF(DRGBA4);
-VERTEXLOADER_COLOR_UNDEF(DRGBA6);
 VERTEXLOADER_COLOR_UNDEF(IRGB565);
-VERTEXLOADER_COLOR_UNDEF(IRGBA4);
 VERTEXLOADER_COLOR_UNDEF(IRGBA6);
 
 VertexLoaderTable LookupColorDirect[0x10] = {
@@ -325,7 +355,7 @@ static void VertexTexCoord_D8_ST(u32 addr) {
 	u8 v[2];
     v[0] = FifoPop8();
     v[1] = FifoPop8();
-	video_core::g_renderer->VertexTexcoord_SendByte(v);
+	vertex_manager::Texcoord_SendByte(v);
 }
 
 // correct
@@ -333,29 +363,29 @@ static void VertexTexCoord_D16_ST(u32 addr) {
 	u16 v[2];
     v[0] = FifoPop16();
     v[1] = FifoPop16();
-	video_core::g_renderer->VertexTexcoord_SendShort(v);
+	vertex_manager::Texcoord_SendShort(v);
 }
 
 static void VertexTexCoord_D32_ST(u32 addr) {
 	u32 v[2];
 	v[0] = FifoPop32();
 	v[1] = FifoPop32();
-	video_core::g_renderer->VertexTexcoord_SendFloat((f32*)v);
+	vertex_manager::Texcoord_SendFloat((f32*)v);
 }
 
 static void VertexTexCoord_D8_S(u32 addr) {
     u8 v = FifoPop8();
-    video_core::g_renderer->VertexTexcoord_SendByte(&v);
+    vertex_manager::Texcoord_SendByte(&v);
 }
 
 static void VertexTexCoord_D16_S(u32 addr) {
     u16 v = FifoPop16();
-    video_core::g_renderer->VertexTexcoord_SendShort(&v);
+    vertex_manager::Texcoord_SendShort(&v);
 }
 
 static void VertexTexCoord_D32_S(u32 addr) {
     u32 v = FifoPop32();
-    video_core::g_renderer->VertexTexcoord_SendFloat((f32*)&v);
+    vertex_manager::Texcoord_SendFloat((f32*)&v);
 }
 
 static void VertexTexCoord_I8_ST(u32 addr) {
@@ -363,7 +393,7 @@ static void VertexTexCoord_I8_ST(u32 addr) {
     u16 data = MemoryRead16(addr);
     v[0] = (u8)((data >> 8) & 0xFF);
     v[1] = (u8)(data & 0xFF);
-    video_core::g_renderer->VertexTexcoord_SendByte(v);
+    vertex_manager::Texcoord_SendByte(v);
 }
 
 // correct
@@ -372,29 +402,29 @@ static void VertexTexCoord_I16_ST(u32 addr) {
     u32 data = MemoryRead32(addr);
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
-    video_core::g_renderer->VertexTexcoord_SendShort(v);
+    vertex_manager::Texcoord_SendShort(v);
 }
 
 static void VertexTexCoord_I32_ST(u32 addr) {
     u32 v[2];
     v[0] = MemoryRead32(addr + 0);
     v[1] = MemoryRead32(addr + 4);
-    video_core::g_renderer->VertexTexcoord_SendFloat((f32*)v);
+    vertex_manager::Texcoord_SendFloat((f32*)v);
 }
 
 static void VertexTexCoord_I8_S(u32 addr) {
     u8 v = Mem_RAM[addr & RAM_MASK];
-    video_core::g_renderer->VertexTexcoord_SendByte(&v);
+    vertex_manager::Texcoord_SendByte(&v);
 }
 
 static void VertexTexCoord_I16_S(u32 addr) {
     u16 v = MemoryRead16(addr);
-    video_core::g_renderer->VertexTexcoord_SendShort(&v);
+    vertex_manager::Texcoord_SendShort(&v);
 }
 
 static void VertexTexCoord_I32_S(u32 addr) {
     u32 v = MemoryRead32(addr);
-    video_core::g_renderer->VertexTexcoord_SendFloat((f32*)&v);
+    vertex_manager::Texcoord_SendFloat((f32*)&v);
 }
 
 VertexLoaderTable LookupTexCoordDirect[0x10] = {
@@ -448,7 +478,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
     u32 tex7_base       = g_cp_regs.array_base[11].addr_base;
     u8  tex7_stride     = g_cp_regs.array_stride[11].addr_stride;
 
-    video_core::g_renderer->BeginPrimitive(type, count);
+    vertex_manager::BeginPrimitive(type, count);
 
     // Decode and apply texture
 	if(g_bp_regs.tevorder[0].get_enable(0))
@@ -509,7 +539,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (g_cp_regs.vcd_lo[0].tex6_midx_enable) tm_midx[6] = FifoPop8();
         if (g_cp_regs.vcd_lo[0].tex7_midx_enable) tm_midx[7] = FifoPop8();
 
-        video_core::g_renderer->Vertex_SendMatrixIndices(pm_midx, tm_midx);
+        vertex_manager::SendMatrixIndices(pm_midx, tm_midx);
 
         // Decode position
         switch (g_cp_regs.vcd_lo[0].position) {
@@ -542,7 +572,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         switch (g_cp_regs.vcd_lo[0].color0) {
         case CP_NOT_PRESENT:
             // Not sure if this is right, but assume white if disabled (not black)
-            video_core::g_renderer->VertexColor_Send(0xffffffff);
+            vertex_manager::Color_Send(0xffffffff);
             break;
         case CP_DIRECT:
             LookupColorDirect[vat_a->get_col0()](0);
@@ -706,10 +736,10 @@ void DecodePrimitive(GXPrimitive type, int count) {
             }
         }
         
-        video_core::g_renderer->VertexNext();
+        vertex_manager::NextVertex();
     }
 
-    video_core::g_renderer->EndPrimitive();
+    vertex_manager::EndPrimitive();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
