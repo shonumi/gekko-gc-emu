@@ -128,10 +128,13 @@ RasterFont::RasterFont()
 	fontOffset = glGenLists(128);
 	for (int i = 32; i < 127; i++) {
 		glNewList(i + fontOffset, GL_COMPILE);
+
+        glColor4f(1.0, 1.0, 0.0, 1.0); // yellow
 		glBitmap(8, 13, 0.0f, 2.0f, 10.0f, 0.0f, rasters[i - 32]);
+
+
 		glEndList();
 	}
-
 	temp_buffer = new char[TEMP_BUFFER_SIZE];
 }
 
@@ -165,6 +168,7 @@ void RasterFont::printString(const char *s, double x, double y, double z)
 	glPushAttrib (GL_LIST_BIT);
 	glListBase(fontOffset);
 	glCallLists((GLsizei)strlen(s2), GL_UNSIGNED_BYTE, (GLubyte *) s2);
+
 	//GL_REPORT_ERRORD();
 	glPopAttrib();
 	//GL_REPORT_ERRORD();
