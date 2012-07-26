@@ -26,12 +26,20 @@
 
 #include "common.h"
 
-#include "video_core.h"
-#include "renderer_base.h"
 #include "emuwindow/emuwindow_glfw.h"
+
 #include "renderer_gl3/renderer_gl3.h"
 #include "renderer_gl2/renderer_gl2.h"
+
+#include "video_core.h"
+#include "renderer_base.h"
+#include "vertex_manager.h"
+#include "vertex_loader.h"
 #include "fifo.h"
+#include "fifo_player.h"
+#include "bp_mem.h"
+#include "cp_mem.h"
+#include "xf_mem.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Video Core namespace
@@ -67,6 +75,12 @@ void Start(EmuWindow* emu_window) {
 /// Initialize the video core
 void Init() {
     gp::FifoInit();
+    
+    vertex_manager::Init();
+    gp::VertexLoaderInit();
+    gp::BPInit();
+    gp::CPInit();
+    gp::XFInit();
 
     LOG_NOTICE(TVIDEO, "initialized ok");
 }
