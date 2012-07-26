@@ -3,6 +3,7 @@ set(SRCS
             src/cp_mem.cpp
             src/fifo.cpp
             src/vertex_loader.cpp
+            src/vertex_manager.cpp
             src/video_core.cpp
             src/xf_mem.cpp
             src/texture_decoder.cpp

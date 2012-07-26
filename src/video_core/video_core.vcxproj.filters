@@ -17,6 +17,7 @@
       <Filter>renderer_gl3</Filter>
     </ClCompile>
     <ClCompile Include="src\texture_decoder.cpp" />
+    <ClCompile Include="src\vertex_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
@@ -41,6 +42,7 @@
     </ClInclude>
     <ClInclude Include="src\fifo_player.h" />
     <ClInclude Include="src\texture_decoder.h" />
+    <ClInclude Include="src\vertex_manager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="renderer_gl3">

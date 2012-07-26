@@ -27,6 +27,7 @@
     <ClCompile Include="src\renderer_gl3\shader_manager.cpp" />
     <ClCompile Include="src\texture_decoder.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
+    <ClCompile Include="src\vertex_manager.cpp" />
     <ClCompile Include="src\video_core.cpp" />
     <ClCompile Include="src\xf_mem.cpp" />
   </ItemGroup>
@@ -43,6 +44,7 @@
     <ClInclude Include="src\renderer_gl3\shader_manager.h" />
     <ClInclude Include="src\texture_decoder.h" />
     <ClInclude Include="src\vertex_loader.h" />
+    <ClInclude Include="src\vertex_manager.h" />
     <ClInclude Include="src\video_core.h" />
     <ClInclude Include="src\xf_mem.h" />
   </ItemGroup>
