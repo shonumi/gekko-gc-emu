@@ -89,9 +89,7 @@ static inline u16 __fifo_pop_16() {
  * @return 24-bit word from display list
  */
 static inline u32 __fifo_pop_24() {
-    u32 res = BSWAP32(*((u32*)(g_fifo_read_ptr))) & 0xffffff;
-    g_fifo_read_ptr+=3;
-    return res;
+    return (__fifo_pop_8() << 16) | (__fifo_pop_8() << 8) | __fifo_pop_8();
 }
 
 /**
@@ -134,14 +132,15 @@ static inline u16 __displaylist_pop_16() {
  * @return 24-bit word from display list
  */
 static inline u32 __displaylist_pop_24() {
-    // IS this right?? (ShizZy 2012-06-28)
+/*    // IS this right?? (ShizZy 2012-06-28)
     u32 res = g_dl_read_addr + g_dl_read_offset;
     res = (Mem_RAM[(res+1) ^ 3] << 16) |
           (Mem_RAM[(res+2) ^ 3] << 8) |
           (Mem_RAM[(res+3) ^ 3]);
 
     g_dl_read_offset+=3;
-    return res;
+    return res;*/
+    return (__displaylist_pop_8() << 16) | (__displaylist_pop_8() << 8) | __displaylist_pop_8();
 }
 
 /**
