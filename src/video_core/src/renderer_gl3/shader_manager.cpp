@@ -76,6 +76,11 @@ void UpdateUniforms() {
         glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_position_vectors"), 
             gp::kXFMemEntriesNum, (f32*)gp::g_tf_mem);
     }
+    // CP - Vertex color formats
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "col0_format"), 
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format);
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "col1_format"), 
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
 
     // CP - dequantization shift values
     glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_shift"), VAT_POSSHFT);

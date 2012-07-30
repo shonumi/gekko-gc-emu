@@ -136,10 +136,7 @@ static void VertexPosition_D16_XYZ(u32 addr) {
 
 // correct
 static void VertexPosition_D32_XYZ(u32 addr) {
-    u32 v[3];
-    v[0] = FifoPop32();
-    v[1] = FifoPop32();
-    v[2] = FifoPop32();
+    u32 v[3] = {FifoPop32(), FifoPop32(), FifoPop32()};
     vertex_manager::Position_SendFloat((f32*)v);
 }
 
@@ -195,89 +192,80 @@ VertexLoaderTable LookupPositionIndexed[0x10] = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Color Decoding
 
-
 #define VERTEXLOADER_COLOR_UNDEF(name)      void VertexColor_##name(u32 addr) { \
     _ASSERT_MSG(TGP, 0, "Unimplemented function %s !!! Ask neobrain to implement me!", __FUNCTION__); \
     }
 
 static void VertexColor_Unk(u32 addr) {
-    _ASSERT_MSG(TGP, 0, "Unknown Vertex color!!! Ask neobrain to implement me!");
+    _ASSERT_MSG(TGP, 0, "Unknown Vertex color count: %d format: %d", 
+        g_cp_regs.vat_reg_a[g_cur_vat].col0_count, g_cp_regs.vat_reg_a[g_cur_vat].col0_format);
 }
 
+// correct
 static void VertexColor_DRGB565(u32 addr) {
-    u16 rgb = FifoPop16();
-    u8 r = ((rgb >> 11) & 0x1f) * 8;
-    u8 g = ((rgb >> 5) & 0x3f) * 4;
-    u8 b = ((rgb >> 0) & 0x1f) * 8;
-    vertex_manager::Color_Send((r << 24) | (g << 16) | (b << 8) | 0xff);
+    vertex_manager::Color_Send(FifoPop16());
 }
 
 // correct
 static void VertexColor_DRGB8(u32 addr) {
-    vertex_manager::Color_Send((FifoPop24() << 8) | 0xff);
+    vertex_manager::Color_Send(FifoPop24());
 }
 
+// correct
 static void VertexColor_DRGBA4(u32 addr) {
-    u8 v[4];
-    u16 rgba = FifoPop16();
-	v[0] = ((rgba >> 12)&0xf) * 8;
-	v[1] = ((rgba >> 8)&0xf) * 8;
-	v[2] = ((rgba >> 4)&0xf) * 8;
-	v[3] = ((rgba >> 0)&0xf) * 8;	
-    vertex_manager::Color_Send(*(u32*)v);
+    vertex_manager::Color_Send(FifoPop16());
 }
 
+// correct
 static void VertexColor_DRGBA6(u32 addr) {
-    u8 v[4];
-    u16 rgba = FifoPop24();
-	v[0] = (rgba & 0x3f) << 1;
-	v[1] = ((rgba >> 6) & 0x3f) << 1;
-	v[2] = ((rgba >> 12) & 0x3f) << 1;
-	v[3] = ((rgba >> 18) & 0x3f) << 1;
-    vertex_manager::Color_Send(*(u32*)v);
+    vertex_manager::Color_Send(FifoPop24());
 }
-
 
 // correct
 static void VertexColor_DRGBA8(u32 addr) {
     vertex_manager::Color_Send(FifoPop32());
 }
 
-static void VertexColor_IRGB8(u32 addr) {
-    u32 rgba = MemoryRead32(addr) | 0xff;
-    vertex_manager::Color_Send(rgba);
+// correct
+static void VertexColor_IRGB565(u32 addr) {
+    vertex_manager::Color_Send(MemoryRead16(addr));
 }
 
+// correct
+static void VertexColor_IRGB8(u32 addr) {
+    vertex_manager::Color_Send(MemoryRead32(addr) >> 8);
+}
+
+// correct
 static void VertexColor_IRGBA4(u32 addr) {
-    u8 v[4];
-    u32 rgba = MemoryRead16(addr);
-	v[0] = ((rgba >> 12)&0xf) * 8;
-	v[1] = ((rgba >> 8)&0xf) * 8;
-	v[2] = ((rgba >> 4)&0xf) * 8;
-	v[3] = ((rgba >> 0)&0xf) * 8;	
-    vertex_manager::Color_Send(*(u32*)v);
+    vertex_manager::Color_Send(MemoryRead16(addr));
+}
+
+// correct
+static void VertexColor_IRGBA6(u32 addr) {
+    vertex_manager::Color_Send(MemoryRead32(addr) >> 8);
 }
 
 // correct
 static void VertexColor_IRGBA8(u32 addr) {
-    u32 rgba = MemoryRead32(addr);
-    vertex_manager::Color_Send(rgba);
+    vertex_manager::Color_Send(MemoryRead32(addr));
 }
 
-VERTEXLOADER_COLOR_UNDEF(IRGB565);
-VERTEXLOADER_COLOR_UNDEF(IRGBA6);
 
+// Not sure how some of this is supposed to work - the table is count << 3 | format. Count can be
+// GX_CLR_RGB (0) or 1 (GX_CLR_RGBA). I've entered all formats for all positions, even though some
+// don't make sense (with the count taken into account) - ??. Seems correct. -ShizZy  
 VertexLoaderTable LookupColorDirect[0x10] = {
-    VertexColor_DRGB565,    VertexColor_DRGB8,  VertexColor_Unk,    VertexColor_Unk,
-    VertexColor_Unk,        VertexColor_Unk,    VertexColor_Unk,    VertexColor_Unk,
-    VertexColor_Unk,        VertexColor_Unk,    VertexColor_Unk,    VertexColor_DRGBA4,
+    VertexColor_DRGB565,    VertexColor_DRGB8,  VertexColor_DRGBA8, VertexColor_DRGBA4,
+    VertexColor_DRGBA6,     VertexColor_DRGBA8, VertexColor_Unk,    VertexColor_Unk,
+    VertexColor_DRGB565,    VertexColor_DRGB8,  VertexColor_DRGBA8, VertexColor_DRGBA4,
     VertexColor_DRGBA6,     VertexColor_DRGBA8, VertexColor_Unk,    VertexColor_Unk,
 };
 
 VertexLoaderTable LookupColorIndexed[0x10] = {
-    VertexColor_IRGB565,    VertexColor_IRGB8,  VertexColor_IRGB8,  VertexColor_Unk,
-    VertexColor_Unk,        VertexColor_IRGBA8, VertexColor_Unk,    VertexColor_Unk,
-    VertexColor_Unk,        VertexColor_Unk,    VertexColor_Unk,    VertexColor_IRGBA4,
+    VertexColor_IRGB565,    VertexColor_IRGB8,  VertexColor_IRGBA8, VertexColor_IRGBA4,
+    VertexColor_IRGBA6,     VertexColor_IRGBA8, VertexColor_Unk,    VertexColor_Unk,
+    VertexColor_IRGB565,    VertexColor_IRGB8,  VertexColor_IRGBA8,    VertexColor_IRGBA4,
     VertexColor_IRGBA6,     VertexColor_IRGBA8, VertexColor_Unk,    VertexColor_Unk
 };
 
@@ -478,6 +466,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
     u32 tex7_base       = g_cp_regs.array_base[11].addr_base;
     u8  tex7_stride     = g_cp_regs.array_stride[11].addr_stride;
 
+    // Configure renderer to begin a new primitive
     vertex_manager::BeginPrimitive(type, count);
 
     // Decode and apply texture
@@ -522,22 +511,51 @@ void DecodePrimitive(GXPrimitive type, int count) {
 		LoadTexture(0xb4 + 3);
 	}*/
 
-    // Position
+    // Set renderer types
     video_core::g_renderer->VertexPosition_SetType((GXCompType)vat_a->pos_format,
         (GXCompCnt)vat_a->pos_count);
+    video_core::g_renderer->VertexColor_SetType(0, (GXCompType)vat_a->col0_format, 
+        (GXCompCnt)vat_a->col0_count);
+    video_core::g_renderer->VertexColor_SetType(1, (GXCompType)vat_a->col1_format, 
+        (GXCompCnt)vat_a->col1_count);
+    video_core::g_renderer->VertexTexcoord_SetType(0, (GXCompType)vat_a->tex0_format,
+        (GXCompCnt)vat_a->tex0_count);
+    video_core::g_renderer->VertexTexcoord_SetType(1, (GXCompType)vat_b->tex1_format,
+        (GXCompCnt)vat_b->tex1_count);
+    video_core::g_renderer->VertexTexcoord_SetType(2, (GXCompType)vat_b->tex2_format,
+        (GXCompCnt)vat_b->tex2_count);
+    video_core::g_renderer->VertexTexcoord_SetType(3, (GXCompType)vat_b->tex3_format,
+        (GXCompCnt)vat_b->tex3_count);
+    video_core::g_renderer->VertexTexcoord_SetType(4, (GXCompType)vat_b->tex4_format,
+        (GXCompCnt)vat_b->tex4_count);
+    video_core::g_renderer->VertexTexcoord_SetType(5, (GXCompType)vat_c->tex5_format,
+        (GXCompCnt)vat_c->tex5_count);
+    video_core::g_renderer->VertexTexcoord_SetType(6, (GXCompType)vat_c->tex6_format,
+        (GXCompCnt)vat_c->tex6_count);
+    video_core::g_renderer->VertexTexcoord_SetType(7, (GXCompType)vat_c->tex7_format,
+        (GXCompCnt)vat_c->tex7_count);
 
     for (int i = 0; i < count; i++) {
 
         // Matrix indices
-        if (g_cp_regs.vcd_lo[0].pos_midx_enable) pm_midx = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex0_midx_enable) tm_midx[0] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex1_midx_enable) tm_midx[1] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex2_midx_enable) tm_midx[2] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex3_midx_enable) tm_midx[3] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex4_midx_enable) tm_midx[4] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex5_midx_enable) tm_midx[5] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex6_midx_enable) tm_midx[6] = FifoPop8();
-        if (g_cp_regs.vcd_lo[0].tex7_midx_enable) tm_midx[7] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].pos_midx_enable) 
+            pm_midx = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex0_midx_enable) 
+            tm_midx[0] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex1_midx_enable) 
+            tm_midx[1] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex2_midx_enable) 
+            tm_midx[2] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex3_midx_enable) 
+            tm_midx[3] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex4_midx_enable) 
+            tm_midx[4] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex5_midx_enable) 
+            tm_midx[5] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex6_midx_enable) 
+            tm_midx[6] = FifoPop8();
+        if (g_cp_regs.vcd_lo[0].tex7_midx_enable) 
+            tm_midx[7] = FifoPop8();
 
         vertex_manager::SendMatrixIndices(pm_midx, tm_midx);
 
@@ -553,7 +571,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupPositionIndexed[vat_a->get_pos()](pos_base + (FifoPop16() * pos_stride));
             break;
         }
-
         // Decode normal
         switch (g_cp_regs.vcd_lo[0].normal) {
         case CP_DIRECT:
@@ -566,9 +583,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupNormalIndexed[vat_a->get_normal()](normal_base + (FifoPop16() * normal_stride));
             break;
         }
-
         // Decode color 0
-        video_core::g_renderer->VertexColor_SetType(0, (GXCompCnt)vat_a->col0_count);
         switch (g_cp_regs.vcd_lo[0].color0) {
         case CP_NOT_PRESENT:
             // Not sure if this is right, but assume white if disabled (not black)
@@ -584,9 +599,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupColorIndexed[vat_a->get_col0()](col0_base + (FifoPop16() * col0_stride));
             break;
         }
-
         // Decode color 1
-        video_core::g_renderer->VertexColor_SetType(1, (GXCompCnt)vat_a->col1_count);
         switch (gp::g_cp_regs.vcd_lo[0].color1) {
         case CP_DIRECT:
             LookupColorDirect[vat_a->get_col1()](0);
@@ -598,12 +611,8 @@ void DecodePrimitive(GXPrimitive type, int count) {
             LookupColorIndexed[vat_a->get_col1()](col1_base + (FifoPop16() * col1_stride));
             break;
         }
-
         // Decode texcoord 0
         if (g_cp_regs.vcd_hi[0].tex0_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(0, (GXCompType)vat_a->tex0_format,
-                (GXCompCnt)vat_a->tex0_count);
-
             switch(g_cp_regs.vcd_hi[0].tex0_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_a->get_tex0()](0);
@@ -618,9 +627,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 1
         if (g_cp_regs.vcd_hi[0].tex1_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(1, (GXCompType)vat_b->tex1_format,
-                (GXCompCnt)vat_b->tex1_count);
-
             switch(g_cp_regs.vcd_hi[0].tex1_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex1()](0);
@@ -635,9 +641,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 2
         if (g_cp_regs.vcd_hi[0].tex2_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(2, (GXCompType)vat_b->tex2_format,
-                (GXCompCnt)vat_b->tex2_count);
-
             switch(g_cp_regs.vcd_hi[0].tex2_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex2()](0);
@@ -652,9 +655,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 3
         if (g_cp_regs.vcd_hi[0].tex3_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(3, (GXCompType)vat_b->tex3_format,
-                (GXCompCnt)vat_b->tex3_count);
-
             switch(g_cp_regs.vcd_hi[0].tex3_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex3()](0);
@@ -669,9 +669,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 4
         if (g_cp_regs.vcd_hi[0].tex4_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(4, (GXCompType)vat_b->tex4_format,
-                (GXCompCnt)vat_b->tex4_count);
-
             switch(g_cp_regs.vcd_hi[0].tex4_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex4()](0);
@@ -686,9 +683,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 5
         if (g_cp_regs.vcd_hi[0].tex5_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(5, (GXCompType)vat_c->tex5_format,
-                (GXCompCnt)vat_c->tex5_count);
-
             switch(g_cp_regs.vcd_hi[0].tex5_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex5()](0);
@@ -703,9 +697,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 6
         if (g_cp_regs.vcd_hi[0].tex6_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(6, (GXCompType)vat_c->tex6_format,
-                (GXCompCnt)vat_c->tex6_count);
-
             switch(g_cp_regs.vcd_hi[0].tex6_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex6()](0);
@@ -720,9 +711,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 7
         if (g_cp_regs.vcd_hi[0].tex7_coord) {
-            video_core::g_renderer->VertexTexcoord_SetType(7, (GXCompType)vat_c->tex7_format,
-                (GXCompCnt)vat_c->tex7_count);
-
             switch(g_cp_regs.vcd_hi[0].tex7_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex7()](0);

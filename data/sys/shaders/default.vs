@@ -2,6 +2,13 @@
 #extension GL_ARB_explicit_attrib_location : enable
 #extension GL_ARB_separate_shader_objects : enable
 
+#define GX_RGB565   0
+#define GX_RGB8     1
+#define GX_RGBX8    2
+#define GX_RGBA4    3
+#define GX_RGBA6    4
+#define GX_RGBA8    5
+
 uniform mat4 projection_matrix;
 
 layout(location = 0) in vec3 position;
@@ -20,6 +27,8 @@ uniform vec4 xf_modelview_vectors[3];
 uniform vec4 xf_position_vectors[64];
 
 // CP memory
+uniform int col0_format;
+uniform int col1_format;
 uniform int cp_pos_shift;
 uniform int cp_tex_shift_0;
 
@@ -50,5 +59,44 @@ void main() {
     }
     gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz * cp_pos_dqf, 1.0);
     vertexTexCoord0 = texcoord0.st * cp_tex_dqf_0;
-    vertexColor = clamp((color0.abgr / 255.0f), 0.0, 1.0);
+    
+    
+    switch (col0_format) {
+    case GX_RGB565:
+        vertexColor.r = float(int(color0[1]) >> 3) / 32.0f;
+        vertexColor.g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 64.0f;
+        vertexColor.b = float(int(color0[0]) & 0x1F) / 32.0f;
+        vertexColor.a = 1.0f;
+        break;
+        
+    case GX_RGB8:
+        vertexColor = vec4(clamp((color0.bgr / 255.0f), 0.0, 1.0), 1.0);
+        break;
+        
+    case GX_RGBX8:
+        vertexColor = vec4(clamp((color0.abg / 255.0f), 0.0, 1.0), 1.0);
+        break;
+        
+    case GX_RGBA4:
+        vertexColor.r = float(int(color0[1]) >> 4) / 16.0f;
+        vertexColor.g = float(int(color0[1]) & 0xF) / 16.0f;
+        vertexColor.b = float(int(color0[0]) >> 4) / 16.0f;
+        vertexColor.a = float(int(color0[0]) & 0xF) / 16.0f;
+        break;
+        
+    case GX_RGBA6:
+        vertexColor.r = float(int(color0[2]) >> 2) / 64.0f;
+        vertexColor.g = float(((int(color0[2]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 64.0f;
+        vertexColor.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[0]) >> 6)) / 64.0f;
+        vertexColor.a = float(int(color0[0]) & 0x3F) / 64.0f;
+        break;
+        
+    case GX_RGBA8:
+        vertexColor = clamp((color0.abgr / 255.0f), 0.0, 1.0);
+        break;
+        
+    default:
+        vertexColor = vec4(1.0, 0.0, 1.0, 1.0);
+        break;
+    }
 }

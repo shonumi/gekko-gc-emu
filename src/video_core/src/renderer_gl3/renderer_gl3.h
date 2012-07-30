@@ -62,9 +62,10 @@ public:
     /**
      * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
      * @param color Which color to configure (0 or 1)
+     * @param type GXCompType color format type
      * @param count Color data count (e.g. GX_CLR_RGBA)
      */
-    void VertexColor_SetType(int color, GXCompCnt count);
+    void VertexColor_SetType(int color, GXCompType type, GXCompCnt count);
 
     /**
      * Set the type of texture coordinate vertex data
@@ -198,7 +199,9 @@ private:
     GXCompCnt   vertex_position_component_count_;   ///< Number of coordinates (2 - XY, 3 - XYZ)
 
     int         vertex_color_cur_;                  ///< Current color, 0 or 1
-    
+    GXCompType  vertex_color_cur_type_[2];
+    GXCompCnt   vertex_color_cur_count_[2];
+
     int         vertex_texcoord_cur_;               ///< Current texcoord, 0-kNumTextures
     int         vertex_texcoord_enable_[8];
 

@@ -109,6 +109,8 @@ RendererGL3::RendererGL3() {
     vertex_position_format_size_ = 0;
     vertex_position_component_count_ = (GXCompCnt)0;
     vertex_color_cur_ = 0;
+    vertex_color_cur_type_[0] = vertex_color_cur_type_[1] = GX_RGBA8;
+    vertex_color_cur_count_[0] = vertex_color_cur_count_[1] = GX_CLR_RGBA;
     vertex_texcoord_cur_ = 0;
     last_mode_ = 0;
     for (int i = 0; i < kNumTextures; i++) {
@@ -190,10 +192,13 @@ void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
 /**
  * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
  * @param color Which color to configure (0 or 1)
+ * @param type GXCompType color format type
  * @param count Color data count (e.g. GX_CLR_RGBA)
  */
-void RendererGL3::VertexColor_SetType(int color, GXCompCnt count) {
+void RendererGL3::VertexColor_SetType(int color, GXCompType type, GXCompCnt count) {
     vertex_color_cur_ = color;
+    vertex_color_cur_type_[color] = type;
+    vertex_color_cur_count_[color] = count;
 }
 
 /**
@@ -359,19 +364,20 @@ void RendererGL3::SetColorMask() {
 
 /// Sets the scissor box
 void RendererGL3::SetScissorBox() {
-    Rect rect;
     const int x_ofs = gp::g_bp_regs.scissor_offset.x * 2 - 342;
     const int y_ofs = gp::g_bp_regs.scissor_offset.y * 2 - 342;
 
-    GLint x = CLAMP((gp::g_bp_regs.scissor_top_left.x - x_ofs - 342), 0, 640);
-    GLint y = CLAMP((gp::g_bp_regs.scissor_top_left.y - y_ofs - 342), 0, 480);
-    GLsizei width = CLAMP((gp::g_bp_regs.scissor_bottom_right.x - x_ofs - 341), 0, 640) - rect.x;
-    GLsizei height = CLAMP((gp::g_bp_regs.scissor_bottom_right.y - y_ofs - 341), 0, 480) - rect.y;
+    GLint left = CLAMP((gp::g_bp_regs.scissor_top_left.x - x_ofs - 342), 0, 640);
+    GLint top = CLAMP((gp::g_bp_regs.scissor_top_left.y - y_ofs - 342), 0, 480);
+    GLsizei right = CLAMP((gp::g_bp_regs.scissor_bottom_right.x - x_ofs - 341), 0, 640);
+    GLsizei bottom = CLAMP((gp::g_bp_regs.scissor_bottom_right.y - y_ofs - 341), 0, 480);
 
-    if (rect.x > rect.width) rect.x = rect.width;
-    if (rect.y > rect.height) rect.y = rect.height;
+    if (left > right) left = right;
+    if (top > bottom) top = bottom;
 
-    //glScissor(x, y, width, height); TODO(ShizZy): broken for some games (e.g. SMS), fixme
+    //glScissor(left, top, right-left, bottom-top);
+    // Is this right?? or should it be:
+    //glScissor(left, top, right, bottom);
     glScissor(0, 0, 640, 480);
 }
 
