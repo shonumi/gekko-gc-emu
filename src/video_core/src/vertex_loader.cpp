@@ -116,7 +116,7 @@ static void VertexPosition_I32_XY(u32 addr) {
     vertex_manager::Position_SendFloat((f32*)v);
 }
 
-
+// correct
 static void VertexPosition_D8_XYZ(u32 addr) {
     u8 v[3];
     v[0] = FifoPop8();
@@ -140,6 +140,7 @@ static void VertexPosition_D32_XYZ(u32 addr) {
     vertex_manager::Position_SendFloat((f32*)v);
 }
 
+// Correct
 static void VertexPosition_I8_XYZ(u32 addr) {
     u8 v[3];
 
@@ -299,6 +300,39 @@ static void VertexNormal_D32_3(u32 addr) {
     FifoPop32();
 }
 
+static void VertexNormal_D8_9(u32 addr) {
+    // TODO(ShizZy): ImplementMe
+    FifoPop24();
+    FifoPop24();
+    FifoPop24();
+}
+
+static void VertexNormal_D16_9(u32 addr) {
+    // TODO(ShizZy): ImplementMe
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+    FifoPop16();
+}
+
+static void VertexNormal_D32_9(u32 addr) {
+    // TODO(ShizZy): ImplementMe
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+    FifoPop32();
+}
+
 static void VertexNormal_I8_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
 }
@@ -311,21 +345,33 @@ static void VertexNormal_I32_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
 }
 
+static void VertexNormal_I8_9(u32 addr) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexNormal_I16_9(u32 addr) {
+    // TODO(ShizZy): ImplementMe
+}
+
+static void VertexNormal_I32_9(u32 addr) {
+    // TODO(ShizZy): ImplementMe
+}
+
 
 // TODO(ShizZy): Decoding 9 normals.... needs to be added to this table
 
 VertexLoaderTable LookupNormalDirect[0x10] = {
     VertexNormal_D8_3,  VertexNormal_D8_3,  VertexNormal_D16_3, VertexNormal_D16_3,
     VertexNormal_D32_3, VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,
-    VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,
-    VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk
+    VertexNormal_D8_9,  VertexNormal_D8_9,  VertexNormal_D16_9, VertexNormal_D16_9,
+    VertexNormal_D32_9, VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk
 };
 
 VertexLoaderTable LookupNormalIndexed[0x10] = {
     VertexNormal_I8_3,  VertexNormal_I8_3,  VertexNormal_I16_3, VertexNormal_I16_3,
     VertexNormal_I32_3, VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,
-    VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,
-    VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk
+    VertexNormal_I8_9,  VertexNormal_I8_9,  VertexNormal_I16_9, VertexNormal_I16_9,
+    VertexNormal_I32_9, VertexNormal_Unk,   VertexNormal_Unk,   VertexNormal_Unk
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
