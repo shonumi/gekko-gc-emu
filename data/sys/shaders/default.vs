@@ -2,6 +2,12 @@
 #extension GL_ARB_explicit_attrib_location : enable
 #extension GL_ARB_separate_shader_objects : enable
 
+#define GX_U8       0
+#define GX_S8       1
+#define GX_U16      2
+#define GX_S16      3
+#define GX_F32      4
+    
 #define GX_RGB565   0
 #define GX_RGB8     1
 #define GX_RGBX8    2
@@ -27,6 +33,7 @@ uniform vec4 xf_modelview_vectors[3];
 uniform vec4 xf_position_vectors[64];
 
 // CP memory
+uniform int pos_format;
 uniform int col0_format;
 uniform int col1_format;
 uniform int cp_pos_shift;
@@ -57,10 +64,17 @@ void main() {
                                           xf_modelview_vectors[1],
                                           xf_modelview_vectors[2]);
     }
-    gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz * cp_pos_dqf, 1.0);
+    
+    // Position shift (dequantization factor) only applicable to U8/S8/U16/S16 formats
+    if (pos_format != GX_F32) { 
+        gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz * cp_pos_dqf, 1.0);
+    } else {
+        gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
+    }
+    
     vertexTexCoord0 = texcoord0.st * cp_tex_dqf_0;
     
-    
+    // Vertex color 0 decoding (this should be 100% correct)
     switch (col0_format) {
     case GX_RGB565:
         vertexColor.r = float(int(color0[1]) >> 3) / 32.0f;
@@ -96,7 +110,7 @@ void main() {
         break;
         
     default:
-        vertexColor = vec4(1.0, 0.0, 1.0, 1.0);
+        vertexColor = vec4(1.0, 1.0, 1.0, 1.0);
         break;
     }
 }

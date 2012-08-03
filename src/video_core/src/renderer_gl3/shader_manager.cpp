@@ -63,20 +63,23 @@ GLuint GetCurrentShaderID() {
 
 /// Updates the uniform values for the current shader
 void UpdateUniforms() {
+
     // Projection matrix (already converted to GL4x4 format)
     glUniformMatrix4fv(glGetUniformLocation(g_current_shader_id, "projection_matrix"), 1, 
         GL_FALSE, gp::g_projection_matrix);
 
     // XF - modelview matrix, raw ODE4x3 format (3 vec4's)
-    f32* modelview = (f32*)&gp::g_tf_mem[(gp::g_cp_regs.matrix_index_a.pos_normal_midx * 4)];
+    f32* modelview = (f32*)&gp::g_xf_mem[(gp::g_cp_regs.matrix_index_a.pos_normal_midx * 4)];
     glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_modelview_vectors"), 3, modelview);
 
     // XF - positition matrices
     if (VCD_PMIDX) {
         glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_position_vectors"), 
-            gp::kXFMemEntriesNum, (f32*)gp::g_tf_mem);
+            gp::kXFMemEntriesNum, (f32*)gp::g_xf_mem);
     }
-    // CP - Vertex color formats
+    // CP - Vertex formats
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "pos_format"), 
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format);
     glUniform1i(glGetUniformLocation(g_current_shader_id, "col0_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format);
     glUniform1i(glGetUniformLocation(g_current_shader_id, "col1_format"), 
