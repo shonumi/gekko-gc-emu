@@ -126,8 +126,6 @@ RendererGL3::RendererGL3() {
     gl_prim_type_ = 0;
 }
 
-GLsync g_prim_sync;
-
 /**
  * @brief Begin renderering of a primitive
  * @param prim Primitive type (e.g. GX_TRIANGLES)
