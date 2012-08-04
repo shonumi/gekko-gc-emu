@@ -13,6 +13,7 @@ extern u8 tmem[TMEM_SIZE];
 extern u32 texcache[TMEM_SIZE];
 
 void DecodeTexture(u8 format, u32 addr, u16 height, u16 width);
+void TexCacheInit();
 
 } // namespace
 
