@@ -73,7 +73,7 @@ void UpdateUniforms() {
     glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_modelview_vectors"), 3, modelview);
 
     // XF - positition matrices
-    if (VCD_PMIDX) {
+    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
         glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_position_vectors"), 
             gp::kXFMemEntriesNum, (f32*)gp::g_xf_mem);
     }
