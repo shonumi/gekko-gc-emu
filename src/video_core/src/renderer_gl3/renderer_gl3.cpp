@@ -126,6 +126,8 @@ RendererGL3::RendererGL3() {
     gl_prim_type_ = 0;
 }
 
+GLsync g_prim_sync;
+
 /**
  * @brief Begin renderering of a primitive
  * @param prim Primitive type (e.g. GX_TRIANGLES)
@@ -167,9 +169,9 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
     glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
 
     // Map CPU to GPU mem
-    static GLbitfield access_flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | 
+    static GLbitfield access_flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT |
                                      GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
-    *vbo = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, (vbo_offset * sizeof(GXVertex)),
+    *vbo = (GXVertex*)glMapBufferRange(GL_ARRAY_BUFFER, (vbo_offset * sizeof(GXVertex)), 
                                        (count * sizeof(GXVertex)), access_flags);
     if (vbo == NULL) {
         LOG_ERROR(TVIDEO, "Unable to map vertex buffer object to system mem!");
@@ -670,12 +672,6 @@ void RendererGL3::Init() {
     glScissor(0, 0, 640, 480);
     glClearDepth(1.0f);
     
-    if (common::g_config->current_renderer_config().enable_wireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
     GLenum err = glewInit();
     if (GLEW_OK != err) {
         LOG_ERROR(TVIDEO, " Failed to initialize GLEW! Error message: \"%s\". Exiting...", 
