@@ -2,6 +2,8 @@
 // (c) 2005,2008 Gekko Team / Wiimu Project
 
 #include "common.h"
+#include "config.h"
+
 #include "memory.h"
 #include "hw.h"
 #include "hw_gx.h"
@@ -16,11 +18,10 @@
 #include "video/gx_tev.h"
 
 #include "video_core.h"
+#include "bp_mem.h" 
 #include "fifo_player.h"
 
-#ifdef USE_NEW_VIDEO_CORE
 #include "fifo.h"
-#endif
 
 BPMemory bp;
 CPMemory cp;
@@ -277,17 +278,38 @@ void GX_XFLoadIndexed(u8 _n, u16 _index, u8 _length, u16 _addr)
 void EMU_FASTCALL GX_Fifo_Write8(u32 addr, u32 data)
 {
     gp::g_fifo_buffer[gp::g_fifo_write_ptr++] = data;
+    if (!common::g_config->enable_multicore()) {
+        gp::DecodeCommand();
+    }
 }
 
 void EMU_FASTCALL GX_Fifo_Write16(u32 addr, u32 data)
 {
     *(u16*)(gp::g_fifo_buffer + gp::g_fifo_write_ptr) = BSWAP16(data);
     gp::g_fifo_write_ptr += 2;
+    if (!common::g_config->enable_multicore()) {
+        gp::DecodeCommand();
+    }
 }
 
 void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data) {
+    static u8 cmd = FIFO_GET8(0);
+    
     *(u32*)(gp::g_fifo_buffer + gp::g_fifo_write_ptr) = BSWAP32(data);
     gp::g_fifo_write_ptr += 4;
+    
+    /*if ((data == 0x45000002) && ((cmd & 0xf8) == 0x60)) {
+
+        while (!gp::g_frame_finished) {
+        }
+        gp::g_frame_finished = 0;
+        
+        GX_PE_FINISH = 1;
+        PE_Update();
+    }*/
+    if (!common::g_config->enable_multicore()) {
+        gp::DecodeCommand();
+    }
 }
 
 

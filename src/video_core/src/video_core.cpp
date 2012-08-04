@@ -25,6 +25,9 @@
 #include "SDL.h"
 
 #include "common.h"
+#include "config.h"
+
+#include "core.h"
 
 #include "emuwindow/emuwindow_glfw.h"
 
@@ -49,26 +52,31 @@ namespace video_core {
 RendererBase*   g_renderer;         ///< Renderer plugin
 SDL_Thread      *g_video_thread;
 
-int VideoThreadEntry(void* emu_window) {
+int VideoEntry(void* emu_window) {
+
     g_renderer = new RendererGL3();
     g_renderer->SetWindow((EmuWindow*)emu_window);
     g_renderer->Init();
-    gp::DecodeThread(NULL);
 
-    return 0;
+    if (common::g_config->enable_multicore()) {
+        while (core::SYS_RUNNING == core::g_state) {
+            gp::DecodeCommand();
+        }
+    }
+    return E_OK;
 }
 
 /// Start the video core
 void Start(EmuWindow* emu_window) {
-#if SDL_MAJOR_VERSION == 2
-    g_video_thread = SDL_CreateThread(VideoThreadEntry, NULL, emu_window);
-#else
-    g_video_thread = SDL_CreateThread(VideoThreadEntry, emu_window);
-#endif
 
-    if (g_video_thread == NULL) {
-        LOG_ERROR(TVIDEO, "Unable to create thread: %s... Exiting\n", SDL_GetError());
-        exit(1);
+    if (common::g_config->enable_multicore()) {
+        g_video_thread = SDL_CreateThread(VideoEntry, NULL, emu_window);
+        if (g_video_thread == NULL) {
+            LOG_ERROR(TVIDEO, "Unable to create thread: %s... Exiting\n", SDL_GetError());
+            exit(1);
+        }
+    } else {
+        VideoEntry(emu_window);
     }
 }
 

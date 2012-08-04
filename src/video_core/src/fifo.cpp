@@ -186,25 +186,34 @@ static inline void _set_fifo_read_displaylists() {
 	}
 
 // retrieve the size of the next vertex in the fifo
-int GetVertexSize(u8 vat)
+int GetVertexSize()
 {
     u16 size = 0;
     u8 count = 0;
     int i = 0;
 
-    if(VCD_PMIDX) {
-        size += count;
-    }
-
-    for(; i < 8; i++) {
-		if (VCD_TMIDX(i)) {
-			size += count;
-        }
-    }
+    if (g_cp_regs.vcd_lo[0].pos_midx_enable) 
+        size += 1;
+    if (g_cp_regs.vcd_lo[0].tex0_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex1_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex2_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex3_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex4_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex5_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex6_midx_enable)
+	    size += 1;
+    if (g_cp_regs.vcd_lo[0].tex7_midx_enable)
+	    size += 1;
 
     switch(VCD_POS)
     {	
-    case 1: // direct
+    case CP_DIRECT: // direct
         count = VAT_POSCNT + 2;
         switch(VAT_POSFMT)
         {
@@ -215,20 +224,20 @@ int GetVertexSize(u8 vat)
         case 4: size += (4 * count); break; // float
         }
         break;
-    case 2: size+=1; break; // index 8
-    case 3: size+=2; break; // index 16
+    case CP_INDEX8: size+=1; break; // index 8
+    case CP_INDEX16: size+=2; break; // index 16
     }
 
-    switch(VCD_NRM)
+    switch(g_cp_regs.vcd_lo[0].normal)
     {	
-        case 1: size+=kVertexNormalSize[((VAT_NRMCNT << 3) | VAT_NRMFMT)]; break; // direct
-        case 2: size+=1; break; // index 8
-        case 3: size+=2; break; // index 16
+        case CP_DIRECT: size+=kVertexNormalSize[((VAT_NRMCNT << 3) | VAT_NRMFMT)]; break; // direct
+        case CP_INDEX8: size+=1; break; // index 8
+        case CP_INDEX16: size+=2; break; // index 16
     }
 
-    switch(VCD_COL0)
+    switch(g_cp_regs.vcd_lo[0].color0)
     {	
-    case 1: // direct
+    case CP_DIRECT: // direct
         switch(VAT_COL0FMT)
         {
         case 0: size += 2; break; // rgb565
@@ -239,13 +248,13 @@ int GetVertexSize(u8 vat)
         case 5: size += 4; break; // rgba8888
         }
         break;
-    case 2: size+=1; break; // index 8
-    case 3: size+=2; break; // index 16
+    case CP_INDEX8: size+=1; break; // index 8
+    case CP_INDEX16: size+=2; break; // index 16
     }
 
-    switch(VCD_COL1)
+    switch(g_cp_regs.vcd_lo[0].color1)
     {	
-    case 1: // direct
+    case CP_DIRECT: // direct
         switch(VAT_COL1FMT)
         {
         case 0: size += 2; break; // rgb565
@@ -256,8 +265,8 @@ int GetVertexSize(u8 vat)
         case 5: size += 4; break; // rgba8888
         }
         break;
-    case 2: size+=1; break; // index 8
-    case 3: size+=2; break; // index 16
+    case CP_INDEX8: size+=1; break; // index 8
+    case CP_INDEX16: size+=2; break; // index 16
     }
 
 	TEXSIZELOOP(0, VAT_TEX0CNT, VAT_TEX0FMT);
@@ -277,8 +286,6 @@ int GetVertexSize(u8 vat)
 
 bool FifoNextCommandReady() {
     static int last_required_size = -1;
-    u8 cmd = FIFO_GET8(0);
-    u8 vat = cmd & 0x7;
 
     // We haven't started (at the beginning), or something went terrible wrong...
     if (g_fifo_read_ptr == (g_fifo_buffer + g_fifo_write_ptr)) {
@@ -292,8 +299,12 @@ bool FifoNextCommandReady() {
 	    return false;
     }
 
+    // Get current command and vat
+    g_cur_cmd = FIFO_GET8(0);
+    g_cur_vat = g_cur_cmd & 0x7;
+
     // Determine opcode size
-    switch(GP_OPMASK(cmd))
+    switch(GP_OPMASK(g_cur_cmd))
     {
     case 0: // NOP
         last_required_size = -1;
@@ -357,10 +368,10 @@ bool FifoNextCommandReady() {
         return false; 
 
     default: 		
-        if(cmd & 0x80) { // Draw command
+        if(g_cur_cmd & 0x80) { // Draw command
             if(bytes_in_fifo >= 3) {    // See if header exists
                 u16 numverts = FIFO_GET16(1);
-                u16 vertsize = GetVertexSize(vat);
+                u16 vertsize = GetVertexSize();
                 u16 size = 3;
 
                 size += numverts * vertsize;
@@ -416,7 +427,7 @@ GP_OPCODE(LOAD_XF_REG) {
         regs[i] = FifoPop32();
     }
 
-    XFRegisterWrite(length, addr, regs);
+    XFLoad(length, addr, regs);
 }
 
 /// load xf register with data indexed A
@@ -552,48 +563,37 @@ GP_OPCODE(DRAW_POINTS) {
 
 /// Called at end of frame to reset FIFO
 void FifoReset() {
-
-    //g_fifo_write_lock->lock();
     if (g_fifo_write_ptr > FIFO_TAIL_END) {
 
         // Move FIFO to beginning
         g_fifo_write_ptr    = 0;
         g_fifo_read_ptr     = g_fifo_buffer;
+        memset(g_fifo_buffer, 0, FIFO_SIZE);
 
         g_reset_fifo = 0;
     }
 }
 
-/// Thread that sits and waits to decode the FIFO contents
-int DecodeThread(void *unused) {
-    LOG_NOTICE(TGP, "Thread starting...");
-    
-    while (core::SYS_RUNNING == core::g_state) {
-        
-        int bytes_in_fifo = g_fifo_write_ptr - (g_fifo_read_ptr - g_fifo_buffer);
+/// Decodes current FIFO command
+void DecodeCommand() {
 
-        if (bytes_in_fifo < 1) {
-            if (!g_reset_fifo) {
-                continue;
-            }
-        }
+    int bytes_in_fifo = g_fifo_write_ptr - (g_fifo_read_ptr - g_fifo_buffer);
 
-        _ASSERT_MSG(TGP, g_fifo_write_ptr >=  (g_fifo_read_ptr - g_fifo_buffer), 
-            "GP decoding read_ptr > wrote_ptr, this should never happen!");
-        
-        // Get the next GP opcode and decode it
-        if (FifoNextCommandReady()) {
-            
-            g_cur_cmd = FifoPop8();
-            g_cur_vat = g_cur_cmd & 0x7;
-            g_exec_op[GP_OPMASK(g_cur_cmd)]();
+    if (bytes_in_fifo < 1) {
+        if (!g_reset_fifo) {
+            return;
         }
-        
     }
-    LOG_NOTICE(TGP, "Thread closing...");
-    return E_OK;
-}
+    _ASSERT_MSG(TGP, g_fifo_write_ptr >=  (g_fifo_read_ptr - g_fifo_buffer), 
+        "GP decoding read_ptr > wrote_ptr, this should never happen!");
+        
+    // Get the next GP opcode and decode it
+    if (FifoNextCommandReady()) {
+        g_exec_op[GP_OPMASK(FifoPop8())]();
+    }
 
+    return;
+}
 
 
 /// Initialize GP FIFO

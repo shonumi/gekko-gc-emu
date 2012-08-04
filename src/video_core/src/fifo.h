@@ -35,8 +35,8 @@ typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 #define GP_SETOP(n, op)         g_exec_op[n] = (GPFuncPtr)op
 
 // FIFO information
-#define FIFO_SIZE           (64 * 1024 * 1024)          // 64mb
-#define FIFO_TAIL_END       (60 * 1024 * 1024)          // First 60mb of FIFO
+#define FIFO_SIZE           (128 * 1024 * 1024)         // 128mb
+#define FIFO_TAIL_END       (120 * 1024 * 1024)         // First 120mb of FIFO
 #define FIFO_MASK           (FIFO_SIZE - 1)             // Mask
 
 /// Get last byte from FIFO
@@ -112,8 +112,8 @@ static inline void FifoPush32(u32 data) {
 /// Called by CPU core to catch up
 void FifoSynchronize();
 
-/// Thread that sits and waits to decode the FIFO contents
-int DecodeThread(void *unused);
+/// Decodes current FIFO command
+void DecodeCommand();
 
 /// Called at end of frame to reset FIFO
 void FifoReset();
