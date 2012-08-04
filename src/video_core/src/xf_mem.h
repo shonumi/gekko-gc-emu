@@ -58,6 +58,51 @@
 #define XF_TEXTURE_MATRIX47(n)		&*(f32*)&gp::g_tf_mem[(MIDX_TEX47(n) * 4)]
 
 // xf: register reference
+
+#define XF_SIZE                 0x8000
+#define XF_POSMATRICES          0x000
+#define XF_POSMATRICES_END      0x100
+#define XF_NORMALMATRICES       0x400
+#define XF_NORMALMATRICES_END   0x460
+#define XF_POSTMATRICES         0x500
+#define XF_POSTMATRICES_END     0x600
+#define XF_LIGHTS               0x600
+#define XF_LIGHTS_END           0x680
+#define XF_ERROR                0x1000
+#define XF_DIAG                 0x1001
+#define XF_STATE0               0x1002
+#define XF_STATE1               0x1003
+#define XF_CLOCK                0x1004
+#define XF_CLIPDISABLE          0x1005
+#define XF_SETGPMETRIC          0x1006
+#define XF_VTXSPECS             0x1008
+#define XF_SETNUMCHAN           0x1009
+#define XF_SETCHAN0_AMBCOLOR    0x100a
+#define XF_SETCHAN1_AMBCOLOR    0x100b
+#define XF_SETCHAN0_MATCOLOR    0x100c
+#define XF_SETCHAN1_MATCOLOR    0x100d
+#define XF_SETCHAN0_COLOR       0x100e
+#define XF_SETCHAN1_COLOR       0x100f
+#define XF_SETCHAN0_ALPHA       0x1010
+#define XF_SETCHAN1_ALPHA       0x1011
+#define XF_DUALTEX              0x1012
+#define XF_SETMATRIXINDA        0x1018
+#define XF_SETMATRIXINDB        0x1019
+#define XF_SETVIEWPORT          0x101a
+#define XF_SETZSCALE            0x101c
+#define XF_SETZOFFSET           0x101f
+#define XF_SETPROJECTION        0x1020
+#define XF_SETPROJECTIONB       0x1021
+#define XF_SETPROJECTIONC       0x1022
+#define XF_SETPROJECTIOND       0x1023
+#define XF_SETPROJECTIONE       0x1024
+#define XF_SETPROJECTIONF       0x1025
+#define XF_SETPROJECTIONORTHO1  0x1026
+#define XF_SETPROJECTIONORTHO2  0x1027
+#define XF_SETNUMTEXGENS        0x103f
+#define XF_SETTEXMTXINFO        0x1040
+#define XF_SETPOSMTXINFO        0x1050
+
 #define XF_VIEWPORT_SCALE_X			g_xf_regs.mem[0x1a]
 #define XF_VIEWPORT_SCALE_Y			g_xf_regs.mem[0x1b]
 #define XF_VIEWPORT_SCALE_Z			g_xf_regs.mem[0x1c]
@@ -73,6 +118,7 @@
 #define XF_PROJECTION_ORTHOGRAPHIC	g_xf_regs.mem[0x26]
 
 #define XF_ADDR_MASK                0xff00  ///< Mask the base of an xf address
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
@@ -110,44 +156,102 @@ enum XFTexGenType {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // XF Decoding
 
-// XF Num Colors
-typedef struct _XFNumColors{
-	u32 n;
-}XFNumColors;
+/// XF number of colors - 0x1009
+union XFNumColors {
+    struct {
+        u32 num_color_chans : 2;
+    };
+    u32 _u32;
+};
 
-// XF Color
-typedef struct {
-	union{
-		struct{
-			u8 a, b, g, r;
-		};
-		u32 _u32;
-	};
-}XFColorChannel;
+/// XF dual texture transform (enable - for all texcoords)
+union XFDualTexTrans {
+    struct {
+        u32 enabled : 1;
+    };
+    u32 _u32;
+};
 
-// XF Color
-typedef struct {
-	union{
-		struct{
-			unsigned materialsrc : 1;
-			unsigned lightfunc : 1;
-			unsigned light0 : 1;
-			unsigned light1 : 1;
-			unsigned light2 : 1;
-			unsigned light3 : 1;
-			unsigned ambientsrc : 1;
-			unsigned diffuseatten : 1;
-			unsigned attenenable : 1;
-			unsigned attenselect : 1;
-			unsigned light4 : 1;
-			unsigned light5 : 1;
-			unsigned light6 : 1;
-			unsigned light7 : 1;
-			unsigned rid : 18;
-		};
-		u32 _u32;
-	};
-}XFColorControl;
+// XFNumTexGen - 0x103f
+union XFNumTexGen {
+    struct {
+        u32 num_texgens : 4;
+    };
+    u32 _u32;
+};
+
+/// XF color channel
+union XFColorChannel {
+    struct {
+        u8 a, b, g, r;
+    };
+    u32 _u32;
+};
+
+/// XF viewport
+struct XFViewport {
+    f32 wd;
+    f32 ht;
+    f32 z_range;
+    f32 x_orig;
+    f32 y_orig;
+    f32 far_z;
+};
+
+/// INVTXSPEC - 0x1008
+union INVTXSPEC {
+    struct {
+        u32 numcolors   : 2;
+        u32 numnormals  : 2; // 0 - nothing, 1 - just normal, 2 - normals and binormals
+        u32 numtextures : 4;
+        u32 unused  : 24;
+    };
+    u32 _u32;
+};
+
+/// XF lighting channel
+union XFLitChannel {
+    struct {
+        u32 material_src    : 1;
+        u32 enable_lighting : 1;
+        u32 light_mask_0_3  : 4;
+        u32 ambsource       : 1;
+        u32 diffuse_func    : 2; 
+        u32 attn_func       : 2;
+        u32 light_mask_4_7  : 4;
+    };
+    u32 unused              : 32;
+    struct  {
+        u32 dummy0          : 7;
+        u32 light_params    : 4;
+        u32 dummy1          : 21;
+    };
+    unsigned int get_light_mask() const {
+        return enable_lighting ? (light_mask_0_3 | (light_mask_4_7 << 4)) : 0;
+    }
+};
+
+union XFTexMtxInfo {
+    struct {
+        u32 unknown             : 1;
+        u32 projection          : 1; ///< XF_TEXPROJ_X
+        u32 input_form          : 2; ///< XF_TEXINPUT_X
+        u32 texgen_type         : 3; ///< XF_TEXGEN_X
+        u32 source_row          : 5; ///< XF_SRCGEOM_X
+        u32 emboss_source_shift : 3; ///< What generated texcoord to use
+        u32 emboss_light_shift  : 3; ///< Light index that is used
+    };
+    u32 _u32;
+};
+
+union XFPostMtxInfo {
+    struct  {
+        u32 index   : 6; // base row of dual transform matrix
+        u32 unused  : 2;
+        u32 normalize : 1; // normalize before send operation
+    };
+    u32 _u32;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // XF constants
@@ -158,37 +262,55 @@ static const int kXFMemEntriesNum   = 64;   ///< Number of entries used in each 
 // XF Registers
 
 /// XF memory uniion
-union XFMemory{
-    struct{
-        u32             pad0[0x9];          ///< Padding - unused
-        XFNumColors     numcolors;          ///< Number of colors
-        XFColorChannel  ambient[0x2];       ///< Ambient color channels
-        XFColorChannel  material[0x2];      ///< Material color channels
-        XFColorControl  colorcontrol[0x2];  ///< Color control
-        u32             pad1[0xf0];         ///< Padding - unused
+union XFMemory {
+    struct {
+        u32             error;                  ///< 0x1000
+        u32             diag;                   ///< 0x1001
+        u32             state_0;                ///< 0x1002
+        u32             state_1;                ///< 0x1003
+        u32             xf_clock;               ///< 0x1004
+        u32             clip_disable;           ///< 0x1005
+        u32             perf0;                  ///< 0x1006
+        u32             perf1;                  ///< 0x1007
+        INVTXSPEC       hostinfo;               ///< 0x1008
+        XFNumColors     num_color_channels;     ///< 0x1009
+        XFColorChannel  ambient[0x2];           ///< 0x100a, 0x100b - Ambient color channels
+        XFColorChannel  material[0x2];          ///< 0x100c, 0x100d - Material color channels
+        XFLitChannel    color[0x2];             ///< 0x100e, 0x100f
+        XFLitChannel    alpha[0x2];             ///< 0x1010, 0x1011
+        XFDualTexTrans  dual_tex_trans;         ///< 0x1012
+        u32             pad1[0x5];              ///< 0x1013-0x1017
+        u32             matrix_index_a;         ///< 0x1018
+        u32             matrix_index_b;         ///< 0x1019
+        XFViewport      viewport;               ///< 0x101a - 0x101f
+        f32             projection_matrix[0x7]; ///< 0x1020 - 0x1026
+        u32             pad2[0x18];             ///< 0x1027 - 0x103e
+        XFNumTexGen     num_texgen;             ///< 0x103f
+        XFTexMtxInfo    texMtxInfo[0x8];        ///< 0x1040 - 0x1047
+        u32             pad3[0x8];              ///< 0x1048 - 0x104f
+        XFPostMtxInfo   postMtxInfo[0x8];       ///< 0x1050 - 0x1057
     };
     u32 mem[0x100];                         ///< Addressable memory
 };
 
-extern u32      g_tf_mem[0x800];            ///< Transformation memory
+extern u32      g_xf_mem[0x800];            ///< Transformation memory
 extern XFMemory g_xf_regs;                  ///< XF registers
 extern f32      g_projection_matrix[16];    ///< Decoded projection matrix
-extern f32      g_position_matrix[16];      ///< Decoded position matrix
-extern f32      g_view_matrix[16];          ///< Decoded view matrix
 
-/*! 
- * \brief Write data into a XF register
- * \param length Length of write (in 32-bit words)
- * \param addr Starting addres to write to
- * \param regs Register data to write
+
+/** 
+ * @brief Write data into a XF memory
+ * @param length Length of write (in 32-bit words)
+ * @param base_addr Starting addres to write to
+ * @param data Register data to write
  */
-void XFRegisterWrite(u16 length, u16 addr, u32* regs);
+void XFLoad(u32 length, u32 base_addr, u32* data);
 
-/*! 
- * \brief Write data into a XF register indexed-form
- * \param n CP index address
- * \param length Length of write (in 32-bit words)
- * \param addr Starting addres to write to
+/**
+ * @brief Write data into a XF register indexed-form
+ * @param n CP index address
+ * @param length Length of write (in 32-bit words)
+ * @param addr Starting addres to write to
  */
 void XFLoadIndexed(u8 n, u16 index, u8 length, u16 addr);
 
