@@ -71,48 +71,54 @@ static void VertexPosition_Unk(u32 addr) {
 }
 
 static void VertexPosition_D8_XY(u32 addr) {
-    u8 v[2];
+    u8 v[3];
     v[0] = FifoPop8();
     v[1] = FifoPop8();
+    v[2] = 0;
     vertex_manager::Position_SendByte(v);
 }
 
 static void VertexPosition_D16_XY(u32 addr) {
-    u16 v[2];
+    u16 v[3];
     v[0] = FifoPop16();
     v[1] = FifoPop16();
+    v[2] = 0;
     vertex_manager::Position_SendShort(v);
 }
 
 static void VertexPosition_D32_XY(u32 addr) {
-    u32 v[2];
+    u32 v[3];
     v[0] = FifoPop32();
     v[1] = FifoPop32();
+    v[2] = 0;
     vertex_manager::Position_SendFloat((f32*)v);
 }
 
 static void VertexPosition_I8_XY(u32 addr) {
-    u8 v[2];
+    u8 v[3];
     u16 data = MemoryRead16(addr);
     v[0] = (u8)((data >> 8) & 0xFF);
     v[1] = (u8)(data & 0xFF);
+    v[2] = 0;
     vertex_manager::Position_SendByte(v);
 }
 
 // correct
 static void VertexPosition_I16_XY(u32 addr) {
-    u16 v[2];
+    u16 v[3];
     u32 data = MemoryRead32(addr);
     v[0] = (data >> 16);
     v[1] = (data & 0xFFFF);
+    v[2] = 0;
     vertex_manager::Position_SendShort(v);
 }
 
 // correct
 static void VertexPosition_I32_XY(u32 addr) {
-    u32 v[2];
+    u32 v[3];
     v[0] = MemoryRead32(addr + 0);
     v[1] = MemoryRead32(addr + 4);
+    v[2] = 0;
     vertex_manager::Position_SendFloat((f32*)v);
 }
 
@@ -283,7 +289,9 @@ static void VertexNormal_Unk(u32 addr) {
 
 static void VertexNormal_D8_3(u32 addr) {
     // TODO(ShizZy): ImplementMe
-    FifoPop24();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
 }
 
 static void VertexNormal_D16_3(u32 addr) {
@@ -302,9 +310,15 @@ static void VertexNormal_D32_3(u32 addr) {
 
 static void VertexNormal_D8_9(u32 addr) {
     // TODO(ShizZy): ImplementMe
-    FifoPop24();
-    FifoPop24();
-    FifoPop24();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
+    FifoPop8();
 }
 
 static void VertexNormal_D16_9(u32 addr) {
