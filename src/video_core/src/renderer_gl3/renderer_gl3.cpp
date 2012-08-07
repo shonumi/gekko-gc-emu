@@ -27,6 +27,7 @@
 
 #include "input_common.h"
 
+#include "video_core.h"
 #include "fifo.h"
 #include "vertex_manager.h"
 #include "vertex_loader.h"
@@ -135,15 +136,9 @@ RendererGL3::RendererGL3() {
  */
 void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset) {
 
-#ifdef USE_GEOMETRY_SHADERS
     // Use geometry shaders to emulate GX_QUADS via GL_LINES_ADJACENCY
     static GLenum gl_types[8] = {GL_LINES_ADJACENCY, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
                                  GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
-#else
-    // Use software to emulate GX_QUADS via GL_TRIANGLES
-    static GLenum gl_types[8] = {GL_TRIANGLES, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
-                                 GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
-#endif
 
     // Beginning of primitive - reset vertex info
     memset(vertex_texcoord_enable_, 0, sizeof(vertex_texcoord_enable_));
@@ -245,7 +240,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     }
         
     // Position matrix index
-    if (VCD_PMIDX) {
+    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
         glEnableVertexAttribArray(8);
         glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(120));
     }
