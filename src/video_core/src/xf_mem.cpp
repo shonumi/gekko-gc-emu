@@ -27,7 +27,6 @@
 #include "common.h"
 #include "memory.h"
 
-#include "video\gx_states.h"
 #include "video_core.h"
 
 #include "bp_mem.h"
@@ -73,28 +72,7 @@ void XFUpdateViewport() {
 }
 
 void XFUpdateProjection() {
-    // Set orthographic mode...
-    /*if(XF_PROJECTION_ORTHOGRAPHIC) { 
-        g_projection_matrix[0] = toFLOAT(XF_PROJECTION_A);
-        g_projection_matrix[5] = toFLOAT(XF_PROJECTION_C);
-        g_projection_matrix[10] = toFLOAT(XF_PROJECTION_E);
-        g_projection_matrix[12] = toFLOAT(XF_PROJECTION_B);
-        g_projection_matrix[13] = toFLOAT(XF_PROJECTION_D);
-        g_projection_matrix[14] = toFLOAT(XF_PROJECTION_F);
-        g_projection_matrix[15] = 1.0f;
-        // Set perspective mode
-    }else{ 
-        g_projection_matrix[0] = toFLOAT(XF_PROJECTION_A);
-        g_projection_matrix[5] = toFLOAT(XF_PROJECTION_C);
-        g_projection_matrix[8] = toFLOAT(XF_PROJECTION_B);
-        g_projection_matrix[9] = toFLOAT(XF_PROJECTION_D);
-        g_projection_matrix[10] = toFLOAT(XF_PROJECTION_E);
-        g_projection_matrix[11] = -1.0f;
-        g_projection_matrix[14] = toFLOAT(XF_PROJECTION_F);
-    }*/
 	t32 mtx[16] = {0};
-
-	//glMatrixMode(GL_PROJECTION);
 
 	// is it orthographic mode...
 	if(XF_PROJECTION_ORTHOGRAPHIC)
@@ -106,7 +84,6 @@ void XFUpdateProjection() {
 		mtx[13]._u32 = XF_PROJECTION_D;
 		mtx[14]._u32 = XF_PROJECTION_F;
 		mtx[15]._f32 = 1.0f;
-		//glLoadMatrixf((f32 *)mtx);
 	// otherwise it is perspective mode
 	}else{ 
 		mtx[0]._u32 = XF_PROJECTION_A;
@@ -116,7 +93,6 @@ void XFUpdateProjection() {
 		mtx[10]._u32 = XF_PROJECTION_E;
 		mtx[11]._f32 = -1.0f;
 		mtx[14]._u32 = XF_PROJECTION_F;
-		//glLoadMatrixf((f32 *)mtx);
 	}
     memcpy(g_projection_matrix, mtx, 16*4);
 }
