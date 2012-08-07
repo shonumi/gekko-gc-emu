@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "memory.h"
 
 #include <GL/glew.h>
 
@@ -47,7 +48,7 @@ BPMemory g_bp_regs; ///< BP memory/registers
 /// Write a BP register
 void BPRegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
-
+    
     // write data to bp memory
     g_bp_regs.mem[addr] = data;
 
@@ -118,14 +119,13 @@ void BPRegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_PE_DRAWDONE: // PE_DONE - draw done
 
-        // Flush vertex buffer
-        vertex_manager::Flush();
-
 	    if (g_bp_regs.mem[0x45] & 0x2) { // enable interrupt
+            // Flush vertex buffer
+            vertex_manager::Flush();
 
+            video_core::g_renderer->SwapBuffers();
             FifoReset();
             GX_PE_FINISH = 1;
-            video_core::g_renderer->SwapBuffers();
         }
         break;
 
@@ -218,7 +218,11 @@ void BPRegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_LOADTLUT0: // TX_LOADTLUT0
     case BP_REG_LOADTLUT1: // TX_LOADTLUT1
-        //gx_states::load_tlut();
+        u32 cnt = ((g_bp_regs.mem[0x65] >> 10) & 0x3ff) << 5;
+	    u32 mem_addr = (g_bp_regs.mem[0x64] & 0x1fffff) << 5;
+	    u32 tlut_addr = (g_bp_regs.mem[0x65] & 0x3ff) << 5;
+
+	    memcpy(&gp::tmem[tlut_addr & TMEM_MASK], &Mem_RAM[mem_addr & RAM_MASK], cnt);
         LOG_DEBUG(TGP, "BP-> TX_LOADTLUTx");
         break;
 
