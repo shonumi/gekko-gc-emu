@@ -5,6 +5,7 @@
 #include "config.h"
 #include "memory.h"
 #include "hw/hw_gx.h"
+#include "bp_mem.h"
 #include "texture_decoder.h"
 #include "renderer_gl3/renderer_gl3.h"
 
@@ -228,9 +229,9 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
     //else 
     //    gx_states::tx_setmode0(0xa0 + (_tx.num - 4));
 
-    u8 pallette_fmt = (bp.mem[0x98] >> 10) & 3;
-    u32 pallette_addr = ((bp.mem[0x98] & 0x3ff) << 5);
-    u16	*pal16 = ((u16*)PTEXTURE_MEM(pallette_addr));
+    u8 pallette_fmt = (gp::g_bp_regs.mem[0x98] >> 10) & 3;
+    u32 pallette_addr = ((gp::g_bp_regs.mem[0x98] & 0x3ff) << 5);
+    u16	*pal16 = ((u16*)&gp::tmem[pallette_addr & TMEM_MASK]);
 
     //printf("TEXTURE %d Width %d Height %d\n", _tx.fmt, _tx.width, _tx.height);
 
@@ -440,65 +441,78 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
     case 8: // c4
     case 9: // c8
         {
-            int width_power_of_2 = 0;
+            int _width = width;
             switch(format)
 		    {
             case 8:
-			    width_power_of_2 = (width + 7) & ~7;
-			    for(y = 0; y < height; y += 8)
-				    for(x = 0; x < width_power_of_2; x += 8)
-					    for(dy = 0; dy < 8; dy++)
-					    {
-						    tmp[width_power_of_2 * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						    tmp[width_power_of_2 * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						    src8++;
+            
+			width = (_width + 7) & ~7;
+			for(y = 0; y < height; y += 8)
+				for(x = 0; x < width; x += 8)
+					for(dy = 0; dy < 8; dy++)
+					{
+						/*could probably do an asm version with
+							movd xmm0, src8
+							punpcklbw xmm0, xmm0
+							movq xmm1, xmm0
+							and xmm1, 0xF000...
+							shift xmm1 >> 4
+							and xmm0, 0x000F...
+							or xmm0, xmm1
+							movq tmp, xmm0
 
-						    tmp[width_power_of_2 * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						    tmp[width_power_of_2 * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						    src8++;
+							or something similar
+						*/
+						tmp[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+						src8++;
 
-						    tmp[width_power_of_2 * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						    tmp[width_power_of_2 * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						    src8++;
+						tmp[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+						src8++;
 
-						    tmp[width_power_of_2 * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						    tmp[width_power_of_2 * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						    src8++;
-					    }
+						tmp[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+						src8++;
 
-			    break;
+						tmp[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+						tmp[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+						src8++;
+					}
 
-            case 9:
-			    width = (width + 7) & ~7;
+			break;
 
-			    for(y = 0; y < height; y += 4)
-				    for(x = 0; x < width_power_of_2; x += 8)
-				    {
-					    *(u32 *)&tmp[width_power_of_2 * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
-					    *(u32 *)&tmp[width_power_of_2 * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
+        case 9:
+			width = (_width + 7) & ~7;
 
-					    *(u32 *)&tmp[width_power_of_2 * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
-					    *(u32 *)&tmp[width_power_of_2 * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
+			for(y = 0; y < height; y += 4)
+				for(x = 0; x < width; x += 8)
+				{
+					*(u32 *)&tmp[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
+					*(u32 *)&tmp[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
 
-					    *(u32 *)&tmp[width_power_of_2 * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
-					    *(u32 *)&tmp[width_power_of_2 * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
+					*(u32 *)&tmp[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
+					*(u32 *)&tmp[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
 
-					    *(u32 *)&tmp[width_power_of_2 * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
-					    *(u32 *)&tmp[width_power_of_2 * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
-					    src8+=32;
-				    }
-			    break;
-		    }
+					*(u32 *)&tmp[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
+					*(u32 *)&tmp[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
 
-		    unpack8(dst8, tmp, width_power_of_2, height, pal16, pallette_fmt, width);
+					*(u32 *)&tmp[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
+					*(u32 *)&tmp[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
+					src8+=32;
+				}
+			break;
+		}
+
+		unpack8(dst8, tmp, width, height, pal16, pallette_fmt, _width);
 
 		    //gluScaleImage(GL_RGBA, _tx.width, _tx.height, GL_UNSIGNED_BYTE, dst8, w, h, GL_UNSIGNED_BYTE, dst);
 
-		    if(pallette_fmt)
+		if(pallette_fmt)
 		    {
 			    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
 		    }else{
-			    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
+			    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
 		    }
         }
         break;
