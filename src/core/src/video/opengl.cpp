@@ -57,6 +57,7 @@ void OPENGL_DrawFramebuffer()
 
 void OPENGL_Initialize()
 {
+    s_render_window->MakeCurrent();
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);				// Black Background
 	glClearDepth(1.0f);									// Depth Buffer Setup
@@ -209,6 +210,7 @@ void OPENGL_Render()
 
 void OPENGL_Create(/*EmuWindow* render_window*/)
 {
+    s_render_window->MakeCurrent();
 	glewInit(); // library
 
 	if (!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader)
