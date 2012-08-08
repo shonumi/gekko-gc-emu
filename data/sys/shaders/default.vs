@@ -84,7 +84,7 @@ void main() {
         break;
         
     case GX_RGB8:
-        vertexColor = vec4(clamp((color0.bgr / 255.0f), 0.0, 1.0), 1.0);
+        vertexColor = vec4(clamp((color0.rgb / 255.0f), 0.0, 1.0), 1.0);
         break;
         
     case GX_RGBX8:
@@ -99,10 +99,10 @@ void main() {
         break;
         
     case GX_RGBA6:
-        vertexColor.r = float(int(color0[2]) >> 2) / 64.0f;
-        vertexColor.g = float(((int(color0[2]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 64.0f;
-        vertexColor.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[0]) >> 6)) / 64.0f;
-        vertexColor.a = float(int(color0[0]) & 0x3F) / 64.0f;
+        vertexColor.r = float(int(color0[0]) >> 2) / 64.0f;
+        vertexColor.g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 64.0f;
+        vertexColor.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 64.0f;
+        vertexColor.a = float(int(color0[2]) & 0x3F) / 64.0f;
         break;
         
     case GX_RGBA8:
