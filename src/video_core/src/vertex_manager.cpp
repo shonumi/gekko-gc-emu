@@ -31,8 +31,6 @@ namespace vertex_manager {
 GXVertex*   g_vbo = NULL;           ///< Pointer to VBO data (when mapped, in GPU mem)
 u32         g_vbo_offset = 0;       ///< Offset into VBO of current vertex writes
 u32         g_vertex_num = 0;       ///< Current vertex number
-u8          g_cur_texcoord_ofs = 0; ///< Current texcoord, 0-7
-u8          g_cur_color_ofs = 0;    ///< Current color, 0-1
 
 /// Begin a primitive
 void BeginPrimitive(GXPrimitive prim, int count) {
@@ -50,8 +48,6 @@ void EndPrimitive() {
 void Flush() {
     g_vbo_offset = 0;
     g_vertex_num = 0;
-    g_cur_texcoord_ofs = 0;
-    g_cur_color_ofs = 0;
 }
 
 /// Initialize the vertex manager
@@ -59,8 +55,6 @@ void Init() {
     g_vbo = NULL;
     g_vbo_offset = 0;
     g_vertex_num = 0;
-    g_cur_texcoord_ofs = 0;
-    g_cur_color_ofs = 0;
     LOG_NOTICE(TGP, "vertex_manager initialized ok");
     return;
 }

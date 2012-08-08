@@ -35,9 +35,6 @@
 #include "cp_mem.h"
 #include "xf_mem.h"
 
-//#undef LOG_DEBUG
-//#define LOG_DEBUG LOG_NOTICE
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
 
@@ -65,6 +62,9 @@ u8 (*FifoPop8)();               ///< Pointer to FIFO 8-bit pop method (DL or FIF
 u16 (*FifoPop16)();             ///< Pointer to FIFO 16-bit pop method (DL or FIFO)   
 u32 (*FifoPop24)();             ///< Pointer to FIFO 24-bit pop method (DL or FIFO)   
 u32 (*FifoPop32)();             ///< Pointer to FIFO 32-bit pop method (DL or FIFO)   
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIFO read/write routines
 
 /**
  * @brief Pop a 8-bit byte off FIFO, increment read pointer
@@ -158,6 +158,7 @@ static inline u32 __displaylist_pop_32() {
     return res;
 }
 
+/// Sets the GP in FIFO read mode
 static inline void _set_fifo_read_normal() {
     FifoPop8  = __fifo_pop_8;
     FifoPop16 = __fifo_pop_16;
@@ -165,231 +166,13 @@ static inline void _set_fifo_read_normal() {
     FifoPop32 = __fifo_pop_32;
 }
 
+/// Sets the GP in display list read mode
 static inline void _set_fifo_read_displaylists() {
     FifoPop8  = __displaylist_pop_8;
     FifoPop16 = __displaylist_pop_16;
     FifoPop24 = __displaylist_pop_24;
     FifoPop32 = __displaylist_pop_32;
 }
-
-/********************************* TEST CODE ***********************************/
-
-// texture coordinate format decoding (size)
-#define TEXSIZELOOP(i, CNT, FMT)							\
-	switch(VCD_TEX(i))										\
-	{														\
-	case 1:													\
-		size+=kVertexTextureSize[((CNT << 3) | FMT)];			\
-		break;												\
-	case 2: size+=1; break;									\
-	case 3: size+=2; break;									\
-	}
-
-// retrieve the size of the next vertex in the fifo
-int GetVertexSize()
-{
-    u16 size = 0;
-    u8 count = 0;
-    int i = 0;
-
-    if (g_cp_regs.vcd_lo[0].pos_midx_enable) 
-        size += 1;
-    if (g_cp_regs.vcd_lo[0].tex0_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex1_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex2_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex3_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex4_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex5_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex6_midx_enable)
-	    size += 1;
-    if (g_cp_regs.vcd_lo[0].tex7_midx_enable)
-	    size += 1;
-
-    switch(VCD_POS)
-    {	
-    case CP_DIRECT: // direct
-        count = VAT_POSCNT + 2;
-        switch(VAT_POSFMT)
-        {
-        case 0: // ubyte
-        case 1: size += (1 * count); break; // byte
-        case 2: // uhalf
-        case 3: size += (2 * count); break; // half
-        case 4: size += (4 * count); break; // float
-        }
-        break;
-    case CP_INDEX8: size+=1; break; // index 8
-    case CP_INDEX16: size+=2; break; // index 16
-    }
-
-    switch(g_cp_regs.vcd_lo[0].normal)
-    {	
-        case CP_DIRECT: size+=kVertexNormalSize[((VAT_NRMCNT << 3) | VAT_NRMFMT)]; break; // direct
-        case CP_INDEX8: size+=1; break; // index 8
-        case CP_INDEX16: size+=2; break; // index 16
-    }
-
-    switch(g_cp_regs.vcd_lo[0].color0)
-    {	
-    case CP_DIRECT: // direct
-        switch(VAT_COL0FMT)
-        {
-        case 0: size += 2; break; // rgb565
-        case 1: size += 3; break; // rgb888
-        case 2: size += 4; break; // rgb888x
-        case 3: size += 2; break; // rgba4444
-        case 4: size += 3; break; // rgba6666
-        case 5: size += 4; break; // rgba8888
-        }
-        break;
-    case CP_INDEX8: size+=1; break; // index 8
-    case CP_INDEX16: size+=2; break; // index 16
-    }
-
-    switch(g_cp_regs.vcd_lo[0].color1)
-    {	
-    case CP_DIRECT: // direct
-        switch(VAT_COL1FMT)
-        {
-        case 0: size += 2; break; // rgb565
-        case 1: size += 3; break; // rgb888
-        case 2: size += 4; break; // rgb888x
-        case 3: size += 2; break; // rgba4444
-        case 4: size += 3; break; // rgba6666
-        case 5: size += 4; break; // rgba8888
-        }
-        break;
-    case CP_INDEX8: size+=1; break; // index 8
-    case CP_INDEX16: size+=2; break; // index 16
-    }
-
-	TEXSIZELOOP(0, VAT_TEX0CNT, VAT_TEX0FMT);
-	TEXSIZELOOP(1, VAT_TEX1CNT, VAT_TEX1FMT);
-	TEXSIZELOOP(2, VAT_TEX2CNT, VAT_TEX2FMT);
-	TEXSIZELOOP(3, VAT_TEX3CNT, VAT_TEX3FMT);
-	TEXSIZELOOP(4, VAT_TEX4CNT, VAT_TEX4FMT);
-	TEXSIZELOOP(5, VAT_TEX5CNT, VAT_TEX5FMT);
-	TEXSIZELOOP(6, VAT_TEX6CNT, VAT_TEX6FMT);
-	TEXSIZELOOP(7, VAT_TEX7CNT, VAT_TEX7FMT);
-
-    return size;
-}
-
-/******************************************************************************/
-
-
-bool FifoNextCommandReady() {
-    static int last_required_size = -1;
-
-    // We haven't started (at the beginning), or something went terrible wrong...
-    if (g_fifo_read_ptr == (g_fifo_buffer + g_fifo_write_ptr)) {
-        return false;
-    }
-    // Otherwise, read_ptr < write_ptr:
-    uintptr_t bytes_in_fifo = (g_fifo_buffer + g_fifo_write_ptr) - g_fifo_read_ptr;
-
-    // Last size still right...
-	if ((last_required_size != -1) && (last_required_size > (s32)bytes_in_fifo)) {
-	    return false;
-    }
-
-    // Get current command and vat
-    g_cur_cmd = FIFO_GET8(0);
-    g_cur_vat = g_cur_cmd & 0x7;
-
-    // Determine opcode size
-    switch(GP_OPMASK(g_cur_cmd))
-    {
-    case 0: // NOP
-        last_required_size = -1;
-        return true;
-    
-    case 1: // LOAD_CP
-        if(bytes_in_fifo >= 6) {
-            last_required_size = -1;
-            return true;
-        }
-        last_required_size = 6;
-        break; 
-    
-    case 2: // LOAD XF
-        if (bytes_in_fifo >= 5) { // if header is present
-            u32 temp = FIFO_GET32(1);
-	        u16 size  = 4 * ((temp >> 16) + 1);
-            size += 5;
-            if(bytes_in_fifo >= size)
-            {
-                last_required_size = -1;
-                return true;
-            }
-            else {
-                last_required_size = size;
-            }
-        } else {
-            last_required_size = 5;
-        }
-        break;
-
-    case 4: // LOAD IDX A
-    case 5: // " B
-    case 6: // " C 
-    case 7: // " D
-        if (bytes_in_fifo >= 5) {
-            last_required_size = -1;
-            return true;
-        }
-        last_required_size = 5;
-        break; 
-
-    case 8: // CALL_DL
-        if (bytes_in_fifo >= 9) {
-            last_required_size = -1;
-            return true;
-        }
-        last_required_size = 9;
-        break; 
-
-    case 9: // INVALID_VTX_CACHE
-        last_required_size = -1;
-        return true;
-
-    case 0xC: // LOAD BP
-        if (bytes_in_fifo >= 5) {
-            last_required_size = -1;
-            return true;
-        }
-        last_required_size = 5;
-        return false; 
-
-    default: 		
-        if(g_cur_cmd & 0x80) { // Draw command
-            if(bytes_in_fifo >= 3) {    // See if header exists
-                u16 numverts = FIFO_GET16(1);
-                u16 vertsize = GetVertexSize();
-                u16 size = 3;
-
-                size += numverts * vertsize;
-                if(bytes_in_fifo >= size) {
-                    last_required_size = -1;
-                    return true;
-                } else {
-                    last_required_size = size;
-                }
-            } else {
-                last_required_size = 3;
-            }
-        }
-        return false;
-    }
-    return false;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor Instructions
@@ -516,49 +299,159 @@ GP_OPCODE(LOAD_BP_REG) {
 GP_OPCODE(DRAW_QUADS) {
 	u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_QUADS: count=%04x", count);
-	DecodePrimitive(GX_QUADS, count);
+	vertex_loader::DecodePrimitive(GX_QUADS, count);
 }
 
 /// draw a primitive - triangles
 GP_OPCODE(DRAW_TRIANGLES) {
 	u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_TRIANGLES: count=%04x", count);
-    DecodePrimitive(GX_TRIANGLES, count);
+    vertex_loader::DecodePrimitive(GX_TRIANGLES, count);
 }
 
 /// draw a primitive - trianglestrip
 GP_OPCODE(DRAW_TRIANGLESTRIP) {
 	u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_TRIANGLESTRIP: count=%04x", count);
-	DecodePrimitive(GX_TRIANGLESTRIP, count);
+	vertex_loader::DecodePrimitive(GX_TRIANGLESTRIP, count);
 }
 
 /// draw a primitive - trianglefan
 GP_OPCODE(DRAW_TRIANGLEFAN) {
 	u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_TRIANGLEFAN: count=%04x", count);
-	DecodePrimitive(GX_TRIANGLEFAN, count);
+	vertex_loader::DecodePrimitive(GX_TRIANGLEFAN, count);
 }
 
 /// draw a primitive - lines
 GP_OPCODE(DRAW_LINES) {
 	u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_LINES: count=%04x", count);
-	DecodePrimitive(GX_LINES, count);
+	vertex_loader::DecodePrimitive(GX_LINES, count);
 }
 
 /// draw a primitive - linestrip
 GP_OPCODE(DRAW_LINESTRIP) {
 	u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_LINESTRIP: count=%04x", count);
-	DecodePrimitive(GX_LINESTRIP, count);
+	vertex_loader::DecodePrimitive(GX_LINESTRIP, count);
 }
 
 /// draw a primitive - points
 GP_OPCODE(DRAW_POINTS) {
     u16 count = FifoPop16();
     LOG_DEBUG(TGP, "\t\tDRAW_POINTS: count=%04x", count);
-	DecodePrimitive(GX_POINTS, count);
+	vertex_loader::DecodePrimitive(GX_POINTS, count);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIFO flow control
+
+/// Returns true if the current command in the FIFO is ready to be decoded
+bool FifoNextCommandReady() {
+    static int last_required_size = -1;
+
+    // We haven't started (at the beginning), or something went terrible wrong...
+    if (g_fifo_read_ptr == (g_fifo_buffer + g_fifo_write_ptr)) {
+        return false;
+    }
+    // Otherwise, read_ptr < write_ptr:
+    uintptr_t bytes_in_fifo = (g_fifo_buffer + g_fifo_write_ptr) - g_fifo_read_ptr;
+
+    // Last size still right...
+	if ((last_required_size != -1) && (last_required_size > (s32)bytes_in_fifo)) {
+	    return false;
+    }
+
+    // Get current command and vat
+    g_cur_cmd = FIFO_GET8(0);
+    g_cur_vat = g_cur_cmd & 0x7;
+
+    // Determine opcode size
+    switch(GP_OPMASK(g_cur_cmd))
+    {
+    case 0: // NOP
+        last_required_size = -1;
+        return true;
+    
+    case 1: // LOAD_CP
+        if(bytes_in_fifo >= 6) {
+            last_required_size = -1;
+            return true;
+        }
+        last_required_size = 6;
+        break; 
+    
+    case 2: // LOAD XF
+        if (bytes_in_fifo >= 5) { // if header is present
+            u32 temp = FIFO_GET32(1);
+	        u16 size  = 4 * ((temp >> 16) + 1);
+            size += 5;
+            if(bytes_in_fifo >= size)
+            {
+                last_required_size = -1;
+                return true;
+            }
+            else {
+                last_required_size = size;
+            }
+        } else {
+            last_required_size = 5;
+        }
+        break;
+
+    case 4: // LOAD IDX A
+    case 5: // " B
+    case 6: // " C 
+    case 7: // " D
+        if (bytes_in_fifo >= 5) {
+            last_required_size = -1;
+            return true;
+        }
+        last_required_size = 5;
+        break; 
+
+    case 8: // CALL_DL
+        if (bytes_in_fifo >= 9) {
+            last_required_size = -1;
+            return true;
+        }
+        last_required_size = 9;
+        break; 
+
+    case 9: // INVALID_VTX_CACHE
+        last_required_size = -1;
+        return true;
+
+    case 0xC: // LOAD BP
+        if (bytes_in_fifo >= 5) {
+            last_required_size = -1;
+            return true;
+        }
+        last_required_size = 5;
+        return false; 
+
+    default: 		
+        if(g_cur_cmd & 0x80) { // Draw command
+            if(bytes_in_fifo >= 3) {    // See if header exists
+                u16 numverts = FIFO_GET16(1);
+                u16 vertsize = vertex_loader::GetVertexSize();
+                u16 size = 3;
+
+                size += numverts * vertsize;
+                if(bytes_in_fifo >= size) {
+                    last_required_size = -1;
+                    return true;
+                } else {
+                    last_required_size = size;
+                }
+            } else {
+                last_required_size = 3;
+            }
+        }
+        return false;
+    }
+    return false;
 }
 
 /// Called at end of frame to reset FIFO
@@ -591,14 +484,11 @@ void DecodeCommand() {
     if (FifoNextCommandReady()) {
         g_exec_op[GP_OPMASK(FifoPop8())]();
     }
-
     return;
 }
 
-
 /// Initialize GP FIFO
 void FifoInit() {
-    
     _set_fifo_read_normal();
 
     // FIFO pointers
@@ -641,8 +531,6 @@ void FifoInit() {
 
 /// Shutdown GP FIFO
 void FifoShutdown() {
-    VertexLoaderShutdown();
 }
-
 
 } // namespace

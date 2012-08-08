@@ -85,7 +85,7 @@ void Init() {
     gp::FifoInit();
     
     vertex_manager::Init();
-    gp::VertexLoaderInit();
+    vertex_loader::Init();
     gp::BPInit();
     gp::CPInit();
     gp::XFInit();
@@ -96,6 +96,7 @@ void Init() {
 /// Shutdown the video core
 void Shutdown() {
     gp::FifoShutdown();
+    vertex_loader::Shutdown();
 }
 
 } // namespace
