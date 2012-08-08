@@ -322,14 +322,14 @@ static const u8 kVertexPositionSize[16] = {
 
 /// size (in bytes) of color format
 static const u8 kVertexColorSize[16] = {
-    2,  3,  4,  0,  0,  0,  0,  0,  // col rgb
-    0,  0,  0,  2,  3,  4,  0,  0   // col rgba
+    2,  3,  4,  2,  3,  4,  0,  0,  // col rgb
+    2,  3,  4,  2,  3,  4,  0,  0   // col rgba
 };
 
 /// size (in bytes) of normal format
 static const u8 kVertexNormalSize[16] = {
-    0,  3,  0,  6,  12, 0,  0,  0,  // three nrms
-    0,  9,  0,  18, 36, 0,  0,  0   // nine nrms
+    3,  3,  6,  6,  12, 0,  0,  0,  // three nrms
+    9,  9,  18, 18, 36, 0,  0,  0   // nine nrms
 };
 
 /// size (in bytes) of texture format
@@ -337,7 +337,6 @@ static const u8 kVertexTextureSize[16] = {
     1,  1,  2,  2,  4,  0,  0,  0,  // one coord s
     2,  2,  4,  4,  8,  0,  0,  0   // two coords st
 };
-
 
 #define CP_VCD_LO(idx)					gp::g_cp_regs.mem[0x50 + idx]
 #define CP_VCD_HI(idx)					gp::g_cp_regs.mem[0x60 + idx]
