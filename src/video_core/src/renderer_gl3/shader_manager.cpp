@@ -36,20 +36,14 @@
 namespace shader_manager {
 
 GLuint g_current_shader_id;       ///< Handle to current shader program
-
-GLuint shader_default_id;       ///< Handle to default shader program
-GLuint shader_default_quads_id; ///< Handle to default quads shader program
+GLuint g_shader_default_id;       ///< Handle to default shader program
 
 /**
- * @brief Sets the primitive type for shader use
- * @param type GXPrimitive type of current primitive
+ * @brief Sets the current shader program
+ * @param shader_id Shader program to use
  */
-void SetPrimitive(GXPrimitive type) {
-    if (type == GX_QUADS) {
-        g_current_shader_id = shader_default_quads_id;
-    } else {
-        g_current_shader_id = shader_default_id;
-    }
+void SetShader(GLuint shader_id) {
+    g_current_shader_id = g_shader_default_id;
     glUseProgram(g_current_shader_id);
 }
 
@@ -61,6 +55,8 @@ GLuint GetCurrentShaderID() {
     return g_current_shader_id;
 }
 
+
+
 /// Updates the uniform values for the current shader
 void UpdateUniforms() {
 
@@ -68,21 +64,16 @@ void UpdateUniforms() {
     glUniformMatrix4fv(glGetUniformLocation(g_current_shader_id, "projection_matrix"), 1, 
         GL_FALSE, gp::g_projection_matrix);
 
-    // XF - modelview matrix, raw ODE4x3 format (3 vec4's)
-    f32* modelview = (f32*)&gp::g_xf_mem[(gp::g_cp_regs.matrix_index_a.pos_normal_midx * 4)];
-    glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_modelview_vectors"), 3, modelview);
+    // CP - position matrix index
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_matrix_index"), 
+        gp::g_cp_regs.matrix_index_a.pos_normal_midx);
 
-    // XF - positition matrices
-    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
-        glUniform4fv(glGetUniformLocation(g_current_shader_id, "xf_position_vectors"), 
-            gp::kXFMemEntriesNum, (f32*)gp::g_xf_mem);
-    }
-    // CP - Vertex formats
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "pos_format"), 
+    // CP - vertex formats
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format);
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "col0_format"), 
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_col0_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format);
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "col1_format"), 
+    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_col1_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
 
     // CP - dequantization shift values
@@ -227,11 +218,9 @@ void Init() {
     strcpy_s(fs_filename, MAX_PATH, common::g_config->program_dir());
     strcat_s(fs_filename, MAX_PATH, "sys/shaders/default.fs");
 
-    strcpy_s(fs_quads_filename, MAX_PATH, common::g_config->program_dir());
-    strcat_s(fs_quads_filename, MAX_PATH, "sys/shaders/default_quads.fs");
-
-    shader_default_id = LoadShader(vs_filename, NULL, fs_filename);
-    shader_default_quads_id = LoadShader(vs_filename, gs_filename, fs_quads_filename);
+    g_shader_default_id = LoadShader(vs_filename, NULL, fs_filename);
+    
+    SetShader(g_current_shader_id);
 
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }

@@ -25,7 +25,11 @@
 #include <GL/glew.h>
 
 #include "common.h"
+#include "crc.h"
 #include "memory.h"
+
+#include "renderer_gl3/renderer_gl3.h"
+#include "renderer_gl3/shader_manager.h"
 
 #include "video_core.h"
 
@@ -33,7 +37,7 @@
 #include "cp_mem.h"
 #include "xf_mem.h"
 
-#define XF_VIEWPORT_ZMAX            16777216.0f
+#define XF_VIEWPORT_ZMAX            16777215.0f
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
@@ -43,8 +47,6 @@ namespace gp {
 u32         g_xf_mem[0x800];            ///< Transformation memory
 XFMemory    g_xf_regs;                  ///< XF registers
 f32         g_projection_matrix[16];    ///< Decoded projection matrix
-//f32         g_position_matrix[16];      ///< Decoded position matrix
-//f32         g_view_matrix[16];          ///< Decoded view matrix
 
 void XFUpdateViewport() {
     int scissorXOff = g_bp_regs.scissor_offset.x * 2;
@@ -98,45 +100,23 @@ void XFUpdateProjection() {
 }
 
 void XFLoad(u32 length, u32 base_addr, u32* data) {
-    int i;
 
-    u32 addr = base_addr;
+    // Register write
+    if (base_addr & 0x1000) {
+        u8 addr = (base_addr & 0xff);
+        memcpy(&g_xf_regs.mem[addr], data, length << 2);
 
-    // Write data to xf memory/registers
-    switch((addr & XF_ADDR_MASK) >> 8) {
-    case 0x00:
-    case 0x01:
-    case 0x02:
-    case 0x03: // matrix transformation memory
-    case 0x04: // normal transformation memory
-    case 0x05: // dual texture transformation memory
-    case 0x06: 
-    case 0x07: // light transformation memory
-        for (i = 0; i < length; i++){		
-            ((f32*)g_xf_mem)[addr + i] = toFLOAT(data[i]);
-        }
-        break;
-
-    case 0x10: // registers
-        u8 maddr = (addr & 0xff);
-        for (i = 0; i < length; i++) {
-            g_xf_regs.mem[maddr + i] = data[i];
-        }
-
-        switch(maddr) {
-        case 0x1a:
-        case 0x1b:
-        case 0x1d:
-        case 0x1e:
-        case 0x1f:
+        // Viewport register range
+        if (addr >= 0x1A && addr <= 0x1F) {
             XFUpdateViewport();
-            break;
-
-        case 0x20:
-	        XFUpdateProjection();
-            break;
+        // Projection matrix register range
+        } else if (addr >= 0x20 && addr <= 0x26) {
+            XFUpdateProjection();
         }
-        break;
+
+    // Transformation memory
+    } else if (base_addr < 0x100) {
+        video_core::g_renderer->WriteXF(base_addr, length, data);
     }
 }
 

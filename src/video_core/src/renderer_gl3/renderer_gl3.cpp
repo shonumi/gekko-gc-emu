@@ -128,6 +128,35 @@ RendererGL3::RendererGL3() {
 }
 
 /**
+ * @brief Write data to BP for renderer internal use (e.g. direct to shader)
+ * @param addr BP register address
+ * @param data Value to write to BP register
+ */
+void RendererGL3::WriteBP(u8 addr, u32 data) {
+}
+
+/**
+ * @brief Write data to CP for renderer internal use (e.g. direct to shader)
+ * @param addr CP register address
+ * @param data Value to write to CP register
+ */
+void RendererGL3::WriteCP(u8 addr, u32 data) {
+}
+
+/**
+ * @brief Write data to XF for renderer internal use (e.g. direct to shader)
+ * @param addr XF address
+ * @param length Length (in 32-bit words) to write to XF
+ * @param data Data buffer to write to XF
+ */
+void RendererGL3::WriteXF(u16 addr, int length, u32* data) {
+    static char uniform_name[12];
+    sprintf(uniform_name, "xf_mem[%d]", addr >> 2);
+    glUniform4fv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 
+        length >> 2, (f32*)data);
+}
+
+/**
  * @brief Begin renderering of a primitive
  * @param prim Primitive type (e.g. GX_TRIANGLES)
  * @param count Number of vertices to be drawn (used for appropriate memory management, only)
@@ -137,7 +166,10 @@ RendererGL3::RendererGL3() {
 void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset) {
 
     // Use geometry shaders to emulate GX_QUADS via GL_LINES_ADJACENCY
-    static GLenum gl_types[8] = {GL_LINES_ADJACENCY, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
+    // TODO(ShizZy): GL_QUADS is only suppported in compatibility mode. Emulate this with 
+    // GL_TRIANGLES (faster with only one shader) OR with a geometry shader if we end up with
+    // multiple shaders anyway.
+    static GLenum gl_types[8] = {GL_QUADS, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
                                  GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
 
     // Beginning of primitive - reset vertex info
@@ -151,9 +183,6 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
     if (0 == count) {
         return;
     }
-
-    // Set the shader manager primitive type (only used for geometry shaders)
-    shader_manager::SetPrimitive(prim);
 
     // Update shader manager uniforms
     shader_manager::UpdateUniforms();
@@ -687,4 +716,6 @@ void RendererGL3::Init() {
     shader_manager::Init();
 
     g_raster_font = new RasterFont();
+
+    LOG_NOTICE(TGP, "GL_VERSION: %s\n", glGetString(GL_VERSION));
 }

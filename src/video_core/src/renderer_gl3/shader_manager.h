@@ -25,20 +25,23 @@
 #ifndef VIDEO_CORE_SHADER_BASE_TYPES_H_
 #define VIDEO_CORE_SHADER_BASE_TYPES_H_
 
-#include "renderer_gl3.h"
+#include "renderer_gl3/renderer_gl3.h"
 
 #include "gx_types.h"
 
 namespace shader_manager {
 
+extern GLuint g_current_shader_id;       ///< Handle to current shader program
+extern GLuint g_shader_default_id;       ///< Handle to default shader program
+
 /// Updates the uniform values for the current shader
 void UpdateUniforms();
 
 /**
- * @brief Sets the primitive type for shader use
- * @param type GXPrimitive type of current primitive
+ * @brief Sets the current shader program
+ * @param shader_id Shader program to use
  */
-void SetPrimitive(GXPrimitive type);
+void SetShader(GLuint shader_id);
 
 /**
  * @brief Gets the shader ID of the current shader program
@@ -55,9 +58,6 @@ GLuint GetCurrentShaderID();
  * @return GLuint of new shader program
  */
 GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs);
-
-/// Initializes the default shaders for general use
-void InitDefaults();
 
 /// Initialize the shader manager
 void Init();

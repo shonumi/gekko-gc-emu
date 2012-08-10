@@ -44,6 +44,28 @@ public:
     ~RendererGL3() {};
 
     /**
+     * @brief Write data to BP for renderer internal use (e.g. direct to shader)
+     * @param addr BP register address
+     * @param data Value to write to BP register
+     */
+    void WriteBP(u8 addr, u32 data);
+
+    /**
+     * @brief Write data to CP for renderer internal use (e.g. direct to shader)
+     * @param addr CP register address
+     * @param data Value to write to CP register
+     */
+    void WriteCP(u8 addr, u32 data);
+
+    /**
+     * @brief Write data to XF for renderer internal use (e.g. direct to shader)
+     * @param addr XF address
+     * @param length Length (in 32-bit words) to write to XF
+     * @param data Data buffer to write to XF
+     */
+    void WriteXF(u16 addr, int length, u32* data);
+
+    /**
      * @brief Begin renderering of a primitive
      * @param prim Primitive type (e.g. GX_TRIANGLES)
      * @param count Number of vertices to be drawn (used for appropriate memory management, only)
