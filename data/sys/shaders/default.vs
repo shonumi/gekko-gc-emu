@@ -1,6 +1,7 @@
 #version 150
 #extension GL_ARB_explicit_attrib_location : enable
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_uniform_buffer_object : enable
 
 #define GX_U8       0
 #define GX_S8       1
@@ -28,20 +29,21 @@ layout(location = 8) in vec4 m_idx_a;
 layout(location = 9) in vec4 m_idx_b;
 layout(location = 10) in vec4 m_idx_c;
 
-// XF memory
-uniform vec4 xf_modelview_vectors[3];
-uniform vec4 xf_position_vectors[64];
-
 // CP memory
-uniform int pos_format;
-uniform int col0_format;
-uniform int col1_format;
+uniform int cp_pos_format;
+uniform int cp_col0_format;
+uniform int cp_col1_format;
 uniform int cp_pos_shift;
 uniform int cp_tex_shift_0;
+uniform int cp_pos_matrix_index;
 
 // Vertex shader outputs
 out vec4 vertexColor;
 out vec2 vertexTexCoord0;
+
+// GX memory
+uniform uvec4   bp_mem[0x40];
+uniform vec4    xf_mem[0x40];
 
 mat4 convert_matrix(in vec4 v0, in vec4 v1, in vec4 v2) {
     return mat4(v0[0], v1[0], v2[0], 0.0,
@@ -56,17 +58,17 @@ void main() {
     float cp_tex_dqf_0 = 1.0 / float(1 << cp_tex_shift_0);
     
     if (m_idx_a[0] != 0) {
-        modelview_matrix = convert_matrix(xf_position_vectors[int(m_idx_a[0])],
-                                          xf_position_vectors[int(m_idx_a[0]) + 1],
-                                          xf_position_vectors[int(m_idx_a[0]) + 2]);
+        modelview_matrix = convert_matrix(xf_mem[int(m_idx_a[0])],
+                                          xf_mem[int(m_idx_a[0]) + 1],
+                                          xf_mem[int(m_idx_a[0]) + 2]);
     } else {
-        modelview_matrix = convert_matrix(xf_modelview_vectors[0],
-                                          xf_modelview_vectors[1],
-                                          xf_modelview_vectors[2]);
+        modelview_matrix = convert_matrix(xf_mem[cp_pos_matrix_index],
+                                          xf_mem[cp_pos_matrix_index + 1],
+                                          xf_mem[cp_pos_matrix_index + 2]);
     }
     
     // Position shift (dequantization factor) only applicable to U8/S8/U16/S16 formats
-    if (pos_format != GX_F32) { 
+    if (cp_pos_format != GX_F32) { 
         gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz * cp_pos_dqf, 1.0);
     } else {
         gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
@@ -75,7 +77,7 @@ void main() {
     vertexTexCoord0 = texcoord0.st * cp_tex_dqf_0;
     
     // Vertex color 0 decoding (this should be 100% correct)
-    switch (col0_format) {
+    switch (cp_col0_format) {
     case GX_RGB565:
         vertexColor.r = float(int(color0[1]) >> 3) / 32.0f;
         vertexColor.g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 64.0f;
