@@ -122,9 +122,7 @@ void XFLoad(u32 length, u32 base_addr, u32* data) {
 
 /// Write data into a XF register indexed-form
 void XFLoadIndexed(u8 n, u16 index, u8 length, u16 addr) {
-    for (int i = 0; i < length; i++) {
-        g_xf_mem[addr + i] = Memory_Read32(CP_IDX_ADDR(index, n) + (i * 4));
-    }
+    video_core::g_renderer->WriteXF(addr, length, (u32*)&Mem_RAM[CP_IDX_ADDR(index, n) & RAM_MASK]);
 }
 
 /// Initialize XF
