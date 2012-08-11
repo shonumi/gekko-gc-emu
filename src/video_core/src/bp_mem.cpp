@@ -29,6 +29,8 @@
 
 #include "hw/hw_pe.h"
 
+#include "renderer_gl3/shader_manager.h"
+
 #include "video_core.h"
 #include "vertex_manager.h"
 #include "fifo.h"
@@ -49,10 +51,13 @@ BPMemory g_bp_regs; ///< BP memory/registers
 void BPRegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
     
-    // write data to bp memory
+    // Write data to bp memory
     g_bp_regs.mem[addr] = data;
 
-    // adjust gx globals accordingly
+    // Write to renderer
+    video_core::g_renderer->WriteBP(addr, data);
+
+    // Adjust GX globals accordingly
     switch(addr) {
     case BP_REG_GENMODE: // GEN_MODE
         video_core::g_renderer->SetGenerationMode();
@@ -218,95 +223,16 @@ void BPRegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_LOADTLUT0: // TX_LOADTLUT0
     case BP_REG_LOADTLUT1: // TX_LOADTLUT1
-        u32 cnt = ((g_bp_regs.mem[0x65] >> 10) & 0x3ff) << 5;
-	    u32 mem_addr = (g_bp_regs.mem[0x64] & 0x1fffff) << 5;
-	    u32 tlut_addr = (g_bp_regs.mem[0x65] & 0x3ff) << 5;
+        {
+            u32 cnt = ((g_bp_regs.mem[0x65] >> 10) & 0x3ff) << 5;
+	        u32 mem_addr = (g_bp_regs.mem[0x64] & 0x1fffff) << 5;
+	        u32 tlut_addr = (g_bp_regs.mem[0x65] & 0x3ff) << 5;
 
-	    memcpy(&gp::tmem[tlut_addr & TMEM_MASK], &Mem_RAM[mem_addr & RAM_MASK], cnt);
-        LOG_DEBUG(TGP, "BP-> TX_LOADTLUTx");
+	        memcpy(&gp::tmem[tlut_addr & TMEM_MASK], &Mem_RAM[mem_addr & RAM_MASK], cnt);
+            LOG_DEBUG(TGP, "BP-> TX_LOADTLUTx");
+            break;
+        }
         break;
-
-/*
-    case BP_REG_TX_SETMODE0 + 0: // TX_SETMODE0_I0 - Texture lookup and filtering mode
-    case BP_REG_TX_SETMODE0 + 1: // TX_SETMODE0_I1
-    case BP_REG_TX_SETMODE0 + 2: // TX_SETMODE0_I2
-    case BP_REG_TX_SETMODE0 + 3: // TX_SETMODE0_I3
-    case BP_REG_TX_SETMODE0_4 + 0: // TX_SETMODE0_I4
-    case BP_REG_TX_SETMODE0_4 + 1: // TX_SETMODE0_I5
-    case BP_REG_TX_SETMODE0_4 + 2: // TX_SETMODE0_I6
-    case BP_REG_TX_SETMODE0_4 + 3: // TX_SETMODE0_I7
-        //gx_states::tx_setmode0(_addr);
-        LOG_DEBUG(TGP, "BP-> TX_SETMODE0_Ix");
-        break;
-
-    case 0xc0: // TEV_COLOR_ENV_0
-    case 0xc1: // TEV_ALPHA_ENV_0
-    case 0xc2: // TEV_COLOR_ENV_1
-    case 0xc3: // TEV_ALPHA_ENV_1
-    case 0xc4: // TEV_COLOR_ENV_2
-    case 0xc5: // TEV_ALPHA_ENV_2
-    case 0xc6: // TEV_COLOR_ENV_3
-    case 0xc7: // TEV_ALPHA_ENV_3
-    case 0xc8: // TEV_COLOR_ENV_4
-    case 0xc9: // TEV_ALPHA_ENV_4
-    case 0xca: // TEV_COLOR_ENV_5
-    case 0xcb: // TEV_ALPHA_ENV_5
-    case 0xcc: // TEV_COLOR_ENV_6
-    case 0xcd: // TEV_ALPHA_ENV_6
-    case 0xce: // TEV_COLOR_ENV_7
-    case 0xcf: // TEV_ALPHA_ENV_7
-    case 0xd0: // TEV_COLOR_ENV_8
-    case 0xd1: // TEV_ALPHA_ENV_8
-    case 0xd2: // TEV_COLOR_ENV_9
-    case 0xd3: // TEV_ALPHA_ENV_9
-    case 0xd4: // TEV_COLOR_ENV_A
-    case 0xd5: // TEV_ALPHA_ENV_A
-    case 0xd6: // TEV_COLOR_ENV_B
-    case 0xd7: // TEV_ALPHA_ENV_B
-    case 0xd8: // TEV_COLOR_ENV_C
-    case 0xd9: // TEV_ALPHA_ENV_C
-    case 0xda: // TEV_COLOR_ENV_D
-    case 0xdb: // TEV_ALPHA_ENV_D
-    case 0xdc: // TEV_COLOR_ENV_E
-    case 0xdd: // TEV_ALPHA_ENV_E
-    case 0xde: // TEV_COLOR_ENV_F
-    case 0xdf: // TEV_ALPHA_ENV_F
-        //if(gx_tev::combiner[_addr - 0xc0] != _value)
-        //{
-        //	gx_tev::combiner[_addr - 0xc0] = _value;
-        //	gx_tev::set_modifed();
-        //}
-        LOG_DEBUG(TGP, "BP-> TEV_COLOR/ALPHA_ENV_x");
-        break;
-
-    case 0xe0: // TEV_REGISTERL_0
-    case 0xe2: // TEV_REGISTERL_1
-    case 0xe4: // TEV_REGISTERL_2
-    case 0xe6: // TEV_REGISTERL_3
-    case 0xe1: // TEV_REGISTERH_0
-    case 0xe3: // TEV_REGISTERH_1
-    case 0xe5: // TEV_REGISTERH_2
-    case 0xe7: // TEV_REGISTERH_3
-        //gx_tev::upload_color(_addr, _value);
-        LOG_DEBUG(TGP, "BP-> TEV_REGISTERx_x");
-        break;
-
-    case 0xf3: // TEV_ALPHAFUNC
-        //gx_states::set_alphafunc();
-        LOG_DEBUG(TGP, "BP-> TEV_ALPHAFUNC");
-        break;
-
-    case 0xf6: // TEV_KSEL_0
-    case 0xf7: // TEV_KSEL_1
-    case 0xf8: // TEV_KSEL_2
-    case 0xf9: // TEV_KSEL_3
-    case 0xfa: // TEV_KSEL_4
-    case 0xfb: // TEV_KSEL_5
-    case 0xfc: // TEV_KSEL_6
-    case 0xfd: // TEV_KSEL_7
-        //gx_tev::set_modifed();
-        LOG_DEBUG(TGP, "BP-> TEV_KSEL_x");
-        break;*/
     }
 }
 

@@ -150,8 +150,6 @@ struct BPGenMode {
     };
 };
 
-
-
 /// PE Z mode
 struct BPPEZMode {
     union {
