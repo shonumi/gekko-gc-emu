@@ -41,8 +41,7 @@ uniform int cp_pos_matrix_index;
 out vec4 vertexColor;
 out vec2 vertexTexCoord0;
 
-// GX memory
-uniform uvec4   bp_mem[0x40];
+// XF memory
 uniform vec4    xf_mem[0x40];
 
 mat4 convert_matrix(in vec4 v0, in vec4 v1, in vec4 v2) {
