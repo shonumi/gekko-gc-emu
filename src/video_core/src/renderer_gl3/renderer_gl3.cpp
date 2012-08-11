@@ -133,6 +133,9 @@ RendererGL3::RendererGL3() {
  * @param data Value to write to BP register
  */
 void RendererGL3::WriteBP(u8 addr, u32 data) {
+    static char uniform_name[12];
+    sprintf(uniform_name, "bp_mem[%d]", addr);
+    glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), data);
 }
 
 /**
