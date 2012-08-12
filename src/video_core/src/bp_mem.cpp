@@ -47,6 +47,44 @@ namespace gp {
 
 BPMemory g_bp_regs; ///< BP memory/registers
 
+f32						r_cc[4][4];
+f32						r_kc[4][4];
+void UploadColor(u8 addr, u32 value)
+{
+	if(addr & 1) // green/blue
+	{
+		if(!(value >> 23)) // color
+		{
+			// unpack
+			r_cc[(addr - 0xe1) / 2][1] = ((value >> 12) & 0xff) / 255.0f;
+			r_cc[(addr - 0xe1) / 2][2] = ((value >> 0) & 0xff) / 255.0f;
+
+
+
+		}else{ // konstant
+			// unpack
+			r_kc[(addr - 0xe1) / 2][1] = ((value >> 12) & 0xff) / 255.0f;
+			r_kc[(addr - 0xe1) / 2][2] = ((value >> 0) & 0xff) / 255.0f;
+		}
+	}else{ // red/alpha
+		if(!(value >> 23)) // color
+		{
+			// unpack
+			r_cc[(addr - 0xe0) / 2][3] = ((value >> 12) & 0xff) / 255.0f;
+			r_cc[(addr - 0xe0) / 2][0] = ((value >> 0) & 0xff) / 255.0f;
+		}else{ // konstant
+			// unpack
+			r_kc[(addr - 0xe0) / 2][3] = ((value >> 12) & 0xff) / 255.0f;
+			r_kc[(addr - 0xe0) / 2][0] = ((value >> 0) & 0xff) / 255.0f;
+
+			//set_modifed();
+		}
+	}
+
+    glUniform4fv(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_tev_color"), 4, (f32*)r_cc);
+    glUniform4fv(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_tev_konst"), 4, (f32*)r_kc);
+}
+
 /// Write a BP register
 void BPRegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
@@ -233,6 +271,19 @@ void BPRegisterWrite(u8 addr, u32 data) {
             break;
         }
         break;
+
+
+
+	case 0xe0: // TEV_REGISTERL_0
+	case 0xe2: // TEV_REGISTERL_1
+	case 0xe4: // TEV_REGISTERL_2
+	case 0xe6: // TEV_REGISTERL_3
+	case 0xe1: // TEV_REGISTERH_0
+	case 0xe3: // TEV_REGISTERH_1
+	case 0xe5: // TEV_REGISTERH_2
+	case 0xe7: // TEV_REGISTERH_3
+		UploadColor(addr, data);
+		break;
     }
 }
 
