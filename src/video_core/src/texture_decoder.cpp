@@ -141,8 +141,11 @@ static inline void DecodeDtxBlock(const u8 *_src, u32 *_dst, u32 _width) {
 static inline void DecompressDxt1(u32* _dst, const u8* _src, int _width, int _height) {
     u8*	runner = (u8 *)_src;
 
+    //#pragma omp for ordered schedule(dynamic)
     for(int y = 0; y < _height; y += 8) {
         for(int x = 0; x < _width; x += 8) {
+
+            //#pragma omp ordered
             DecodeDtxBlock(runner, &_dst[(y*_width)+x], _width);
             runner += 8;
             DecodeDtxBlock(runner, &_dst[(y*_width)+x+4], _width);
@@ -193,7 +196,7 @@ void unpack8(u8* dst, u8* src, int w, int h, u16* palette, u8 paletteFormat, int
 
 
 void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
-    int	x, y, dx, dy, i = 0, w = width, h = height, j = 0;
+    int	x, y, dx, dy, i = 0, w = width, h = height, j = 0, original_width = width;
     u32 val;
 
     if(!addr) return;
@@ -233,210 +236,232 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
     u32 pallette_addr = ((gp::g_bp_regs.mem[0x98] & 0x3ff) << 5);
     u16	*pal16 = ((u16*)&gp::tmem[pallette_addr & TMEM_MASK]);
 
-    //printf("TEXTURE %d Width %d Height %d\n", _tx.fmt, _tx.width, _tx.height);
+    //printf("TEXTURE %d Width %d Height %d\n", _tx.fmt, original_width, _tx.height);
 
     switch(format) {
     case 0: // i4
         //multiple of 8 for width
-        width = (width + 7) & ~7;
+
+        width = (original_width + 7) & ~7;
+
+        //#pragma omp for ordered schedule(dynamic)
         for(y = 0; y < height; y += 8)
             for(x = 0; x < width; x += 8)
                 for(dy = 0; dy < 8; dy++)
                     for(dx = 0; dx < 8; dx+=2, src8++)
                     {
-                        val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x00010101) | 0xFF000000;
-                        dst32[(width * (y + dy) + x + dx + 1)] = val;
-                        val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x00010101) | 0xFF000000;
-                        dst32[(width * (y + dy) + x + dx)] = val;
-                        /*
-                        dst8[(width * (y + dy) + x + dx + 1) * 4] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
+                        //#pragma omp ordered
+						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x00010101) | 0xFF000000;
+						dst32[(width * (y + dy) + x + dx + 1)] = val;
+						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x00010101) | 0xFF000000;
+						dst32[(width * (y + dy) + x + dx)] = val;
+						/*
+						dst8[(width * (y + dy) + x + dx + 1) * 4] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
                         dst8[(width * (y + dy) + x + dx + 1) * 4 + 1] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
                         dst8[(width * (y + dy) + x + dx + 1) * 4 + 2] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
                         dst8[(width * (y + dy) + x + dx + 1) * 4 + 3] = 0xFF;
-                        dst8[(width * (y + dy) + x + dx) * 4 + 1] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
-                        dst8[(width * (y + dy) + x + dx) * 4] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
+						dst8[(width * (y + dy) + x + dx) * 4 + 1] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
+						dst8[(width * (y + dy) + x + dx) * 4] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
                         dst8[(width * (y + dy) + x + dx) * 4 + 2] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
                         dst8[(width * (y + dy) + x + dx) * 4 + 3] = 0xFF;
-                        */
-                    }
+						*/
+ 					}
 
-                    for(y=0; y < height; y++)
-                        memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+        for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
 
-                    //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-                    break;
+        //gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+
+        break;
 
     case 1: // i8
         //multiple of 8 for width
-        width = (width + 7) & ~7;
+        width = (original_width + 7) & ~7;
 
+        //#pragma omp for ordered schedule(dynamic)
         for(y = 0; y < height; y += 4)
-            for(x = 0; x < width; x += 8)
+            for(x = 0; x < original_width; x += 8)
                 for(dy = 0; dy < 4; dy++)
                     for(dx = 0; dx < 8; dx++)
                     {
-                        val = ((*(u8 *)((uintptr_t)src8 ^ 3)) * 0x00010101) | 0xFF000000;
-                        dst32[(width * (y + dy) + x + dx)] = val;
-                        /*
-                        dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
+                        //#pragma omp ordered
+						val = ((*(u8 *)((uintptr_t)src8 ^ 3)) * 0x00010101) | 0xFF000000;
+						dst32[(width * (y + dy) + x + dx)] = val;
+						/*
+						dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
                         dst8[(width * (y + dy) + x + dx) * 4+1] = *(u8 *)((u32)src8 ^ 3);
                         dst8[(width * (y + dy) + x + dx) * 4+2] = *(u8 *)((u32)src8 ^ 3);
                         dst8[(width * (y + dy) + x + dx) * 4+3] = 0xFF;
-                        */
+						*/
                         src8++;
-                    }
+					}
 
-                    for(y=0; y < height; y++)
-                        memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+        for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
 
-                    //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+        //gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 
-                    break; 
-
+        break;
     case 2: // ia4
         //multiple of 8 for width
-        width = (width + 7) & ~7;
-        for(y = 0; y < height; y += 4)
-            for(x = 0; x < width; x += 8)
-                for(dy = 0; dy < 4; dy++)
-                    for(dx = 0; dx < 8; dx++, src8++)
-                    {
-                        val = ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
-                        dst32[(width * (y + dy) + x + dx)] = val;
+       width = (original_width + 7) & ~7;
 
-                        /*
-                        dst8[(width * (y + dy) + x + dx) * 4] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
-                        dst8[(width * (y + dy) + x + dx) * 4 + 1] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
-                        dst8[(width * (y + dy) + x + dx) * 4 + 2] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
-                        dst8[(width * (y + dy) + x + dx) * 4 + 3] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
-                        */
-                    }
+       //#pragma omp for ordered schedule(dynamic)
+       for(y = 0; y < height; y += 4)
+           for(x = 0; x < width; x += 8)
+               for(dy = 0; dy < 4; dy++)
+                   for(dx = 0; dx < 8; dx++, src8++)
+                   {
+                       //#pragma omp ordered
+						val = ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
+						dst32[(width * (y + dy) + x + dx)] = val;
 
-                    for(y=0; y < height; y++)
-                        memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+						/*
+                       dst8[(width * (y + dy) + x + dx) * 4] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
+                       dst8[(width * (y + dy) + x + dx) * 4 + 1] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
+                       dst8[(width * (y + dy) + x + dx) * 4 + 2] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
+                       dst8[(width * (y + dy) + x + dx) * 4 + 3] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
+						*/
+ 					}
 
-                    gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
+        for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
 
-                    break;
+		gluScaleImage(GL_RGBA, original_width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
+
+		break;
 
     case 3: // ia8
         //multiple of 4 for width
-        width = (width + 3) & ~3;
+        width = (original_width + 3) & ~3;
+
+        //#pragma omp for ordered schedule(dynamic)
         for(y = 0; y < height; y += 4)
             for(x = 0; x < width; x += 4)
                 for(dy = 0; dy < 4; dy++)
                     for(dx = 0; dx < 4; dx++, src8+=2)
-                    {
-                        val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
-                        dst32[(width * (y + dy) + x + dx)] = val;
-                        /*
-                        dst8[(width * (y + dy) + x + dx) * 4 + 3] = *(u8 *)((u32)src8 ^ 3);
-                        src8++;
-                        dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
-                        dst8[(width * (y + dy) + x + dx) * 4 + 1] = *(u8 *)((u32)src8 ^ 3);
+					{
+                        //#pragma omp ordered
+						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
+						dst32[(width * (y + dy) + x + dx)] = val;
+						/*
+						dst8[(width * (y + dy) + x + dx) * 4 + 3] = *(u8 *)((u32)src8 ^ 3);
+						src8++;
+						dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
+						dst8[(width * (y + dy) + x + dx) * 4 + 1] = *(u8 *)((u32)src8 ^ 3);
                         dst8[(width * (y + dy) + x + dx) * 4 + 2] = *(u8 *)((u32)src8 ^ 3);
-                        */
-                    }
+						*/
+					}
 
-                    for(y=0; y < height; y++)
-                        memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+        for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
 
-                    //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 
-                    break;
+		break;
 
     case 4: // rgb565
-        j=0;
-        width = (width + 3) & ~3;
-        for(y = 0; y < height; y += 4)
-            for(x = 0; x < width; x += 4)
-                for(dy = 0; dy < 4; dy++)
-                    for(dx = 0; dx < 4; dx++)
-                    {
-                        // memory is not already swapped.. use this to grab high word first
-                        j ^= 1; 
-                        // decode color
-                        dst32[width * (y + dy) + x + dx] = __decode_col_rgb565((*((u16*)(src16 + j))));
-                        // only increment every other time otherwise you get address doubles
-                        if(!j) src16 += 2; 
-                    }
+		j=0;
+		width = (original_width + 3) & ~3;
 
-                    for(y=0; y < height; y++)
-                        memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+        //#pragma omp for ordered schedule(dynamic)
+		for(y = 0; y < height; y += 4)
+			for(x = 0; x < width; x += 4)
+				for(dy = 0; dy < 4; dy++)
+					for(dx = 0; dx < 4; dx++)
+					{
+                        //#pragma omp ordered
+						// memory is not already swapped.. use this to grab high word first
+						j ^= 1; 
+						// decode color
+						dst32[width * (y + dy) + x + dx] = __decode_col_rgb565((*((u16*)(src16 + j))));
+						// only increment every other time otherwise you get address doubles
+						if(!j) src16 += 2; 
+					}
 
-                    //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-                    break;
+        for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+
+		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+		break;
 
     case 5: // rgb5a3
-        j=0;
-        width = (width + 3) & ~3;
-        for(y = 0; y < height; y += 4)
-            for(x = 0; x < width; x += 4)
-                for(dy = 0; dy < 4; dy++)
-                    for(dx = 0; dx < 4; dx++)
-                    {
-                        // memory is not already swapped.. use this to grab high word first
-                        j ^= 1;
-                        // decode color
-                        dst32[width * (y + dy) + x + dx] = __decode_col_rgb5a3((*((u16*)(src16 + j))));
-                        // only increment every other time otherwise you get address doubles
-                        if(!j) src16 += 2;
-                    }
+		j=0;
+		width = (original_width + 3) & ~3;
 
-                    for(y=0; y < height; y++)
-                        memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+        //#pragma omp for ordered schedule(dynamic)
+		for(y = 0; y < height; y += 4)
+			for(x = 0; x < width; x += 4)
+				for(dy = 0; dy < 4; dy++)
+					for(dx = 0; dx < 4; dx++)
+					{
+                        //#pragma omp ordered
+						// memory is not already swapped.. use this to grab high word first
+						j ^= 1;
+						// decode color
+						dst32[width * (y + dy) + x + dx] = __decode_col_rgb5a3((*((u16*)(src16 + j))));
+						// only increment every other time otherwise you get address doubles
+						if(!j) src16 += 2;
+					}
 
-                    //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+		for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
 
-                    break;
+		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+
+		break;
 
     case 6: // rgba8
-        j=0;
-        width = (width + 3) & ~3;
-        for(y = 0; y < height; y += 4)
-            for(x = 0; x < width; x += 4)
-            {
-                for(dy = 0; dy < 4; dy++)
-                    for(dx = 0; dx < 4; dx++)
-                    {
-                        // memory is not already swapped.. use this to grab high word first
-                        j ^= 1;
-                        // fetch data
-                        dst32[width * (y + dy) + x + dx] = ((*((u16*)(src16 + j))) << 16);
-                        // only increment every other time otherwise you get address doubles
-                        if(!j) src16 += 2;
-                    }
+		j=0;
+		width = (original_width + 3) & ~3;
 
-                    for(dy = 0; dy < 4; dy++)
-                        for(dx = 0; dx < 4; dx++)
-                        {
-                            // memory is not already swapped.. use this to grab high word first
-                            j ^= 1;
-                            // fetch color data
-                            u32 data = dst32[width * (y + dy) + x + dx] | ((*((u16*)(src16 + j))));
-                            // decode color data
-                            dst32[width * (y + dy) + x + dx] = (data & 0xff00ff00) | 
-                                ((data & 0xff0000) >> 16) | 
-                                ((data & 0xff) << 16);
-                            // only increment every other time otherwise you get address doubles
-                            if(!j) src16 += 2;
-                        }
+        //#pragma omp for ordered schedule(dynamic)
+		for(y = 0; y < height; y += 4)
+			for(x = 0; x < width; x += 4)
+			{
+				for(dy = 0; dy < 4; dy++)
+					for(dx = 0; dx < 4; dx++)
+					{
+                        //#pragma omp ordered
+						// memory is not already swapped.. use this to grab high word first
+						j ^= 1;
+						// fetch data
+						dst32[width * (y + dy) + x + dx] = ((*((u16*)(src16 + j))) << 16);
+						// only increment every other time otherwise you get address doubles
+						if(!j) src16 += 2;
+					}
 
-            }
+				for(dy = 0; dy < 4; dy++)
+					for(dx = 0; dx < 4; dx++)
+					{
+                        //#pragma omp ordered
+						// memory is not already swapped.. use this to grab high word first
+						j ^= 1;
+						// fetch color data
+						u32 data = dst32[width * (y + dy) + x + dx] | ((*((u16*)(src16 + j))));
+						// decode color data
+						dst32[width * (y + dy) + x + dx] = (data & 0xff00ff00) | 
+										((data & 0xff0000) >> 16) | 
+										((data & 0xff) << 16);
+						// only increment every other time otherwise you get address doubles
+						if(!j) src16 += 2;
+					}
 
-            for(y=0; y < height; y++)
-                memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+			}
 
-            //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+		for(y=0; y < height; y++)
+            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
 
-            break;
+		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, original_width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+
+		break;
 
     case 8: // c4
     case 9: // c8
@@ -447,8 +472,13 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
             case 8:
             
 			width = (_width + 7) & ~7;
+
+            //#pragma omp for ordered schedule(dynamic)
 			for(y = 0; y < height; y += 8)
 				for(x = 0; x < width; x += 8)
+                   // //#pragma omp parallel for
+
+                    
 					for(dy = 0; dy < 8; dy++)
 					{
 						/*could probably do an asm version with
@@ -463,6 +493,8 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
 
 							or something similar
 						*/
+
+                        //#pragma omp ordered
 						tmp[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
 						tmp[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
 						src8++;
@@ -484,10 +516,15 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
 
         case 9:
 			width = (_width + 7) & ~7;
-
+            //#pragma omp for ordered schedule(dynamic)
 			for(y = 0; y < height; y += 4)
+                ////#pragma omp parallel for
+
+                
 				for(x = 0; x < width; x += 8)
 				{
+
+                    //#pragma omp ordered
 					*(u32 *)&tmp[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
 					*(u32 *)&tmp[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
 
@@ -506,7 +543,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
 
 		unpack8(dst8, tmp, width, height, pal16, pallette_fmt, _width);
 
-		    //gluScaleImage(GL_RGBA, _tx.width, _tx.height, GL_UNSIGNED_BYTE, dst8, w, h, GL_UNSIGNED_BYTE, dst);
+		    //gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, dst8, w, h, GL_UNSIGNED_BYTE, dst);
 
 		if(pallette_fmt)
 		    {
