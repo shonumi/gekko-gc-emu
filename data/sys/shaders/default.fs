@@ -24,6 +24,8 @@
 #define GX_AOP_XOR  2
 #define GX_AOP_XNOR 3
 
+#define GX_TEV_BIAS_COMPARE  3
+
 // Textures
 uniform int tex_enable[8];
 uniform sampler2D texture0;
@@ -121,20 +123,22 @@ bool alpha_compare(in int op, in int value, in int ref) {
     return true;
 }
 
-vec3 tev_stage(in int stage) {
+vec4 tev_stage(in int stage) {
+    
+    // Color op
+    // --------
+    
+    int r_color_env = bp_mem[BP_REG_TEV_COLOR_ENV + (stage << 1)];
 
-    int reg_color_env = bp_mem[BP_REG_TEV_COLOR_ENV + (stage << 1)];
-
-    int bias = (reg_color_env >> 16) & 0x3;
-    int sub = (reg_color_env >> 18) & 0x1;
-    int clamp = (reg_color_env >> 19) & 0x1;
-    int shift = (reg_color_env >> 20) & 0x3;
-    int dest = (reg_color_env >> 22) & 0x3;
+    int c_bias = (r_color_env >> 16) & 0x3;
+    int c_sub = (r_color_env >> 18) & 0x1;
+    int c_clamp = (r_color_env >> 19) & 0x1;
+    int c_shift = (r_color_env >> 20) & 0x3;
+    int c_dest = (r_color_env >> 22) & 0x3;
     int kcsel0 = (bp_mem[BP_REG_TEV_KSEL] >> 4) & 0x1F;
     vec3 konst = tev_kc[kcsel0];
     
-    
-    vec3 tev_cc[16] = {
+    vec3 color_in[16] = {
         g_color[0].rgb,
         g_color[0].aaa,
         g_color[1].rgb,
@@ -153,16 +157,59 @@ vec3 tev_stage(in int stage) {
         vec3(0.0f, 0.0f, 0.0f),
     };
     
-    vec3 cc_d = tev_cc[reg_color_env & 0xF];
-    vec3 cc_c = tev_cc[(reg_color_env >> 4) & 0xF];
-    vec3 cc_b = tev_cc[(reg_color_env >> 8) & 0xF];
-    vec3 cc_a = tev_cc[(reg_color_env >> 12) & 0xF];
+    vec3 cc_d = color_in[r_color_env & 0xF];
+    vec3 cc_c = color_in[(r_color_env >> 4) & 0xF];
+    vec3 cc_b = color_in[(r_color_env >> 8) & 0xF];
+    vec3 cc_a = color_in[(r_color_env >> 12) & 0xF];
     
-    g_color[dest].rgb = tev_scale[shift] * (cc_d + (tev_sub[sub] * (mix(cc_a, cc_b, cc_c) + tev_bias[bias])));
+    g_color[c_dest].rgb = tev_scale[c_shift] * (cc_d + (tev_sub[c_sub] * (mix(cc_a, cc_b, cc_c) + tev_bias[c_bias])));
     
-    if (clamp == 1) g_color[dest].rgb = clamp(g_color[dest].rgb, 0.0, 1.0);
+    if (c_clamp == 1) g_color[c_dest].rgb = clamp(g_color[c_dest].rgb, 0.0, 1.0);
     
-    return g_color[dest].rgb;
+    // Alpha op
+    // --------
+    
+    int r_alpha_env = bp_mem[BP_REG_TEV_ALPHA_ENV + (stage << 1)];
+    
+    int a_bias    = (r_alpha_env >> 16) & 0x3;
+    int a_sub     = (r_alpha_env >> 18) & 0x1;
+    int a_clamp   = (r_alpha_env >> 19) & 0x1;
+    int a_shift   = (r_alpha_env >> 20) & 0x3;
+    int a_dest    = (r_alpha_env >> 22) & 0x3;
+    int kasel0 = (bp_mem[BP_REG_TEV_KSEL] >> 9) & 0x1F;
+    float konst_alpha = tev_kc[kasel0][0];
+    
+    float alpha_in[8] = {
+        g_color[0].a,
+        g_color[1].a,
+        g_color[2].a,
+        g_color[3].a,
+        g_tex.a,
+        vertexColor.a,
+        konst_alpha,
+        0.0
+    };
+
+    float ca_d = alpha_in[(r_alpha_env >> 4) & 0x7];
+    float ca_c = alpha_in[(r_alpha_env >> 7) & 0x7];
+    float ca_b = alpha_in[(r_alpha_env >> 10) & 0x7];
+    float ca_a = alpha_in[(r_alpha_env >> 13) & 0x7];
+    
+    if (a_bias != GX_TEV_BIAS_COMPARE) {
+        // TODO(ShizZy): AlphaOp scale is what makes WW all black - figure out why
+        //g_color[a_dest].a = tev_scale[a_shift] * (ca_d + (tev_sub[a_sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[a_bias])));
+        g_color[a_dest].a = (ca_d + (tev_sub[a_sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[a_bias])));
+    } else {
+        // Implement me ?
+        g_color[a_dest].a = 1.0;
+    }
+    
+    
+    //g_color[a_dest].a = (ca_d + (tev_sub[a_sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[a_bias])));
+    
+    if (a_clamp == 1) g_color[a_dest].a = clamp(g_color[a_dest].a, 0.0, 1.0);
+    
+    return vec4(g_color[c_dest].rgb, g_color[a_dest].a);
 }
 
 void main() {
@@ -173,28 +220,28 @@ void main() {
     } else {
         dest = vertexColor;
     }
-    
+
     // TEV stages
     // ----------
     
     int num_tevstages = ((bp_mem[BP_REG_GENMODE] >> 10) & 0xF) + 1;
 
-    if (num_tevstages > 0) dest.rgb = tev_stage(0);
-    if (num_tevstages > 1) dest.rgb = tev_stage(1);
-    if (num_tevstages > 2) dest.rgb = tev_stage(2);
-    if (num_tevstages > 3) dest.rgb = tev_stage(3);
-    if (num_tevstages > 4) dest.rgb = tev_stage(4);
-    if (num_tevstages > 5) dest.rgb = tev_stage(5);
-    if (num_tevstages > 6) dest.rgb = tev_stage(6);
-    if (num_tevstages > 7) dest.rgb = tev_stage(7);
-    if (num_tevstages > 8) dest.rgb = tev_stage(8);
-    if (num_tevstages > 9) dest.rgb = tev_stage(9);
-    if (num_tevstages > 10) dest.rgb = tev_stage(10);
-    if (num_tevstages > 11) dest.rgb = tev_stage(11);
-    if (num_tevstages > 12) dest.rgb = tev_stage(12);
-    if (num_tevstages > 13) dest.rgb = tev_stage(13);
-    if (num_tevstages > 14) dest.rgb = tev_stage(14);
-    if (num_tevstages > 15) dest.rgb = tev_stage(15);
+    if (num_tevstages > 0)  dest = tev_stage(0);
+    if (num_tevstages > 1)  dest = tev_stage(1);
+    if (num_tevstages > 2)  dest = tev_stage(2);
+    if (num_tevstages > 3)  dest = tev_stage(3);
+    if (num_tevstages > 4)  dest = tev_stage(4);
+    if (num_tevstages > 5)  dest = tev_stage(5);
+    if (num_tevstages > 6)  dest = tev_stage(6);
+    if (num_tevstages > 7)  dest = tev_stage(7);
+    if (num_tevstages > 8)  dest = tev_stage(8);
+    if (num_tevstages > 9)  dest = tev_stage(9);
+    if (num_tevstages > 10) dest = tev_stage(10);
+    if (num_tevstages > 11) dest = tev_stage(11);
+    if (num_tevstages > 12) dest = tev_stage(12);
+    if (num_tevstages > 13) dest = tev_stage(13);
+    if (num_tevstages > 14) dest = tev_stage(14);
+    if (num_tevstages > 15) dest = tev_stage(15);
 
     // Alpha compare
     // -------------
