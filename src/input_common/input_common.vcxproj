@@ -112,12 +112,12 @@
     <ClInclude Include="src\gc_controller.h" />
     <ClInclude Include="src\input_common.h" />
     <ClInclude Include="src\sdl_joypads\sdl_joypads.h" />
-    <ClInclude Include="src\sdl_keys\sdl_keys.h" />
+    <ClInclude Include="src\keyboard_input\keyboard_input.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\input_common.cpp" />
     <ClCompile Include="src\sdl_joypads\sdl_joypads.cpp" />
-    <ClCompile Include="src\sdl_keys\sdl_keys.cpp" />
+    <ClCompile Include="src\keyboard_input\keyboard_input.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

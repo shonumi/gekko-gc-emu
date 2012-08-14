@@ -1,10 +1,10 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * @file    sdl_keys.h
+ * @file    keyboard_input.h
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-03-03
- * @brief   Implementation of a SDL keyboard GC controller interface
+ * @brief   Implementation of a keyboard GC controller interface
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -28,34 +28,40 @@
 #include "common.h"
 #include "input_common.h"
 
+class EmuWindow;
+
 namespace input_common {
 
-class SDLKeys  : virtual public InputBase {
+class KeyboardInput : virtual public InputBase {
 public:
-    SDLKeys() {};
-    ~SDLKeys() {};
+    KeyboardInput(EmuWindow* emu_window);
+    ~KeyboardInput();
 
     bool Init();
     void PollEvent();
     void ShutDown();
 
+    /*!
+     * \brief Sets the controller status from the keyboard (called from EmuWindow)
+     * \param channel Channel of controller to set status of (0-3)
+     * \param key ID of the affected key (frontend specific)
+     * \param state GCController::GCButtonState we're setting
+     * \return True if the key maps to one of the GC pad controls
+     */
+    bool SetControllerStatus(int channel, int key, GCController::GCButtonState state);
+
 private:
     /*!
-     * \brief Sets the controller status from the keyboard using SDL
-     * \param channel Channel of controller to set status of (0-3)
-     * \param key SDL key pressed or released
-     * \param state GCController::GCButtonState we're setting
-     */
-    void SetControllerStatus(int channel, u16 key, GCController::GCButtonState state);
-
-    /*!
-     * \brief Gets the controller status from the keyboard using SDL
+     * \brief Gets the controller status from the keyboard using EmuWindow interfaces
      * \param channel Channel of controller to set status of (0-3)
      * \param key Keboard input that needs to be checked
      */
     GCController::GCButtonState GetControllerStatus(int channel, int key);
 
-    DISALLOW_COPY_AND_ASSIGN(SDLKeys);
+    DISALLOW_COPY_AND_ASSIGN(KeyboardInput);
+
+    // TODO: Probably not necessary
+    EmuWindow* emuwindow_;
 };
 
 } // namepsace

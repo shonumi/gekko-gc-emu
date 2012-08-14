@@ -24,7 +24,7 @@
 
 #include "input_common.h"
 #include "gc_controller.h"
-#include "sdl_keys/sdl_keys.h"
+#include "keyboard_input/keyboard_input.h"
 #include "sdl_joypads/sdl_joypads.h"
 
 namespace input_common {
@@ -32,27 +32,8 @@ namespace input_common {
 GCController*   g_controller_state[4];  ///< GC controller states of all button presses   
 InputBase*      g_user_input;           ///< UserInput plugin pointer         
 
-InputBase::InputBase() {
-}
-
-InputBase::~InputBase() {
-}
-
-bool InputBase::Init() {
-    printf("InputBase::Init()\n");
-    return true;
-}
-
-void InputBase::PollEvent() {
-    printf("InputBase:PollEvent()\n");
-}
-
-void InputBase::ShutDown() {
-    printf("InputBase::ShutDown()\n");
-}
-
 /// Initialize the user input system
-void Init() {
+void Init(EmuWindow* emu_window) {
     for (int i = 0; i < 4; i++) {
         delete g_controller_state[i];
         g_controller_state[i] = new GCController();
@@ -65,7 +46,7 @@ void Init() {
     //If that fails, fallback on keyboard input
     if(!g_user_input->Init()) {
         delete g_user_input;
-        g_user_input = new SDLKeys();
+        g_user_input = new KeyboardInput(emu_window);
         g_user_input->Init();
     }
 }

@@ -95,11 +95,11 @@ void Stop() {
 }
 
 // Initialize the core
-int Init() {
+int Init(EmuWindow* emu_window) {
     logger::Init();
     Memory_Open();          // Init main memory
     Init_CRC32_Table();     // Init CRC table
-    input_common::Init();   // Init user input plugin
+    input_common::Init(emu_window);   // Init user input plugin
 
     if (common::g_config->powerpc_core() == common::Config::CPU_INTERPRETER) {
         delete cpu; // TODO: STUPID!

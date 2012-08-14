@@ -2,8 +2,8 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="src\input_common.h" />
-    <ClInclude Include="src\sdl_keys\sdl_keys.h">
-      <Filter>sdl_keys</Filter>
+    <ClInclude Include="src\keyboard_input\keyboard_input.h">
+      <Filter>keyboard_input</Filter>
     </ClInclude>
     <ClInclude Include="src\gc_controller.h" />
     <ClInclude Include="src\sdl_joypads\sdl_joypads.h">
@@ -11,7 +11,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="sdl_keys">
+    <Filter Include="keyboard_input">
       <UniqueIdentifier>{cad3f576-3a5d-4c44-ac83-4f8a71088a0a}</UniqueIdentifier>
     </Filter>
     <Filter Include="sdl_joypads">
@@ -19,8 +19,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\sdl_keys\sdl_keys.cpp">
-      <Filter>sdl_keys</Filter>
+    <ClCompile Include="src\keyboard_input\keyboard_input.cpp">
+      <Filter>keyboard_input</Filter>
     </ClCompile>
     <ClCompile Include="src\input_common.cpp" />
     <ClCompile Include="src\sdl_joypads\sdl_joypads.cpp">

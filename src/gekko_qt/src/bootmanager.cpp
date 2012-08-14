@@ -1,4 +1,5 @@
 #include <QHBoxLayout>
+#include <QKeyEvent>
 
 #include "common.h"
 #include "video/opengl.h"
@@ -14,6 +15,8 @@
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
 #include "debugger/debugger.h"
+
+#include "keyboard_input/keyboard_input.h"
 
 #include "version.h"
 
@@ -36,7 +39,7 @@ void EmuThread::run()
     u32 tight_loop;
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
-    if (E_OK != core::Init()) {
+    if (E_OK != core::Init(render_window)) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");
         core::Kill();
         exit(1);
@@ -247,3 +250,26 @@ QByteArray GRenderWindow::saveGeometry()
     else
         return geometry;
 }
+
+void GRenderWindow::keyPressEvent(QKeyEvent* event)
+{
+    bool key_processed = false;
+    for (unsigned int channel = 0; channel < 4 && GetControllerInterface(); ++channel)
+        if (GetControllerInterface()->SetControllerStatus(channel, event->key(), input_common::GCController::PRESSED))
+            key_processed = true;
+
+    if (!key_processed)
+        QWidget::keyPressEvent(event);
+}
+
+void GRenderWindow::keyReleaseEvent(QKeyEvent* event)
+{
+    bool key_processed = false;
+    for (unsigned int channel = 0; channel < 4 && GetControllerInterface(); ++channel)
+        if (GetControllerInterface()->SetControllerStatus(channel, event->key(), input_common::GCController::RELEASED))
+            key_processed = true;
+
+    if (!key_processed)
+        QWidget::keyPressEvent(event);
+}
+

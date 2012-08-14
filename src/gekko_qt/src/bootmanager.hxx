@@ -4,6 +4,7 @@
 #include "video/emuwindow.h"
 
 class GRenderWindow;
+class QKeyEvent;
 
 class EmuThread : public QThread
 {
@@ -92,6 +93,9 @@ public:
     QByteArray saveGeometry(); // overridden
 
     EmuThread& GetEmuThread();
+
+    void keyPressEvent(QKeyEvent* event);
+    void keyReleaseEvent(QKeyEvent* event);
 
 private:
     QGLWidget* child;
