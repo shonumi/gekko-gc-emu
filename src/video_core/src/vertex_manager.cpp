@@ -22,7 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#include "renderer_gl3\renderer_gl3.h"
+#include "renderer_gl3/renderer_gl3.h"
 #include "vertex_manager.h"
 #include "video_core.h"
 
