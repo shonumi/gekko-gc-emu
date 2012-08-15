@@ -24,6 +24,15 @@
 
 #include "common.h"
 #include "emuwindow_glfw.h"
+#include "gc_controller.h"
+#include "keyboard_input/keyboard_input.h"
+
+static void OnKeyEvent(GLFWwindow win, int key, int action)
+{
+    EmuWindow_GLFW* emuwin = (EmuWindow_GLFW*)glfwGetWindowUserPointer(win);
+    for (unsigned int channel = 0; channel < 4 && emuwin->GetControllerInterface(); ++channel)
+        emuwin->GetControllerInterface()->SetControllerStatus(channel, key, input_common::GCController::PRESSED);
+}
 
 /// EmuWindow_GLFW constructor
 EmuWindow_GLFW::EmuWindow_GLFW()
@@ -32,11 +41,14 @@ EmuWindow_GLFW::EmuWindow_GLFW()
         LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
         exit(E_ERR);
     }
-    
+
     glfwOpenWindowHint(GLFW_WINDOW_RESIZABLE, GL_FALSE);
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 
     render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko-glfw3", 0);
+    glfwSetWindowUserPointer(render_window_, this);
+    glfwSetKeyCallback(OnKeyEvent);
+
     DoneCurrent();
 }
 
