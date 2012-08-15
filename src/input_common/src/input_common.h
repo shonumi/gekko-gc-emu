@@ -28,16 +28,18 @@
 #include "common.h"
 #include "gc_controller.h"
 
+class EmuWindow;
+
 namespace input_common {
 
 class InputBase {
 public:
-	InputBase();
-	virtual ~InputBase();
+	InputBase() {};
+	virtual ~InputBase() {};
 
-    virtual bool Init();
-    virtual void PollEvent();
-    virtual void ShutDown();
+    virtual bool Init() = 0;
+    virtual void PollEvent() = 0;
+    virtual void ShutDown() = 0;
 
 private:
     DISALLOW_COPY_AND_ASSIGN(InputBase);
@@ -47,7 +49,7 @@ extern GCController*    g_controller_state[4];  ///< Current controller states
 extern InputBase*       g_user_input;           ///< Pointer to the user input plugin we are using
 
 /// Initialize the user input system
-void Init();
+void Init(EmuWindow* emu_window);
  
 } // namespace
 

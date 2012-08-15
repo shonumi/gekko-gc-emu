@@ -1,10 +1,10 @@
 /*!
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * @file    sdl_keys.cpp
+ * @file    keyboard_input.cpp
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-03-03
- * @brief   Implementation of a SDL keyboard GC controller interface
+ * @brief   Implementation of a keyboard GC controller interface
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -29,13 +29,17 @@
 
 #include "input_common.h"
 #include "gc_controller.h"
-#include "sdl_keys.h"
+#include "keyboard_input.h"
+#include "video/emuwindow.h"
 
 namespace input_common {
 
-/// Sets the controller status from the keyboard using SDL
-void SDLKeys::SetControllerStatus(int channel, u16 key,
-        GCController::GCButtonState state) {
+bool KeyboardInput::SetControllerStatus(int channel, int key, GCController::GCButtonState state)
+{
+    if (common::g_config->controller_ports(channel).enable == false ||
+        common::g_config->controller_ports(channel).keys.enable == false)
+        return false;
+
     // Buttons
     if (key == common::g_config->controller_ports(channel).keys.start_key_code) {
         g_controller_state[channel]->set_start_status(state);
@@ -53,7 +57,7 @@ void SDLKeys::SetControllerStatus(int channel, u16 key,
         g_controller_state[channel]->set_r_status(state);
     } else if (key == common::g_config->controller_ports(channel).keys.z_key_code) {
         g_controller_state[channel]->set_z_status(state);
-        
+
     // Analog stick
     } else if (key == common::g_config->controller_ports(channel).keys.analog_up_key_code) {
         g_controller_state[channel]->set_analog_stick_status(GCController::STICK_UP, state);
@@ -83,11 +87,14 @@ void SDLKeys::SetControllerStatus(int channel, u16 key,
         g_controller_state[channel]->set_dpad_status(GCController::STICK_LEFT, state);
     } else if (key == common::g_config->controller_ports(channel).keys.dpad_right_key_code) {
         g_controller_state[channel]->set_dpad_status(GCController::STICK_RIGHT, state);
-    }  
+    } else {
+        return false;
+    }
+
+    return true;
 }
 
-/// Gets the controller status from the keyboard using SDL
-GCController::GCButtonState SDLKeys::GetControllerStatus(int channel, int key) {
+GCController::GCButtonState KeyboardInput::GetControllerStatus(int channel, int key) {
     // Buttons
     if (key == common::g_config->controller_ports(channel).keys.start_key_code) {
         return g_controller_state[channel]->start_status();
@@ -141,33 +148,27 @@ GCController::GCButtonState SDLKeys::GetControllerStatus(int channel, int key) {
     return GCController::GC_CONTROLLER_NULL;   
 }
 
-/// Poll for key presses
-void SDLKeys::PollEvent() {
-    SDL_Event keyevent;
-
-    while (SDL_PollEvent(&keyevent)) {
-        switch(keyevent.type) {
-
-        // Handle controller button press events
-        case SDL_KEYDOWN:
-            SetControllerStatus(0, keyevent.key.keysym.sym, GCController::PRESSED);
-            break;
-        // Handle controller button release events
-        case SDL_KEYUP:
-            SetControllerStatus(0, keyevent.key.keysym.sym, GCController::RELEASED);
-            break;
-        }
-    }
+void KeyboardInput::PollEvent() {
+    // TODO: Obsolete?
 }
 
-void SDLKeys::ShutDown() {
+void KeyboardInput::ShutDown() {
 }
 
-/// Any initialization goes here...
-bool SDLKeys::Init() {
-    LOG_NOTICE(TJOYPAD, "\"SDL keys\" input plugin initialized ok");
+bool KeyboardInput::Init() {
     return true;
 }
+
+KeyboardInput::KeyboardInput(EmuWindow* emu_window) : emuwindow_(emu_window)
+{
+    emuwindow_->SetControllerInterface(this);
+}
+
+KeyboardInput::~KeyboardInput()
+{
+    emuwindow_->SetControllerInterface(NULL);
+}
+
 
 
 } // namespace

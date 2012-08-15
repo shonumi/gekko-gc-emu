@@ -25,7 +25,7 @@
 #include "common.h"
 #include "memory.h"
 
-#include "renderer_gl3\renderer_gl3.h"
+#include "renderer_gl3/renderer_gl3.h"
 
 #include "video_core.h"
 #include "vertex_manager.h"

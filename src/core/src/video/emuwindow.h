@@ -1,7 +1,13 @@
-#include "common.h"
-
 #ifndef __EMUWINDOW_H__
 #define __EMUWINDOW_H__
+
+#include "common.h"
+#include "config.h"
+
+namespace input_common
+{
+class KeyboardInput;
+}
 
 // Abstraction class used to provide an interface between emulation code and the frontend (e.g. SDL, 
 //  QGLWidget, GLFW, etc...)
@@ -32,7 +38,7 @@ public:
     virtual void DoneCurrent() = 0;
 
     /**
-     * @brief gets the window size, used by the renderer to properly scale video output
+     * @brief Gets the window size, used by the renderer to properly scale video output
      * @param width Window width in pixels
      * @param height Window height in pixels
      */
@@ -44,12 +50,22 @@ public:
      */
     virtual void SetConfig(Config config) = 0;
 
+    /**
+     * @brief Called from KeyboardInput constructor to notify EmuWindow about its presence
+     * @param interface Pointer to a running KeyboardInput interface
+     * @todo Should
+     */
+    void SetControllerInterface(input_common::KeyboardInput* interface) { controller_interface_ = interface; }
+    input_common::KeyboardInput* GetControllerInterface() { return controller_interface_; }
+
 protected:
-    EmuWindow() {}
+    EmuWindow() : controller_interface_(NULL) { }
     virtual ~EmuWindow() {}
 
 private:
     Config config_;         ///< Internal configuration
+
+    input_common::KeyboardInput* controller_interface_;
 
     DISALLOW_COPY_AND_ASSIGN(EmuWindow);
 };

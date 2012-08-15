@@ -53,6 +53,7 @@ public:
     };
 
     /// Struct used for defining a keyboard configuration for a GameCube controller
+    /// Reads/Writes from/to members should be atomic
     struct KeyboardController {
         bool enable;                ///< Is the keyboard configation enabled?
         int a_key_code;
@@ -207,7 +208,8 @@ public:
     void set_window_resolution(ResolutionType val) { window_resolution_ = val; }
     void set_fullscreen_resolution(ResolutionType val) { fullscreen_resolution_ = val; }
 
-    ControllerPort controller_ports(int port) { return controller_ports_[port]; }
+    // TODO: Should be const, but pending removal of some gekko_qt hacks
+    /*const */ControllerPort& controller_ports(int port) { return controller_ports_[port]; }
     void set_controller_ports(int port, ControllerPort val) { controller_ports_[port] = val; }
 
     MemSlot mem_slots(int slot) { return mem_slots_[slot]; }

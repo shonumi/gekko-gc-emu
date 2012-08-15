@@ -134,6 +134,22 @@ void GMainWindow::BootGame(const char* filename)
     render_window->DoneCurrent(); // make sure EmuThread can access GL context
     render_window->GetEmuThread().SetFilename(filename);
     render_window->GetEmuThread().start();
+
+    // TODO: Remove this once ppl implement proper controller config
+    // Overrides the configuration from XML (which likely contains SDL-specific keycodes) with proper Qt keybindings
+    common::g_config->controller_ports(0).keys.enable = true;
+    common::g_config->controller_ports(0).keys.a_key_code = Qt::Key_X;
+    common::g_config->controller_ports(0).keys.b_key_code = Qt::Key_Y; // QWERTZ ftw
+    common::g_config->controller_ports(0).keys.x_key_code = Qt::Key_A;
+    common::g_config->controller_ports(0).keys.y_key_code = Qt::Key_S;
+    common::g_config->controller_ports(0).keys.l_key_code = Qt::Key_Q;
+    common::g_config->controller_ports(0).keys.r_key_code = Qt::Key_W;
+    common::g_config->controller_ports(0).keys.start_key_code = Qt::Key_Return;
+    common::g_config->controller_ports(0).keys.analog_left_key_code = Qt::Key_Left;
+    common::g_config->controller_ports(0).keys.analog_right_key_code = Qt::Key_Right;
+    common::g_config->controller_ports(0).keys.analog_up_key_code = Qt::Key_Up;
+    common::g_config->controller_ports(0).keys.analog_down_key_code = Qt::Key_Down;
+
     SetupEmuWindowMode();
     render_window->show();
 }

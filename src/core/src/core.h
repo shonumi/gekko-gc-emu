@@ -71,7 +71,7 @@ void Kill();
 void Stop();
 
 /// Initialize the core
-int Init();
+int Init(EmuWindow* emu_window);
 
 extern common::ConfigManager*   g_config_manager;           ///< Global system configuration manager
 extern SystemState              g_state;                    ///< State of the emulator
