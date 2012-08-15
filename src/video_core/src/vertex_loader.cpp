@@ -424,101 +424,101 @@ int GetVertexSize() {
         break;
     }
     // Texture coordinate 0 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex0_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_tex0()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex0_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_tex0()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 1 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex1_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex1()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex1_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex1()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 2 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex2_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex2()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex2_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex2()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 3 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex3_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex3()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex3_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex3()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 4 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex4_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex4()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex4_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex4()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 5 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex5_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex5()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex5_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex5()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 6 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex6_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex6_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     // Texture coordinate 7 size
-	switch(gp::g_cp_regs.vcd_hi[0].tex7_coord) {
-	case CP_DIRECT:
-		size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7()];
-		break;
-	case CP_INDEX8:
+    switch(gp::g_cp_regs.vcd_hi[0].tex7_coord) {
+    case CP_DIRECT:
+        size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7()];
+        break;
+    case CP_INDEX8:
         size+=1;
         break;
-	case CP_INDEX16:
+    case CP_INDEX16:
         size+=2;
         break;
-	}
+    }
     return size;
 }
 
@@ -558,46 +558,29 @@ void DecodePrimitive(GXPrimitive type, int count) {
     vertex_manager::BeginPrimitive(type, count);
 
     // Decode and apply texture
-	if(gp::g_bp_regs.tevorder[0].get_enable(0))
-	{
-		glActiveTexture(GL_TEXTURE0);
-		gp::LoadTexture(0x94 + 0);
-	}
-	/*if(g_bp_regs.tevorder[1 >> 1].get_enable(1))
-	{
-		glActiveTexture(GL_TEXTURE0 + 1);
-		LoadTexture(0x94 + 1);
-	}
-	if(g_bp_regs.tevorder[2 >> 1].get_enable(2))
-	{
-		glActiveTexture(GL_TEXTURE0 + 2);
-		LoadTexture(0x94 + 2);
-	}
-	if(g_bp_regs.tevorder[3 >> 1].get_enable(3))
-	{
-		glActiveTexture(GL_TEXTURE0 + 3);
-		LoadTexture(0x94 + 3);
-	}
-	if(g_bp_regs.tevorder[4 >> 1].get_enable(4))
-	{
-		glActiveTexture(GL_TEXTURE4 + 0);
-		LoadTexture(0xb4 + 0);
-	}
-	if(g_bp_regs.tevorder[5 >> 1].get_enable(5))
-	{
-		glActiveTexture(GL_TEXTURE4 + 1);
-		LoadTexture(0xb4 + 1);
-	}
-	if(g_bp_regs.tevorder[6 >> 1].get_enable(6))
-	{
-		glActiveTexture(GL_TEXTURE4 + 2);
-		LoadTexture(0xb4 + 2);
-	}
-	if(g_bp_regs.tevorder[7 >> 1].get_enable(7))
-	{
-		glActiveTexture(GL_TEXTURE4 + 3);
-		LoadTexture(0xb4 + 3);
-	}*/
+    /*
+    glActiveTexture(GL_TEXTURE0 + 0);
+    if(gp::g_bp_regs.tevorder[0 >> 1].get_enable(0)) gp::LoadTexture(0);
+    glActiveTexture(GL_TEXTURE0 + 1);
+    if(gp::g_bp_regs.tevorder[1 >> 1].get_enable(1)) gp::LoadTexture(1);
+    glActiveTexture(GL_TEXTURE0 + 2);
+    if(gp::g_bp_regs.tevorder[2 >> 1].get_enable(2)) gp::LoadTexture(2);
+    glActiveTexture(GL_TEXTURE0 + 3);
+    if(gp::g_bp_regs.tevorder[3 >> 1].get_enable(3)) gp::LoadTexture(3);
+    glActiveTexture(GL_TEXTURE0 + 4);
+    if(gp::g_bp_regs.tevorder[4 >> 1].get_enable(4)) gp::LoadTexture(4);
+    glActiveTexture(GL_TEXTURE0 + 5);
+    if(gp::g_bp_regs.tevorder[5 >> 1].get_enable(5)) gp::LoadTexture(5);
+    glActiveTexture(GL_TEXTURE0 + 6);
+    if(gp::g_bp_regs.tevorder[6 >> 1].get_enable(6)) gp::LoadTexture(6);
+    glActiveTexture(GL_TEXTURE0 + 7);
+    if(gp::g_bp_regs.tevorder[7 >> 1].get_enable(7)) gp::LoadTexture(7);
+    */
+
+    for (int i = 0; i < 8; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        gp::LoadTexture(i);
+    }
     // Set renderer types
     video_core::g_renderer->VertexPosition_SetType((GXCompType)vat_a->pos_format,
         (GXCompCnt)vat_a->pos_count);
@@ -710,32 +693,31 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex0_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex0_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_a->get_tex0()](0, &vertex_manager::g_vbo->texcoords[0]);
+                LookupTexCoordDirect[vat_a->get_tex0()](0, &vertex_manager::g_vbo->texcoords[0 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_a->get_tex0()](tex0_base + (gp::FifoPop8() * tex0_stride), 
-                    &vertex_manager::g_vbo->texcoords[0]);
+                    &vertex_manager::g_vbo->texcoords[0 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_a->get_tex0()](tex0_base + (gp::FifoPop16() * tex0_stride),
-                    &vertex_manager::g_vbo->texcoords[0]);
+                    &vertex_manager::g_vbo->texcoords[0 << 1]);
                 break;
             }
         }
-        u32 unused[2];
         // Decode texcoord 1
         if (gp::g_cp_regs.vcd_hi[0].tex1_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex1_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_b->get_tex1()](0, unused);
+                LookupTexCoordDirect[vat_b->get_tex1()](0, &vertex_manager::g_vbo->texcoords[1 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex1()](tex1_base + (gp::FifoPop8() * tex1_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[1 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex1()](tex1_base + (gp::FifoPop16() * tex1_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[1 << 1]);
                 break;
             }
         }
@@ -743,15 +725,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex2_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex2_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_b->get_tex2()](0, unused);
+                LookupTexCoordDirect[vat_b->get_tex2()](0, &vertex_manager::g_vbo->texcoords[2 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex2()](tex2_base + (gp::FifoPop8() * tex2_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[2 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex2()](tex2_base + (gp::FifoPop16() * tex2_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[2 << 1]);
                 break;
             }
         }
@@ -759,15 +741,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex3_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex3_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_b->get_tex3()](0, unused);
+                LookupTexCoordDirect[vat_b->get_tex3()](0, &vertex_manager::g_vbo->texcoords[3 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex3()](tex3_base + (gp::FifoPop8() * tex3_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[3 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex3()](tex3_base + (gp::FifoPop16() * tex3_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[3 << 1]);
                 break;
             }
         }
@@ -775,15 +757,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex4_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex4_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_b->get_tex4()](0, unused);
+                LookupTexCoordDirect[vat_b->get_tex4()](0, &vertex_manager::g_vbo->texcoords[4 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex4()](tex4_base + (gp::FifoPop8() * tex4_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[4 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex4()](tex4_base + (gp::FifoPop16() * tex4_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[4 << 1]);
                 break;
             }
         }
@@ -791,15 +773,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex5_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex5_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_c->get_tex5()](0, unused);
+                LookupTexCoordDirect[vat_c->get_tex5()](0, &vertex_manager::g_vbo->texcoords[5 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_c->get_tex5()](tex5_base + (gp::FifoPop8() * tex5_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[5 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_c->get_tex5()](tex5_base + (gp::FifoPop16() * tex5_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[5 << 1]);
                 break;
             }
         }
@@ -807,15 +789,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex6_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex6_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_c->get_tex6()](0, unused);
+                LookupTexCoordDirect[vat_c->get_tex6()](0, &vertex_manager::g_vbo->texcoords[6 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_c->get_tex6()](tex6_base + (gp::FifoPop8() * tex6_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[6 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_c->get_tex6()](tex6_base + (gp::FifoPop16() * tex6_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[6 << 1]);
                 break;
             }
         }
@@ -823,15 +805,15 @@ void DecodePrimitive(GXPrimitive type, int count) {
         if (gp::g_cp_regs.vcd_hi[0].tex7_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex7_coord) {
             case CP_DIRECT:
-                LookupTexCoordDirect[vat_c->get_tex7()](0, unused);
+                LookupTexCoordDirect[vat_c->get_tex7()](0, &vertex_manager::g_vbo->texcoords[7 << 1]);
                 break;
             case CP_INDEX8:
                 LookupTexCoordIndexed[vat_c->get_tex7()](tex7_base + (gp::FifoPop8() * tex7_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[7 << 1]);
                 break;
             case CP_INDEX16:
                 LookupTexCoordIndexed[vat_c->get_tex7()](tex7_base + (gp::FifoPop16() * tex7_stride),
-                    unused);
+                    &vertex_manager::g_vbo->texcoords[7 << 1]);
                 break;
             }
         }   
