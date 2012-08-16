@@ -67,7 +67,7 @@ int __cdecl main(int argc, char **argv)
 
     EmuWindow_SDL* emu_window = new EmuWindow_SDL;
 
-    if (E_OK != core::Init()) {
+    if (E_OK != core::Init(emu_window)) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");
         core::Kill();
         exit(1);
