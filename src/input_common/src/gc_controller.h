@@ -36,19 +36,19 @@ class GCController {
 public:
 
     /// Used for contoller button state
-    typedef enum {
+    enum GCButtonState {
         GC_CONTROLLER_NULL = 0,     ///< Undefined state
         RELEASED,                   ///< Controller button is pressed
         PRESSED                     ///< COntroller button is released
-    } GCButtonState;
+    };
 
-    typedef enum {
+    enum GCControllerDirection {
         STICK_UP = 0,               ///< Up direction on controller stick/dpad
         STICK_DOWN,                 ///< Down direction on controller stick/dpad
         STICK_LEFT,                 ///< Left direction on controller stick/dpad
         STICK_RIGHT,                ///< Right direction on controller stick/dpad
         NUM_OF_DIRECTIONS           ///< Number of directions - should be last
-    } GCControllerDirection;
+    };
 
     GCController() {
         a_status_ = RELEASED;
