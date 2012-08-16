@@ -52,10 +52,12 @@ public:
 
     /**
      * @brief Called from KeyboardInput constructor to notify EmuWindow about its presence
-     * @param interface Pointer to a running KeyboardInput interface
+     * @param controller_interface Pointer to a running KeyboardInput interface
      * @todo Should
      */
-    void SetControllerInterface(input_common::KeyboardInput* interface) { controller_interface_ = interface; }
+    void SetControllerInterface(input_common::KeyboardInput* controller_interface) { 
+        controller_interface_ = controller_interface;
+    }
     input_common::KeyboardInput* GetControllerInterface() { return controller_interface_; }
 
 protected:
