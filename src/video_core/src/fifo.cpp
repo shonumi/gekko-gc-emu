@@ -454,6 +454,68 @@ bool FifoNextCommandReady() {
     return false;
 }
 
+int FifoGetCommandLength(u8* read_ptr)
+{
+#define GET8(ptr)      (*ptr)
+#define GET16(ptr)     (BSWAP16(*((u16*)(ptr))))
+#define GET32(ptr)     (BSWAP32(*((u32*)(ptr))))
+
+    u8 cmd = *read_ptr++;
+    int command_size = 0;
+
+    switch (GP_OPMASK(cmd))
+    {
+    case 0: // NOP
+    case 9: // INVALID_VTX_CACHE
+//    case GP_OPMASK(GX_CMD_UNKNOWN_METRICS): // TODO 
+        command_size = 1;
+        break;
+
+    case 0xC: // LOAD BP
+        command_size = 5;
+        break;
+
+    case 1: // LOAD_CP
+        command_size = 6;
+        break;
+
+    case 4: // LOAD IDX A
+    case 5: // " B
+    case 6: // " C
+    case 7: // " D
+        command_size = 5;
+        break;
+
+    case 8: // CALL_DL
+        // TODO: return full size?
+        command_size = 9;
+        break;
+
+    case 2: // LOAD XF
+        {
+            command_size = 1 + 4;
+            u32 Cmd2 = GET32(read_ptr);
+            int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+            command_size += transfer_size * 4;
+        }
+        break;
+
+    default:
+        if(g_cur_cmd & 0x80) // Draw command
+        {
+            command_size = 1 + 2;
+            u16 numVertices = GET16(read_ptr);
+            command_size += numVertices * vertex_loader::GetVertexSize();
+        }
+        else
+        {
+            // TODO: Error or sth
+        }
+        break;
+    }
+    return command_size;
+}
+
 /// Called at end of frame to reset FIFO
 void FifoReset() {
     if (g_fifo_write_ptr > FIFO_TAIL_END) {
@@ -482,6 +544,11 @@ void DecodeCommand() {
         
     // Get the next GP opcode and decode it
     if (FifoNextCommandReady()) {
+        // TODO: Display list handling...
+        if (GP_OPMASK(g_cur_cmd) != 8 && fifo_player::IsRecording())
+        {
+            fifo_player::Write(g_fifo_read_ptr, FifoGetCommandLength(g_fifo_read_ptr));
+        }
         g_exec_op[GP_OPMASK(FifoPop8())]();
     }
     return;

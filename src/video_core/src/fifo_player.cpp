@@ -25,6 +25,9 @@
 
 #include <SDL.h>
 
+#include <stdio.h>
+#include <vector>
+
 #include "fifo_player.h"
 #include "video_core.h"
 #include "fifo.h"
@@ -32,49 +35,108 @@
 
 namespace fifo_player {
 
-FILE* g_out_file_ptr = NULL;    ///< Output file pointer
+bool is_recording = false;
+
+FPFileHeader file_header;
+struct FPFrameWithElementsInfo {
+    FPFrameInfo frame_info;
+    std::vector<FPElementInfo> element_info;
+};
+std::vector<FPFrameWithElementsInfo> frame_info;
+std::vector<u8> raw_data;
+
+FPFrameWithElementsInfo* current_frame_info = NULL;
+
+bool IsRecording()
+{
+    return is_recording;
+}
 
 void StartRecording(char* filename) {
-    FifoPlayerFileHeader header;
-    
-    g_out_file_ptr = fopen(filename, "w");
+    memset(&file_header, 0, sizeof(file_header));
+    frame_info.clear();
 
-    header.magic_num = FIFO_PLAYER_MAGIC_NUM;
-    header.version = FIFO_PLAYER_VERSION;
-    header.size = 0;    // TODO(ShizZy): ImplementMe
-    header.checksum = 0;    // TODO(ShizZy): ImplementMe
+    file_header.magic_num = FIFO_PLAYER_MAGIC_NUM;
+    file_header.version = FIFO_PLAYER_VERSION;
+    file_header.size = 0; // TODO
+    file_header.checksum = 0; // TODO
 
-    fwrite(&header, sizeof(FifoPlayerFileHeader), 1, g_out_file_ptr);
+    frame_info.resize(1);
+    current_frame_info = &frame_info.front();
 
+    is_recording = true;
     LOG_NOTICE(TGP, "FIFO recording started");
 }
 
-void WriteDisplayList(u32 addr, u32 size) {
-    // TODO(ShizZy): ImplementMe
+void Write(u8* data, int size)
+{
+    FPElementInfo element;
+    element.type = FPElementInfo::REGISTER_WRITE;
+    element.size = size;
+    element.offset = raw_data.size();
+    current_frame_info->element_info.push_back(element);
+
+    raw_data.insert(raw_data.end(), data, data + size);
 }
 
-void Write8(u8 data) {
-    fwrite(&data, 1, 1, g_out_file_ptr);
+void MemUpdate(u32 address, u8* data, u32 size)
+{
+    FPElementInfo element;
+    element.type = FPElementInfo::MEMORY_UPDATE;
+    element.size = sizeof(FPMemUpdateInfo) + size;
+    element.offset = raw_data.size();
+
+    raw_data[element.offset  ] = address;
+    raw_data[element.offset+1] = size;
+    raw_data.insert(raw_data.end(), data, data + size);
 }
 
-void Write16(u16 data) {
-    fwrite(&data, 2, 1, g_out_file_ptr);
-}
-
-void Write32(u32 data) {
-    fwrite(&data, 4, 1, g_out_file_ptr);
+void FrameFinished()
+{
+    current_frame_info->frame_info.num_elements = current_frame_info->element_info.size();
+    frame_info.resize(frame_info.size()+1);
+    current_frame_info = &frame_info.front();
 }
 
 void EndRecording() {
-    fclose(g_out_file_ptr);
-    LOG_NOTICE(TGP, "FIFO recording ended");
+    FrameFinished();
+    while (frame_info.back().element_info.empty() && !frame_info.empty())
+        frame_info.pop_back();
+
+    file_header.num_frames = frame_info.size();
+    file_header.data_offset = sizeof(FPFileHeader) + file_header.num_frames * sizeof(FPFrameInfo);
+    for (std::vector<FPFrameWithElementsInfo>::iterator frame = frame_info.begin(); frame != frame_info.end(); ++frame)
+    {
+        frame->frame_info.element_info_offset = file_header.data_offset;
+        file_header.data_offset += frame->frame_info.num_elements * sizeof(FPElementInfo);
+    }
+
+    is_recording = false;
+    LOG_NOTICE(TGP, "FIFO recording ended: %d frames\n", frame_info.size());
 }
 
-#define FIFO_PLAYBACK_SIZE  (32*1024*1024)
-u8 fifo_buff[FIFO_PLAYBACK_SIZE];
+void Save(const char* filename)
+{
+    // TODO: Error checking...
+    FILE* file = fopen(filename, "wb");
+
+    fwrite(&file_header, sizeof(FPFileHeader), 1, file);
+    for (std::vector<FPFrameWithElementsInfo>::iterator frame = frame_info.begin(); frame != frame_info.end(); ++frame)
+        fwrite(&frame->frame_info, sizeof(FPFrameInfo), 1, file);
+
+    for (std::vector<FPFrameWithElementsInfo>::iterator frame = frame_info.begin(); frame != frame_info.end(); ++frame)
+        fwrite(&(*frame->element_info.begin()), frame->frame_info.num_elements * sizeof(FPElementInfo), 1, file);
+
+    fwrite(&(*raw_data.begin()), raw_data.size(), 1, file);
+
+    fclose(file);
+}
+
+//#define FIFO_PLAYBACK_SIZE  (32*1024*1024)
+//u8 fifo_buff[FIFO_PLAYBACK_SIZE];
 
 void PlayFile(char* filename) {
-    FifoPlayerFileHeader header;
+/*    FifoPlayerFileHeader header;
     FILE* in_file_ptr = fopen(filename, "r");
 
 
@@ -111,7 +173,7 @@ void PlayFile(char* filename) {
 
     fclose(in_file_ptr);
 
-    core::SetState(core::SYS_DIE);
+    core::SetState(core::SYS_DIE);*/
 }
 
 
