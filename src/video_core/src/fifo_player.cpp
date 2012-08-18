@@ -38,14 +38,11 @@ namespace fifo_player {
 bool is_recording = false;
 
 FPFileHeader file_header;
-struct FPFrameWithElementsInfo {
-    FPFrameInfo frame_info;
-    std::vector<FPElementInfo> element_info;
-};
-std::vector<FPFrameWithElementsInfo> frame_info;
+std::vector<FPFrameInfo> frame_info;
+std::vector<FPElementInfo> element_info;
 std::vector<u8> raw_data;
 
-FPFrameWithElementsInfo* current_frame_info = NULL;
+FPFrameInfo* current_frame_info = NULL;
 
 bool IsRecording()
 {
@@ -55,14 +52,14 @@ bool IsRecording()
 void StartRecording(char* filename) {
     memset(&file_header, 0, sizeof(file_header));
     frame_info.clear();
+    element_info.clear();
 
     file_header.magic_num = FIFO_PLAYER_MAGIC_NUM;
     file_header.version = FIFO_PLAYER_VERSION;
-    file_header.size = 0; // TODO
-    file_header.checksum = 0; // TODO
+    // TODO: size and checksum
 
     frame_info.resize(1);
-    current_frame_info = &frame_info.front();
+    current_frame_info = &frame_info.back();
 
     is_recording = true;
     LOG_NOTICE(TGP, "FIFO recording started");
@@ -74,7 +71,7 @@ void Write(u8* data, int size)
     element.type = FPElementInfo::REGISTER_WRITE;
     element.size = size;
     element.offset = raw_data.size();
-    current_frame_info->element_info.push_back(element);
+    element_info.push_back(element);
 
     raw_data.insert(raw_data.end(), data, data + size);
 }
@@ -85,6 +82,7 @@ void MemUpdate(u32 address, u8* data, u32 size)
     element.type = FPElementInfo::MEMORY_UPDATE;
     element.size = sizeof(FPMemUpdateInfo) + size;
     element.offset = raw_data.size();
+    element_info.push_back(element);
 
     raw_data[element.offset  ] = address;
     raw_data[element.offset+1] = size;
@@ -93,23 +91,25 @@ void MemUpdate(u32 address, u8* data, u32 size)
 
 void FrameFinished()
 {
-    current_frame_info->frame_info.num_elements = current_frame_info->element_info.size();
+    current_frame_info->num_elements = element_info.size() - current_frame_info->base_element;
+
     frame_info.resize(frame_info.size()+1);
-    current_frame_info = &frame_info.front();
+    current_frame_info = &frame_info.back();
+
+    current_frame_info->base_element = element_info.size();
 }
 
 void EndRecording() {
     FrameFinished();
-    while (frame_info.back().element_info.empty() && !frame_info.empty())
+    while (frame_info.back().base_element == element_info.size() && !frame_info.empty())
         frame_info.pop_back();
 
     file_header.num_frames = frame_info.size();
-    file_header.data_offset = sizeof(FPFileHeader) + file_header.num_frames * sizeof(FPFrameInfo);
-    for (std::vector<FPFrameWithElementsInfo>::iterator frame = frame_info.begin(); frame != frame_info.end(); ++frame)
-    {
-        frame->frame_info.element_info_offset = file_header.data_offset;
-        file_header.data_offset += frame->frame_info.num_elements * sizeof(FPElementInfo);
-    }
+    file_header.num_elements = element_info.size();
+    file_header.num_raw_data_bytes = raw_data.size();
+    file_header.frame_info_offset = sizeof(FPFileHeader);
+    file_header.element_info_offset = file_header.frame_info_offset + file_header.num_frames * sizeof(FPFrameInfo);
+    file_header.raw_data_offset = file_header.element_info_offset + file_header.num_elements * sizeof(FPElementInfo);
 
     is_recording = false;
     LOG_NOTICE(TGP, "FIFO recording ended: %d frames\n", frame_info.size());
@@ -122,15 +122,7 @@ void Save(const char* filename, FPFile& in)
 
     fwrite(&in.file_header, sizeof(FPFileHeader), 1, file);
     fwrite(&(*in.frame_info.begin()), in.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
-
-    std::vector<FPElementInfo>::const_iterator element = in.element_info.begin();
-    for (std::vector<FPFrameInfo>::const_iterator frame = in.frame_info.begin(); frame != in.frame_info.end(); ++frame)
-    {
-        // fseek
-        fwrite(&(*element), frame->num_elements * sizeof(FPElementInfo), 1, file);
-        element += frame->num_elements;
-    }
-
+    fwrite(&(*in.element_info.begin()), in.file_header.num_elements * sizeof(FPElementInfo), 1, file);
     fwrite(&(*in.raw_data.begin()), in.raw_data.size(), 1, file);
 
     fclose(file);
@@ -143,28 +135,51 @@ void Load(const char* filename, FPFile& out)
 {
     // TODO: Error checking...
     FILE* file = fopen(filename, "rb");
+    int objects_read = 0;
 
-    fread(&out.file_header, sizeof(FPFileHeader), 1, file);
-    out.frame_info.resize(out.file_header.num_frames);
-    fread(&(*out.frame_info.begin()), out.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
-
-    u32 data_size = 0;
-    int element_index = 0;
-    for (std::vector<FPFrameInfo>::iterator frame = out.frame_info.begin(); frame != out.frame_info.end(); ++frame)
+    objects_read = fread(&out.file_header, sizeof(FPFileHeader), 1, file);
+    if (objects_read != 1)
     {
-//        fseek(FILE, frame->element_info_offset, ...);
-        out.element_info.resize(out.element_info.size() + frame->num_elements);
-        std::vector<FPElementInfo>::iterator element = out.element_info.begin() + element_index;
-        fread(&(*element), frame->num_elements * sizeof(FPElementInfo), 1, file);
-        for (unsigned int i = 0; i < frame->num_elements; ++i)
-        {
-            data_size += element->size;
-            ++element;
-        }
-        element_index += frame->num_elements;
+        // TODO: Error message
+        return;
     }
-    out.raw_data.resize(data_size);
-    fread(&(*out.raw_data.begin()), out.raw_data.size(), 1, file);
+    if (out.file_header.magic_num != FIFO_PLAYER_MAGIC_NUM)
+    {
+        // TODO: Error message
+        return;
+    }
+    if (out.file_header.version != FIFO_PLAYER_VERSION)
+    {
+        // TODO: Error message
+        return;
+    }
+
+    out.frame_info.resize(out.file_header.num_frames);
+    // TODO: fseek
+    objects_read = fread(&(*out.frame_info.begin()), out.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
+    }
+
+    out.element_info.resize(out.file_header.num_elements);
+    // TODO: fseek
+    objects_read = fread(&(*out.element_info.begin()), out.file_header.num_elements * sizeof(FPElementInfo), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
+    }
+
+    out.raw_data.resize(out.file_header.num_raw_data_bytes);
+    // TODO: fseek
+    objects_read = fread(&(*out.raw_data.begin()), out.file_header.num_raw_data_bytes * sizeof(u8), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
+    }
 
     fclose(file);
 }

@@ -34,6 +34,7 @@
 #include "video_core.h"
 #include "vertex_manager.h"
 #include "fifo.h"
+#include "fifo_player.h"
 #include "bp_mem.h"
 #include "texture_decoder.h"
 
@@ -167,6 +168,8 @@ void BPRegisterWrite(u8 addr, u32 data) {
             vertex_manager::Flush();
 
             video_core::g_renderer->SwapBuffers();
+            if (fifo_player::IsRecording())
+                fifo_player::FrameFinished();
             FifoReset();
             GX_PE_FINISH = 1;
         }

@@ -29,7 +29,7 @@
 #include "common.h"
 
 #define FIFO_PLAYER_MAGIC_NUM   0xF1F0
-#define FIFO_PLAYER_VERSION     0x0002
+#define FIFO_PLAYER_VERSION     0x0003
 
 #define FPFE_REGISTER_WRITE 0
 #define FPFE_MEMORY_UPDATE 1
@@ -42,15 +42,19 @@ struct FPFileHeader {
     u16 version;
     u32 size;
     u32 checksum;
-    u32 data_offset;
+
     u32 num_frames;
-    // following: FPFrameInfo[num_frames]
+    u32 num_elements;
+    u32 num_raw_data_bytes;
+    u32 frame_info_offset;
+    u32 element_info_offset;
+    u32 raw_data_offset;
+
     // TODO: Missing initial register state
 };
 
 struct FPFrameInfo {
-    // TODO: Should store FPFrameInfo and FPElementInfo[num_elements] interleaved, probably..
-    u32 element_info_offset; // location of FPElementInfo[num_elements]
+    u32 base_element; // first element that belongs to this frame
     u32 num_elements;
 };
 
