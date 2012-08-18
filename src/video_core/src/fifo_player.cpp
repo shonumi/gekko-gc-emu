@@ -115,19 +115,23 @@ void EndRecording() {
     LOG_NOTICE(TGP, "FIFO recording ended: %d frames\n", frame_info.size());
 }
 
-void Save(const char* filename)
+void Save(const char* filename, FPFile& in)
 {
     // TODO: Error checking...
     FILE* file = fopen(filename, "wb");
 
-    fwrite(&file_header, sizeof(FPFileHeader), 1, file);
-    for (std::vector<FPFrameWithElementsInfo>::iterator frame = frame_info.begin(); frame != frame_info.end(); ++frame)
-        fwrite(&frame->frame_info, sizeof(FPFrameInfo), 1, file);
+    fwrite(&in.file_header, sizeof(FPFileHeader), 1, file);
+    fwrite(&(*in.frame_info.begin()), in.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
 
-    for (std::vector<FPFrameWithElementsInfo>::iterator frame = frame_info.begin(); frame != frame_info.end(); ++frame)
-        fwrite(&(*frame->element_info.begin()), frame->frame_info.num_elements * sizeof(FPElementInfo), 1, file);
+    std::vector<FPElementInfo>::const_iterator element = in.element_info.begin();
+    for (std::vector<FPFrameInfo>::const_iterator frame = in.frame_info.begin(); frame != in.frame_info.end(); ++frame)
+    {
+        // fseek
+        fwrite(&(*element), frame->num_elements * sizeof(FPElementInfo), 1, file);
+        element += frame->num_elements;
+    }
 
-    fwrite(&(*raw_data.begin()), raw_data.size(), 1, file);
+    fwrite(&(*in.raw_data.begin()), in.raw_data.size(), 1, file);
 
     fclose(file);
 }
@@ -135,12 +139,42 @@ void Save(const char* filename)
 //#define FIFO_PLAYBACK_SIZE  (32*1024*1024)
 //u8 fifo_buff[FIFO_PLAYBACK_SIZE];
 
+void Load(const char* filename, FPFile& out)
+{
+    // TODO: Error checking...
+    FILE* file = fopen(filename, "rb");
+
+    fread(&out.file_header, sizeof(FPFileHeader), 1, file);
+    out.frame_info.resize(out.file_header.num_frames);
+    fread(&(*out.frame_info.begin()), out.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
+
+    u32 data_size = 0;
+    int element_index = 0;
+    for (std::vector<FPFrameInfo>::iterator frame = out.frame_info.begin(); frame != out.frame_info.end(); ++frame)
+    {
+//        fseek(FILE, frame->element_info_offset, ...);
+        out.element_info.resize(out.element_info.size() + frame->num_elements);
+        std::vector<FPElementInfo>::iterator element = out.element_info.begin() + element_index;
+        fread(&(*element), frame->num_elements * sizeof(FPElementInfo), 1, file);
+        for (unsigned int i = 0; i < frame->num_elements; ++i)
+        {
+            data_size += element->size;
+            ++element;
+        }
+        element_index += frame->num_elements;
+    }
+    out.raw_data.resize(data_size);
+    fread(&(*out.raw_data.begin()), out.raw_data.size(), 1, file);
+
+    fclose(file);
+}
+
 void PlayFile(char* filename) {
 /*    FifoPlayerFileHeader header;
     FILE* in_file_ptr = fopen(filename, "r");
 
 
-    
+
     memset(fifo_buff, 0, FIFO_PLAYBACK_SIZE);
 
     if (in_file_ptr == NULL) {

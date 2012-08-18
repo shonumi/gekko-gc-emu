@@ -25,6 +25,7 @@
 #ifndef VIDEO_CORE_FIFO_PLAYER_H_
 #define VIDEO_CORE_FIFO_PLAYER_H_
 
+#include <vector>
 #include "common.h"
 
 #define FIFO_PLAYER_MAGIC_NUM   0xF1F0
@@ -73,6 +74,15 @@ struct FPMemUpdateInfo
 
 #pragma pack(pop)
 
+struct FPFile
+{
+    FPFileHeader file_header;
+    std::vector<FPFrameInfo> frame_info;
+    std::vector<FPElementInfo> element_info;
+    std::vector<u8> raw_data;
+};
+
+
 // Status query
 bool IsRecording();
 
@@ -90,8 +100,10 @@ void FrameFinished();
 
 void EndRecording();
 
-// saving
-void Save(const char* filename);
+// file handling
+void Save(const char* filename, FPFile& in);
+
+void Load(const char* filename, FPFile& out);
 
 // playback
 void PlayFile(char* filename);
