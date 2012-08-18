@@ -110,7 +110,7 @@ void Save(const char* filename, FPFile& in);
 void Load(const char* filename, FPFile& out);
 
 // playback
-void PlayFile(char* filename);
+void PlayFile(FPFile& in);
 
 } // namespace
 

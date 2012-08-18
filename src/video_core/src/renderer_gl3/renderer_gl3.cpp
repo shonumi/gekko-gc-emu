@@ -674,8 +674,8 @@ void RendererGL3::InitFramebuffer() {
 /// Initialize the renderer and create a window
 void RendererGL3::Init() {
 
-    render_window_->MakeCurrent();
 
+    render_window_->MakeCurrent();
     glShadeModel(GL_SMOOTH);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 

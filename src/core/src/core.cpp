@@ -70,6 +70,7 @@ void Start(EmuWindow* emu_window) {
     SetState(SYS_RUNNING);
 #ifdef USE_NEW_VIDEO_CORE
     video_core::Start(emu_window);
+    // TODO: Wait until video core initialization is finished!
 #endif // USE_NEW_VIDEO_CORE
 }
 
@@ -80,7 +81,7 @@ void Kill() {
 	delete cpu;
     cpu = NULL;
 	Memory_Close();
-// TODO: Do anything about new video core here?
+// TODO: Do anything about new video core here, call video_core::Shutdown?
 #ifndef USE_NEW_VIDEO_CORE
 	gx_fifo::destroy();
 #endif
@@ -124,7 +125,6 @@ int Init(EmuWindow* emu_window) {
     }
 	SetState(SYS_IDLE);
     g_started = false;
-	
 #ifndef USE_NEW_VIDEO_CORE
     OPENGL_Create();
 #endif // !USE_NEW_VIDEO_CORE

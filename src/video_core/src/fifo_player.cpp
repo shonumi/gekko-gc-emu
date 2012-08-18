@@ -128,9 +128,6 @@ void Save(const char* filename, FPFile& in)
     fclose(file);
 }
 
-//#define FIFO_PLAYBACK_SIZE  (32*1024*1024)
-//u8 fifo_buff[FIFO_PLAYBACK_SIZE];
-
 void Load(const char* filename, FPFile& out)
 {
     // TODO: Error checking...
@@ -184,45 +181,21 @@ void Load(const char* filename, FPFile& out)
     fclose(file);
 }
 
-void PlayFile(char* filename) {
-/*    FifoPlayerFileHeader header;
-    FILE* in_file_ptr = fopen(filename, "r");
+void PlayFile(FPFile& in)
+{
+    // TODO: Loop over all frames but wait until the last frame has been processed before pushing the first one again
 
-
-
-    memset(fifo_buff, 0, FIFO_PLAYBACK_SIZE);
-
-    if (in_file_ptr == NULL) {
-        LOG_ERROR(TGP, "Failed to load FifoPlayer file %s", filename);
-        return;
+    std::vector<FPFrameInfo>::iterator frame;
+    for (frame = in.frame_info.begin(); frame != in.frame_info.end(); ++frame)
+    {
+        std::vector<FPElementInfo>::iterator element;
+        for (element = in.element_info.begin() + frame->base_element; element != in.element_info.begin() + frame->base_element + frame->num_elements; ++element)
+        {
+            std::vector<u8>::iterator byte;
+            for (byte = in.raw_data.begin() + element->offset; byte != in.raw_data.begin() + element->offset + element->size; ++byte)
+                gp::FifoPush8(*byte);
+        }
     }
-
-    fread(&header, sizeof(header), 1, in_file_ptr);
-
-    core::SetState(core::SYS_RUNNING);
-
-    video_core::Init();
-    video_core::Start();
-
-    SDL_Delay(5000);
-
-    fseek(in_file_ptr, sizeof(FifoPlayerFileHeader)  , SEEK_SET);
-    fread(fifo_buff, FIFO_PLAYBACK_SIZE, 1, in_file_ptr);
-    
-    for (int i = 0; i < FIFO_PLAYBACK_SIZE; i++) {
-        //u8 data;
-        //u8 data = fgetc(in_file_ptr);
-        //_ASSERT_MSG(TGP, bytes_read == 1, "WTF?! Failed to read 1 word...\n"); 
-        //printf("%02x ", fifo_buff[i]);
-        gp::FifoPush8(fifo_buff[i]);
-
-    }
-
-    SDL_Delay(5000);
-
-    fclose(in_file_ptr);
-
-    core::SetState(core::SYS_DIE);*/
 }
 
 
