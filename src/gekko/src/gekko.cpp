@@ -106,7 +106,7 @@ int __cdecl main(int argc, char **argv)
     // load fifo log and replay it
 
     // TODO: Restructure initialization process - Fix Flipper_Open being called from dvd loaders (wtf?)
-    video_core::Init();
+    Flipper_Open();
     video_core::Start(emu_window);
     core::SetState(core::SYS_RUNNING);
 
