@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <vector>
 
+#include "memory.h"
+
 #include "fifo_player.h"
 #include "video_core.h"
 #include "fifo.h"
@@ -100,8 +102,10 @@ void MemUpdate(u32 address, u8* data, u32 size)
     element.offset = raw_data.size();
     element_info.push_back(element);
 
-    raw_data[element.offset  ] = address;
-    raw_data[element.offset+1] = size;
+    FPMemUpdateInfo update_info;
+    update_info.addr = address;
+    update_info.size = size;
+    raw_data.insert(raw_data.end(), (u8*)&update_info, (u8*)(&update_info+1));
     raw_data.insert(raw_data.end(), data, data + size);
 }
 
@@ -225,9 +229,26 @@ void PlayFile(FPFile& in)
         std::vector<FPElementInfo>::iterator element;
         for (element = in.element_info.begin() + frame->base_element; element != in.element_info.begin() + frame->base_element + frame->num_elements; ++element)
         {
-            std::vector<u8>::iterator byte;
-            for (byte = in.raw_data.begin() + element->offset; byte != in.raw_data.begin() + element->offset + element->size; ++byte)
-                gp::FifoPush8(*byte);
+            switch (element->type)
+            {
+                case FPElementInfo::REGISTER_WRITE:
+                {
+                    std::vector<u8>::iterator byte;
+                    for (byte = in.raw_data.begin() + element->offset; byte != in.raw_data.begin() + element->offset + element->size; ++byte)
+                        gp::FifoPush8(*byte);
+
+                    break;
+                }
+
+                case FPElementInfo::MEMORY_UPDATE:
+                {
+                    // TODO: Wait for GPU thread to catch up before doing this
+                    FPMemUpdateInfo* update_info = (FPMemUpdateInfo*)&(*(in.raw_data.begin() + element->offset));
+                    memcpy(&Mem_RAM[update_info->addr & RAM_MASK], &*(in.raw_data.begin() + element->offset + 2), update_info->size);
+
+                    break;
+                }
+            }
         }
     }
 }

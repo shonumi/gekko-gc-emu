@@ -1,6 +1,7 @@
 // gx_texture.cpp
 // (c) 2005,2009 Gekko Team
 
+#include "sys/stat.h"
 #include "common.h"
 #include "config.h"
 #include "memory.h"
@@ -8,6 +9,7 @@
 #include "bp_mem.h"
 #include "texture_decoder.h"
 #include "renderer_gl3/renderer_gl3.h"
+#include "fifo_player.h"
 
 #include <vector>
 using namespace std;
@@ -215,6 +217,9 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
     u8	*src8 = ((u8*)(&Mem_RAM[addr & RAM_MASK]));
     u16	*src16 = ((u16*)(&Mem_RAM[addr & RAM_MASK]));
     u32	*src32 = ((u32*)(&Mem_RAM[addr & RAM_MASK]));
+
+    if (fifo_player::IsRecording())
+        fifo_player::MemUpdate(addr, src8, w * h * 4); // TODO: Use proper size!
 
     //if(addr & 3)
     //    printf("Texture at %08X not boundary aligned!\n", addr);
