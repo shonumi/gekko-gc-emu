@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Fifo Player</string>
   </property>
-  <widget class="QWidget" name="dockWidgetContents">
+  <widget class="QWidget" name="recordingGroup">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QGroupBox" name="groupBox">
@@ -22,9 +22,12 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QRadioButton" name="radioButton">
+        <widget class="QRadioButton" name="stopManuallyButton">
          <property name="text">
           <string>Stop manually</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -93,7 +96,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="pauseWhenDoneCheckbox">
          <property name="text">
           <string>Pause when done</string>
          </property>
@@ -102,14 +105,17 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="startStopRecordingButton">
            <property name="text">
             <string>Start</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="saveRecordingButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Save to File...</string>
            </property>
@@ -121,7 +127,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_2">
+     <widget class="QGroupBox" name="playbackGroup">
       <property name="title">
        <string>Playback</string>
       </property>
@@ -136,7 +142,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboBox_2">
+          <widget class="QComboBox" name="playbackSourceCombobox">
            <item>
             <property name="text">
              <string>Last Recording</string>
@@ -159,7 +165,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="startPlaybackButton">
          <property name="text">
           <string>Start</string>
          </property>
