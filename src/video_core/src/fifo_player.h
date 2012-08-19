@@ -29,7 +29,7 @@
 #include "common.h"
 
 #define FIFO_PLAYER_MAGIC_NUM   0xF1F0
-#define FIFO_PLAYER_VERSION     0x0003
+#define FIFO_PLAYER_VERSION     0x0004
 
 #define FPFE_REGISTER_WRITE 0
 #define FPFE_MEMORY_UPDATE 1
@@ -38,19 +38,21 @@ namespace fifo_player {
 
 #pragma pack(push, 4) // TODO: Change to 1?
 struct FPFileHeader {
-    u16 magic_num;
-    u16 version;
-    u32 size;
-    u32 checksum;
+    u16 magic_num;                  // 0x0
+    u16 version;                    // 0x2
+    u32 size;                       // 0x4
+    u32 checksum;                   // 0x8
 
-    u32 num_frames;
-    u32 num_elements;
-    u32 num_raw_data_bytes;
-    u32 frame_info_offset;
-    u32 element_info_offset;
-    u32 raw_data_offset;
+    u32 num_frames;                 // 0xC
+    u32 num_elements;               // 0x10
+    u32 num_raw_data_bytes;         // 0x14
+    u32 frame_info_offset;          // 0x18
+    u32 element_info_offset;        // 0x1C
+    u32 raw_data_offset;            // 0x20
 
-    // TODO: Missing initial register state
+    u32 initial_bpmem_data_offset;  // 0x24
+    u32 initial_cpmem_data_offset;  // 0x28
+    u32 initial_xfmem_data_offset;  // 0x2C
 };
 
 struct FPFrameInfo {
@@ -83,7 +85,7 @@ struct FPFile
     FPFileHeader file_header;
     std::vector<FPFrameInfo> frame_info;
     std::vector<FPElementInfo> element_info;
-    std::vector<u8> raw_data;
+    std::vector<u8> raw_data; // TODO: Should split this into initial state and actual raw data
 };
 
 

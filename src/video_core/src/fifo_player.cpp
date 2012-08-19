@@ -32,11 +32,15 @@
 #include "video_core.h"
 #include "fifo.h"
 #include "core.h"
+#include "bp_mem.h"
+#include "cp_mem.h"
+#include "xf_mem.h"
 
 namespace fifo_player {
 
 bool is_recording = false;
 
+// TODO: Move these into a FPFile struct ASAP!
 FPFileHeader file_header;
 std::vector<FPFrameInfo> frame_info;
 std::vector<FPElementInfo> element_info;
@@ -49,10 +53,12 @@ bool IsRecording()
     return is_recording;
 }
 
+// NOTE: Should be called from GPU thread to make sure register states are consistent!
 void StartRecording(char* filename) {
     memset(&file_header, 0, sizeof(file_header));
     frame_info.clear();
     element_info.clear();
+    raw_data.clear();
 
     file_header.magic_num = FIFO_PLAYER_MAGIC_NUM;
     file_header.version = FIFO_PLAYER_VERSION;
@@ -60,6 +66,16 @@ void StartRecording(char* filename) {
 
     frame_info.resize(1);
     current_frame_info = &frame_info.back();
+
+    // TODO: Record initial mem state => Mem_RAM
+
+    // TODO: Check if this works correctly
+    file_header.initial_bpmem_data_offset = raw_data.size();
+    raw_data.insert(raw_data.end(), (u8*)&gp::g_bp_regs, (u8*)(&gp::g_bp_regs + 1));
+    file_header.initial_cpmem_data_offset = raw_data.size();
+    raw_data.insert(raw_data.end(), (u8*)&gp::g_cp_regs, (u8*)(&gp::g_cp_regs + 1));
+    file_header.initial_xfmem_data_offset = raw_data.size();
+    raw_data.insert(raw_data.end(), (u8*)&gp::g_xf_regs, (u8*)(&gp::g_xf_regs + 1));
 
     is_recording = true;
     LOG_NOTICE(TGP, "FIFO recording started");
@@ -152,7 +168,7 @@ void Load(const char* filename, FPFile& out)
     }
 
     out.frame_info.resize(out.file_header.num_frames);
-    // TODO: fseek
+    fseek(file, out.file_header.frame_info_offset, SEEK_SET);
     objects_read = fread(&(*out.frame_info.begin()), out.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
     if (objects_read != 1)
     {
@@ -161,7 +177,7 @@ void Load(const char* filename, FPFile& out)
     }
 
     out.element_info.resize(out.file_header.num_elements);
-    // TODO: fseek
+    fseek(file, out.file_header.element_info_offset, SEEK_SET);
     objects_read = fread(&(*out.element_info.begin()), out.file_header.num_elements * sizeof(FPElementInfo), 1, file);
     if (objects_read != 1)
     {
@@ -170,7 +186,7 @@ void Load(const char* filename, FPFile& out)
     }
 
     out.raw_data.resize(out.file_header.num_raw_data_bytes);
-    // TODO: fseek
+    fseek(file, out.file_header.raw_data_offset, SEEK_SET);
     objects_read = fread(&(*out.raw_data.begin()), out.file_header.num_raw_data_bytes * sizeof(u8), 1, file);
     if (objects_read != 1)
     {
@@ -183,8 +199,26 @@ void Load(const char* filename, FPFile& out)
 
 void PlayFile(FPFile& in)
 {
-    // TODO: Loop over all frames but wait until the last frame has been processed before pushing the first one again
+    gp::BPMemory* bpmem = (gp::BPMemory*)&(*(in.raw_data.begin() + in.file_header.initial_bpmem_data_offset));
+    for (unsigned int i = 0; i < sizeof(gp::BPMemory) / sizeof(u32); ++i)
+    {
+        gp::FifoPush8(GP_LOAD_BP_REG);
+        gp::FifoPush32((i << 24) | (bpmem->mem[i] & 0x00FFFFFF));
+    }
 
+
+    gp::CPMemory* cpmem = (gp::CPMemory*)&(*(in.raw_data.begin() + in.file_header.initial_cpmem_data_offset));
+    for (unsigned int i = 0; i < sizeof(gp::CPMemory) / sizeof(u32); ++i)
+    {
+        gp::FifoPush8(GP_LOAD_CP_REG);
+        gp::FifoPush8(i << 24);
+        gp::FifoPush32(cpmem->mem[i]);
+    }
+
+    gp::XFMemory* xfmem = (gp::XFMemory*)&(*(in.raw_data.begin() + in.file_header.initial_xfmem_data_offset));
+    // TODO: Push XF regs
+
+    // TODO: Loop over all frames but wait until the last frame has been processed before pushing the first one again
     std::vector<FPFrameInfo>::iterator frame;
     for (frame = in.frame_info.begin(); frame != in.frame_info.end(); ++frame)
     {
