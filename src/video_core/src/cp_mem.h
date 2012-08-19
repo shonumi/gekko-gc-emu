@@ -370,7 +370,7 @@ union CPMemory {
         u32             pad7[0x8];
         CPArrayBase     array_base[0x10];   // 0xA0
         CPArrayStride   array_stride[0x10]; // 0xB0
-        u32 pad8[0x50];
+        u32 pad8[0x40];
     };
     u32 mem[0x100];
 };

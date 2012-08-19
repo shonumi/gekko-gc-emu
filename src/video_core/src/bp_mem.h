@@ -362,10 +362,10 @@ union BPMemory {
         u32             clear_z;                // 0x51
         u32             pad5[0x7];              // 0x52
         BPEFBCoords10   scissor_offset;         // 0x59
-        u32             pad6[0x6E];
-        BPTevCombiner   combiner[0x10];
-        u32             pad7[0x16];
-        BPTevKSel       ksel[0x8];
+        u32             pad6[0x66];             // 0x5a
+        BPTevCombiner   combiner[0x10];         // 0xC0
+        u32             pad7[0x16];             // 0xE0
+        BPTevKSel       ksel[0x8];              // 0xf6
     };
     u32 mem[0x100];
 };
