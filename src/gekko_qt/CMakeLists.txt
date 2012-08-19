@@ -4,6 +4,7 @@ set(SRCS
             src/disasm.cpp
             src/gamelist.cpp
             src/gekko_regs.cpp
+			src/gfx_fifo_player.cpp
             src/hotkeys.cpp
             src/image_info.cpp
             src/main.cpp
@@ -17,6 +18,7 @@ qt4_wrap_ui(UI_HDRS
                     src/callstack.ui
                     src/disasm.ui
                     src/gekko_regs.ui
+					src/gfx_fifo_player.ui
                     src/hotkeys.ui
                     src/image_info.ui
                     src/main.ui
@@ -29,6 +31,7 @@ qt4_wrap_cpp(MOC_SRCS
                         src/disasm.hxx
                         src/gamelist.hxx
                         src/gekko_regs.hxx
+						src/gfx_fifo_player.hxx
                         src/hotkeys.hxx
                         src/image_info.hxx
                         src/main.hxx

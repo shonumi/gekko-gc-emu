@@ -19,6 +19,9 @@
     <ClCompile Include="src\gekko_regs.cpp">
       <Filter>debugger</Filter>
     </ClCompile>
+    <ClCompile Include="src\gfx_fifo_player.cpp">
+      <Filter>debugger</Filter>
+    </ClCompile>
     <ClCompile Include="src\image_info.cpp" />
     <ClCompile Include="src\bootmanager.cpp" />
     <ClCompile Include="src\callstack.cpp">
@@ -53,6 +56,9 @@
   <ItemGroup>
     <MOC Include="src\main.hxx" />
     <MOC Include="src\gekko_regs.hxx">
+      <Filter>debugger</Filter>
+    </MOC>
+    <MOC Include="src\gfx_fifo_player.hxx">
       <Filter>debugger</Filter>
     </MOC>
     <MOC Include="src\image_info.hxx" />
@@ -92,6 +98,9 @@
   <ItemGroup>
     <UIC Include="src\main.ui" />
     <UIC Include="src\gekko_regs.ui">
+      <Filter>debugger</Filter>
+    </UIC>
+    <UIC Include="src\gfx_fifo_player.ui">
       <Filter>debugger</Filter>
     </UIC>
     <UIC Include="src\disasm.ui">

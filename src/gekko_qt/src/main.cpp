@@ -13,6 +13,7 @@
 #include "disasm.hxx"
 #include "gamelist.hxx"
 #include "gekko_regs.hxx"
+#include "gfx_fifo_player.hxx"
 #include "image_info.hxx"
 #include "ramview.hxx"
 #include "bootmanager.hxx"
@@ -48,6 +49,10 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     addDockWidget(Qt::LeftDockWidgetArea, gekko_regs);
     gekko_regs->hide();
 
+    GGfxFifoPlayerControl* gfx_fifo_player = new GGfxFifoPlayerControl(this);
+    addDockWidget(Qt::LeftDockWidgetArea, gfx_fifo_player);
+    gfx_fifo_player->hide();
+
     GCallstackView* callstack = new GCallstackView(this);
     addDockWidget(Qt::BottomDockWidgetArea, callstack);
     callstack->hide();
@@ -73,6 +78,8 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     debug_menu->addAction(gekko_regs->toggleViewAction());
     debug_menu->addAction(callstack->toggleViewAction());
     debug_menu->addAction(dock_ramedit->toggleViewAction());
+    debug_menu->addAction(gfx_fifo_player->toggleViewAction());
+    // TODO: Add a menu option to spawn a new QMainWindow which can be used to offload dock widgets
 
     // Set default UI state
     // geometry: 55% of the window contents are in the upper screen half, 45% in the lower half
