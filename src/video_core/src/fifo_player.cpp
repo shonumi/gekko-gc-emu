@@ -206,6 +206,7 @@ void PlayFile(FPFile& in)
     gp::BPMemory* bpmem = (gp::BPMemory*)&(*(in.raw_data.begin() + in.file_header.initial_bpmem_data_offset));
     for (unsigned int i = 0; i < sizeof(gp::BPMemory) / sizeof(u32); ++i)
     {
+        // TODO: This is dangerous since it e.g. triggers EFB copy requests!
         gp::FifoPush8(GP_LOAD_BP_REG);
         gp::FifoPush32((i << 24) | (bpmem->mem[i] & 0x00FFFFFF));
     }
@@ -250,6 +251,7 @@ void PlayFile(FPFile& in)
                 }
             }
         }
+        // TODO: Flush WGP once we have accurate fifo emulation
     }
 }
 
