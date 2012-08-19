@@ -130,6 +130,7 @@
     <ClCompile Include="src\disasm.cpp" />
     <ClCompile Include="src\gamelist.cpp" />
     <ClCompile Include="src\gekko_regs.cpp" />
+    <ClCompile Include="src\gfx_fifo_player.cpp" />
     <ClCompile Include="src\hotkeys.cpp" />
     <ClCompile Include="src\image_info.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -145,6 +146,7 @@
     <MOC Include="src\disasm.hxx" />
     <MOC Include="src\gamelist.hxx" />
     <MOC Include="src\gekko_regs.hxx" />
+    <MOC Include="src\gfx_fifo_player.hxx" />
     <MOC Include="src\hotkeys.hxx" />
     <MOC Include="src\image_info.hxx" />
     <MOC Include="src\main.hxx" />
@@ -159,6 +161,7 @@
     </UIC>
     <UIC Include="src\disasm.ui" />
     <UIC Include="src\gekko_regs.ui" />
+    <UIC Include="src\gfx_fifo_player.ui" />
     <UIC Include="src\hotkeys.ui" />
     <UIC Include="src\image_info.ui" />
     <UIC Include="src\main.ui" />
