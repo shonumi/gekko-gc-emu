@@ -43,10 +43,7 @@ namespace fifo_player {
 bool is_recording = false;
 
 // TODO: Move these into a FPFile struct ASAP!
-FPFileHeader file_header;
-std::vector<FPFrameInfo> frame_info;
-std::vector<FPElementInfo> element_info;
-std::vector<u8> raw_data;
+FPFile current_file;
 
 FPFrameInfo* current_frame_info = NULL;
 
@@ -56,28 +53,29 @@ bool IsRecording()
 }
 
 // NOTE: Should be called from GPU thread to make sure register states are consistent!
-void StartRecording(char* filename) {
-    memset(&file_header, 0, sizeof(file_header));
-    frame_info.clear();
-    element_info.clear();
-    raw_data.clear();
+void StartRecording()
+{
+    memset(&current_file.file_header, 0, sizeof(FPFileHeader));
+    current_file.frame_info.clear();
+    current_file.element_info.clear();
+    current_file.raw_data.clear();
 
-    file_header.magic_num = FIFO_PLAYER_MAGIC_NUM;
-    file_header.version = FIFO_PLAYER_VERSION;
+    current_file.file_header.magic_num = FIFO_PLAYER_MAGIC_NUM;
+    current_file.file_header.version = FIFO_PLAYER_VERSION;
     // TODO: size and checksum
 
-    frame_info.resize(1);
-    current_frame_info = &frame_info.back();
+    current_file.frame_info.resize(1);
+    current_frame_info = &current_file.frame_info.back();
 
     // TODO: Record initial mem state => Mem_RAM
 
     // TODO: Check if this works correctly
-    file_header.initial_bpmem_data_offset = raw_data.size();
-    raw_data.insert(raw_data.end(), (u8*)&gp::g_bp_regs, (u8*)(&gp::g_bp_regs + 1));
-    file_header.initial_cpmem_data_offset = raw_data.size();
-    raw_data.insert(raw_data.end(), (u8*)&gp::g_cp_regs, (u8*)(&gp::g_cp_regs + 1));
-    file_header.initial_xfmem_data_offset = raw_data.size();
-    raw_data.insert(raw_data.end(), (u8*)&gp::g_xf_regs, (u8*)(&gp::g_xf_regs + 1));
+    current_file.file_header.initial_bpmem_data_offset = current_file.raw_data.size();
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&gp::g_bp_regs, (u8*)(&gp::g_bp_regs + 1));
+    current_file.file_header.initial_cpmem_data_offset = current_file.raw_data.size();
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&gp::g_cp_regs, (u8*)(&gp::g_cp_regs + 1));
+    current_file.file_header.initial_xfmem_data_offset = current_file.raw_data.size();
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&gp::g_xf_regs, (u8*)(&gp::g_xf_regs + 1));
 
     is_recording = true;
     LOG_NOTICE(TGP, "FIFO recording started");
@@ -88,10 +86,10 @@ void Write(u8* data, int size)
     FPElementInfo element;
     element.type = FPElementInfo::REGISTER_WRITE;
     element.size = size;
-    element.offset = raw_data.size();
-    element_info.push_back(element);
+    element.offset = current_file.raw_data.size();
+    current_file.element_info.push_back(element);
 
-    raw_data.insert(raw_data.end(), data, data + size);
+    current_file.raw_data.insert(current_file.raw_data.end(), data, data + size);
 }
 
 void MemUpdate(u32 address, u8* data, u32 size)
@@ -99,40 +97,43 @@ void MemUpdate(u32 address, u8* data, u32 size)
     FPElementInfo element;
     element.type = FPElementInfo::MEMORY_UPDATE;
     element.size = sizeof(FPMemUpdateInfo) + size;
-    element.offset = raw_data.size();
-    element_info.push_back(element);
+    element.offset = current_file.raw_data.size();
+    current_file.element_info.push_back(element);
 
     FPMemUpdateInfo update_info;
     update_info.addr = address;
     update_info.size = size;
-    raw_data.insert(raw_data.end(), (u8*)&update_info, (u8*)(&update_info+1));
-    raw_data.insert(raw_data.end(), data, data + size);
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&update_info, (u8*)(&update_info+1));
+    current_file.raw_data.insert(current_file.raw_data.end(), data, data + size);
 }
 
 void FrameFinished()
 {
-    current_frame_info->num_elements = element_info.size() - current_frame_info->base_element;
+    current_frame_info->num_elements = current_file.element_info.size() - current_frame_info->base_element;
 
-    frame_info.resize(frame_info.size()+1);
-    current_frame_info = &frame_info.back();
+    current_file.frame_info.resize(current_file.frame_info.size()+1);
+    current_frame_info = &current_file.frame_info.back();
 
-    current_frame_info->base_element = element_info.size();
+    current_frame_info->base_element = current_file.element_info.size();
 }
 
-void EndRecording() {
+const FPFile& EndRecording()
+{
     FrameFinished();
-    while (frame_info.back().base_element == element_info.size() && !frame_info.empty())
-        frame_info.pop_back();
+    while (current_file.frame_info.back().base_element == current_file.element_info.size() && !current_file.frame_info.empty())
+        current_file.frame_info.pop_back();
 
-    file_header.num_frames = frame_info.size();
-    file_header.num_elements = element_info.size();
-    file_header.num_raw_data_bytes = raw_data.size();
-    file_header.frame_info_offset = sizeof(FPFileHeader);
-    file_header.element_info_offset = file_header.frame_info_offset + file_header.num_frames * sizeof(FPFrameInfo);
-    file_header.raw_data_offset = file_header.element_info_offset + file_header.num_elements * sizeof(FPElementInfo);
+    current_file.file_header.num_frames = current_file.frame_info.size();
+    current_file.file_header.num_elements = current_file.element_info.size();
+    current_file.file_header.num_raw_data_bytes = current_file.raw_data.size();
+    current_file.file_header.frame_info_offset = sizeof(FPFileHeader);
+    current_file.file_header.element_info_offset = current_file.file_header.frame_info_offset + current_file.file_header.num_frames * sizeof(FPFrameInfo);
+    current_file.file_header.raw_data_offset = current_file.file_header.element_info_offset + current_file.file_header.num_elements * sizeof(FPElementInfo);
 
     is_recording = false;
-    LOG_NOTICE(TGP, "FIFO recording ended: %d frames\n", frame_info.size());
+    LOG_NOTICE(TGP, "FIFO recording ended: %d frames\n", current_file.frame_info.size());
+
+    return current_file;
 }
 
 void Save(const char* filename, FPFile& in)

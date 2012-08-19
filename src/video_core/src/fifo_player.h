@@ -96,7 +96,7 @@ bool IsRecording();
 void SetExpandDisplayLists(bool expand); // TODO
 
 // recording
-void StartRecording(char* filename);
+void StartRecording();
 
 void Write(u8* data, int size);
 
@@ -104,7 +104,7 @@ void MemUpdate(u32 address, u8* data, u32 size);
 
 void FrameFinished();
 
-void EndRecording();
+const FPFile& EndRecording();
 
 // file handling
 void Save(const char* filename, FPFile& in);
