@@ -36,7 +36,7 @@
 #ifndef USE_NEW_VIDEO_CORE
 #include "video/opengl.h"
 #endif
-#include "emuwindow/emuwindow_sdl.h"
+#include "emuwindow/emuwindow_glfw.h"
 
 #include "gekko.h"
 
@@ -65,13 +65,28 @@ int __cdecl main(int argc, char **argv)
     config_manager.ReloadConfig(NULL);
     core::SetConfigManager(&config_manager);
 
-    EmuWindow_SDL* emu_window = new EmuWindow_SDL;
+    EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
 
     if (E_OK != core::Init(emu_window)) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");
         core::Kill();
         exit(1);
     }
+
+    // TODO: Remove this once ppl implement proper controller config
+    // Overrides the configuration from XML (which likely contains SDL-specific keycodes) with proper GLFW keybindings
+    common::g_config->controller_ports(0).keys.enable = true;
+    common::g_config->controller_ports(0).keys.a_key_code = GLFW_KEY_X;
+    common::g_config->controller_ports(0).keys.b_key_code = GLFW_KEY_Y; // QWERTZ ftw
+    common::g_config->controller_ports(0).keys.x_key_code = GLFW_KEY_A;
+    common::g_config->controller_ports(0).keys.y_key_code = GLFW_KEY_S;
+    common::g_config->controller_ports(0).keys.l_key_code = GLFW_KEY_Q;
+    common::g_config->controller_ports(0).keys.r_key_code = GLFW_KEY_W;
+    common::g_config->controller_ports(0).keys.start_key_code = GLFW_KEY_ENTER;
+    common::g_config->controller_ports(0).keys.analog_left_key_code = GLFW_KEY_LEFT;
+    common::g_config->controller_ports(0).keys.analog_right_key_code = GLFW_KEY_RIGHT;
+    common::g_config->controller_ports(0).keys.analog_up_key_code = GLFW_KEY_UP;
+    common::g_config->controller_ports(0).keys.analog_down_key_code = GLFW_KEY_DOWN;
 
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
