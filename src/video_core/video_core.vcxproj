@@ -22,6 +22,7 @@
     <ClCompile Include="src\bp_mem.cpp" />
     <ClCompile Include="src\cp_mem.cpp" />
     <ClCompile Include="src\fifo.cpp" />
+    <ClCompile Include="src\fifo_player.cpp" />
     <ClCompile Include="src\renderer_gl3\raster_font.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
     <ClCompile Include="src\renderer_gl3\shader_manager.cpp" />
