@@ -39,6 +39,7 @@
 #include "emuwindow/emuwindow_glfw.h"
 
 #include "gekko.h"
+#include "fifo_player.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // This is needed to fix SDL in certain build environments
@@ -46,7 +47,7 @@
 #undef main
 #endif
 
-//#define PLAY_FIFO_RECORDING 1
+//#define PLAY_FIFO_RECORDING
 
 /// Application entry point
 int __cdecl main(int argc, char **argv)
@@ -88,6 +89,7 @@ int __cdecl main(int argc, char **argv)
     common::g_config->controller_ports(0).keys.analog_up_key_code = GLFW_KEY_UP;
     common::g_config->controller_ports(0).keys.analog_down_key_code = GLFW_KEY_DOWN;
 
+#ifndef PLAY_FIFO_RECORDING
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
         if (common::g_config->enable_auto_boot()) {
@@ -100,6 +102,7 @@ int __cdecl main(int argc, char **argv)
         exit(E_ERR);
     }
 
+    // run the game
     while(core::SYS_DIE != core::g_state) {
         if (core::SYS_RUNNING == core::g_state) {
             if(!cpu->is_on) {
@@ -114,6 +117,21 @@ int __cdecl main(int argc, char **argv)
         }
     }
     core::Kill();
+#else
+    // load fifo log and replay it
+
+    // TODO: Restructure initialization process - Fix Flipper_Open being called from dvd loaders (wtf?)
+    Flipper_Open();
+    video_core::Start(emu_window);
+    core::SetState(core::SYS_RUNNING);
+
+    fifo_player::FPFile file;
+    fifo_player::Load("/home/tony/20_frames.gff", file);
+    fifo_player::PlayFile(file);
+
+    // TODO: Wait for video core to finish - PlayFile should handle this
+    while (1);
+#endif
     delete emu_window;
 
 	return E_OK;

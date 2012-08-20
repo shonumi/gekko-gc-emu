@@ -18,6 +18,7 @@
     </ClCompile>
     <ClCompile Include="src\texture_decoder.cpp" />
     <ClCompile Include="src\vertex_manager.cpp" />
+    <ClCompile Include="src\fifo_player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />

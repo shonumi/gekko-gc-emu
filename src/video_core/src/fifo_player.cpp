@@ -25,93 +25,235 @@
 
 #include <SDL.h>
 
+#include <stdio.h>
+#include <vector>
+
+#include "memory.h"
+
 #include "fifo_player.h"
 #include "video_core.h"
 #include "fifo.h"
 #include "core.h"
+#include "bp_mem.h"
+#include "cp_mem.h"
+#include "xf_mem.h"
 
 namespace fifo_player {
 
-FILE* g_out_file_ptr = NULL;    ///< Output file pointer
+bool is_recording = false;
 
-void StartRecording(char* filename) {
-    FifoPlayerFileHeader header;
-    
-    g_out_file_ptr = fopen(filename, "w");
+// TODO: Move these into a FPFile struct ASAP!
+FPFile current_file;
 
-    header.magic_num = FIFO_PLAYER_MAGIC_NUM;
-    header.version = FIFO_PLAYER_VERSION;
-    header.size = 0;    // TODO(ShizZy): ImplementMe
-    header.checksum = 0;    // TODO(ShizZy): ImplementMe
+FPFrameInfo* current_frame_info = NULL;
 
-    fwrite(&header, sizeof(FifoPlayerFileHeader), 1, g_out_file_ptr);
+bool IsRecording()
+{
+    return is_recording;
+}
 
+// NOTE: Should be called from GPU thread to make sure register states are consistent!
+void StartRecording()
+{
+    memset(&current_file.file_header, 0, sizeof(FPFileHeader));
+    current_file.frame_info.clear();
+    current_file.element_info.clear();
+    current_file.raw_data.clear();
+
+    current_file.file_header.magic_num = FIFO_PLAYER_MAGIC_NUM;
+    current_file.file_header.version = FIFO_PLAYER_VERSION;
+    // TODO: size and checksum
+
+    current_file.frame_info.resize(1);
+    current_frame_info = &current_file.frame_info.back();
+
+    // TODO: Record initial mem state => Mem_RAM
+
+    // TODO: Check if this works correctly
+    current_file.file_header.initial_bpmem_data_offset = current_file.raw_data.size();
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&gp::g_bp_regs, (u8*)(&gp::g_bp_regs + 1));
+    current_file.file_header.initial_cpmem_data_offset = current_file.raw_data.size();
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&gp::g_cp_regs, (u8*)(&gp::g_cp_regs + 1));
+    current_file.file_header.initial_xfmem_data_offset = current_file.raw_data.size();
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&gp::g_xf_regs, (u8*)(&gp::g_xf_regs + 1));
+
+    is_recording = true;
     LOG_NOTICE(TGP, "FIFO recording started");
 }
 
-void WriteDisplayList(u32 addr, u32 size) {
-    // TODO(ShizZy): ImplementMe
+void Write(u8* data, int size)
+{
+    FPElementInfo element;
+    element.type = FPElementInfo::REGISTER_WRITE;
+    element.size = size;
+    element.offset = current_file.raw_data.size();
+    current_file.element_info.push_back(element);
+
+    current_file.raw_data.insert(current_file.raw_data.end(), data, data + size);
 }
 
-void Write8(u8 data) {
-    fwrite(&data, 1, 1, g_out_file_ptr);
+void MemUpdate(u32 address, u8* data, u32 size)
+{
+    FPElementInfo element;
+    element.type = FPElementInfo::MEMORY_UPDATE;
+    element.size = sizeof(FPMemUpdateInfo) + size;
+    element.offset = current_file.raw_data.size();
+    current_file.element_info.push_back(element);
+
+    FPMemUpdateInfo update_info;
+    update_info.addr = address;
+    update_info.size = size;
+    current_file.raw_data.insert(current_file.raw_data.end(), (u8*)&update_info, (u8*)(&update_info+1));
+    current_file.raw_data.insert(current_file.raw_data.end(), data, data + size);
 }
 
-void Write16(u16 data) {
-    fwrite(&data, 2, 1, g_out_file_ptr);
+void FrameFinished()
+{
+    current_frame_info->num_elements = current_file.element_info.size() - current_frame_info->base_element;
+
+    current_file.frame_info.resize(current_file.frame_info.size()+1);
+    current_frame_info = &current_file.frame_info.back();
+
+    current_frame_info->base_element = current_file.element_info.size();
 }
 
-void Write32(u32 data) {
-    fwrite(&data, 4, 1, g_out_file_ptr);
+const FPFile& EndRecording()
+{
+    FrameFinished();
+    while (current_file.frame_info.back().base_element == current_file.element_info.size() && !current_file.frame_info.empty())
+        current_file.frame_info.pop_back();
+
+    current_file.file_header.num_frames = current_file.frame_info.size();
+    current_file.file_header.num_elements = current_file.element_info.size();
+    current_file.file_header.num_raw_data_bytes = current_file.raw_data.size();
+    current_file.file_header.frame_info_offset = sizeof(FPFileHeader);
+    current_file.file_header.element_info_offset = current_file.file_header.frame_info_offset + current_file.file_header.num_frames * sizeof(FPFrameInfo);
+    current_file.file_header.raw_data_offset = current_file.file_header.element_info_offset + current_file.file_header.num_elements * sizeof(FPElementInfo);
+
+    is_recording = false;
+    LOG_NOTICE(TGP, "FIFO recording ended: %d frames\n", current_file.frame_info.size());
+
+    return current_file;
 }
 
-void EndRecording() {
-    fclose(g_out_file_ptr);
-    LOG_NOTICE(TGP, "FIFO recording ended");
+void Save(const char* filename, FPFile& in)
+{
+    // TODO: Error checking...
+    FILE* file = fopen(filename, "wb");
+
+    fwrite(&in.file_header, sizeof(FPFileHeader), 1, file);
+    fwrite(&(*in.frame_info.begin()), in.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
+    fwrite(&(*in.element_info.begin()), in.file_header.num_elements * sizeof(FPElementInfo), 1, file);
+    fwrite(&(*in.raw_data.begin()), in.raw_data.size(), 1, file);
+
+    fclose(file);
 }
 
-#define FIFO_PLAYBACK_SIZE  (32*1024*1024)
-u8 fifo_buff[FIFO_PLAYBACK_SIZE];
+void Load(const char* filename, FPFile& out)
+{
+    // TODO: Error checking...
+    FILE* file = fopen(filename, "rb");
+    int objects_read = 0;
 
-void PlayFile(char* filename) {
-    FifoPlayerFileHeader header;
-    FILE* in_file_ptr = fopen(filename, "r");
-
-
-    
-    memset(fifo_buff, 0, FIFO_PLAYBACK_SIZE);
-
-    if (in_file_ptr == NULL) {
-        LOG_ERROR(TGP, "Failed to load FifoPlayer file %s", filename);
+    objects_read = fread(&out.file_header, sizeof(FPFileHeader), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
+    }
+    if (out.file_header.magic_num != FIFO_PLAYER_MAGIC_NUM)
+    {
+        // TODO: Error message
+        return;
+    }
+    if (out.file_header.version != FIFO_PLAYER_VERSION)
+    {
+        // TODO: Error message
         return;
     }
 
-    fread(&header, sizeof(header), 1, in_file_ptr);
-
-    core::SetState(core::SYS_RUNNING);
-
-    video_core::Init();
-    video_core::Start();
-
-    SDL_Delay(5000);
-
-    fseek(in_file_ptr, sizeof(FifoPlayerFileHeader)  , SEEK_SET);
-    fread(fifo_buff, FIFO_PLAYBACK_SIZE, 1, in_file_ptr);
-    
-    for (int i = 0; i < FIFO_PLAYBACK_SIZE; i++) {
-        //u8 data;
-        //u8 data = fgetc(in_file_ptr);
-        //_ASSERT_MSG(TGP, bytes_read == 1, "WTF?! Failed to read 1 word...\n"); 
-        //printf("%02x ", fifo_buff[i]);
-        gp::FifoPush8(fifo_buff[i]);
-
+    out.frame_info.resize(out.file_header.num_frames);
+    fseek(file, out.file_header.frame_info_offset, SEEK_SET);
+    objects_read = fread(&(*out.frame_info.begin()), out.file_header.num_frames * sizeof(FPFrameInfo), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
     }
 
-    SDL_Delay(5000);
+    out.element_info.resize(out.file_header.num_elements);
+    fseek(file, out.file_header.element_info_offset, SEEK_SET);
+    objects_read = fread(&(*out.element_info.begin()), out.file_header.num_elements * sizeof(FPElementInfo), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
+    }
 
-    fclose(in_file_ptr);
+    out.raw_data.resize(out.file_header.num_raw_data_bytes);
+    fseek(file, out.file_header.raw_data_offset, SEEK_SET);
+    objects_read = fread(&(*out.raw_data.begin()), out.file_header.num_raw_data_bytes * sizeof(u8), 1, file);
+    if (objects_read != 1)
+    {
+        // TODO: Error message
+        return;
+    }
 
-    core::SetState(core::SYS_DIE);
+    fclose(file);
+}
+
+void PlayFile(FPFile& in)
+{
+    gp::BPMemory* bpmem = (gp::BPMemory*)&(*(in.raw_data.begin() + in.file_header.initial_bpmem_data_offset));
+    for (unsigned int i = 0; i < sizeof(gp::BPMemory) / sizeof(u32); ++i)
+    {
+        // TODO: This is dangerous since it e.g. triggers EFB copy requests!
+        gp::FifoPush8(GP_LOAD_BP_REG);
+        gp::FifoPush32((i << 24) | (bpmem->mem[i] & 0x00FFFFFF));
+    }
+
+
+    gp::CPMemory* cpmem = (gp::CPMemory*)&(*(in.raw_data.begin() + in.file_header.initial_cpmem_data_offset));
+    for (unsigned int i = 0; i < sizeof(gp::CPMemory) / sizeof(u32); ++i)
+    {
+        gp::FifoPush8(GP_LOAD_CP_REG);
+        gp::FifoPush8(i << 24);
+        gp::FifoPush32(cpmem->mem[i]);
+    }
+
+    gp::XFMemory* xfmem = (gp::XFMemory*)&(*(in.raw_data.begin() + in.file_header.initial_xfmem_data_offset));
+    // TODO: Push XF regs
+
+    // TODO: Loop over all frames but wait until the last frame has been processed before pushing the first one again
+    std::vector<FPFrameInfo>::iterator frame;
+    for (frame = in.frame_info.begin(); frame != in.frame_info.end(); ++frame)
+    {
+        std::vector<FPElementInfo>::iterator element;
+        for (element = in.element_info.begin() + frame->base_element; element != in.element_info.begin() + frame->base_element + frame->num_elements; ++element)
+        {
+            switch (element->type)
+            {
+                case FPElementInfo::REGISTER_WRITE:
+                {
+                    std::vector<u8>::iterator byte;
+                    for (byte = in.raw_data.begin() + element->offset; byte != in.raw_data.begin() + element->offset + element->size; ++byte)
+                        gp::FifoPush8(*byte);
+
+                    break;
+                }
+
+                case FPElementInfo::MEMORY_UPDATE:
+                {
+                    // TODO: Wait for GPU thread to catch up before doing this
+                    FPMemUpdateInfo* update_info = (FPMemUpdateInfo*)&(*(in.raw_data.begin() + element->offset));
+                    memcpy(&Mem_RAM[update_info->addr & RAM_MASK], &*(in.raw_data.begin() + element->offset + 2), update_info->size);
+
+                    break;
+                }
+            }
+        }
+        // TODO: Flush WGP once we have accurate fifo emulation
+    }
 }
 
 

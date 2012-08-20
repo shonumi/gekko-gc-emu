@@ -936,7 +936,7 @@ int LoadGCM(char *filename)
     }
 
     Bootrom(FSTInfo.MemLocation);
-    Flipper_Open();
+    Flipper_Open(); // TODO: wrong place for this!!
     Boot_AppLoader(AppLoaderHeader);
     HLE_ScanForPatches();
 

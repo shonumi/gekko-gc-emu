@@ -2,6 +2,7 @@ set(SRCS
             src/bp_mem.cpp
             src/cp_mem.cpp
             src/fifo.cpp
+            src/fifo_player.cpp
             src/vertex_loader.cpp
             src/vertex_manager.cpp
             src/video_core.cpp
