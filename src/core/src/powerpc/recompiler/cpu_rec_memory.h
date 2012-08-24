@@ -35,7 +35,7 @@ static GekkoF	InitRecompileMemory();
 static GekkoF	ReleaseRecompileMemory();
 static GekkoF	CheckMemory();
 static GekkoF	DumpMemoryLayout();
-static GekkoF GekkoCPURecompiler::DumpMemoryDLL();
+static GekkoF DumpMemoryDLL();
 //static GekkoF	MemSet4Byte(void *StartPtr, u32 NewVal, u32 Count);
 
 #endif
