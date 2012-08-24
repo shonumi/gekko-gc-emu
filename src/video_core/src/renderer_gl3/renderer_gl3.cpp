@@ -507,7 +507,6 @@ void RendererGL3::PrintDebugStats() {
             fps, 0, write_pos, read_pos);
             */
     sprintf(str, "%02.02f", fps);
-	render_window_->SetTitle(str);
     g_raster_font->printMultilineText(str, -0.98, 0.93, 0, 200, 400);
 }
 
