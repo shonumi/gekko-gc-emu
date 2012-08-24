@@ -57,8 +57,8 @@ public:
 private:
 	#include "cpu_rec_memory.h"
 
-	static u32 *	GekkoCPURecompiler::CompiledTable;
-	static u32 *	GekkoCPURecompiler::CompiledTablePages;
+	static u32 *	CompiledTable;
+	static u32 *	CompiledTablePages;
 
 	static u32	PageSize;
 
@@ -96,15 +96,20 @@ public:
 	static const t128 ldScale64bitX1[64];
 	static const t128 FPR1Float;
 
-	static LONG __stdcall GekkoCPURecompiler::UnhandledException(EXCEPTION_POINTERS *ExceptionInfo);
+	static LONG __stdcall UnhandledException(EXCEPTION_POINTERS *ExceptionInfo);
 
-	extern struct RecInstruction;
-	extern struct PPCRegInfo;
+	typedef struct PPCRegInfo
+	{
+		u32		PPCRegister;
+		u32		ValueChanged;
+	} PPCRegInfo;
+
+	struct RecInstruction;
 
 	typedef void (*RecCacheInstructionPtr)(RecInstruction *Instruction);
 	typedef void (*RecILInstructionPtr)(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
 
-#define GekkoRecILOp(name)	OPTYPE GekkoCPURecompiler::GekkoILInstruction_##name(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs)
+#define GekkoRecILOp(name)	OPTYPE GekkoCPURecompiler::GekkoILInstruction_##name(struct RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs)
 #define GekkoRecILOpHeader(name)	OPTYPE GekkoILInstruction_##name(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs)
 #define GekkoRecIL(name)	GekkoCPURecompiler::GekkoILInstruction_##name
 
@@ -119,12 +124,6 @@ public:
 		u32		KnownValue;
 		u32		Flags;
 	} PPCKnownRegInfo;
-
-	typedef struct PPCRegInfo
-	{
-		u32		PPCRegister;
-		u32		ValueChanged;
-	} PPCRegInfo;
 
 	typedef struct JumpList
 	{
@@ -143,12 +142,12 @@ public:
 	static u8				SetCRKnown[4];
 
 	#define GekkoRecCacheOp(name)	OPTYPE GekkoCPURecompiler::GekkoRecCache_##name(RecInstruction *Instruction)
-	#define GekkoRecCacheOpHeader(name)	OPTYPE GekkoRecCache_##name(RecInstruction *Instruction)
+	#define GekkoRecCacheOpHeader(name)	OPTYPE GekkoRecCache_##name(struct RecInstruction *Instruction)
 	#define GekkoRecCache(name)		GekkoCPURecompiler::GekkoRecCache_##name
 
-	static u32 __cdecl CheckRecPPCCache(RecInstruction *Instruction);
-	static u32 __cdecl ProcessRecPPCCache(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
-	static u32 __cdecl ProcessRecPPCCacheSpecial(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
+	static u32 __cdecl CheckRecPPCCache(struct RecInstruction *Instruction);
+	static u32 __cdecl ProcessRecPPCCache(struct RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
+	static u32 __cdecl ProcessRecPPCCacheSpecial(struct RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
 	static GekkoRecCacheOpHeader(ADD);
 	static GekkoRecCacheOpHeader(AND);
 //	static GekkoRecCacheOpHeader(IDIV);
@@ -717,7 +716,7 @@ public:
 	#define REC_JS(LabelID)			GekkoRecIL(JUMP), 0x880F, LabelID, RecInstrFlag_NoPPCRegCount, 0
 	#define REC_JZ(LabelID)			GekkoRecIL(JUMP), 0x840F, LabelID, RecInstrFlag_NoPPCRegCount, 0
 
-	static void GekkoCPURecompiler::ProcessJump(JumpList *LabelEntry, JumpList *JumpEntry);
+	static void ProcessJump(JumpList *LabelEntry, JumpList *JumpEntry);
 	static u32	NextJumpID_Val;
 	#define NextJumpID (++NextJumpID_Val)
 
