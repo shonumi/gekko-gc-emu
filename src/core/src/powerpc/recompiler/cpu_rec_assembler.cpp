@@ -141,6 +141,7 @@ GekkoRecILOp(MOVE)
 
 GekkoRecILOp(NOP)
 {
+	*(u8 *)OutInstruction = 0x90;
 	*OutSize = 0;
 }
 
@@ -499,24 +500,34 @@ GekkoRecILOp(GETTEMPREG)
 {
 	//reset if the temp value is known
 	PPCRegVals[TEMP_REG].Flags = 0;
+	*(u8 *)OutInstruction = 3;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(FREETEMPREG)
 {
 	//reset if the temp value is known
 	PPCRegVals[TEMP_REG].Flags = 0;
+	*(u8 *)OutInstruction = 4;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(GETREG)
 {
+	*(u8 *)OutInstruction = 5;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(FREEREG)
 {
+	*(u8 *)OutInstruction = 6;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(STOREREG)
 {
+	*(u8 *)OutInstruction = 7;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(TURNOFFCACHING)

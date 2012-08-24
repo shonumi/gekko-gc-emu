@@ -218,11 +218,11 @@ GekkoF EMU_FASTCALL GekkoCPURecompiler::CompileIL(u32 OldPC, u32 NewPC)
 
 			CreateRecInstruction(GekkoRecIL(MOVE), 0, 0, RecInstrFlagX86InMem | RecInstrFlagX86OutReg, 0);
 			LastInstruction->X86InMemory = (u32)&ireg.spr[I_DEC];
-			LastInstruction->X86OutReg = REG_EBX;
+			LastInstruction->X86OutReg = REG_ECX;
 
 			CreateRecInstruction(GekkoRecIL(CMP), 0, 0, RecInstrFlagX86InVal | RecInstrFlagX86OutReg, 0);
 			LastInstruction->X86InVal = TotalInstCount;
-			LastInstruction->X86OutReg = REG_EBX;
+			LastInstruction->X86OutReg = REG_ECX;
 			CreateRecInstruction(REC_JAE(JumpID));
 			CreateRecInstruction(GekkoRecIL(MOVE), 0, 0, RecInstrFlagX86InVal | RecInstrFlagX86OutMem, 0);
 			LastInstruction->X86InVal = MSR_BIT_EE;
@@ -247,10 +247,10 @@ GekkoF EMU_FASTCALL GekkoCPURecompiler::CompileIL(u32 OldPC, u32 NewPC)
 
 			CreateRecInstruction(GekkoRecIL(SUB), 0, 0, RecInstrFlagX86InVal | RecInstrFlagX86OutReg, 0);
 			LastInstruction->X86InVal = TotalInstCount;
-			LastInstruction->X86OutReg = REG_EBX;
+			LastInstruction->X86OutReg = REG_ECX;
 			CreateRecInstruction(GekkoRecIL(MOVE), 0, 0, RecInstrFlagX86InReg | RecInstrFlagX86OutMem, 0);
 			LastInstruction->X86OutMemory = (u32)&ireg.spr[I_DEC];
-			LastInstruction->X86InReg = REG_EBX;
+			LastInstruction->X86InReg = REG_ECX;
 
 			if(!(branch & Branch_RFI))
 			{

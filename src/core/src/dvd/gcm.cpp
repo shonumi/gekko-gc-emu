@@ -27,6 +27,7 @@
 #include "common.h"
 #include "realdvd.h"
 #include "powerpc/cpu_core.h"
+#include "powerpc/cpu_core_regs.h"
 #include "boot/bootrom.h"
 #include "boot/apploader.h"
 #include "hw/hw.h"
@@ -623,7 +624,7 @@ int LoadGCM(char *filename)
     }
 
     //setup the MSR
-    set_ireg_MSR(MSR_BIT_DR | MSR_BIT_IR | MSR_BIT_FP);
+	ireg.MSR = MSR_BIT_DR | MSR_BIT_IR | MSR_BIT_FP;
 
     Memory_Open();
 

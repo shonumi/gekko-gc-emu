@@ -13,23 +13,23 @@
 #define HLE_PTR(name)				HLE_##name
 #define HLE_FUNCTION(name)			HLE_##name()
 
-#define HLE_PARAM_INT_0				ireg_GPR(3)
-#define HLE_PARAM_INT_1				ireg_GPR(4)
-#define HLE_PARAM_INT_2				ireg_GPR(5)
+#define HLE_PARAM_INT_0				(ireg.gpr[3])
+#define HLE_PARAM_INT_1				(ireg.gpr[4])
+#define HLE_PARAM_INT_2				(ireg.gpr[5])
 
-#define HLE_PARAM_FLOAT_0			ireg_fpr_64(1, 0)
-#define HLE_PARAM_FLOAT_1			ireg_fpr_64(2, 0)
-#define HLE_PARAM_FLOAT_2			ireg_fpr_64(3, 0)
+#define HLE_PARAM_FLOAT_0			(ireg.fpr[1].ps0._f64)
+#define HLE_PARAM_FLOAT_1			(ireg.fpr[2].ps0._f64)
+#define HLE_PARAM_FLOAT_2			(ireg.fpr[3].ps0._f64)
 
 #define HLE_PARAM_PTR_0				&RAM[HLE_PARAM_INT_0 & RAM_MASK]
 #define HLE_PARAM_PTR_1				&RAM[HLE_PARAM_INT_1 & RAM_MASK]
 #define HLE_PARAM_PTR_2				&RAM[HLE_PARAM_INT_2 & RAM_MASK]
 
-#define HLE_RETURN(X)				set_ireg_GPR(3, X)
-#define HLE_RETURN_TRUE				set_ireg_GPR(3, 1)
-#define HLE_RETURN_FALSE			set_ireg_GPR(3, 0)
+#define HLE_RETURN(X)				ireg.gpr[3] = (X)
+#define HLE_RETURN_TRUE				ireg.gpr[3] = 1
+#define HLE_RETURN_FALSE			ireg.gpr[3] = 0
 
-#define sd2							ireg_gpr(13)
+#define sd2							(ireg.gpr[13])
 #define OSRoundUp32B(x)				(((u32)(x) + 32 - 1) & ~(32 - 1))
 
 ////////////////////////////////////////////////////////////

@@ -17,6 +17,7 @@
 #include "powerpc/cpu_core.h"
 #include "powerpc/cpu_core_regs.h"
 #include "powerpc/cpu_opsgroup.h"
+#include "powerpc/disassembler/ppc_disasm.h"
 
 u32			GekkoCPUInterpreter::RotMask[32][32];
 
@@ -644,7 +645,7 @@ SkipFlipperUpdate:
 //		if(ireg.PC == 0x8025225C)
 //			_asm{int 3};
 
-#pragma todo("renenable breakpoints later");
+#pragma todo("renenable breakpoints later")
 	/*	if(bpt.size() && di.isBreakpoint(ireg.PC) && !step)
 		{
 			printf("Debug breakpoint hit: 0x%08X\n", ireg.PC);

@@ -5,29 +5,26 @@
 #include "boot/bootrom.h"
 #include "hle/hle.h"
 #include "hle/hle_func.h"
-
-
+#include "powerpc/cpu_core_regs.h"
 
 void AppLoaderPrint() {
 	u32	    i;
 	char	msg[1000];
 
 	for(i = 0; ; i++) {
-		msg[i] = Memory_Read8(ireg_GPR(3) + i);
+		msg[i] = Memory_Read8(ireg.gpr[3] + i);
 		if(!msg[i]) {
 			break;
         }
 	}
-	LOG_NOTICE(TBOOT, msg, ireg_GPR(4), ireg_GPR(5), ireg_GPR(6));
+	LOG_NOTICE(TBOOT, msg, ireg.gpr[4], ireg.gpr[5], ireg.gpr[6]);
 }
 
 /* TODO(ShizZy): This is hacky shit to get portability.... Move to HLE and clean up! 2012-03-08*/
-#define HLE_VALIDATEREGLAYOUT_ADDR    0x00000001
-#define HLE_APPLOADERPRINT_ADDR       0x00000002
+#define HLE_APPLOADERPRINT_ADDR       0x00000001
 HLEFuncPtr g_hle_func_table[MAX_HLE_FUNCTIONS] = {
     NULL,
-    ValidateRegLayout,  // 0x0001
-    AppLoaderPrint,     // 0x0002
+    AppLoaderPrint,     // 0x0001
 };
 u16 g_hle_count = 3;
 /* End this shit*** */
@@ -38,9 +35,6 @@ bool Boot_AppLoader(u32 *AppHeader)
 	u32		OldPC;
 	u32		AppLoaderDump[] =
 	{
-		0x0C000000,			//HLE Call
-		0x48000008,			//b 8
-		HLE_VALIDATEREGLAYOUT_ADDR, //Ptr for validate register layout
 		0x3E208131,			//addis r17, 0, 0x8131
 		0x3A310000,			//addi r17, r17, 0x0000 - filled in
 		0x388D0000,			//addi r4, r13, 0
@@ -141,18 +135,18 @@ bool Boot_AppLoader(u32 *AppHeader)
 	cpu->Open(0x81310000);
 
 	//set some registers
-	set_ireg_gpr(I_SP, 0x816FFFFC);			//stack pointer
+	ireg.gpr[I_SP] = 0x816FFFFC;			//stack pointer
 
 	//set pointers for functions
-	set_ireg_GPR(3, 0x81300004);
-	set_ireg_GPR(4, 0x81300008);
-	set_ireg_GPR(5, 0x8130000C);
-	set_ireg_spr(I_LR, 0);
+	ireg.gpr[3] = 0x81300004;
+	ireg.gpr[4] = 0x81300008;
+	ireg.gpr[5] = 0x8130000C;
+	ireg.spr[I_LR] = 0;
 
 	//disable the hardware interrupts
-	set_ireg_MSR(ireg_MSR() & ~MSR_BIT_EE);
+	ireg.MSR &= ~MSR_BIT_EE;
 
-	set_ireg_GPR(13, BSWAP32(AppHeader[4]));
+	ireg.gpr[13] = BSWAP32(AppHeader[4]);
     for(i=0; i < (sizeof(AppLoaderDump) / 4); i++)
 		Memory_Write32(0x81310000 + (i * 4), AppLoaderDump[i]);
 
@@ -161,27 +155,27 @@ bool Boot_AppLoader(u32 *AppHeader)
 
 //	memcpy(&Mem_RAM[(0x81310000 & RAM_MASK) + sizeof(AppLoaderDump)], BootMsgs, sizeof(BootMsgs));
 //	*(u16 *)&RAM[(0x81310000 & RAM_MASK) + 18] = BSWAP16((u16)sizeof(AppLoaderDump));
-	Memory_Write16(0x81310000 + 18, sizeof(AppLoaderDump));
+	Memory_Write16(0x81310000 + 6, sizeof(AppLoaderDump));
 
-	while(ireg_PC())
+	while(ireg.PC)
 	{
 		if(!cpu->pause)
 			cpu->ExecuteInstruction();
 
-		if(ireg_PC() == (0x81310000 + sizeof(AppLoaderDump) - 8))
+		if(ireg.PC == (0x81310000 + sizeof(AppLoaderDump) - 8))
 		{
 		    break;
 		}
 
-		OldPC = ireg_PC();
+		OldPC = ireg.PC;
 	}
 
 	//enable the hardware interrupts
-	set_ireg_MSR(ireg_MSR() | MSR_BIT_EE);
+	ireg.MSR |= MSR_BIT_EE;
 
 	//set the PC as to where we are running
-	set_ireg_PC(ireg_GPR(18));
-	set_ireg_GPR(3, ireg_GPR(18));
+ 	ireg.PC = ireg.gpr[18];
+	ireg.gpr[3] = ireg.gpr[18];
 
 	return true;
 }

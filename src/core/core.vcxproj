@@ -306,7 +306,6 @@
     <ClInclude Include="src\memory.h" />
     <ClInclude Include="src\powerpc\cpu_core.h" />
     <ClInclude Include="src\powerpc\cpu_core_regs.h" />
-    <ClInclude Include="src\powerpc\cpu_core_regs_layout.h" />
     <ClInclude Include="src\powerpc\cpu_core_userid.h" />
     <ClInclude Include="src\powerpc\cpu_opsgroup.h" />
     <ClInclude Include="src\powerpc\disassembler\ppc_disasm.h" />

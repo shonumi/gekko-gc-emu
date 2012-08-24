@@ -40,10 +40,16 @@ FPUInstructionMem3Byte(MOVSS, 0x100FF3, 0x110FF3);
 
 GekkoRecILOp(GETTEMPFPUREG)
 {
+	//fake a stupid byte to cause microsoft to stop fucking with us as functions that do nothing are combined
+	//so all of our code relying on unique functions fail
+	*(u8 *)OutInstruction = 0;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(FREETEMPFPUREG)
 {
+	*(u8 *)OutInstruction = 1;
+	*OutSize = 0;
 }
 
 GekkoRecILOp(MOVD)

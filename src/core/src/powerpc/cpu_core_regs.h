@@ -22,7 +22,16 @@ typedef struct t_Gekko_Registers
 	{
 		struct
 		{
-#include "cpu_core_regs_layout.h"
+			t128 fpr[32];
+			u32 PC;
+			u32 gpr[33];
+			u32 sr[16];
+			u32 spr[1024];
+			u32 MSR;
+			u32 CR;
+			u32 FPSCR;
+			u32 IC;
+			Gekko_Timer TBR;
 		};
 		u32		all[(32*4)+33+1024+16+1+1+1+1+1+2+8];	//extra 8 are alignment
 	};

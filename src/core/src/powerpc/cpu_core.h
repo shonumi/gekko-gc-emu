@@ -334,6 +334,7 @@ extern class GekkoCPU*	cpu;
 #define MSR_BIT_ILE			0x00010000
 #define MSR_BIT_POW			0x00040000
 
+/*
 u32 ireg_PC();
 void set_ireg_PC(u32 NewPC);
 u32 ireg_gpr(u32 Register);
@@ -341,7 +342,7 @@ void set_ireg_gpr(u32 Register, u32 NewVal);
 #define ireg_GPR		ireg_gpr
 #define set_ireg_GPR	set_ireg_gpr
 u32 ireg_spr(u32 Register);
-void set_ireg_spr(u32 Register, u32 NewVal);
+void ireg.spr[u32 Register, u32 NewVal);
 u32 ireg_CR();
 void set_ireg_CR(u32 NewVal);
 u32 ireg_MSR();
@@ -359,5 +360,5 @@ void set_ireg_IC(u32 NewVal);
 u32 ireg_sr(u32 Register);
 void set_ireg_sr(u32 Register, u32 NewVal);
 void ValidateRegLayout();
-
+*/
 #endif

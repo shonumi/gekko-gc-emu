@@ -315,7 +315,7 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 
 u32 EMU_FASTCALL DSP_Read32(u32 addr)
 {
-	LOG_ERROR(TDSP, "~Flipper: DSP_Read32: %08X (PC=%08x)!\n", addr, ireg_PC());
+	LOG_ERROR(TDSP, "~Flipper: DSP_Read32: %08X (PC=%08x)!\n", addr, ireg.PC);
 	switch(addr)
 	{
 	case DSP_AR_DMA_MMADDR:

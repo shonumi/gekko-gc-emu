@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "hw/hw.h"
 #include "powerpc/cpu_core.h"
+#include "powerpc/cpu_core_regs.h"
 
 ////////////////////////////////////////////////////////////
 
@@ -42,16 +43,16 @@ void Bootrom(u32 FSTStart)
 
     //setup the cpu
     for(i=0; i < 16; i++)
-        set_ireg_sr(i, 0x80000000);
-    set_ireg_spr(I_IBAT0U, 0x80001fff);
-    set_ireg_spr(I_IBAT0L, 0x00000002);
-    set_ireg_spr(I_IBAT1U, 0xc0001fff);
-    set_ireg_spr(I_IBAT1L, 0x0000002a);
-    set_ireg_spr(I_DBAT0U, 0x80001fff);
-    set_ireg_spr(I_DBAT0L, 0x00000002);
-    set_ireg_spr(I_DBAT1U, 0xc0001fff);
-    set_ireg_spr(I_DBAT1L, 0x0000002a);
-    set_ireg_spr(287, 0x00083214);
+        ireg.sr[i] = 0x80000000;
+    ireg.spr[I_IBAT0U] = 0x80001fff;
+    ireg.spr[I_IBAT0L] = 0x00000002;
+    ireg.spr[I_IBAT1U] = 0xc0001fff;
+    ireg.spr[I_IBAT1L] = 0x0000002a;
+    ireg.spr[I_DBAT0U] = 0x80001fff;
+    ireg.spr[I_DBAT0L] = 0x00000002;
+    ireg.spr[I_DBAT1U] = 0xc0001fff;
+    ireg.spr[I_DBAT1L] = 0x0000002a;
+    ireg.spr[287] = 0x00083214;
 
 
     //setup the memory for the dolphin os

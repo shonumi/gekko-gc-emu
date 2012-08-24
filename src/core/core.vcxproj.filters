@@ -277,9 +277,6 @@
     <ClInclude Include="src\powerpc\cpu_core_regs.h">
       <Filter>powerpc</Filter>
     </ClInclude>
-    <ClInclude Include="src\powerpc\cpu_core_regs_layout.h">
-      <Filter>powerpc</Filter>
-    </ClInclude>
     <ClInclude Include="src\powerpc\cpu_core_userid.h">
       <Filter>powerpc</Filter>
     </ClInclude>

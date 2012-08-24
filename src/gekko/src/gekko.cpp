@@ -105,7 +105,7 @@ int __cdecl main(int argc, char **argv)
     // run the game
     while(core::SYS_DIE != core::g_state) {
         if (core::SYS_RUNNING == core::g_state) {
-            if(!cpu->is_on) {
+            if(!(cpu->is_on)) {
                 cpu->Start(); // Initialize and start CPU.
             } else {
                 for(tight_loop = 0; tight_loop < 10000; ++tight_loop) {

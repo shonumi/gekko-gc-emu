@@ -104,7 +104,8 @@ HLE(OSReport)
 	char OutBuff[512], InBuff[512], Temp1[512], Temp2[512], Temp3[512];
 	char *Offset1, *Offset2;
 	int  CurRegister;
-	u32	 i;
+	double TempDouble;
+	u32	 i = 0;
 
 	//copy our string
 	i =-4;
@@ -143,7 +144,11 @@ HLE(OSReport)
 		strncpy(Temp1, Offset1, Offset2 - Offset1);
 		Temp1[Offset2 - Offset1] = 0;
 
-		if((Temp1[1] | 0x20) == 's')
+		i = 1;
+		while(Temp1[i] < 0x41)
+			i++;
+
+		if((Temp1[i] | 0x20) == 's')
 		{
 			//copy the string to temp3
 			i = -4;
@@ -154,6 +159,12 @@ HLE(OSReport)
 			} while(Temp3[i] && Temp3[i+1] && Temp3[i+2] && Temp3[i+3]);
 
 			sprintf(Temp2, Temp1, Temp3);
+		}
+		else if((Temp1[i] | 0x20) == 'f')
+		{
+			TempDouble = (double)ireg.gpr[CurRegister];
+			char Testing[1024];
+			sprintf(Temp2, Temp1, TempDouble);
 		}
 		else
 			sprintf(Temp2, Temp1, ireg.gpr[CurRegister]);
@@ -177,7 +188,7 @@ HLE(DBPrintf)
 	char OutBuff[512], InBuff[512], Temp1[512], Temp2[512], Temp3[512];
 	char *Offset1, *Offset2;
 	int  CurRegister;
-	u32  i;
+	u32  i = 0;
 
 	//copy our string
 	i = -4;
@@ -241,7 +252,7 @@ HLE(DBPrintf)
 
 HLE(OSPanic)
 {
-	u32	i;
+	u32	i = 0;
 	u8 InBuff[1024];
 
 	//copy our string

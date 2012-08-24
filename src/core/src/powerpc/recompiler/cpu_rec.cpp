@@ -27,6 +27,7 @@ u32			GekkoCPURecompiler::HLE_PC;
 
 #include "powerpc/cpu_opsgroup.h"
 #include "cpu_rec_opsgroup.h"
+#include "powerpc/disassembler/ppc_disasm.h"
 
 GekkoCPURecompiler::RecInstruction *GekkoCPURecompiler::LastInstruction;
 GekkoCPURecompiler::RecInstruction *GekkoCPURecompiler::InstructionBlock;
@@ -336,16 +337,18 @@ GekkoCPURecompiler::GekkoCPURecompiler()
 	//an unhandled exception or passed along to the program. We need Gekko
 	//to handle the errors, not the debugger due to using it for memory write
 	//validation
-	if(IsDebuggerPresent())
+	if(0) //IsDebuggerPresent())
 	{
 		//patch NtQueryInformationProcess to allow unhandled exceptions to  be
 		//passed along and not passed back to the debugger
 		HMODULE hDLL = GetModuleHandle("ntdll.dll");
 		BYTE *pTarget = (BYTE *)GetProcAddress(hDLL, "NtQueryInformationProcess");
+		BYTE *PatchMem = (BYTE *)RecompileAlloc(sizeof(PatchBytes));
+		memcpy(PatchMem, PatchBytes, sizeof(PatchBytes));
 		memcpy( OriginalBytes, pTarget, sizeof(OriginalBytes) );
 
 		//verify the first instruction is mov eax, 0x9A
-		if(*(u32 *)&OriginalBytes[0] != 0x00009AB8)
+		if(*(u32 *)&OriginalBytes[0] & 0xFFFF00FF != 0x000000B8)
 		{
 			printf("ERROR! Debugger detected but unable to hook NtQueryInformationProcess!\n");
 			printf("Found the following bytes: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
@@ -355,8 +358,9 @@ GekkoCPURecompiler::GekkoCPURecompiler()
 		else
 		{
 			printf("Debugger Detected, patching NtQueryInformationProcess");
-			*(u32*)&PatchJump[1] = (u32)&PatchBytes[0] - (u32)pTarget - 5;
+			*(u32*)&PatchJump[1] = (u32)PatchMem - (u32)pTarget - 5;
 			*(u32*)&PatchBytes[12] = (u32)pTarget - (u32)&PatchBytes[12] + 1;
+			PatchBytes[1] = OriginalBytes[1];
 			if(WriteMemory(pTarget, PatchJump, sizeof(PatchJump)))
 				printf(" - OK\n");
 		}
@@ -368,8 +372,6 @@ LONG __stdcall GekkoCPURecompiler::UnhandledException(EXCEPTION_POINTERS *Except
 {
 	DWORD	OldFlags;
 	u32		MemAddr;
-
-    printf("\n!!!!!!!!!!!!!!!!!!!!!UNHANDLED EXCEPTION!!!!!!!!!!!!!!!!!!!!!!!\n");
 
 	if(ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
 	{
@@ -537,9 +539,11 @@ GekkoF GekkoCPURecompiler::Start(void)
 	{
 		is_on = true;
 		pause = false;
-#ifndef SINGLETHREADED
-		hGekkoThread = CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)GekkoRecompiler_RunThread,NULL,NULL,&GekkoThread);
-#endif
+
+	    if (common::g_config->enable_multicore())
+		{
+			hGekkoThread = CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)GekkoRecompiler_RunThread,NULL,NULL,&GekkoThread);
+		}
 	} else {
 		printf(".CPU: Gekko_Recompiler_Start - Gekko Core Already Started!\n");
 	}
@@ -620,13 +624,54 @@ GekkoRecOp(Ops_Group63)
 	iPtr();
 }
 
-GekkoRecIntOp(Ops_Group4XO0){}
-GekkoRecIntOp(Ops_Group4){} 
-GekkoRecIntOp(Ops_Group19){}
-GekkoRecIntOp(Ops_Group31){}
-GekkoRecIntOp(Ops_Group59){}
-GekkoRecIntOp(Ops_Group63XO0){}
-GekkoRecIntOp(Ops_Group63){}
+GekkoRecIntOp(Ops_Group4XO0)
+{
+	GekkoFP iPtr = GekkoCPUOpsGroup4XO0Table[XO0];
+
+	iPtr();
+}
+
+GekkoRecIntOp(Ops_Group4)
+{
+	GekkoFP iPtr = GekkoCPUOpsGroup4Table[XO3];
+
+	iPtr();
+}
+
+GekkoRecIntOp(Ops_Group19)
+	{
+	GekkoFP iPtr = GekkoCPUOpsGroup19Table[XO3];
+
+	iPtr();
+}
+
+GekkoRecIntOp(Ops_Group31)
+	{
+	GekkoFP iPtr = GekkoCPUOpsGroup31Table[XO3];
+
+	iPtr();
+}
+
+GekkoRecIntOp(Ops_Group59)
+{
+	GekkoFP iPtr = GekkoCPUOpsGroup59Table[XO3];
+
+	iPtr();
+}
+
+GekkoRecIntOp(Ops_Group63XO0)
+{
+	GekkoFP iPtr = GekkoCPUOpsGroup63XO0Table[XO0];
+
+	iPtr();
+}
+
+GekkoRecIntOp(Ops_Group63)
+{
+	GekkoFP iPtr = GekkoCPUOpsGroup63Table[XO3];
+
+	iPtr();
+}
 
 // Desc: Handle a CPU Exception
 //
@@ -679,6 +724,22 @@ GekkoF GekkoCPURecompiler::execStep(void)
 GekkoF GekkoCPURecompiler::ExecuteInstruction(void)
 {
 	CompiledBlock	*BlockPtr;
+/*
+#ifdef _DEBUG
+#define FILENAME "c:\\temp\\data-debug.txt"
+#else
+#define FILENAME "c:\\temp\\data-release.txt"
+#endif
+	HANDLE f = CreateFile(FILENAME, GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
+	DWORD BytesWritten;
+	DWORD Dummy[2];
+	memset(Dummy, 0x99, sizeof(Dummy));
+	SetFilePointer(f, 0, 0, SEEK_END);
+	WriteFile(f, &Dummy, sizeof(Dummy), &BytesWritten, 0);
+	WriteFile(f, &ireg.PC, sizeof(ireg.PC), &BytesWritten, 0);
+	WriteFile(f, ireg.gpr, sizeof(ireg.gpr)-4, &BytesWritten, 0);
+	CloseHandle(f);
+	*/
 
 	BlockPtr = (CompiledBlock *)CompiledTable[(ireg.PC >> 2) & 0x007FFFFF];
 	BlockPtr->CodeBlock();
@@ -707,10 +768,35 @@ GekkoF GekkoCPURecompiler::CompileInstruction(void)
 //	if(ireg.PC == 0x802531C0)
 //		_asm{int 3};
 
+	int WriteFlag = 0;
+	if(ireg.PC == 0x80048f78)
+		WriteFlag = 1;
+
 	for(;;)
 	{
 		cpu->opcode = PTR_PC;
 		iPtr = GekkoCPUOpset[OPCD];
+
+		if(WriteFlag)
+		{
+			char opcodeStr[32], operandStr[32];
+			u32 target;
+			char Buffer[8192];
+
+			DWORD DataLen;
+#ifdef _DEBUG
+#define FILENAME "c:\\temp\\data-debug.txt"
+#else
+#define FILENAME "c:\\temp\\data-release.txt"
+#endif
+			HANDLE f = CreateFile(FILENAME, GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
+			SetFilePointer(f, 0, 0, FILE_END);
+			DisassembleGekko(opcodeStr, operandStr, opcode, ireg.PC, &target);
+			sprintf(Buffer, "Opcode %d (ext: %d) (pc=%08X, op=%08X) instr=%s r%d, r%d, r%d\r\n",cpu->opcode>>26,((cpu->opcode>>1)&0x3FF),ireg.PC,cpu->opcode,opcodeStr, rD, rA, rB);
+			WriteFile(f, Buffer, strlen(Buffer), &DataLen, 0);
+			CloseHandle(f);
+		}
+
 		iPtr();
 
 		if(branch) // || step)
@@ -737,6 +823,20 @@ GekkoF GekkoCPURecompiler::CompileInstruction(void)
     // it now causes crashes. See Issue #1
     //VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READ, &OldFlags);
 	VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READWRITE, &OldFlags);
+
+	if(WriteFlag)
+	{
+#ifdef _DEBUG
+#define FILENAME "c:\\temp\\compiled-debug.bin"
+#else
+#define FILENAME "c:\\temp\\compiled-release.bin"
+#endif
+		HANDLE f = CreateFile(FILENAME, GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
+		DWORD WrittenLen;
+		WriteFile(f, BlockPtr->CodeBlock, BlockPtr->CommandLen, &WrittenLen, 0);
+		CloseHandle(f);
+	}
+
 	BlockPtr->CodeBlock();
 }
 
