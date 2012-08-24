@@ -23,12 +23,15 @@
 //#define GekkoCPUOpsGroup2(name)	GekkoCPU::OpData GekkoCPURecompiler::GekkoRecGroupOps##name
 //#define GekkoCPUOp2				GekkoRecInt
 #define GekkoCPUOpsGroup(name)	GekkoCPU::OpData EMU_FASTCALL GekkoCPURecompiler::GekkoRecGroupOps##name
+#define GekkoCPUOpsGroupHeader(name)	GekkoCPU::OpData EMU_FASTCALL GekkoRecGroupOps##name
 #define GekkoCPUOp				GekkoRecInt
 
 #define OPTYPE              void
-#define GekkoRecOp(name)	OPTYPE GekkoCPURecompiler::GekkoRecompiler_##name(void)
+#define GekkoRecOp(name)		OPTYPE GekkoCPURecompiler::GekkoRecompiler_##name(void)
+#define GekkoRecOpHeader(name)	OPTYPE GekkoRecompiler_##name(void)
 #define GekkoRec(name)		GekkoCPURecompiler::GekkoRecompiler_##name
 #define GekkoRecIntOp(name)	OPTYPE GekkoCPURecompiler::GekkoRecompilerInt_##name(void)
+#define GekkoRecIntOpHeader(name)	OPTYPE GekkoRecompilerInt_##name(void)
 #define GekkoRecInt(name)	GekkoCPURecompiler::GekkoRecompilerInt_##name
 
 typedef void (EMU_FASTCALL *RecCompInstructionPtr)(void);
@@ -102,6 +105,7 @@ public:
 	typedef void (*RecILInstructionPtr)(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
 
 #define GekkoRecILOp(name)	OPTYPE GekkoCPURecompiler::GekkoILInstruction_##name(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs)
+#define GekkoRecILOpHeader(name)	OPTYPE GekkoILInstruction_##name(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs)
 #define GekkoRecIL(name)	GekkoCPURecompiler::GekkoILInstruction_##name
 
 	typedef struct
@@ -139,46 +143,48 @@ public:
 	static u8				SetCRKnown[4];
 
 	#define GekkoRecCacheOp(name)	OPTYPE GekkoCPURecompiler::GekkoRecCache_##name(RecInstruction *Instruction)
+	#define GekkoRecCacheOpHeader(name)	OPTYPE GekkoRecCache_##name(RecInstruction *Instruction)
 	#define GekkoRecCache(name)		GekkoCPURecompiler::GekkoRecCache_##name
 
 	static u32 __cdecl CheckRecPPCCache(RecInstruction *Instruction);
 	static u32 __cdecl ProcessRecPPCCache(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
 	static u32 __cdecl ProcessRecPPCCacheSpecial(RecInstruction *Instruction, void *OutInstruction, u32 *OutSize, PPCRegInfo *X86Regs, PPCRegInfo *FPURegs);
-	static GekkoRecCacheOp(ADD);
-	static GekkoRecCacheOp(AND);
-//	static GekkoRecCacheOp(IDIV);
-//	static GekkoRecCacheOp(DIV);
-	static GekkoRecCacheOp(OR);
-	static GekkoRecCacheOp(SMUL);
-//	static GekkoRecCacheOp(SMULH);
-//	static GekkoRecCacheOp(UMULH);
-	static GekkoRecCacheOp(NOT);
-	static GekkoRecCacheOp(NEG);
-	static GekkoRecCacheOp(SUB);
-	static GekkoRecCacheOp(XOR);
-	static GekkoRecCacheOp(MOVE);
-	static GekkoRecCacheOp(ROL);
-	static GekkoRecCacheOp(ROR);
-	static GekkoRecCacheOp(SHL);
-	static GekkoRecCacheOp(SHR);
-	static GekkoRecCacheOp(SAL);
-	static GekkoRecCacheOp(SAR);
-	static GekkoRecCacheOp(UPDATECR0);
-	static GekkoRecCacheOp(UPDATEXERSOOV);
-	static GekkoRecCacheOp(ADDCARRY);
-	static GekkoRecCacheOp(UPDATECARRY);
-	static GekkoRecCacheOp(UPDATETEMPCARRY);
-	static GekkoRecCacheOp(UPDATECARRYWTEMP);
-	static GekkoRecCacheOp(SETCARRY);
-	static GekkoRecCacheOp(CLEARCARRY);
-	static GekkoRecCacheOp(COMPLIMENTCARRY);
-	static GekkoRecCacheOp(CMPUPDATECR);
-	static GekkoRecCacheOp(CMPUPDATECRSIGNED);
+	static GekkoRecCacheOpHeader(ADD);
+	static GekkoRecCacheOpHeader(AND);
+//	static GekkoRecCacheOpHeader(IDIV);
+//	static GekkoRecCacheOpHeader(DIV);
+	static GekkoRecCacheOpHeader(OR);
+	static GekkoRecCacheOpHeader(SMUL);
+//	static GekkoRecCacheOpHeader(SMULH);
+//	static GekkoRecCacheOpHeader(UMULH);
+	static GekkoRecCacheOpHeader(NOT);
+	static GekkoRecCacheOpHeader(NEG);
+	static GekkoRecCacheOpHeader(SUB);
+	static GekkoRecCacheOpHeader(XOR);
+	static GekkoRecCacheOpHeader(MOVE);
+	static GekkoRecCacheOpHeader(ROL);
+	static GekkoRecCacheOpHeader(ROR);
+	static GekkoRecCacheOpHeader(SHL);
+	static GekkoRecCacheOpHeader(SHR);
+	static GekkoRecCacheOpHeader(SAL);
+	static GekkoRecCacheOpHeader(SAR);
+	static GekkoRecCacheOpHeader(UPDATECR0);
+	static GekkoRecCacheOpHeader(UPDATEXERSOOV);
+	static GekkoRecCacheOpHeader(ADDCARRY);
+	static GekkoRecCacheOpHeader(UPDATECARRY);
+	static GekkoRecCacheOpHeader(UPDATETEMPCARRY);
+	static GekkoRecCacheOpHeader(UPDATECARRYWTEMP);
+	static GekkoRecCacheOpHeader(SETCARRY);
+	static GekkoRecCacheOpHeader(CLEARCARRY);
+	static GekkoRecCacheOpHeader(COMPLIMENTCARRY);
+	static GekkoRecCacheOpHeader(CMPUPDATECR);
+	static GekkoRecCacheOpHeader(CMPUPDATECRSIGNED);
 
 	#define RecCache_Known	0x01
     #define RecCache_WasKnown 0x02
 
 	#define GekkoCPURecOpsGroup(name) RecOpData GekkoCPURecompiler::GekkoRecCompOps##name
+	#define GekkoCPURecOpsGroupHeader(name) RecOpData GekkoCPURecompiler::GekkoRecCompOps##name
 
 	static RecOpData GekkoRecCompOpsGroups[];
 	static RecOpData GekkoRecCompOpsMath[];
@@ -199,23 +205,23 @@ public:
 	static optable		GekkoCPURecOpsGroup63Table[0x20];
 	static optable		GekkoCPURecOpset[0x40];
 
-	static GekkoRecOp(Ops_Group4);
-	static GekkoRecOp(Ops_Group19);
-	static GekkoRecOp(Ops_Group31);
-	static GekkoRecOp(Ops_Group59);
-	static GekkoRecOp(Ops_Group63);
+	static GekkoRecOpHeader(Ops_Group4);
+	static GekkoRecOpHeader(Ops_Group19);
+	static GekkoRecOpHeader(Ops_Group31);
+	static GekkoRecOpHeader(Ops_Group59);
+	static GekkoRecOpHeader(Ops_Group63);
 
-	static GekkoRecOp(Ops_Group4XO0);
-	static GekkoRecOp(Ops_Group63XO0);
+	static GekkoRecOpHeader(Ops_Group4XO0);
+	static GekkoRecOpHeader(Ops_Group63XO0);
 
-	static GekkoRecIntOp(Ops_Group4);
-	static GekkoRecIntOp(Ops_Group19);
-	static GekkoRecIntOp(Ops_Group31);
-	static GekkoRecIntOp(Ops_Group59);
-	static GekkoRecIntOp(Ops_Group63);
+	static GekkoRecIntOpHeader(Ops_Group4);
+	static GekkoRecIntOpHeader(Ops_Group19);
+	static GekkoRecIntOpHeader(Ops_Group31);
+	static GekkoRecIntOpHeader(Ops_Group59);
+	static GekkoRecIntOpHeader(Ops_Group63);
 
-	static GekkoRecIntOp(Ops_Group4XO0);
-	static GekkoRecIntOp(Ops_Group63XO0);
+	static GekkoRecIntOpHeader(Ops_Group4XO0);
+	static GekkoRecIntOpHeader(Ops_Group63XO0);
 
 	static u32		ESPSave;
 	static u32		OldPC;
@@ -426,205 +432,205 @@ public:
 	//if ANYONE knows how to #define a #define so i can stop duplicating below
 	//PLEASE tell me - Lightning
 
-	static GekkoRecILOp(ADD);
+	static GekkoRecILOpHeader(ADD);
 	#define REC_ADD(Out, In)		GekkoRecIL(ADD), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(ADD)
 	#define REC_ADDI(Out, In)		GekkoRecIL(ADD), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(ADD)
 
-	static GekkoRecILOp(ADDCARRY);
+	static GekkoRecILOpHeader(ADDCARRY);
 	#define REC_ADDCARRY(Out)		GekkoRecIL(ADDCARRY), Out, 0, RecInstrFlagPPCOutReg | RecInstrFlagX86InMem, GekkoRecCache(ADDCARRY)
 
-	static GekkoRecILOp(ADC);
+	static GekkoRecILOpHeader(ADC);
 	#define REC_ADC(Out, In)		GekkoRecIL(ADC), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, 0
 	#define REC_ADCI(Out, In)		GekkoRecIL(ADC), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, 0
 
-	static GekkoRecILOp(AND);
+	static GekkoRecILOpHeader(AND);
 	#define REC_AND(Out, In)		GekkoRecIL(AND), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(AND)
 	#define REC_ANDI(Out, In)		GekkoRecIL(AND), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(AND)
 
-	static GekkoRecILOp(CMP);
+	static GekkoRecILOpHeader(CMP);
 	#define REC_CMP(Out, In)		GekkoRecIL(CMP), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, 0
 	#define REC_CMPI(Out, In)		GekkoRecIL(CMP), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, 0
 
-	static GekkoRecILOp(DIV);
+	static GekkoRecILOpHeader(DIV);
 	#define REC_DIV(In)				GekkoRecIL(DIV), REG_SPECIAL | REG_EAX, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_OutSpecialCase, 0
 
-	static GekkoRecILOp(IDIV);
+	static GekkoRecILOpHeader(IDIV);
 	#define REC_IDIV(In)			GekkoRecIL(IDIV), REG_SPECIAL | REG_EAX, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_OutSpecialCase, 0
 
-	static GekkoRecILOp(CDQ);
+	static GekkoRecILOpHeader(CDQ);
 	#define REC_CDQ()				GekkoRecIL(CDQ), 0, 0, 0, 0
 
-	static GekkoRecILOp(OR);
+	static GekkoRecILOpHeader(OR);
 	#define REC_OR(Out, In)			GekkoRecIL(OR), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(OR)
 	#define REC_ORI(Out, In)		GekkoRecIL(OR), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(OR)
 
-	static GekkoRecILOp(SMUL);
+	static GekkoRecILOpHeader(SMUL);
 	#define REC_SMUL(Out, In)		GekkoRecIL(SMUL), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SMUL)
 	#define REC_SMULI(Out, In)		GekkoRecIL(SMUL), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SMUL)
 /*
-	static GekkoRecILOp(SMULH);
+	static GekkoRecILOpHeader(SMULH);
 	#define REC_SMULH(Out, In)		GekkoRecIL(SMULH), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SMULH)
 	#define REC_SMULHI(Out, In)		GekkoRecIL(SMULH), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SMULH)
 
-	static GekkoRecILOp(UMULH);
+	static GekkoRecILOpHeader(UMULH);
 	#define REC_UMULH(Out, In)		GekkoRecIL(UMULH), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(UMULH)
 	#define REC_UMULHI(Out, In)		GekkoRecIL(UMULH), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(UMULH)
 */
-	static GekkoRecILOp(NEG);
+	static GekkoRecILOpHeader(NEG);
 	#define REC_NEG(In)				GekkoRecIL(NEG), 0, In, RecInstrFlagPPCInReg, GekkoRecCache(NEG)
 
-	static GekkoRecILOp(NOT);
+	static GekkoRecILOpHeader(NOT);
 	#define REC_NOT(In)				GekkoRecIL(NOT), 0, In, RecInstrFlagPPCInReg, GekkoRecCache(NOT)
 
-	static GekkoRecILOp(NOP);
+	static GekkoRecILOpHeader(NOP);
 	#define REC_NOP					GekkoRecIL(NOP), 0, 0, RecInstrFlag_NoPPCRegCount, 0
 
-	static GekkoRecILOp(ROL);
+	static GekkoRecILOpHeader(ROL);
 	#define REC_ROL(Out, In)		GekkoRecIL(ROL), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(ROL)
 	#define REC_ROLI(Out, In)		GekkoRecIL(ROL), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(ROL)
 
-	static GekkoRecILOp(ROR);
+	static GekkoRecILOpHeader(ROR);
 	#define REC_ROR(Out, In)		GekkoRecIL(ROR), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(ROR)
 	#define REC_RORI(Out, In)		GekkoRecIL(ROR), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(ROR)
 
-	static GekkoRecILOp(SETC);
+	static GekkoRecILOpHeader(SETC);
 	#define REC_SETC(Out)			GekkoRecIL(SETC), Out, 0, RecInstrFlagPPCOutReg, 0
 
-	static GekkoRecILOp(SETE);
+	static GekkoRecILOpHeader(SETE);
 	#define REC_SETE(Out)			GekkoRecIL(SETE), Out, 0, RecInstrFlagX86OutReg, 0
 
-	static GekkoRecILOp(SAL);
+	static GekkoRecILOpHeader(SAL);
 	#define REC_SAL(Out, In)		GekkoRecIL(SAL), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SAL)
 	#define REC_SALI(Out, In)		GekkoRecIL(SAL), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SAL)
 
-	static GekkoRecILOp(SAR);
+	static GekkoRecILOpHeader(SAR);
 	#define REC_SAR(Out, In)		GekkoRecIL(SAR), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SAR)
 	#define REC_SARI(Out, In)		GekkoRecIL(SAR), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SAR)
 
-	static GekkoRecILOp(SHL);
+	static GekkoRecILOpHeader(SHL);
 	#define REC_SHL(Out, In)		GekkoRecIL(SHL), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SHL)
 	#define REC_SHLI(Out, In)		GekkoRecIL(SHL), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SHL)
 
-	static GekkoRecILOp(SHR);
+	static GekkoRecILOpHeader(SHR);
 	#define REC_SHR(Out, In)		GekkoRecIL(SHR), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SHR)
 	#define REC_SHRI(Out, In)		GekkoRecIL(SHR), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SHR)
 
-	static GekkoRecILOp(SUB);
+	static GekkoRecILOpHeader(SUB);
 	#define REC_SUB(Out, In)		GekkoRecIL(SUB), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(SUB)
 	#define REC_SUBI(Out, In)		GekkoRecIL(SUB), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(SUB)
 
-	static GekkoRecILOp(XOR);
+	static GekkoRecILOpHeader(XOR);
 	#define REC_XOR(Out, In)		GekkoRecIL(XOR), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(XOR)
 	#define REC_XORI(Out, In)		GekkoRecIL(XOR), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(XOR)
 
-	static GekkoRecILOp(XCHG);
+	static GekkoRecILOpHeader(XCHG);
 
-	static GekkoRecILOp(MOVE);
+	static GekkoRecILOpHeader(MOVE);
 	#define REC_MOVE(Out, In)		GekkoRecIL(MOVE), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg, GekkoRecCache(MOVE)
 	#define REC_MOVEI(Out, In)		GekkoRecIL(MOVE), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg, GekkoRecCache(MOVE)
 
-	static GekkoRecILOp(READMEM8);
+	static GekkoRecILOpHeader(READMEM8);
 	#define REC_READMEM8(Out, In)		GekkoRecIL(READMEM8), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 	#define REC_READMEM8I(Out, In)		GekkoRecIL(READMEM8), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 
-	static GekkoRecILOp(READMEM8SX);
+	static GekkoRecILOpHeader(READMEM8SX);
 	#define REC_READMEM8SX(Out, In)		GekkoRecIL(READMEM8SX), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 	#define REC_READMEM8SXI(Out, In)	GekkoRecIL(READMEM8SX), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 
-	static GekkoRecILOp(READMEM16);
+	static GekkoRecILOpHeader(READMEM16);
 	#define REC_READMEM16(Out, In)		GekkoRecIL(READMEM16), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 	#define REC_READMEM16I(Out, In)		GekkoRecIL(READMEM16), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 
-	static GekkoRecILOp(READMEM16SX);
+	static GekkoRecILOpHeader(READMEM16SX);
 	#define REC_READMEM16SX(Out, In)	GekkoRecIL(READMEM16SX), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 	#define REC_READMEM16SXI(Out, In)	GekkoRecIL(READMEM16SX), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 
-	static GekkoRecILOp(READMEM32);
+	static GekkoRecILOpHeader(READMEM32);
 	#define REC_READMEM32(Out, In)		GekkoRecIL(READMEM32), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 	#define REC_READMEM32I(Out, In)		GekkoRecIL(READMEM32), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryRead, 0
 
-	static GekkoRecILOp(READMEM64);
+	static GekkoRecILOpHeader(READMEM64);
 	#define REC_READMEM64(Out, In)		GekkoRecIL(READMEM64), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_MemoryRead, 0
 	#define REC_READMEM64I(Out, In)		GekkoRecIL(READMEM64), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutFloatReg | RecInstrFlag_MemoryRead, 0
 
-	static GekkoRecILOp(WRITEMEM8);
+	static GekkoRecILOpHeader(WRITEMEM8);
 	#define REC_WRITEMEM8(Out, In)		GekkoRecIL(WRITEMEM8), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryWrite, 0
 	#define REC_WRITEMEM8I(Out, In)		GekkoRecIL(WRITEMEM8), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutMem | RecInstrFlag_MemoryWrite, 0
 
-	static GekkoRecILOp(WRITEMEM16);
+	static GekkoRecILOpHeader(WRITEMEM16);
 	#define REC_WRITEMEM16(Out, In)		GekkoRecIL(WRITEMEM16), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryWrite, 0
 	#define REC_WRITEMEM16I(Out, In)	GekkoRecIL(WRITEMEM16), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutMem | RecInstrFlag_MemoryWrite, 0
 
-	static GekkoRecILOp(WRITEMEM32);
+	static GekkoRecILOpHeader(WRITEMEM32);
 	#define REC_WRITEMEM32(Out, In)		GekkoRecIL(WRITEMEM32), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryWrite, 0
 	#define REC_WRITEMEM32I(Out, In)	GekkoRecIL(WRITEMEM32), Out, In, RecInstrFlagPPCInVal | RecInstrFlagPPCOutMem | RecInstrFlag_MemoryWrite, 0
 
-	static GekkoRecILOp(WRITEMEM64);
+	static GekkoRecILOpHeader(WRITEMEM64);
 	#define REC_WRITEMEM64(Out, In)		GekkoRecIL(WRITEMEM64), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutReg | RecInstrFlag_MemoryWrite, 0
 	#define REC_WRITEMEM64I(Out, In)	GekkoRecIL(WRITEMEM64), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutMem | RecInstrFlag_MemoryWrite, 0
 
-	static GekkoRecILOp(SaveAllX86Regs);
-	static GekkoRecILOp(SaveAllFPURegs);
-	static GekkoRecILOp(SaveAllX86Regs2);
-	static GekkoRecILOp(SaveAllFPURegs2);
-	static GekkoRecILOp(GetAllX86Regs);
-	static GekkoRecILOp(GetAllFPURegs);
-	static GekkoRecILOp(SaveAllKnownX86ValRegs);
+	static GekkoRecILOpHeader(SaveAllX86Regs);
+	static GekkoRecILOpHeader(SaveAllFPURegs);
+	static GekkoRecILOpHeader(SaveAllX86Regs2);
+	static GekkoRecILOpHeader(SaveAllFPURegs2);
+	static GekkoRecILOpHeader(GetAllX86Regs);
+	static GekkoRecILOpHeader(GetAllFPURegs);
+	static GekkoRecILOpHeader(SaveAllKnownX86ValRegs);
 
 	#define REC_CALL(In)				GekkoRecIL(INT_INSTRUCTION), 0, In, 0, 0
 
 	#define TEMP_REG 32
-	static GekkoRecILOp(GETTEMPREG);
+	static GekkoRecILOpHeader(GETTEMPREG);
 	#define REC_GETTEMPREG(RegMask)	GekkoRecIL(GETTEMPREG), 0, RegMask, 0, 0
 
-	static GekkoRecILOp(FREETEMPREG);
+	static GekkoRecILOpHeader(FREETEMPREG);
 	#define REC_FREETEMPREG()		GekkoRecIL(FREETEMPREG), 0, 0, 0, 0
 
-	static GekkoRecILOp(GETTEMPFPUREG);
+	static GekkoRecILOpHeader(GETTEMPFPUREG);
 	#define REC_GETTEMPFPUREG(RegMask)	GekkoRecIL(GETTEMPFPUREG), 0, RegMask, 0, 0
 
-	static GekkoRecILOp(FREETEMPFPUREG);
+	static GekkoRecILOpHeader(FREETEMPFPUREG);
 	#define REC_FREETEMPFPUREG(RegMask)	GekkoRecIL(FREETEMPFPUREG), 0, RegMask, 0, 0
 
 	static u32 NextGetRegID_Val;
 	#define NextGetRegID (++NextGetRegID_Val)
 
-	static GekkoRecILOp(GETREG);
+	static GekkoRecILOpHeader(GETREG);
 	#define REC_GETREG(In)			GekkoRecIL(GETREG), 0, In, 0, 0
 
-	static GekkoRecILOp(STOREREG);
+	static GekkoRecILOpHeader(STOREREG);
 	#define REC_STOREREG(In)		GekkoRecIL(STOREREG), 0, In, 0, 0
 
-	static GekkoRecILOp(FREEREG);
+	static GekkoRecILOpHeader(FREEREG);
 	#define REC_FREEREG(In)			GekkoRecIL(FREEREG), 0, In, 0, 0
 
-	static GekkoRecILOp(UPDATECR0);
+	static GekkoRecILOpHeader(UPDATECR0);
 	#define REC_UPDATECR0(SkipCount)	GekkoRecIL(UPDATECR0), SkipCount, 0, RecInstrFlag_NoPPCRegCount, GekkoRecCache(UPDATECR0)
 
-	static GekkoRecILOp(UPDATECRSO);
+	static GekkoRecILOpHeader(UPDATECRSO);
 	#define REC_UPDATECRSO(Entry)	GekkoRecIL(UPDATECRSO), Entry, 0, RecInstrFlag_NoPPCRegCount | RecInstrFlag_TempData, 0
-	static GekkoRecILOp(UPDATECRSIGNED);
+	static GekkoRecILOpHeader(UPDATECRSIGNED);
 	#define REC_UPDATECRSIGNED(Entry)	GekkoRecIL(UPDATECRSIGNED), Entry, 0, RecInstrFlag_NoPPCRegCount | RecInstrFlag_TempData, 0
-	static GekkoRecILOp(UPDATECRUNSIGNED);
+	static GekkoRecILOpHeader(UPDATECRUNSIGNED);
 	#define REC_UPDATECRUNSIGNED(Entry)	GekkoRecIL(UPDATECRUNSIGNED), Entry, 0, RecInstrFlag_NoPPCRegCount | RecInstrFlag_TempData, 0
 
-	static GekkoRecILOp(CMPUPDATECR);
+	static GekkoRecILOpHeader(CMPUPDATECR);
 	#define REC_CMPUPDATECR(Reg, Reg2)	GekkoRecIL(CMPUPDATECR), Reg, Reg2, RecInstrFlagPPCOutReg | RecInstrFlagPPCInReg, 0
 	#define REC_CMPUPDATECRI(Reg, Val)	GekkoRecIL(CMPUPDATECR), Reg, Val, RecInstrFlagPPCOutReg | RecInstrFlagPPCInVal, 0
 
-	static GekkoRecILOp(CMPUPDATECRSIGNED);
+	static GekkoRecILOpHeader(CMPUPDATECRSIGNED);
 	#define REC_CMPUPDATECRSIGNED(Reg, Reg2)	GekkoRecIL(CMPUPDATECRSIGNED), Reg, Reg2, RecInstrFlagPPCOutReg | RecInstrFlagPPCInReg, 0
 	#define REC_CMPUPDATECRSIGNEDI(Reg, Val)	GekkoRecIL(CMPUPDATECRSIGNED), Reg, Val, RecInstrFlagPPCOutReg | RecInstrFlagPPCInVal, 0
 
-	static GekkoRecILOp(UPDATEXERSOOV);
+	static GekkoRecILOpHeader(UPDATEXERSOOV);
 	#define REC_UPDATEXERSOOV(In)	GekkoRecIL(UPDATEXERSOOV), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInReg, GekkoRecCache(UPDATEXERSOOV)
 
-	static GekkoRecILOp(UPDATETEMPCARRY);
-	static GekkoRecILOp(UPDATECARRYWTEMP);
-	static GekkoRecILOp(UPDATECARRY);
-	static GekkoRecILOp(SETCARRY);
-	static GekkoRecILOp(CLEARCARRY);
-	static GekkoRecILOp(COMPLIMENTCARRY);
+	static GekkoRecILOpHeader(UPDATETEMPCARRY);
+	static GekkoRecILOpHeader(UPDATECARRYWTEMP);
+	static GekkoRecILOpHeader(UPDATECARRY);
+	static GekkoRecILOpHeader(SETCARRY);
+	static GekkoRecILOpHeader(CLEARCARRY);
+	static GekkoRecILOpHeader(COMPLIMENTCARRY);
 	#define REC_UPDATETEMPCARRY(In)		GekkoRecIL(UPDATETEMPCARRY), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInReg, GekkoRecCache(UPDATETEMPCARRY)
 	#define REC_UPDATECARRYWTEMP(In)	GekkoRecIL(UPDATECARRYWTEMP), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInReg, GekkoRecCache(UPDATECARRYWTEMP)
 	#define REC_UPDATECARRY(In)			GekkoRecIL(UPDATECARRY), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInReg, GekkoRecCache(UPDATECARRY)
@@ -632,19 +638,19 @@ public:
 	#define REC_CLEARCARRY(In)			GekkoRecIL(CLEARCARRY), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInReg, GekkoRecCache(CLEARCARRY)
 	#define REC_COMPLIMENTCARRY(In)		GekkoRecIL(COMPLIMENTCARRY), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInReg, GekkoRecCache(COMPLIMENTCARRY)
 
-	static GekkoRecILOp(PUSHA);
-	static GekkoRecILOp(POPA);
-	static GekkoRecILOp(RET);
+	static GekkoRecILOpHeader(PUSHA);
+	static GekkoRecILOpHeader(POPA);
+	static GekkoRecILOpHeader(RET);
 
-	static GekkoRecILOp(COMPRESS_CR);
-	static GekkoRecILOp(DECOMPRESS_CR);
-	static GekkoRecILOp(COMPRESS_XER);
-	static GekkoRecILOp(DECOMPRESS_XER);
-	static GekkoRecILOp(INT_INSTRUCTION);
+	static GekkoRecILOpHeader(COMPRESS_CR);
+	static GekkoRecILOpHeader(DECOMPRESS_CR);
+	static GekkoRecILOpHeader(COMPRESS_XER);
+	static GekkoRecILOpHeader(DECOMPRESS_XER);
+	static GekkoRecILOpHeader(INT_INSTRUCTION);
 	#define REC_INT_INSTRUCTION(In)		GekkoRecIL(INT_INSTRUCTION), 0, In, RecInstrFlag_NoPPCRegCount | RecInstrFlagPPCInVal | RecInstrFlag_IntInstruction, 0
 
-	static GekkoRecILOp(JUMPLABEL);
-	static GekkoRecILOp(JUMP);
+	static GekkoRecILOpHeader(JUMPLABEL);
+	static GekkoRecILOpHeader(JUMP);
 	#define REC_JUMPLABEL(LabelID)	GekkoRecIL(JUMPLABEL), 0, LabelID, RecInstrFlag_NoPPCRegCount, 0
 /*
 	#define REC_JMP(LabelID)		GekkoRecIL(JUMP), 0xEB, LabelID, RecInstrFlag_NoPPCRegCount, 0
@@ -719,93 +725,93 @@ public:
 	#define REC_JUMPHINT_NOTTAKEN	(0x02 << 24)
 
 	static u32 CachingEnabled;
-	static GekkoRecILOp(TURNOFFCACHING);
+	static GekkoRecILOpHeader(TURNOFFCACHING);
 	#define REC_TURNOFFCACHING()	GekkoRecIL(TURNOFFCACHING), 0, 0, 0, 0
 
-	static GekkoRecILOp(TURNONCACHING);
+	static GekkoRecILOpHeader(TURNONCACHING);
 	#define REC_TURNONCACHING()		GekkoRecIL(TURNONCACHING), 0, 0, 0, 0
 
 
 	//fpu commands
-	static GekkoRecILOp(ADDPD);
+	static GekkoRecILOpHeader(ADDPD);
 	#define REC_ADDPD(Out, In)		GekkoRecIL(ADDPD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(ADDSD);
+	static GekkoRecILOpHeader(ADDSD);
 	#define REC_ADDSD(Out, In)		GekkoRecIL(ADDSD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(DIVPD);
+	static GekkoRecILOpHeader(DIVPD);
 	#define REC_DIVPD(Out, In)		GekkoRecIL(DIVPD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(DIVSD);
+	static GekkoRecILOpHeader(DIVSD);
 	#define REC_DIVSD(Out, In)		GekkoRecIL(DIVSD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(MULPD);
+	static GekkoRecILOpHeader(MULPD);
 	#define REC_MULPD(Out, In)		GekkoRecIL(MULPD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(MULSD);
+	static GekkoRecILOpHeader(MULSD);
 	#define REC_MULSD(Out, In)		GekkoRecIL(MULSD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(SUBPD);
+	static GekkoRecILOpHeader(SUBPD);
 	#define REC_SUBPD(Out, In)		GekkoRecIL(SUBPD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(SUBSD);
+	static GekkoRecILOpHeader(SUBSD);
 	#define REC_SUBSD(Out, In)		GekkoRecIL(SUBSD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(MOVSD);
+	static GekkoRecILOpHeader(MOVSD);
 	#define REC_MOVSD(Out, In)		GekkoRecIL(MOVSD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 	#define REC_MOVSDM(Out, In)		GekkoRecIL(MOVSD), Out, In, RecInstrFlagPPCInMem | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(MOVSS);
+	static GekkoRecILOpHeader(MOVSS);
 	#define REC_MOVSS(Out, In)		GekkoRecIL(MOVSS), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 	#define REC_MOVSSM(Out, In)		GekkoRecIL(MOVSS), Out, In, RecInstrFlagPPCInMem | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(MOVAPD);
+	static GekkoRecILOpHeader(MOVAPD);
 	#define REC_MOVAPD(Out, In)		GekkoRecIL(MOVAPD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 	#define REC_MOVAPDM(Out, In)	GekkoRecIL(MOVAPD), Out, In, RecInstrFlagPPCInMem | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(MOVLHPS);
+	static GekkoRecILOpHeader(MOVLHPS);
 	#define REC_MOVLHPS(Out, In)	GekkoRecIL(MOVLHPS), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(MOVHLPS);
+	static GekkoRecILOpHeader(MOVHLPS);
 	#define REC_MOVHLPS(Out, In)	GekkoRecIL(MOVHLPS), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(MOVDDUP);
+	static GekkoRecILOpHeader(MOVDDUP);
 	#define REC_MOVDDUP(Out, In)	GekkoRecIL(MOVDDUP), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(MOVSLDUP);
+	static GekkoRecILOpHeader(MOVSLDUP);
 	#define REC_MOVSLDUP(Out, In)	GekkoRecIL(MOVSLDUP), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(MOVD);
+	static GekkoRecILOpHeader(MOVD);
 	#define REC_MOVD_TOFPU(Out, In)		GekkoRecIL(MOVD), Out, In, RecInstrFlagPPCInReg | RecInstrFlagPPCOutFloatReg, 0
 	#define REC_MOVD_FROMFPU(Out, In)	GekkoRecIL(MOVD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutReg, 0
 
-	static GekkoRecILOp(CVTPS2PD);
+	static GekkoRecILOpHeader(CVTPS2PD);
 	#define REC_CVTPS2PD(Out, In)	GekkoRecIL(CVTPS2PD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(CVTDQ2PD);
+	static GekkoRecILOpHeader(CVTDQ2PD);
 	#define REC_CVTDQ2PD(Out, In)	GekkoRecIL(CVTDQ2PD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(CVTPD2PS);
+	static GekkoRecILOpHeader(CVTPD2PS);
 	#define REC_CVTPD2PS(Out, In)	GekkoRecIL(CVTPD2PS), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(CVTSD2SS);
+	static GekkoRecILOpHeader(CVTSD2SS);
 	#define REC_CVTSD2SS(Out, In)	GekkoRecIL(CVTSD2SS), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(CVTSS2SD);
+	static GekkoRecILOpHeader(CVTSS2SD);
 	#define REC_CVTSS2SD(Out, In)	GekkoRecIL(CVTSS2SD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(SHUFPD);
+	static GekkoRecILOpHeader(SHUFPD);
 	#define REC_SHUFPD(Out, In)		GekkoRecIL(SHUFPD), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg, 0
 
-	static GekkoRecILOp(PAND);
+	static GekkoRecILOpHeader(PAND);
 	#define REC_PAND(Out, In)		GekkoRecIL(PAND), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 	#define REC_PANDM(Out, In)	GekkoRecIL(PAND), Out, In, RecInstrFlagPPCInMem | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(POR);
+	static GekkoRecILOpHeader(POR);
 	#define REC_POR(Out, In)		GekkoRecIL(POR), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 	#define REC_PORM(Out, In)	GekkoRecIL(POR), Out, In, RecInstrFlagPPCInMem | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
-	static GekkoRecILOp(PXOR);
+	static GekkoRecILOpHeader(PXOR);
 	#define REC_PXOR(Out, In)		GekkoRecIL(PXOR), Out, In, RecInstrFlagPPCInFloatReg | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 	#define REC_PXORM(Out, In)	GekkoRecIL(PXOR), Out, In, RecInstrFlagPPCInMem | RecInstrFlagPPCOutFloatReg | RecInstrFlag_FPUMemoryAllowed, 0
 
@@ -815,7 +821,7 @@ public:
 	GekkoF	execStep();
 
 	static GekkoF EMU_FASTCALL CompileInstruction();
-	static GekkoF EMU_FASTCALL GekkoCPURecompiler::DoBranchChecks();
+	static GekkoF EMU_FASTCALL DoBranchChecks();
 
 	GekkoCPURecompiler();
 	~GekkoCPURecompiler();
@@ -825,34 +831,37 @@ public:
 	static GekkoF EMU_FASTCALL AssignRegsAndCompile(PPCRegInfo *X86Regs, PPCRegInfo *FPURegs, u8 *X86Buffer, u32 *BufferSize);
 
 #define X86AssignRegsOp(name)		OPTYPE GekkoCPURecompiler::AssignX86Regs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
+#define X86AssignRegsOpHeader(name)		OPTYPE AssignX86Regs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
 #define X86AssignRegs(name)			GekkoCPURecompiler::AssignX86Regs_PPC##name
 #define FPUAssignRegsOp(name)		OPTYPE GekkoCPURecompiler::AssignFPURegs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
+#define FPUAssignRegsOpHeader(name)		OPTYPE AssignFPURegs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
 #define FPUAssignRegs(name)			GekkoCPURecompiler::AssignFPURegs_PPC##name
 #define X86FPUAssignRegsOp(name)	OPTYPE GekkoCPURecompiler::AssignX86FPURegs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
+#define X86FPUAssignRegsOpHeader(name)	OPTYPE AssignX86FPURegs_PPC##name(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs)
 #define X86FPUAssignRegs(name)		GekkoCPURecompiler::AssignX86FPURegs_PPC##name
 typedef void (*RecX86FPUAssignRegsPtr)(RecInstruction *Instruction, PPCRegInfo *AssignedRegs, PPCRegInfo *FPURegs);
 
-	static X86AssignRegsOp(NONE);
-	static X86AssignRegsOp(InReg_Special);
-	static X86AssignRegsOp(InReg);
-	static X86AssignRegsOp(OutReg);
-	static X86AssignRegsOp(InVal);
-	static X86AssignRegsOp(InReg_OutReg);
-	static X86AssignRegsOp(InVal_OutReg);
-	static X86AssignRegsOp(InReg_OutReg_Special);
-	static X86AssignRegsOp(InVal_OutReg_Special);
-	static X86AssignRegsOp(KnownPPCValue);
-	static X86AssignRegsOp(InReg_OutMem);
-	static X86AssignRegsOp(InVal_OutMem);
+	static X86AssignRegsOpHeader(NONE);
+	static X86AssignRegsOpHeader(InReg_Special);
+	static X86AssignRegsOpHeader(InReg);
+	static X86AssignRegsOpHeader(OutReg);
+	static X86AssignRegsOpHeader(InVal);
+	static X86AssignRegsOpHeader(InReg_OutReg);
+	static X86AssignRegsOpHeader(InVal_OutReg);
+	static X86AssignRegsOpHeader(InReg_OutReg_Special);
+	static X86AssignRegsOpHeader(InVal_OutReg_Special);
+	static X86AssignRegsOpHeader(KnownPPCValue);
+	static X86AssignRegsOpHeader(InReg_OutMem);
+	static X86AssignRegsOpHeader(InVal_OutMem);
 
-	static FPUAssignRegsOp(InMem_OutReg);
-	static FPUAssignRegsOp(InReg_OutReg);
-	static FPUAssignRegsOp(InReg_OutMem);
-	static FPUAssignRegsOp(InReg);
+	static FPUAssignRegsOpHeader(InMem_OutReg);
+	static FPUAssignRegsOpHeader(InReg_OutReg);
+	static FPUAssignRegsOpHeader(InReg_OutMem);
+	static FPUAssignRegsOpHeader(InReg);
 
-	static X86FPUAssignRegsOp(InReg_OutFPUReg);
-	static X86FPUAssignRegsOp(InFPUReg_OutReg);
-	static X86FPUAssignRegsOp(InVal_OutFPUReg);
+	static X86FPUAssignRegsOpHeader(InReg_OutFPUReg);
+	static X86FPUAssignRegsOpHeader(InFPUReg_OutReg);
+	static X86FPUAssignRegsOpHeader(InVal_OutFPUReg);
 
 	static RecX86FPUAssignRegsPtr		RecX86FPUAssignRegs[];
 
@@ -881,421 +890,421 @@ typedef void (*RecX86FPUAssignRegsPtr)(RecInstruction *Instruction, PPCRegInfo *
 
 	static GekkoF EMU_FASTCALL CreateRecInstruction(RecILInstructionPtr Instruction, u32 Out, u32 In, u32 Flags, RecCacheInstructionPtr CachePtr);
 #define SetRecInstructionImm(ImmVal)	LastInstruction->X86CmdImmediateVal = ImmVal;
-	static GekkoRecIntOp(DUMP_OPS);
-	static GekkoRecIntOp(PS_ABS);
-	static GekkoRecIntOp(PS_ADD);
-	static GekkoRecIntOp(PS_CMPO0);
-	static GekkoRecIntOp(PS_CMPO1);
-	static GekkoRecIntOp(PS_CMPU0);
-	static GekkoRecIntOp(PS_CMPU1);
-	static GekkoRecIntOp(PS_MADD);
-	static GekkoRecIntOp(PS_MADDS0);
-	static GekkoRecIntOp(PS_MADDS1);
-	static GekkoRecIntOp(PS_MERGE00);
-	static GekkoRecIntOp(PS_MERGE01);
-	static GekkoRecIntOp(PS_MERGE10);
-	static GekkoRecIntOp(PS_MERGE11);
-	static GekkoRecIntOp(PS_MR);
-	static GekkoRecIntOp(PS_MSUB);
-	static GekkoRecIntOp(PS_MUL);
-	static GekkoRecIntOp(PS_MULS0);
-	static GekkoRecIntOp(PS_MULS1);
-	static GekkoRecIntOp(PS_NEG);
-	static GekkoRecIntOp(PS_NMADD);
-	static GekkoRecIntOp(PS_NMSUB);
-	static GekkoRecIntOp(PS_RES);
-	static GekkoRecIntOp(PS_RSQRTE);
-	static GekkoRecIntOp(PS_SUB);
-	static GekkoRecIntOp(PS_SUM0);
-	static GekkoRecIntOp(PS_SUM1);
-	static GekkoRecIntOp(PS_SEL);
-	static GekkoRecIntOp(NI);
-	static GekkoRecIntOp(ADD);
-	static GekkoRecIntOp(ADDO);
-	static GekkoRecIntOp(ADDC);
-	static GekkoRecIntOp(ADDCO);
-	static GekkoRecIntOp(ADDE);
-	static GekkoRecIntOp(ADDEO);
-	static GekkoRecIntOp(ADDI);
-	static GekkoRecIntOp(ADDIC);
-	static GekkoRecIntOp(ADDICD);
-	static GekkoRecIntOp(ADDIS);
-	static GekkoRecIntOp(ADDME);
-	static GekkoRecIntOp(ADDMEO);
-	static GekkoRecIntOp(ADDZE);
-	static GekkoRecIntOp(ADDZEO);
-	static GekkoRecIntOp(AND);
-	static GekkoRecIntOp(ANDC);
-	static GekkoRecIntOp(ANDID);
-	static GekkoRecIntOp(ANDISD);
-	static GekkoRecIntOp(B);
-	static GekkoRecIntOp(BL);
-	static GekkoRecIntOp(BA);
-	static GekkoRecIntOp(BLA);
-	static GekkoRecIntOp(BX);
-	static GekkoRecIntOp(BCX);
-	static GekkoRecIntOp(BCCTRX);
-	static GekkoRecIntOp(BCLRX);
-	static GekkoRecIntOp(CMP);
-	static GekkoRecIntOp(CMPI);
-	static GekkoRecIntOp(CMPL);
-	static GekkoRecIntOp(CMPLI);
-	static GekkoRecIntOp(CNTLZW);
-	static GekkoRecIntOp(CRAND);
-	static GekkoRecIntOp(CRANDC);
-	static GekkoRecIntOp(CREQV);
-	static GekkoRecIntOp(CRNAND);
-	static GekkoRecIntOp(CRNOR);
-	static GekkoRecIntOp(CROR);
-	static GekkoRecIntOp(CRORC);
-	static GekkoRecIntOp(CRXOR);
-	static GekkoRecIntOp(DCBA);
-	static GekkoRecIntOp(DCBF);
-	static GekkoRecIntOp(DCBI);
-	static GekkoRecIntOp(DCBST);
-	static GekkoRecIntOp(DCBT);
-	static GekkoRecIntOp(DCBTST);
-	static GekkoRecIntOp(DCBZ);
-	static GekkoRecIntOp(DCBZ_L);
-	static GekkoRecIntOp(DIVW);
-	static GekkoRecIntOp(DIVWO);
-	static GekkoRecIntOp(DIVWOD);
-	static GekkoRecIntOp(DIVWU);
-	static GekkoRecIntOp(DIVWUO);
-	static GekkoRecIntOp(ECIWX);
-	static GekkoRecIntOp(ECOWX);
-	static GekkoRecIntOp(EIEIO);
-	static GekkoRecIntOp(EQV);
-	static GekkoRecIntOp(EXTSB);
-	static GekkoRecIntOp(EXTSH);
-	static GekkoRecIntOp(FABS);
-	static GekkoRecIntOp(FADD);
-	static GekkoRecIntOp(FADDS);
-	static GekkoRecIntOp(FCMPO);
-	static GekkoRecIntOp(FCMPU);
-	static GekkoRecIntOp(FCTIW);
-	static GekkoRecIntOp(FCTIWZ);
-	static GekkoRecIntOp(FDIV);
-	static GekkoRecIntOp(FDIVS);
-	static GekkoRecIntOp(FMADD);
-	static GekkoRecIntOp(FMADDS);
-	static GekkoRecIntOp(FMR);
-	static GekkoRecIntOp(FMSUB);
-	static GekkoRecIntOp(FMSUBS);
-	static GekkoRecIntOp(FMUL);
-	static GekkoRecIntOp(FMULS);
-	static GekkoRecIntOp(FNABS);
-	static GekkoRecIntOp(FNEG);
-	static GekkoRecIntOp(FNMADD);
-	static GekkoRecIntOp(FNMADDS);
-	static GekkoRecIntOp(FNMSUB);
-	static GekkoRecIntOp(FNMSUBS);
-	static GekkoRecIntOp(FRES);
-	static GekkoRecIntOp(FRSP);
-	static GekkoRecIntOp(FRSQRTE);
-	static GekkoRecIntOp(FSEL);
-	static GekkoRecIntOp(FSQRT);
-	static GekkoRecIntOp(FSQRTS);
-	static GekkoRecIntOp(FSUB);
-	static GekkoRecIntOp(FSUBS);
-	static GekkoRecIntOp(ICBI);
-	static GekkoRecIntOp(ISYNC);
-	static GekkoRecIntOp(LBZ);
-	static GekkoRecIntOp(LBZU);
-	static GekkoRecIntOp(LBZUX);
-	static GekkoRecIntOp(LBZX);
-	static GekkoRecIntOp(LFD);
-	static GekkoRecIntOp(LFDU);
-	static GekkoRecIntOp(LFDUX);
-	static GekkoRecIntOp(LFDX);
-	static GekkoRecIntOp(LFS);
-	static GekkoRecIntOp(LFSU);
-	static GekkoRecIntOp(LFSUX);
-	static GekkoRecIntOp(LFSX);
-	static GekkoRecIntOp(LHA);
-	static GekkoRecIntOp(LHAU);
-	static GekkoRecIntOp(LHAUX);
-	static GekkoRecIntOp(LHAX);
-	static GekkoRecIntOp(LHBRX);
-	static GekkoRecIntOp(LHZ);
-	static GekkoRecIntOp(LHZU);
-	static GekkoRecIntOp(LHZUX);
-	static GekkoRecIntOp(LHZX);
-	static GekkoRecIntOp(LMW);
-	static GekkoRecIntOp(LSWI);
-	static GekkoRecIntOp(LSWX);
-	static GekkoRecIntOp(LWARX);
-	static GekkoRecIntOp(LWBRX);
-	static GekkoRecIntOp(LWZ);
-	static GekkoRecIntOp(LWZU);
-	static GekkoRecIntOp(LWZUX);
-	static GekkoRecIntOp(LWZX);
-	static GekkoRecIntOp(MCRF);
-	static GekkoRecIntOp(MCRFS);
-	static GekkoRecIntOp(MCRXR);
-	static GekkoRecIntOp(MFCR);
-	static GekkoRecIntOp(MFFS);
-	static GekkoRecIntOp(MFMSR);
-	static GekkoRecIntOp(MFSPR);
-	static GekkoRecIntOp(MFSR);
-	static GekkoRecIntOp(MFSRIN);
-	static GekkoRecIntOp(MFTB);
-	static GekkoRecIntOp(MTCRF);
-	static GekkoRecIntOp(MTFSB0);
-	static GekkoRecIntOp(MTFSB1);
-	static GekkoRecIntOp(MTFSF);
-	static GekkoRecIntOp(MTSFI);
-	static GekkoRecIntOp(MTMSR);
-	static GekkoRecIntOp(MTSPR);
-	static GekkoRecIntOp(MTSR);
-	static GekkoRecIntOp(MTSRIN);
-	static GekkoRecIntOp(MULHW);
-	static GekkoRecIntOp(MULHWD);
-	static GekkoRecIntOp(MULHWU);
-	static GekkoRecIntOp(MULHWUD);
-	static GekkoRecIntOp(MULLI);
-	static GekkoRecIntOp(MULLW);
-	static GekkoRecIntOp(MULLWD);
-	static GekkoRecIntOp(MULLWO);
-	static GekkoRecIntOp(MULLWOD);
-	static GekkoRecIntOp(NAND);
-	static GekkoRecIntOp(NEG);
-	static GekkoRecIntOp(NEGO);
-	static GekkoRecIntOp(NOR);
-	static GekkoRecIntOp(OR);
-	static GekkoRecIntOp(ORC);
-	static GekkoRecIntOp(ORI);
-	static GekkoRecIntOp(ORIS);
-	static GekkoRecIntOp(PS_DIV);
-	static GekkoRecIntOp(PSQ_L);
-	static GekkoRecIntOp(PSQ_LX);
-	static GekkoRecIntOp(PSQ_LU);
-	static GekkoRecIntOp(PSQ_LUX);
-	static GekkoRecIntOp(PSQ_ST);
-	static GekkoRecIntOp(PSQ_STX);
-	static GekkoRecIntOp(PSQ_STU);
-	static GekkoRecIntOp(PSQ_STUX);
-	static GekkoRecIntOp(RFI);
-	static GekkoRecIntOp(RLWIMI);
-	static GekkoRecIntOp(RLWINM);
-	static GekkoRecIntOp(RLWNM);
-	static GekkoRecIntOp(SC);
-	static GekkoRecIntOp(SLW);
-	static GekkoRecIntOp(SRAW);
-	static GekkoRecIntOp(SRAWI);
-	static GekkoRecIntOp(SRW);
-	static GekkoRecIntOp(STB);
-	static GekkoRecIntOp(STBU);
-	static GekkoRecIntOp(STBUX);
-	static GekkoRecIntOp(STBX);
-	static GekkoRecIntOp(STFD);
-	static GekkoRecIntOp(STFDU);
-	static GekkoRecIntOp(STFDUX);
-	static GekkoRecIntOp(STFDX);
-	static GekkoRecIntOp(STFIWX);
-	static GekkoRecIntOp(STFS);
-	static GekkoRecIntOp(STFSU);
-	static GekkoRecIntOp(STFSUX);
-	static GekkoRecIntOp(STFSX);
-	static GekkoRecIntOp(STH);
-	static GekkoRecIntOp(STHBRX);
-	static GekkoRecIntOp(STHU);
-	static GekkoRecIntOp(STHUX);
-	static GekkoRecIntOp(STHX);
-	static GekkoRecIntOp(STMW);
-	static GekkoRecIntOp(STSWI);
-	static GekkoRecIntOp(STSWX);
-	static GekkoRecIntOp(STW);
-	static GekkoRecIntOp(STWBRX);
-	static GekkoRecIntOp(STWCXD);
-	static GekkoRecIntOp(STWU);
-	static GekkoRecIntOp(STWUX);
-	static GekkoRecIntOp(STWX);
-	static GekkoRecIntOp(SUBF);
-	static GekkoRecIntOp(SUBFO);
-	static GekkoRecIntOp(SUBFC);
-	static GekkoRecIntOp(SUBFCO);
-	static GekkoRecIntOp(SUBFE);
-	static GekkoRecIntOp(SUBFEO);
-	static GekkoRecIntOp(SUBFIC);
-	static GekkoRecIntOp(SUBFME);
-	static GekkoRecIntOp(SUBFMEO);
-	static GekkoRecIntOp(SUBFZE);
-	static GekkoRecIntOp(SUBFZEO);
-	static GekkoRecIntOp(SYNC);
-	static GekkoRecIntOp(TLBIA);
-	static GekkoRecIntOp(TLBIE);
-	static GekkoRecIntOp(TLBSYNC);
-	static GekkoRecIntOp(TW);
-	static GekkoRecIntOp(TWI);
-	static GekkoRecIntOp(XOR);
-	static GekkoRecIntOp(XORI);
-	static GekkoRecIntOp(XORIS);
-	static GekkoRecIntOp(STWCX);
-	static GekkoRecIntOp(MTFSFI);
-	static GekkoRecIntOp(HLE);
+	static GekkoRecIntOpHeader(DUMP_OPS);
+	static GekkoRecIntOpHeader(PS_ABS);
+	static GekkoRecIntOpHeader(PS_ADD);
+	static GekkoRecIntOpHeader(PS_CMPO0);
+	static GekkoRecIntOpHeader(PS_CMPO1);
+	static GekkoRecIntOpHeader(PS_CMPU0);
+	static GekkoRecIntOpHeader(PS_CMPU1);
+	static GekkoRecIntOpHeader(PS_MADD);
+	static GekkoRecIntOpHeader(PS_MADDS0);
+	static GekkoRecIntOpHeader(PS_MADDS1);
+	static GekkoRecIntOpHeader(PS_MERGE00);
+	static GekkoRecIntOpHeader(PS_MERGE01);
+	static GekkoRecIntOpHeader(PS_MERGE10);
+	static GekkoRecIntOpHeader(PS_MERGE11);
+	static GekkoRecIntOpHeader(PS_MR);
+	static GekkoRecIntOpHeader(PS_MSUB);
+	static GekkoRecIntOpHeader(PS_MUL);
+	static GekkoRecIntOpHeader(PS_MULS0);
+	static GekkoRecIntOpHeader(PS_MULS1);
+	static GekkoRecIntOpHeader(PS_NEG);
+	static GekkoRecIntOpHeader(PS_NMADD);
+	static GekkoRecIntOpHeader(PS_NMSUB);
+	static GekkoRecIntOpHeader(PS_RES);
+	static GekkoRecIntOpHeader(PS_RSQRTE);
+	static GekkoRecIntOpHeader(PS_SUB);
+	static GekkoRecIntOpHeader(PS_SUM0);
+	static GekkoRecIntOpHeader(PS_SUM1);
+	static GekkoRecIntOpHeader(PS_SEL);
+	static GekkoRecIntOpHeader(NI);
+	static GekkoRecIntOpHeader(ADD);
+	static GekkoRecIntOpHeader(ADDO);
+	static GekkoRecIntOpHeader(ADDC);
+	static GekkoRecIntOpHeader(ADDCO);
+	static GekkoRecIntOpHeader(ADDE);
+	static GekkoRecIntOpHeader(ADDEO);
+	static GekkoRecIntOpHeader(ADDI);
+	static GekkoRecIntOpHeader(ADDIC);
+	static GekkoRecIntOpHeader(ADDICD);
+	static GekkoRecIntOpHeader(ADDIS);
+	static GekkoRecIntOpHeader(ADDME);
+	static GekkoRecIntOpHeader(ADDMEO);
+	static GekkoRecIntOpHeader(ADDZE);
+	static GekkoRecIntOpHeader(ADDZEO);
+	static GekkoRecIntOpHeader(AND);
+	static GekkoRecIntOpHeader(ANDC);
+	static GekkoRecIntOpHeader(ANDID);
+	static GekkoRecIntOpHeader(ANDISD);
+	static GekkoRecIntOpHeader(B);
+	static GekkoRecIntOpHeader(BL);
+	static GekkoRecIntOpHeader(BA);
+	static GekkoRecIntOpHeader(BLA);
+	static GekkoRecIntOpHeader(BX);
+	static GekkoRecIntOpHeader(BCX);
+	static GekkoRecIntOpHeader(BCCTRX);
+	static GekkoRecIntOpHeader(BCLRX);
+	static GekkoRecIntOpHeader(CMP);
+	static GekkoRecIntOpHeader(CMPI);
+	static GekkoRecIntOpHeader(CMPL);
+	static GekkoRecIntOpHeader(CMPLI);
+	static GekkoRecIntOpHeader(CNTLZW);
+	static GekkoRecIntOpHeader(CRAND);
+	static GekkoRecIntOpHeader(CRANDC);
+	static GekkoRecIntOpHeader(CREQV);
+	static GekkoRecIntOpHeader(CRNAND);
+	static GekkoRecIntOpHeader(CRNOR);
+	static GekkoRecIntOpHeader(CROR);
+	static GekkoRecIntOpHeader(CRORC);
+	static GekkoRecIntOpHeader(CRXOR);
+	static GekkoRecIntOpHeader(DCBA);
+	static GekkoRecIntOpHeader(DCBF);
+	static GekkoRecIntOpHeader(DCBI);
+	static GekkoRecIntOpHeader(DCBST);
+	static GekkoRecIntOpHeader(DCBT);
+	static GekkoRecIntOpHeader(DCBTST);
+	static GekkoRecIntOpHeader(DCBZ);
+	static GekkoRecIntOpHeader(DCBZ_L);
+	static GekkoRecIntOpHeader(DIVW);
+	static GekkoRecIntOpHeader(DIVWO);
+	static GekkoRecIntOpHeader(DIVWOD);
+	static GekkoRecIntOpHeader(DIVWU);
+	static GekkoRecIntOpHeader(DIVWUO);
+	static GekkoRecIntOpHeader(ECIWX);
+	static GekkoRecIntOpHeader(ECOWX);
+	static GekkoRecIntOpHeader(EIEIO);
+	static GekkoRecIntOpHeader(EQV);
+	static GekkoRecIntOpHeader(EXTSB);
+	static GekkoRecIntOpHeader(EXTSH);
+	static GekkoRecIntOpHeader(FABS);
+	static GekkoRecIntOpHeader(FADD);
+	static GekkoRecIntOpHeader(FADDS);
+	static GekkoRecIntOpHeader(FCMPO);
+	static GekkoRecIntOpHeader(FCMPU);
+	static GekkoRecIntOpHeader(FCTIW);
+	static GekkoRecIntOpHeader(FCTIWZ);
+	static GekkoRecIntOpHeader(FDIV);
+	static GekkoRecIntOpHeader(FDIVS);
+	static GekkoRecIntOpHeader(FMADD);
+	static GekkoRecIntOpHeader(FMADDS);
+	static GekkoRecIntOpHeader(FMR);
+	static GekkoRecIntOpHeader(FMSUB);
+	static GekkoRecIntOpHeader(FMSUBS);
+	static GekkoRecIntOpHeader(FMUL);
+	static GekkoRecIntOpHeader(FMULS);
+	static GekkoRecIntOpHeader(FNABS);
+	static GekkoRecIntOpHeader(FNEG);
+	static GekkoRecIntOpHeader(FNMADD);
+	static GekkoRecIntOpHeader(FNMADDS);
+	static GekkoRecIntOpHeader(FNMSUB);
+	static GekkoRecIntOpHeader(FNMSUBS);
+	static GekkoRecIntOpHeader(FRES);
+	static GekkoRecIntOpHeader(FRSP);
+	static GekkoRecIntOpHeader(FRSQRTE);
+	static GekkoRecIntOpHeader(FSEL);
+	static GekkoRecIntOpHeader(FSQRT);
+	static GekkoRecIntOpHeader(FSQRTS);
+	static GekkoRecIntOpHeader(FSUB);
+	static GekkoRecIntOpHeader(FSUBS);
+	static GekkoRecIntOpHeader(ICBI);
+	static GekkoRecIntOpHeader(ISYNC);
+	static GekkoRecIntOpHeader(LBZ);
+	static GekkoRecIntOpHeader(LBZU);
+	static GekkoRecIntOpHeader(LBZUX);
+	static GekkoRecIntOpHeader(LBZX);
+	static GekkoRecIntOpHeader(LFD);
+	static GekkoRecIntOpHeader(LFDU);
+	static GekkoRecIntOpHeader(LFDUX);
+	static GekkoRecIntOpHeader(LFDX);
+	static GekkoRecIntOpHeader(LFS);
+	static GekkoRecIntOpHeader(LFSU);
+	static GekkoRecIntOpHeader(LFSUX);
+	static GekkoRecIntOpHeader(LFSX);
+	static GekkoRecIntOpHeader(LHA);
+	static GekkoRecIntOpHeader(LHAU);
+	static GekkoRecIntOpHeader(LHAUX);
+	static GekkoRecIntOpHeader(LHAX);
+	static GekkoRecIntOpHeader(LHBRX);
+	static GekkoRecIntOpHeader(LHZ);
+	static GekkoRecIntOpHeader(LHZU);
+	static GekkoRecIntOpHeader(LHZUX);
+	static GekkoRecIntOpHeader(LHZX);
+	static GekkoRecIntOpHeader(LMW);
+	static GekkoRecIntOpHeader(LSWI);
+	static GekkoRecIntOpHeader(LSWX);
+	static GekkoRecIntOpHeader(LWARX);
+	static GekkoRecIntOpHeader(LWBRX);
+	static GekkoRecIntOpHeader(LWZ);
+	static GekkoRecIntOpHeader(LWZU);
+	static GekkoRecIntOpHeader(LWZUX);
+	static GekkoRecIntOpHeader(LWZX);
+	static GekkoRecIntOpHeader(MCRF);
+	static GekkoRecIntOpHeader(MCRFS);
+	static GekkoRecIntOpHeader(MCRXR);
+	static GekkoRecIntOpHeader(MFCR);
+	static GekkoRecIntOpHeader(MFFS);
+	static GekkoRecIntOpHeader(MFMSR);
+	static GekkoRecIntOpHeader(MFSPR);
+	static GekkoRecIntOpHeader(MFSR);
+	static GekkoRecIntOpHeader(MFSRIN);
+	static GekkoRecIntOpHeader(MFTB);
+	static GekkoRecIntOpHeader(MTCRF);
+	static GekkoRecIntOpHeader(MTFSB0);
+	static GekkoRecIntOpHeader(MTFSB1);
+	static GekkoRecIntOpHeader(MTFSF);
+	static GekkoRecIntOpHeader(MTSFI);
+	static GekkoRecIntOpHeader(MTMSR);
+	static GekkoRecIntOpHeader(MTSPR);
+	static GekkoRecIntOpHeader(MTSR);
+	static GekkoRecIntOpHeader(MTSRIN);
+	static GekkoRecIntOpHeader(MULHW);
+	static GekkoRecIntOpHeader(MULHWD);
+	static GekkoRecIntOpHeader(MULHWU);
+	static GekkoRecIntOpHeader(MULHWUD);
+	static GekkoRecIntOpHeader(MULLI);
+	static GekkoRecIntOpHeader(MULLW);
+	static GekkoRecIntOpHeader(MULLWD);
+	static GekkoRecIntOpHeader(MULLWO);
+	static GekkoRecIntOpHeader(MULLWOD);
+	static GekkoRecIntOpHeader(NAND);
+	static GekkoRecIntOpHeader(NEG);
+	static GekkoRecIntOpHeader(NEGO);
+	static GekkoRecIntOpHeader(NOR);
+	static GekkoRecIntOpHeader(OR);
+	static GekkoRecIntOpHeader(ORC);
+	static GekkoRecIntOpHeader(ORI);
+	static GekkoRecIntOpHeader(ORIS);
+	static GekkoRecIntOpHeader(PS_DIV);
+	static GekkoRecIntOpHeader(PSQ_L);
+	static GekkoRecIntOpHeader(PSQ_LX);
+	static GekkoRecIntOpHeader(PSQ_LU);
+	static GekkoRecIntOpHeader(PSQ_LUX);
+	static GekkoRecIntOpHeader(PSQ_ST);
+	static GekkoRecIntOpHeader(PSQ_STX);
+	static GekkoRecIntOpHeader(PSQ_STU);
+	static GekkoRecIntOpHeader(PSQ_STUX);
+	static GekkoRecIntOpHeader(RFI);
+	static GekkoRecIntOpHeader(RLWIMI);
+	static GekkoRecIntOpHeader(RLWINM);
+	static GekkoRecIntOpHeader(RLWNM);
+	static GekkoRecIntOpHeader(SC);
+	static GekkoRecIntOpHeader(SLW);
+	static GekkoRecIntOpHeader(SRAW);
+	static GekkoRecIntOpHeader(SRAWI);
+	static GekkoRecIntOpHeader(SRW);
+	static GekkoRecIntOpHeader(STB);
+	static GekkoRecIntOpHeader(STBU);
+	static GekkoRecIntOpHeader(STBUX);
+	static GekkoRecIntOpHeader(STBX);
+	static GekkoRecIntOpHeader(STFD);
+	static GekkoRecIntOpHeader(STFDU);
+	static GekkoRecIntOpHeader(STFDUX);
+	static GekkoRecIntOpHeader(STFDX);
+	static GekkoRecIntOpHeader(STFIWX);
+	static GekkoRecIntOpHeader(STFS);
+	static GekkoRecIntOpHeader(STFSU);
+	static GekkoRecIntOpHeader(STFSUX);
+	static GekkoRecIntOpHeader(STFSX);
+	static GekkoRecIntOpHeader(STH);
+	static GekkoRecIntOpHeader(STHBRX);
+	static GekkoRecIntOpHeader(STHU);
+	static GekkoRecIntOpHeader(STHUX);
+	static GekkoRecIntOpHeader(STHX);
+	static GekkoRecIntOpHeader(STMW);
+	static GekkoRecIntOpHeader(STSWI);
+	static GekkoRecIntOpHeader(STSWX);
+	static GekkoRecIntOpHeader(STW);
+	static GekkoRecIntOpHeader(STWBRX);
+	static GekkoRecIntOpHeader(STWCXD);
+	static GekkoRecIntOpHeader(STWU);
+	static GekkoRecIntOpHeader(STWUX);
+	static GekkoRecIntOpHeader(STWX);
+	static GekkoRecIntOpHeader(SUBF);
+	static GekkoRecIntOpHeader(SUBFO);
+	static GekkoRecIntOpHeader(SUBFC);
+	static GekkoRecIntOpHeader(SUBFCO);
+	static GekkoRecIntOpHeader(SUBFE);
+	static GekkoRecIntOpHeader(SUBFEO);
+	static GekkoRecIntOpHeader(SUBFIC);
+	static GekkoRecIntOpHeader(SUBFME);
+	static GekkoRecIntOpHeader(SUBFMEO);
+	static GekkoRecIntOpHeader(SUBFZE);
+	static GekkoRecIntOpHeader(SUBFZEO);
+	static GekkoRecIntOpHeader(SYNC);
+	static GekkoRecIntOpHeader(TLBIA);
+	static GekkoRecIntOpHeader(TLBIE);
+	static GekkoRecIntOpHeader(TLBSYNC);
+	static GekkoRecIntOpHeader(TW);
+	static GekkoRecIntOpHeader(TWI);
+	static GekkoRecIntOpHeader(XOR);
+	static GekkoRecIntOpHeader(XORI);
+	static GekkoRecIntOpHeader(XORIS);
+	static GekkoRecIntOpHeader(STWCX);
+	static GekkoRecIntOpHeader(MTFSFI);
+	static GekkoRecIntOpHeader(HLE);
 
-	static GekkoRecOp(ADD);
-	static GekkoRecOp(ADDO);
-	static GekkoRecOp(ADDC);
-	static GekkoRecOp(ADDCO);
-	static GekkoRecOp(ADDE);
-	static GekkoRecOp(ADDEO);
-	static GekkoRecOp(ADDI);
-	static GekkoRecOp(ADDIC);
-	static GekkoRecOp(ADDICD);
-	static GekkoRecOp(ADDIS);
-	static GekkoRecOp(ADDME);
-	static GekkoRecOp(ADDMEO);
-	static GekkoRecOp(ADDZE);
-	static GekkoRecOp(ADDZEO);
-	static GekkoRecOp(AND);
-	static GekkoRecOp(ANDC);
-	static GekkoRecOp(ANDID);
-	static GekkoRecOp(ANDISD);
-	static GekkoRecOp(CMP);
-	static GekkoRecOp(CMPI);
-	static GekkoRecOp(CMPL);
-	static GekkoRecOp(CMPLI);
-	static GekkoRecOp(CNTLZW);
-	static GekkoRecOp(CRAND);
-	static GekkoRecOp(CRANDC);
-	static GekkoRecOp(CREQV);
-	static GekkoRecOp(CRNAND);
-	static GekkoRecOp(CRNOR);
-	static GekkoRecOp(CROR);
-	static GekkoRecOp(CRORC);
-	static GekkoRecOp(CRXOR);
-	static GekkoRecOp(DIVW);
-	static GekkoRecOp(DIVWO);
-	static GekkoRecOp(DIVWU);
-	static GekkoRecOp(DIVWUO);
-	static GekkoRecOp(EQV);
-	static GekkoRecOp(EXTSB);
-	static GekkoRecOp(EXTSH);
-	static GekkoRecOp(MFCR);
-	static GekkoRecOp(MTCRF);
-	static GekkoRecOp(MULLI);
-	static GekkoRecOp(MULLW);
-	static GekkoRecOp(NAND);
-	static GekkoRecOp(NEG);
-	static GekkoRecOp(NEGO);
-	static GekkoRecOp(NOR);
-	static GekkoRecOp(OR);
-	static GekkoRecOp(ORD);
-	static GekkoRecOp(ORC);
-	static GekkoRecOp(ORI);
-	static GekkoRecOp(ORIS);
-	static GekkoRecOp(RLWIMI);
-	static GekkoRecOp(RLWINM);
-	static GekkoRecOp(RLWNM);
-	static GekkoRecOp(SLW);
-	static GekkoRecOp(SRAWI);
-	static GekkoRecOp(SRW);
-	static GekkoRecOp(SUBF);
-	static GekkoRecOp(SUBFO);
-	static GekkoRecOp(SUBFC);
-	static GekkoRecOp(SUBFCO);
-	static GekkoRecOp(SUBFE);
-	static GekkoRecOp(SUBFEO);
-	static GekkoRecOp(SUBFI);
-	static GekkoRecOp(SUBFIC);
-	static GekkoRecOp(SUBFME);
-	static GekkoRecOp(SUBFMEO);
-	static GekkoRecOp(SUBFZE);
-	static GekkoRecOp(SUBFZEO);
-	static GekkoRecOp(XOR);
-	static GekkoRecOp(XORD);
-	static GekkoRecOp(XORI);
-	static GekkoRecOp(XORIS);
+	static GekkoRecOpHeader(ADD);
+	static GekkoRecOpHeader(ADDO);
+	static GekkoRecOpHeader(ADDC);
+	static GekkoRecOpHeader(ADDCO);
+	static GekkoRecOpHeader(ADDE);
+	static GekkoRecOpHeader(ADDEO);
+	static GekkoRecOpHeader(ADDI);
+	static GekkoRecOpHeader(ADDIC);
+	static GekkoRecOpHeader(ADDICD);
+	static GekkoRecOpHeader(ADDIS);
+	static GekkoRecOpHeader(ADDME);
+	static GekkoRecOpHeader(ADDMEO);
+	static GekkoRecOpHeader(ADDZE);
+	static GekkoRecOpHeader(ADDZEO);
+	static GekkoRecOpHeader(AND);
+	static GekkoRecOpHeader(ANDC);
+	static GekkoRecOpHeader(ANDID);
+	static GekkoRecOpHeader(ANDISD);
+	static GekkoRecOpHeader(CMP);
+	static GekkoRecOpHeader(CMPI);
+	static GekkoRecOpHeader(CMPL);
+	static GekkoRecOpHeader(CMPLI);
+	static GekkoRecOpHeader(CNTLZW);
+	static GekkoRecOpHeader(CRAND);
+	static GekkoRecOpHeader(CRANDC);
+	static GekkoRecOpHeader(CREQV);
+	static GekkoRecOpHeader(CRNAND);
+	static GekkoRecOpHeader(CRNOR);
+	static GekkoRecOpHeader(CROR);
+	static GekkoRecOpHeader(CRORC);
+	static GekkoRecOpHeader(CRXOR);
+	static GekkoRecOpHeader(DIVW);
+	static GekkoRecOpHeader(DIVWO);
+	static GekkoRecOpHeader(DIVWU);
+	static GekkoRecOpHeader(DIVWUO);
+	static GekkoRecOpHeader(EQV);
+	static GekkoRecOpHeader(EXTSB);
+	static GekkoRecOpHeader(EXTSH);
+	static GekkoRecOpHeader(MFCR);
+	static GekkoRecOpHeader(MTCRF);
+	static GekkoRecOpHeader(MULLI);
+	static GekkoRecOpHeader(MULLW);
+	static GekkoRecOpHeader(NAND);
+	static GekkoRecOpHeader(NEG);
+	static GekkoRecOpHeader(NEGO);
+	static GekkoRecOpHeader(NOR);
+	static GekkoRecOpHeader(OR);
+	static GekkoRecOpHeader(ORD);
+	static GekkoRecOpHeader(ORC);
+	static GekkoRecOpHeader(ORI);
+	static GekkoRecOpHeader(ORIS);
+	static GekkoRecOpHeader(RLWIMI);
+	static GekkoRecOpHeader(RLWINM);
+	static GekkoRecOpHeader(RLWNM);
+	static GekkoRecOpHeader(SLW);
+	static GekkoRecOpHeader(SRAWI);
+	static GekkoRecOpHeader(SRW);
+	static GekkoRecOpHeader(SUBF);
+	static GekkoRecOpHeader(SUBFO);
+	static GekkoRecOpHeader(SUBFC);
+	static GekkoRecOpHeader(SUBFCO);
+	static GekkoRecOpHeader(SUBFE);
+	static GekkoRecOpHeader(SUBFEO);
+	static GekkoRecOpHeader(SUBFI);
+	static GekkoRecOpHeader(SUBFIC);
+	static GekkoRecOpHeader(SUBFME);
+	static GekkoRecOpHeader(SUBFMEO);
+	static GekkoRecOpHeader(SUBFZE);
+	static GekkoRecOpHeader(SUBFZEO);
+	static GekkoRecOpHeader(XOR);
+	static GekkoRecOpHeader(XORD);
+	static GekkoRecOpHeader(XORI);
+	static GekkoRecOpHeader(XORIS);
 
-	static GekkoRecOp(INT_INSTRUCTION);
-	static GekkoRecOp(NOP);
-	static GekkoRecOp(LBZ);
-	static GekkoRecOp(LBZU);
-	static GekkoRecOp(LBZUX);
-	static GekkoRecOp(LBZX);
-	static GekkoRecOp(LHA);
-	static GekkoRecOp(LHAX);
-	static GekkoRecOp(LHZ);
-	static GekkoRecOp(LHZU);
-	static GekkoRecOp(LHZUX);
-	static GekkoRecOp(LHZX);
-	static GekkoRecOp(LMW);
-	static GekkoRecOp(LWZ);
-	static GekkoRecOp(LWZU);
-	static GekkoRecOp(LWZUX);
-	static GekkoRecOp(LWZX);
-	static GekkoRecOp(MFMSR);
-	static GekkoRecOp(MFSPR);
-	static GekkoRecOp(MFSR);
-	static GekkoRecOp(MFTB);
-	static GekkoRecOp(MTMSR);
-	static GekkoRecOp(MTSPR);
-	static GekkoRecOp(MTSR);
-	static GekkoRecOp(STB);
-	static GekkoRecOp(STBU);
-	static GekkoRecOp(STBUX);
-	static GekkoRecOp(STBX);
-	static GekkoRecOp(STH);
-	static GekkoRecOp(STHU);
-	static GekkoRecOp(STHUX);
-	static GekkoRecOp(STHX);
-	static GekkoRecOp(STMW);
-	static GekkoRecOp(STW);
-	static GekkoRecOp(STWU);
-	static GekkoRecOp(STWUX);
-	static GekkoRecOp(STWX);
+	static GekkoRecOpHeader(INT_INSTRUCTION);
+	static GekkoRecOpHeader(NOP);
+	static GekkoRecOpHeader(LBZ);
+	static GekkoRecOpHeader(LBZU);
+	static GekkoRecOpHeader(LBZUX);
+	static GekkoRecOpHeader(LBZX);
+	static GekkoRecOpHeader(LHA);
+	static GekkoRecOpHeader(LHAX);
+	static GekkoRecOpHeader(LHZ);
+	static GekkoRecOpHeader(LHZU);
+	static GekkoRecOpHeader(LHZUX);
+	static GekkoRecOpHeader(LHZX);
+	static GekkoRecOpHeader(LMW);
+	static GekkoRecOpHeader(LWZ);
+	static GekkoRecOpHeader(LWZU);
+	static GekkoRecOpHeader(LWZUX);
+	static GekkoRecOpHeader(LWZX);
+	static GekkoRecOpHeader(MFMSR);
+	static GekkoRecOpHeader(MFSPR);
+	static GekkoRecOpHeader(MFSR);
+	static GekkoRecOpHeader(MFTB);
+	static GekkoRecOpHeader(MTMSR);
+	static GekkoRecOpHeader(MTSPR);
+	static GekkoRecOpHeader(MTSR);
+	static GekkoRecOpHeader(STB);
+	static GekkoRecOpHeader(STBU);
+	static GekkoRecOpHeader(STBUX);
+	static GekkoRecOpHeader(STBX);
+	static GekkoRecOpHeader(STH);
+	static GekkoRecOpHeader(STHU);
+	static GekkoRecOpHeader(STHUX);
+	static GekkoRecOpHeader(STHX);
+	static GekkoRecOpHeader(STMW);
+	static GekkoRecOpHeader(STW);
+	static GekkoRecOpHeader(STWU);
+	static GekkoRecOpHeader(STWUX);
+	static GekkoRecOpHeader(STWX);
 
-	static GekkoRecOp(BCLRX);
-	static GekkoRecOp(BCCTRX);
-	static GekkoRecOp(BCX);
-	static GekkoRecOp(BX);
-	static GekkoRecOp(DCBI);
-	static GekkoRecOp(RFI);
+	static GekkoRecOpHeader(BCLRX);
+	static GekkoRecOpHeader(BCCTRX);
+	static GekkoRecOpHeader(BCX);
+	static GekkoRecOpHeader(BX);
+	static GekkoRecOpHeader(DCBI);
+	static GekkoRecOpHeader(RFI);
 
-	static GekkoRecOp(FABS);
-	static GekkoRecOp(FADD);
-	static GekkoRecOp(FADDS);
-	static GekkoRecOp(FDIV);
-	static GekkoRecOp(FDIVS);
-	static GekkoRecOp(FMADD);
-	static GekkoRecOp(FMADDS);
-	static GekkoRecOp(FMR);
-	static GekkoRecOp(FMSUB);
-	static GekkoRecOp(FMSUBS);
-	static GekkoRecOp(FMUL);
-	static GekkoRecOp(FMULS);
-	static GekkoRecOp(FNEG);
-	static GekkoRecOp(FRSP);
-	static GekkoRecOp(FSUB);
-	static GekkoRecOp(FSUBS);
-	static GekkoRecOp(PS_ABS);
-	static GekkoRecOp(PS_ADD);
-	static GekkoRecOp(PS_DIV);
-	static GekkoRecOp(PS_MADD);
-	static GekkoRecOp(PS_MADDS0);
-	static GekkoRecOp(PS_MADDS1);
-	static GekkoRecOp(PS_MERGE00);
-	static GekkoRecOp(PS_MERGE01);
-	static GekkoRecOp(PS_MR);
-	static GekkoRecOp(PS_MSUB);
-	static GekkoRecOp(PS_MUL);
-	static GekkoRecOp(PS_MULS0);
-	static GekkoRecOp(PS_NEG);
-	static GekkoRecOp(PS_SUB);
-	static GekkoRecOp(PS_SUM0);
+	static GekkoRecOpHeader(FABS);
+	static GekkoRecOpHeader(FADD);
+	static GekkoRecOpHeader(FADDS);
+	static GekkoRecOpHeader(FDIV);
+	static GekkoRecOpHeader(FDIVS);
+	static GekkoRecOpHeader(FMADD);
+	static GekkoRecOpHeader(FMADDS);
+	static GekkoRecOpHeader(FMR);
+	static GekkoRecOpHeader(FMSUB);
+	static GekkoRecOpHeader(FMSUBS);
+	static GekkoRecOpHeader(FMUL);
+	static GekkoRecOpHeader(FMULS);
+	static GekkoRecOpHeader(FNEG);
+	static GekkoRecOpHeader(FRSP);
+	static GekkoRecOpHeader(FSUB);
+	static GekkoRecOpHeader(FSUBS);
+	static GekkoRecOpHeader(PS_ABS);
+	static GekkoRecOpHeader(PS_ADD);
+	static GekkoRecOpHeader(PS_DIV);
+	static GekkoRecOpHeader(PS_MADD);
+	static GekkoRecOpHeader(PS_MADDS0);
+	static GekkoRecOpHeader(PS_MADDS1);
+	static GekkoRecOpHeader(PS_MERGE00);
+	static GekkoRecOpHeader(PS_MERGE01);
+	static GekkoRecOpHeader(PS_MR);
+	static GekkoRecOpHeader(PS_MSUB);
+	static GekkoRecOpHeader(PS_MUL);
+	static GekkoRecOpHeader(PS_MULS0);
+	static GekkoRecOpHeader(PS_NEG);
+	static GekkoRecOpHeader(PS_SUB);
+	static GekkoRecOpHeader(PS_SUM0);
 
-	static GekkoRecOp(LFD);
-	static GekkoRecOp(LFS);
-	static GekkoRecOp(LFSU);
-	static GekkoRecOp(LFSX);
-	static GekkoRecOp(STFD);
-	static GekkoRecOp(STFS);
-	static GekkoRecOp(STFSU);
-	static GekkoRecOp(STFSUX);
-	static GekkoRecOp(STFSX);
-	static GekkoRecOp(PSQ_L);
+	static GekkoRecOpHeader(LFD);
+	static GekkoRecOpHeader(LFS);
+	static GekkoRecOpHeader(LFSU);
+	static GekkoRecOpHeader(LFSX);
+	static GekkoRecOpHeader(STFD);
+	static GekkoRecOpHeader(STFS);
+	static GekkoRecOpHeader(STFSU);
+	static GekkoRecOpHeader(STFSUX);
+	static GekkoRecOpHeader(STFSX);
+	static GekkoRecOpHeader(PSQ_L);
 };
 
 #endif
