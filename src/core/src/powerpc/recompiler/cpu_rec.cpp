@@ -540,7 +540,8 @@ GekkoF GekkoCPURecompiler::Start(void)
 		is_on = true;
 		pause = false;
 
-	    if (common::g_config->enable_multicore())
+	    //if (common::g_config->enable_multicore())
+		if (0)
 		{
 			hGekkoThread = CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)GekkoRecompiler_RunThread,NULL,NULL,&GekkoThread);
 		}
