@@ -67,59 +67,59 @@ out vec4 fragmentColor;
 // Texture
 vec4 g_tex = texture2D(texture0, vertexTexCoord0);
 
-vec3 g_color[] = {
-    bp_tev_color[0].rgb,
-    bp_tev_color[0].aaa,
-    bp_tev_color[1].rgb,
-    bp_tev_color[1].aaa,
-    bp_tev_color[2].rgb,
-    bp_tev_color[2].aaa,
-    bp_tev_color[3].rgb,
-    bp_tev_color[3].aaa,
-    g_tex.rgb,
-    g_tex.aaa,
-    vertexColor.rgb,
-    vertexColor.aaa,
-    vec3(1.0f, 1.0f, 1.0f),
-    vec3(0.5f, 0.5f, 0.5f),
-    vec3(0.0f, 0.0f, 0.0f), // konst - set dynamically
-    vec3(0.0f, 0.0f, 0.0f)
+vec4 g_color[] = {
+    bp_tev_color[0].rgba,
+    bp_tev_color[0].aaaa,
+    bp_tev_color[1].rgba,
+    bp_tev_color[1].aaaa,
+    bp_tev_color[2].rgba,
+    bp_tev_color[2].aaaa,
+    bp_tev_color[3].rgba,
+    bp_tev_color[3].aaaa,
+    g_tex.rgba,
+    g_tex.aaaa,
+    vertexColor.rgba,
+    vertexColor.aaaa,
+    vec4(1.0f, 1.0f, 1.0f, 1.0f),
+    vec4(0.5f, 0.5f, 0.5f, 0.5f),
+    vec4(0.0f, 0.0f, 0.0f, 0.0f), // konst - set dynamically
+    vec4(0.0f, 0.0f, 0.0f, 0.0f)
 };
 
 // TEV color constants
-vec3 tev_kc[32] = {
-    vec3(1.0, 1.0, 1.0),
-    vec3(0.875, 0.875, 0.875),
-    vec3(0.75, 0.75, 0.75),
-    vec3(0.625, 0.625, 0.625),
-    vec3(0.5, 0.5, 0.5),
-    vec3(0.375, 0.375, 0.375),
-    vec3(0.25, 0.25, 0.25),
-    vec3(0.125, 0.125, 0.125),
-    vec3(0.0, 0.0, 0.0),            // undefined
-    vec3(0.0, 0.0, 0.0),            // undefined
-    vec3(0.0, 0.0, 0.0),            // undefined
-    vec3(0.0, 0.0, 0.0),            // undefined
-    bp_tev_konst[0].rgb,
-    bp_tev_konst[1].rgb,
-    bp_tev_konst[2].rgb,
-    bp_tev_konst[3].rgb,
-    bp_tev_konst[0].rrr,
-    bp_tev_konst[1].rrr,
-    bp_tev_konst[2].rrr,
-    bp_tev_konst[3].rrr,
-    bp_tev_konst[0].ggg,
-    bp_tev_konst[1].ggg,
-    bp_tev_konst[2].ggg,
-    bp_tev_konst[3].ggg,
-    bp_tev_konst[0].bbb,
-    bp_tev_konst[1].bbb,
-    bp_tev_konst[2].bbb,
-    bp_tev_konst[3].bbb,
-    bp_tev_konst[0].aaa,
-    bp_tev_konst[1].aaa,
-    bp_tev_konst[2].aaa,
-    bp_tev_konst[3].aaa,
+vec4 tev_konst[32] = {
+    vec4(1.0, 1.0, 1.0, 1.0),
+    vec4(0.875, 0.875, 0.875, 0.875),
+    vec4(0.75, 0.75, 0.75, 0.75),
+    vec4(0.625, 0.625, 0.625, 0.625),
+    vec4(0.5, 0.5, 0.5, 0.5),
+    vec4(0.375, 0.375, 0.375, 0.375),
+    vec4(0.25, 0.25, 0.25, 0.25),
+    vec4(0.125, 0.125, 0.125, 0.125),
+    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
+    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
+    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
+    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
+    bp_tev_konst[0].rgba,                // alpha unconfirmed
+    bp_tev_konst[1].rgba,                // alpha unconfirmed
+    bp_tev_konst[2].rgba,                // alpha unconfirmed
+    bp_tev_konst[3].rgba,                // alpha unconfirmed
+    bp_tev_konst[0].rrrr,
+    bp_tev_konst[1].rrrr,
+    bp_tev_konst[2].rrrr,
+    bp_tev_konst[3].rrrr,
+    bp_tev_konst[0].gggg,
+    bp_tev_konst[1].gggg,
+    bp_tev_konst[2].gggg,
+    bp_tev_konst[3].gggg,
+    bp_tev_konst[0].bbbb,
+    bp_tev_konst[1].bbbb,
+    bp_tev_konst[2].bbbb,
+    bp_tev_konst[3].bbbb,
+    bp_tev_konst[0].aaaa,
+    bp_tev_konst[1].aaaa,
+    bp_tev_konst[2].aaaa,
+    bp_tev_konst[3].aaaa,
 };
 
 // TEV combiner functions
@@ -170,7 +170,7 @@ vec4 tev_stage(in int stage) {
     // --------
     int stage_offset = stage * 9;
     BPTevStage	tev_c;
-    
+
     tev_c.sel_a = bp_tev_color_env[stage_offset + 0];
     tev_c.sel_b = bp_tev_color_env[stage_offset + 1];
     tev_c.sel_c = bp_tev_color_env[stage_offset + 2];
@@ -180,22 +180,22 @@ vec4 tev_stage(in int stage) {
     tev_c.clamp = bp_tev_color_env[stage_offset + 6];
     tev_c.shift = bp_tev_color_env[stage_offset + 7];
     tev_c.dest  = bp_tev_color_env[stage_offset + 8] << 1;
-    g_color[14] = tev_kc[tev_ksel.color_sel].rgb;
-    
-    vec3 cc_d = g_color[tev_c.sel_d];
-    vec3 cc_c = g_color[tev_c.sel_c];
-    vec3 cc_b = g_color[tev_c.sel_b];
-    vec3 cc_a = g_color[tev_c.sel_a];
-    
+    g_color[14].rgb = tev_konst[tev_ksel.color_sel].rgb;
+
+    vec3 cc_d = g_color[tev_c.sel_d].rgb;
+    vec3 cc_c = g_color[tev_c.sel_c].rgb;
+    vec3 cc_b = g_color[tev_c.sel_b].rgb;
+    vec3 cc_a = g_color[tev_c.sel_a].rgb;
+
     g_color[tev_c.dest].rgb = tev_scale[tev_c.shift] * (cc_d + (tev_sub[tev_c.sub] * (mix(cc_a, cc_b, cc_c) + tev_bias[tev_c.bias])));
-    
+
     if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(g_color[tev_c.dest].rgb, 0.0, 1.0);
     
     // Alpha op
     // --------
     
     BPTevStage	tev_a;
-    
+
     tev_a.sel_a = bp_tev_alpha_env[stage_offset + 0];
     tev_a.sel_b = bp_tev_alpha_env[stage_offset + 1];
     tev_a.sel_c = bp_tev_alpha_env[stage_offset + 2];
@@ -206,19 +206,15 @@ vec4 tev_stage(in int stage) {
     tev_a.shift = bp_tev_alpha_env[stage_offset + 7];
     tev_a.dest  = bp_tev_alpha_env[stage_offset + 8];
 
-    // TODO(ShizZy): Find a cleaner way of doing this... It's faster to use a single lookup
-    //  table for both alpha and color (g_color), but it's ugly.  A second lookup table seems
-    //  to affect performance a lot.
-    g_color[13][0] = tev_kc[tev_ksel.alpha_sel][0]; // Subsitute alpha konst in g_color table
-    float ca_d = g_color[(tev_a.sel_d << 1) + 1][0];
-    float ca_c = g_color[(tev_a.sel_c << 1) + 1][0];
-    float ca_b = g_color[(tev_a.sel_b << 1) + 1][0];
-    float ca_a = g_color[(tev_a.sel_a << 1) + 1][0];
-    g_color[13][0] = 0.5f; // Restore to 0.5
-    
+    g_color[14].a = tev_konst[tev_ksel.alpha_sel].a;
+    float ca_d = g_color[(tev_a.sel_d<<1)+1].a;
+    float ca_c = g_color[(tev_a.sel_c<<1)+1].a;
+    float ca_b = g_color[(tev_a.sel_b<<1)+1].a;
+    float ca_a = g_color[(tev_a.sel_a<<1)+1].a;
+
     float alpha = tev_scale[tev_c.shift] * (ca_d + (tev_sub[tev_a.sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[tev_a.bias][0])));
     if (tev_a.clamp == 1) alpha = clamp(alpha, 0.0, 1.0);
-    g_color[(tev_a.dest << 1) + 1] = vec3(alpha, alpha, alpha);
+    g_color[(tev_a.dest<<1)+1].a = alpha;
     
     return vec4(g_color[tev_c.dest].rgb, alpha);
 }
@@ -239,22 +235,23 @@ void main() {
     // TEV stages
     // ----------    
 
-	if (bp_genmode_num_stages > 0)  dest = tev_stage(0);
-    if (bp_genmode_num_stages > 1)  dest = tev_stage(1);
-    if (bp_genmode_num_stages > 2)  dest = tev_stage(2);
-    if (bp_genmode_num_stages > 3)  dest = tev_stage(3);
-    if (bp_genmode_num_stages > 4)  dest = tev_stage(4);
-    if (bp_genmode_num_stages > 5)  dest = tev_stage(5);
-    if (bp_genmode_num_stages > 6)  dest = tev_stage(6);
-    if (bp_genmode_num_stages > 7)  dest = tev_stage(7);
-    if (bp_genmode_num_stages > 8)  dest = tev_stage(8);
-    if (bp_genmode_num_stages > 9)  dest = tev_stage(9);
-    if (bp_genmode_num_stages > 10) dest = tev_stage(10);
-    if (bp_genmode_num_stages > 11) dest = tev_stage(11);
-    if (bp_genmode_num_stages > 12) dest = tev_stage(12);
-    if (bp_genmode_num_stages > 13) dest = tev_stage(13);
-    if (bp_genmode_num_stages > 14) dest = tev_stage(14);
-    if (bp_genmode_num_stages > 15) dest = tev_stage(15);
+    if (bp_genmode_num_stages > 0)  { dest = tev_stage(0);
+    if (bp_genmode_num_stages > 1)  { dest = tev_stage(1);
+    if (bp_genmode_num_stages > 2)  { dest = tev_stage(2);
+    if (bp_genmode_num_stages > 3)  { dest = tev_stage(3);
+    if (bp_genmode_num_stages > 4)  { dest = tev_stage(4);
+    if (bp_genmode_num_stages > 5)  { dest = tev_stage(5);
+    if (bp_genmode_num_stages > 6)  { dest = tev_stage(6);
+    if (bp_genmode_num_stages > 7)  { dest = tev_stage(7);
+    if (bp_genmode_num_stages > 8)  { dest = tev_stage(8);
+    if (bp_genmode_num_stages > 9)  { dest = tev_stage(9);
+    if (bp_genmode_num_stages > 10) { dest = tev_stage(10);
+    if (bp_genmode_num_stages > 11) { dest = tev_stage(11);
+    if (bp_genmode_num_stages > 12) { dest = tev_stage(12);
+    if (bp_genmode_num_stages > 13) { dest = tev_stage(13);
+    if (bp_genmode_num_stages > 14) { dest = tev_stage(14);
+    if (bp_genmode_num_stages > 15) { dest = tev_stage(15);
+    }}}}}}}}}}}}}}}}
 
     // Alpha compare
     // -------------
@@ -282,3 +279,4 @@ void main() {
 
     fragmentColor = dest;
 }
+
