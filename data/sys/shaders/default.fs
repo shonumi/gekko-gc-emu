@@ -161,15 +161,14 @@ bool alpha_compare(in int op, in int value, in int ref) {
 
 
 vec4 tev_stage(in int stage) {
-    BPTevKSel	tev_ksel;
+    BPTevKSel tev_ksel;
     
     tev_ksel.color_sel = bp_tev_ksel[(stage << 1) + 0]; // should index stage?
     tev_ksel.alpha_sel = bp_tev_ksel[(stage << 1) + 1]; // should index stage?
     
     int stage_offset = stage * 9;
-    BPTevStage	tev_c;
-    BPTevStage	tev_a;
 
+    BPTevStage tev_c;
     tev_c.sel_a = bp_tev_color_env[stage_offset + 0];
     tev_c.sel_b = bp_tev_color_env[stage_offset + 1];
     tev_c.sel_c = bp_tev_color_env[stage_offset + 2];
@@ -180,6 +179,7 @@ vec4 tev_stage(in int stage) {
     tev_c.shift = bp_tev_color_env[stage_offset + 7];
     tev_c.dest  = bp_tev_color_env[stage_offset + 8];
 
+    BPTevStage tev_a;
     tev_a.sel_a = bp_tev_alpha_env[stage_offset + 0];
     tev_a.sel_b = bp_tev_alpha_env[stage_offset + 1];
     tev_a.sel_c = bp_tev_alpha_env[stage_offset + 2];
@@ -190,21 +190,34 @@ vec4 tev_stage(in int stage) {
     tev_a.shift = bp_tev_alpha_env[stage_offset + 7];
     tev_a.dest  = bp_tev_alpha_env[stage_offset + 8];
 
-    g_color[14] = vec4(tev_konst[tev_ksel.color_sel].rgb, tev_konst[tev_ksel.alpha_sel].a);
+    // Update konst register
+    g_color[14].rgb = tev_konst[tev_ksel.color_sel].rgb;
+    g_color[12].a = tev_konst[tev_ksel.alpha_sel].a;
 
-    vec4 tev_input_a = vec4(g_color[tev_c.sel_a].rgb, g_color[(tev_a.sel_a<<1)+1].a);
-    vec4 tev_input_b = vec4(g_color[tev_c.sel_b].rgb, g_color[(tev_a.sel_b<<1)+1].a);
-    vec4 tev_input_c = vec4(g_color[tev_c.sel_c].rgb, g_color[(tev_a.sel_c<<1)+1].a);
-    vec4 tev_input_d = vec4(g_color[tev_c.sel_d].rgb, g_color[(tev_a.sel_d<<1)+1].a);
+    vec4 tev_input_a = vec4(g_color[tev_c.sel_a].rgb, g_color[(tev_a.sel_a<<1)].a);
+    vec4 tev_input_b = vec4(g_color[tev_c.sel_b].rgb, g_color[(tev_a.sel_b<<1)].a);
+    vec4 tev_input_c = vec4(g_color[tev_c.sel_c].rgb, g_color[(tev_a.sel_c<<1)].a);
+    vec4 tev_input_d = vec4(g_color[tev_c.sel_d].rgb, g_color[(tev_a.sel_d<<1)].a);
 
-    // Color op
-    g_color[tev_c.dest].rgb = tev_scale[tev_c.shift] * (tev_input_d.rgb + (tev_sub[tev_c.sub] * (mix(tev_input_a, tev_input_b.rgb.rgb, tev_input_c.rgb) + tev_bias[tev_c.bias].rgb)));
-    if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(g_color[tev_c.dest].rgb, 0.0, 1.0);
+    // TODO: Should pre-lookup the values on the CPU and directly input the uniforms in this format
+    vec4 scale = vec4(tev_scale[tev_c.shift].rrr, tev_scale[tev_a.shift]);
+    vec4 sub = vec4(tev_sub[tev_c.sub].rrr, tev_sub[tev_a.sub]);
+    vec4 bias = vec4(tev_bias[tev_c.bias].rgb, tev_bias[tev_a.bias]);
 
-    // Alpha op
-    float alpha = tev_scale[tev_c.shift] * (tev_input_d.a + (tev_sub[tev_a.sub] * (mix(tev_input_a.a, tev_input_b.a, tev_input_c.a) + tev_bias[tev_a.bias].a)));
-    if (tev_a.clamp == 1) alpha = clamp(alpha, 0.0, 1.0);
-    g_color[(tev_a.dest<<1)+1].a = alpha; // TODO: Why does leaving out "+1" break stuff?
+    // Process stage
+    vec4 result = scale * (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
+    g_color[tev_c.dest].rgb = result.rgb;
+
+    // Clamp color
+    if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(result.rgb, 0.0, 1.0);
+    else g_color[tev_c.dest].rgb = result.rgb;
+
+    // Clamp alpha
+    float alpha;
+    if (tev_a.clamp == 1) alpha = clamp(result.a, 0.0, 1.0);
+    else alpha = result.a;
+    g_color[tev_a.dest<<1].a = alpha;
+    g_color[(tev_a.dest<<1)+1] = alpha.rrrr;
 
     return vec4(g_color[tev_c.dest].rgb, alpha);
 }
