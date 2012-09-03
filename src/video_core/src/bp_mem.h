@@ -255,8 +255,8 @@ union BPEFBCoords12 {
     u32 _u32;
 };
 
-/// TEV color / alpha combiners
-struct BPTevCombiner {
+/// TEV color combiners
+struct BPTevColorCombiner {
     union {
         struct {
             unsigned seld : 4;
@@ -271,8 +271,11 @@ struct BPTevCombiner {
             unsigned rid : 8;
         };
         u32 _u32;
-    }color;
+    };
+};
 
+/// TEV alpha combiners
+struct BPTevAlphaCombiner {
     union {
         struct {
             unsigned rswap : 2;
@@ -289,7 +292,7 @@ struct BPTevCombiner {
             unsigned rid : 8;
         };
         u32 _u32;
-    }alpha;
+    };
 };
 
 /// TEV konstant color/alpha selector
@@ -336,6 +339,18 @@ struct BPTevOrder {
     inline int get_colorchan(int stage) { return (stage&1) ? colorid1 : colorid0; }
 };
 
+/// BP alpha/comparision function
+union BPAlphaFunc {
+    struct {
+        unsigned ref0 : 8;
+        unsigned ref1 : 8;
+        unsigned comp0 : 3;
+        unsigned comp1 : 3;
+        unsigned logic : 2;
+    };
+    u32 _u32;
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 union BPMemory {
@@ -363,8 +378,11 @@ union BPMemory {
         u32             pad5[0x7];              // 0x52
         BPEFBCoords10   scissor_offset;         // 0x59
         u32             pad6[0x66];             // 0x5a
-        BPTevCombiner   combiner[0x10];         // 0xC0
-        u32             pad7[0x16];             // 0xE0
+        //BPTevCombiner   combiner[0x10];         // 0xC0
+		u32             combiner[0x20];         // 0xC0
+        u32             pad7[0x13];             // 0xE0
+		BPAlphaFunc		alpha_func;				// 0xF3
+		u32             pad8[0x2];				// 0xF4
         BPTevKSel       ksel[0x8];              // 0xf6
     };
     u32 mem[0x100];

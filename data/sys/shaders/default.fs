@@ -1,14 +1,4 @@
-#version 330
-
-#define BP_REG_GENMODE          0   // 0x00
-#define BP_REG_PE_ZMODE         64  // 0x40
-#define BP_REG_PE_CONTROL       67  // 0x43
-#define BP_REG_TEV_COLOR_ENV    192 // 0xC0
-#define BP_REG_TEV_ALPHA_ENV    193 // 0xC1
-#define BP_REG_TEV_REGISTER_L   224 // 0xE0
-#define BP_REG_TEV_REGISTER_H   225 // 0xE1
-#define BP_REG_ALPHACOMPARE     243 // 0xF3
-#define BP_REG_TEV_KSEL         246 // 0xF6
+#version 150
 
 #define GX_NEVER    0
 #define GX_LESS     1
@@ -33,7 +23,42 @@ uniform sampler2D texture0;
 // BP memory
 uniform vec4    bp_tev_color[4];
 uniform vec4    bp_tev_konst[4];
-uniform int     bp_mem[0x100];
+
+// BP_REG_GENMODE - 0x00
+uniform int     bp_genmode_num_stages;
+
+struct BPTevStage {
+    int sel_a;
+    int sel_b;
+    int sel_c;
+    int sel_d;
+    int bias;
+    int sub;
+    int clamp;
+    int shift;
+    int dest;
+};
+
+struct BPTevKSel {
+	int color_sel;
+	int alpha_sel;
+};
+
+// BP_REG_ALPHACOMPARE - 0xF3
+uniform int     bp_alpha_func_ref0;
+uniform int     bp_alpha_func_ref1;
+uniform int     bp_alpha_func_comp0;
+uniform int     bp_alpha_func_comp1;
+uniform int     bp_alpha_func_logic;
+
+// BP_REG_TEV_COLOR_ENV - 0xC0-
+uniform int		bp_tev_color_env[144];
+
+// BP_REG_TEV_ALPHA_ENV - 0xC1-
+uniform int 	bp_tev_alpha_env[144];
+
+// BP_REG_TEV_KSEL - 0xF6-
+uniform int 	bp_tev_ksel[32];
 
 in vec4 vertexColor;
 in vec2 vertexTexCoord0;
@@ -42,12 +67,23 @@ out vec4 fragmentColor;
 // Texture
 vec4 g_tex = texture2D(texture0, vertexTexCoord0);
 
-// TEV internal colors
-vec4 g_color[4] = {
-    bp_tev_color[0],
-    bp_tev_color[1],
-    bp_tev_color[2],
-    bp_tev_color[3]
+vec3 g_color[] = {
+    bp_tev_color[0].rgb,
+    bp_tev_color[0].aaa,
+    bp_tev_color[1].rgb,
+    bp_tev_color[1].aaa,
+    bp_tev_color[2].rgb,
+    bp_tev_color[2].aaa,
+    bp_tev_color[3].rgb,
+    bp_tev_color[3].aaa,
+    g_tex.rgb,
+    g_tex.aaa,
+    vertexColor.rgb,
+    vertexColor.aaa,
+    vec3(1.0f, 1.0f, 1.0f),
+    vec3(0.5f, 0.5f, 0.5f),
+    vec3(0.0f, 0.0f, 0.0f), // konst - set dynamically
+    vec3(0.0f, 0.0f, 0.0f)
 };
 
 // TEV color constants
@@ -123,162 +159,126 @@ bool alpha_compare(in int op, in int value, in int ref) {
     return true;
 }
 
+
 vec4 tev_stage(in int stage) {
+    BPTevKSel	tev_ksel;
+    
+    tev_ksel.color_sel = bp_tev_ksel[(stage << 1) + 0]; // should index stage?
+    tev_ksel.alpha_sel = bp_tev_ksel[(stage << 1) + 1]; // should index stage?
     
     // Color op
     // --------
+    int stage_offset = stage * 9;
+    BPTevStage	tev_c;
     
-    int r_color_env = bp_mem[BP_REG_TEV_COLOR_ENV + (stage << 1)];
-
-    int c_bias = (r_color_env >> 16) & 0x3;
-    int c_sub = (r_color_env >> 18) & 0x1;
-    int c_clamp = (r_color_env >> 19) & 0x1;
-    int c_shift = (r_color_env >> 20) & 0x3;
-    int c_dest = (r_color_env >> 22) & 0x3;
-    int kcsel0 = (bp_mem[BP_REG_TEV_KSEL] >> 4) & 0x1F;
-    vec3 konst = tev_kc[kcsel0];
+    tev_c.sel_a = bp_tev_color_env[stage_offset + 0];
+    tev_c.sel_b = bp_tev_color_env[stage_offset + 1];
+    tev_c.sel_c = bp_tev_color_env[stage_offset + 2];
+    tev_c.sel_d = bp_tev_color_env[stage_offset + 3];
+    tev_c.bias  = bp_tev_color_env[stage_offset + 4];
+    tev_c.sub   = bp_tev_color_env[stage_offset + 5];
+    tev_c.clamp = bp_tev_color_env[stage_offset + 6];
+    tev_c.shift = bp_tev_color_env[stage_offset + 7];
+    tev_c.dest  = bp_tev_color_env[stage_offset + 8] << 1;
+    g_color[14] = tev_kc[tev_ksel.color_sel].rgb;
     
-    vec3 color_in[16] = {
-        g_color[0].rgb,
-        g_color[0].aaa,
-        g_color[1].rgb,
-        g_color[1].aaa,
-        g_color[2].rgb,
-        g_color[2].aaa,
-        g_color[3].rgb,
-        g_color[3].aaa,
-        g_tex.rgb,
-        g_tex.aaa,
-        vertexColor.rgb,
-        vertexColor.aaa,
-        vec3(1.0f, 1.0f, 1.0f),
-        vec3(0.5f, 0.5f, 0.5f),
-        konst.rgb,
-        vec3(0.0f, 0.0f, 0.0f),
-    };
+    vec3 cc_d = g_color[tev_c.sel_d];
+    vec3 cc_c = g_color[tev_c.sel_c];
+    vec3 cc_b = g_color[tev_c.sel_b];
+    vec3 cc_a = g_color[tev_c.sel_a];
     
-    vec3 cc_d = color_in[r_color_env & 0xF];
-    vec3 cc_c = color_in[(r_color_env >> 4) & 0xF];
-    vec3 cc_b = color_in[(r_color_env >> 8) & 0xF];
-    vec3 cc_a = color_in[(r_color_env >> 12) & 0xF];
+    g_color[tev_c.dest].rgb = tev_scale[tev_c.shift] * (cc_d + (tev_sub[tev_c.sub] * (mix(cc_a, cc_b, cc_c) + tev_bias[tev_c.bias])));
     
-    g_color[c_dest].rgb = tev_scale[c_shift] * (cc_d + (tev_sub[c_sub] * (mix(cc_a, cc_b, cc_c) + tev_bias[c_bias])));
-    
-    if (c_clamp == 1) g_color[c_dest].rgb = clamp(g_color[c_dest].rgb, 0.0, 1.0);
+    if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(g_color[tev_c.dest].rgb, 0.0, 1.0);
     
     // Alpha op
     // --------
     
-    int r_alpha_env = bp_mem[BP_REG_TEV_ALPHA_ENV + (stage << 1)];
+    BPTevStage	tev_a;
     
-    int a_bias    = (r_alpha_env >> 16) & 0x3;
-    int a_sub     = (r_alpha_env >> 18) & 0x1;
-    int a_clamp   = (r_alpha_env >> 19) & 0x1;
-    int a_shift   = (r_alpha_env >> 20) & 0x3;
-    int a_dest    = (r_alpha_env >> 22) & 0x3;
-    int kasel0 = (bp_mem[BP_REG_TEV_KSEL] >> 9) & 0x1F;
-    float konst_alpha = tev_kc[kasel0][0];
-    
-    float alpha_in[8] = {
-        g_color[0].a,
-        g_color[1].a,
-        g_color[2].a,
-        g_color[3].a,
-        g_tex.a,
-        vertexColor.a,
-        konst_alpha,
-        0.0
-    };
+    tev_a.sel_a = bp_tev_alpha_env[stage_offset + 0];
+    tev_a.sel_b = bp_tev_alpha_env[stage_offset + 1];
+    tev_a.sel_c = bp_tev_alpha_env[stage_offset + 2];
+    tev_a.sel_d = bp_tev_alpha_env[stage_offset + 3];
+    tev_a.bias  = bp_tev_alpha_env[stage_offset + 4];
+    tev_a.sub   = bp_tev_alpha_env[stage_offset + 5];
+    tev_a.clamp = bp_tev_alpha_env[stage_offset + 6];
+    tev_a.shift = bp_tev_alpha_env[stage_offset + 7];
+    tev_a.dest  = bp_tev_alpha_env[stage_offset + 8];
 
-    float ca_d = alpha_in[(r_alpha_env >> 4) & 0x7];
-    float ca_c = alpha_in[(r_alpha_env >> 7) & 0x7];
-    float ca_b = alpha_in[(r_alpha_env >> 10) & 0x7];
-    float ca_a = alpha_in[(r_alpha_env >> 13) & 0x7];
+    // TODO(ShizZy): Find a cleaner way of doing this... It's faster to use a single lookup
+    //  table for both alpha and color (g_color), but it's ugly.  A second lookup table seems
+    //  to affect performance a lot.
+    g_color[13][0] = tev_kc[tev_ksel.alpha_sel][0]; // Subsitute alpha konst in g_color table
+    float ca_d = g_color[(tev_a.sel_d << 1) + 1][0];
+    float ca_c = g_color[(tev_a.sel_c << 1) + 1][0];
+    float ca_b = g_color[(tev_a.sel_b << 1) + 1][0];
+    float ca_a = g_color[(tev_a.sel_a << 1) + 1][0];
+    g_color[13][0] = 0.5f; // Restore to 0.5
     
-    if (a_bias != GX_TEV_BIAS_COMPARE) {
-        // TODO(ShizZy): AlphaOp scale is what makes WW all black - figure out why
-        //g_color[a_dest].a = tev_scale[a_shift] * (ca_d + (tev_sub[a_sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[a_bias])));
-        g_color[a_dest].a = (ca_d + (tev_sub[a_sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[a_bias])));
-    } else {
-        // Implement me ?
-        g_color[a_dest].a = 1.0;
-    }
+    float alpha = tev_scale[tev_c.shift] * (ca_d + (tev_sub[tev_a.sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[tev_a.bias][0])));
+    if (tev_a.clamp == 1) alpha = clamp(alpha, 0.0, 1.0);
+    g_color[(tev_a.dest << 1) + 1] = vec3(alpha, alpha, alpha);
     
-    
-    //g_color[a_dest].a = (ca_d + (tev_sub[a_sub] * (mix(ca_a, ca_b, ca_c) + tev_bias[a_bias])));
-    
-    if (a_clamp == 1) g_color[a_dest].a = clamp(g_color[a_dest].a, 0.0, 1.0);
-    
-    return vec4(g_color[c_dest].rgb, g_color[a_dest].a);
+    return vec4(g_color[tev_c.dest].rgb, alpha);
 }
 
 void main() {
     vec4 dest;
-
-    if (tex_enable[0] == 1) {
-        dest = g_tex * vertexColor;
-    } else {
-        dest = vertexColor;
-    }
-
-    // TEV stages
-    // ----------
-    
-    int num_tevstages = ((bp_mem[BP_REG_GENMODE] >> 10) & 0xF) + 1;
-
-    if (num_tevstages > 0)  dest = tev_stage(0);
-    if (num_tevstages > 1)  dest = tev_stage(1);
-    if (num_tevstages > 2)  dest = tev_stage(2);
-    if (num_tevstages > 3)  dest = tev_stage(3);
-    if (num_tevstages > 4)  dest = tev_stage(4);
-    if (num_tevstages > 5)  dest = tev_stage(5);
-    if (num_tevstages > 6)  dest = tev_stage(6);
-    if (num_tevstages > 7)  dest = tev_stage(7);
-    if (num_tevstages > 8)  dest = tev_stage(8);
-    if (num_tevstages > 9)  dest = tev_stage(9);
-    if (num_tevstages > 10) dest = tev_stage(10);
-    if (num_tevstages > 11) dest = tev_stage(11);
-    if (num_tevstages > 12) dest = tev_stage(12);
-    if (num_tevstages > 13) dest = tev_stage(13);
-    if (num_tevstages > 14) dest = tev_stage(14);
-    if (num_tevstages > 15) dest = tev_stage(15);
-
-    // Alpha compare
-    // -------------
-    
-    int a_op0 = (bp_mem[BP_REG_ALPHACOMPARE] >> 16) & 0x7;
-    int a_op1 = (bp_mem[BP_REG_ALPHACOMPARE] >> 19) & 0x7;
-    int a_ref0 = (bp_mem[BP_REG_ALPHACOMPARE] & 0xFF);
-    int a_ref1 = ((bp_mem[BP_REG_ALPHACOMPARE] >> 8) & 0xFF);
-    int logic_op = ((bp_mem[BP_REG_ALPHACOMPARE] >> 22) & 0x3);
-    int val = int(dest.a * 255.0f) & 0xFF;
-    
-    switch (logic_op) {
-    case GX_AOP_AND:
-        if (!(alpha_compare(a_op0, val, a_ref0) && alpha_compare(a_op1, val, a_ref1))) discard;
-        break;
-    case GX_AOP_OR:
-        if (!(alpha_compare(a_op0, val, a_ref0) || alpha_compare(a_op1, val, a_ref1))) discard;
-        break;
-    case GX_AOP_XOR:
-        if (!(alpha_compare(a_op0, val, a_ref0) != alpha_compare(a_op1, val, a_ref1))) discard;
-        break;
-    case GX_AOP_XNOR:
-        if (!(alpha_compare(a_op0, val, a_ref0) == alpha_compare(a_op1, val, a_ref1))) discard;
-        break;
-    }
-    
+   
     // ZComploc
     // --------
     
-    /*
-    int z_comploc = (bp_mem[BP_REG_PE_CONTROL] >> 6) & 1;
+    /*int z_comploc = (bp_mem[BP_REG_PE_CONTROL] >> 6) & 1;
     int z_update_enable = (bp_mem[BP_REG_PE_ZMODE] >> 4) & 1;
     
     if (z_comploc == 0 && z_update_enable == 0) {
         discard;
+    }*/
+
+    // TEV stages
+    // ----------    
+
+	if (bp_genmode_num_stages > 0)  dest = tev_stage(0);
+    if (bp_genmode_num_stages > 1)  dest = tev_stage(1);
+    if (bp_genmode_num_stages > 2)  dest = tev_stage(2);
+    if (bp_genmode_num_stages > 3)  dest = tev_stage(3);
+    if (bp_genmode_num_stages > 4)  dest = tev_stage(4);
+    if (bp_genmode_num_stages > 5)  dest = tev_stage(5);
+    if (bp_genmode_num_stages > 6)  dest = tev_stage(6);
+    if (bp_genmode_num_stages > 7)  dest = tev_stage(7);
+    if (bp_genmode_num_stages > 8)  dest = tev_stage(8);
+    if (bp_genmode_num_stages > 9)  dest = tev_stage(9);
+    if (bp_genmode_num_stages > 10) dest = tev_stage(10);
+    if (bp_genmode_num_stages > 11) dest = tev_stage(11);
+    if (bp_genmode_num_stages > 12) dest = tev_stage(12);
+    if (bp_genmode_num_stages > 13) dest = tev_stage(13);
+    if (bp_genmode_num_stages > 14) dest = tev_stage(14);
+    if (bp_genmode_num_stages > 15) dest = tev_stage(15);
+
+    // Alpha compare
+    // -------------
+    
+    int val = int(dest.a * 255.0f) & 0xFF;
+    
+    switch (bp_alpha_func_logic) {
+    case GX_AOP_AND:
+        if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) && 
+            alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
+        break;
+    case GX_AOP_OR:
+        if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) || 
+            alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
+        break;
+    case GX_AOP_XOR:
+        if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) != 
+            alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
+        break;
+    case GX_AOP_XNOR:
+        if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) == 
+            alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
+        break;
     }
-    */
-   
+
     fragmentColor = dest;
 }

@@ -89,12 +89,13 @@ void UploadColor(u8 addr, u32 value)
 /// Write a BP register
 void BPRegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
-    
-    // Write data to bp memory
-    g_bp_regs.mem[addr] = data;
 
     // Write to renderer
+	//	Note: This should always happen first to compare what was last written!
     video_core::g_renderer->WriteBP(addr, data);
+
+	// Write data to bp memory
+    g_bp_regs.mem[addr] = data;
 
     // Adjust GX globals accordingly
     switch(addr) {

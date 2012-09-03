@@ -133,9 +133,140 @@ RendererGL3::RendererGL3() {
  * @param data Value to write to BP register
  */
 void RendererGL3::WriteBP(u8 addr, u32 data) {
-    static char uniform_name[12];
-    sprintf(uniform_name, "bp_mem[%d]", addr);
-    glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), data);
+    static char uniform_name[256];
+
+
+	if (data == gp::g_bp_regs.mem[addr]) {
+		return;
+	}
+    //sprintf(uniform_name, "bp_mem[%d]", addr);
+    //glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), data);
+	switch(addr) {
+	case BP_REG_GENMODE:
+		{
+			gp::BPGenMode gen_mode;
+			gen_mode._u32 = data;
+			glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_genmode_num_stages"),
+				(gen_mode.num_tevstages + 1));
+			}
+		break;
+
+	case BP_REG_TEV_COLOR_ENV + 0:
+	case BP_REG_TEV_COLOR_ENV + 2:
+	case BP_REG_TEV_COLOR_ENV + 4:
+	case BP_REG_TEV_COLOR_ENV + 6:
+	case BP_REG_TEV_COLOR_ENV + 8:
+	case BP_REG_TEV_COLOR_ENV + 10:
+	case BP_REG_TEV_COLOR_ENV + 12:
+	case BP_REG_TEV_COLOR_ENV + 14:
+	case BP_REG_TEV_COLOR_ENV + 16:
+	case BP_REG_TEV_COLOR_ENV + 18:
+	case BP_REG_TEV_COLOR_ENV + 20:
+	case BP_REG_TEV_COLOR_ENV + 22:
+	case BP_REG_TEV_COLOR_ENV + 24:
+	case BP_REG_TEV_COLOR_ENV + 26:
+	case BP_REG_TEV_COLOR_ENV + 28:
+	case BP_REG_TEV_COLOR_ENV + 30:
+		{
+			int stage = (addr >> 1) & 0xF;
+			gp::BPTevColorCombiner combiner;
+
+			combiner._u32 = data;
+
+			GLint buff[] = { 
+				combiner.sela, 
+				combiner.selb, 
+				combiner.selc, 
+				combiner.seld,
+				combiner.bias, 
+				combiner.sub,  
+				combiner.clamp, 
+				combiner.shift,
+				combiner.dest
+			};
+
+			sprintf(uniform_name, "bp_tev_color_env[%d]", stage*9);
+			glUniform1iv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 
+				sizeof(buff) / 4, buff);
+		}
+		break;
+
+	case BP_REG_TEV_ALPHA_ENV + 0:
+	case BP_REG_TEV_ALPHA_ENV + 2:
+	case BP_REG_TEV_ALPHA_ENV + 4:
+	case BP_REG_TEV_ALPHA_ENV + 6:
+	case BP_REG_TEV_ALPHA_ENV + 8:
+	case BP_REG_TEV_ALPHA_ENV + 10:
+	case BP_REG_TEV_ALPHA_ENV + 12:
+	case BP_REG_TEV_ALPHA_ENV + 14:
+	case BP_REG_TEV_ALPHA_ENV + 16:
+	case BP_REG_TEV_ALPHA_ENV + 18:
+	case BP_REG_TEV_ALPHA_ENV + 20:
+	case BP_REG_TEV_ALPHA_ENV + 22:
+	case BP_REG_TEV_ALPHA_ENV + 24:
+	case BP_REG_TEV_ALPHA_ENV + 26:
+	case BP_REG_TEV_ALPHA_ENV + 28:
+	case BP_REG_TEV_ALPHA_ENV + 30:
+		{
+			int stage = (addr >> 1) & 0xF;
+			gp::BPTevAlphaCombiner combiner;
+
+			combiner._u32 = data;
+
+			GLint buff[] = { 
+				combiner.sela, 
+				combiner.selb, 
+				combiner.selc, 
+				combiner.seld,
+				combiner.bias, 
+				combiner.sub,  
+				combiner.clamp, 
+				combiner.shift,
+				combiner.dest
+			};
+
+			sprintf(uniform_name, "bp_tev_alpha_env[%d]", stage*9);
+			glUniform1iv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 
+				sizeof(buff) / 4, buff);
+		}
+		break;
+
+	case BP_REG_ALPHACOMPARE:
+		{
+			gp::BPAlphaFunc alpha_func;
+			alpha_func._u32 = data;
+			glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_ref0"),
+				alpha_func.ref0);
+			glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_ref1"),
+				alpha_func.ref1);
+			glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_comp0"),
+				alpha_func.comp0);
+			glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_comp1"),
+				alpha_func.comp1);
+			glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_logic"),
+				alpha_func.logic);
+		}
+		break;
+
+	case BP_REG_TEV_KSEL:
+		{
+			int stage = (addr - BP_REG_TEV_KSEL) << 1;
+			gp::BPTevKSel ksel;
+			ksel._u32 = data;
+
+			int temp0[2] = { ksel.kcsel0, ksel.kasel0 };
+			int temp1[2] = { ksel.kcsel1, ksel.kasel1 };
+
+
+			sprintf(uniform_name, "bp_tev_ksel[%d]", stage*2);
+			glUniform1iv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 2, temp0);
+
+			sprintf(uniform_name, "bp_tev_ksel[%d]", stage+1);
+			glUniform1iv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 2, temp1);
+
+		}
+		break;
+	}
 }
 
 /**
