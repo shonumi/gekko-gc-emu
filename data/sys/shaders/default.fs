@@ -238,29 +238,32 @@ void main() {
     // TEV stages
     // ----------    
 
-    if (bp_genmode_num_stages > 0)  { dest = tev_stage(0);
-    if (bp_genmode_num_stages > 1)  { dest = tev_stage(1);
-    if (bp_genmode_num_stages > 2)  { dest = tev_stage(2);
-    if (bp_genmode_num_stages > 3)  { dest = tev_stage(3);
-    if (bp_genmode_num_stages > 4)  { dest = tev_stage(4);
-    if (bp_genmode_num_stages > 5)  { dest = tev_stage(5);
-    if (bp_genmode_num_stages > 6)  { dest = tev_stage(6);
-    if (bp_genmode_num_stages > 7)  { dest = tev_stage(7);
-    if (bp_genmode_num_stages > 8)  { dest = tev_stage(8);
-    if (bp_genmode_num_stages > 9)  { dest = tev_stage(9);
-    if (bp_genmode_num_stages > 10) { dest = tev_stage(10);
-    if (bp_genmode_num_stages > 11) { dest = tev_stage(11);
-    if (bp_genmode_num_stages > 12) { dest = tev_stage(12);
-    if (bp_genmode_num_stages > 13) { dest = tev_stage(13);
-    if (bp_genmode_num_stages > 14) { dest = tev_stage(14);
-    if (bp_genmode_num_stages > 15) { dest = tev_stage(15);
-    }}}}}}}}}}}}}}}}
+    if (bp_genmode_num_stages > 0)  { tev_stage(0);
+    if (bp_genmode_num_stages > 1)  { tev_stage(1);
+    if (bp_genmode_num_stages > 2)  { tev_stage(2);
+    if (bp_genmode_num_stages > 3)  { tev_stage(3);
+    if (bp_genmode_num_stages > 4)  { tev_stage(4);
+    if (bp_genmode_num_stages > 5)  { tev_stage(5);
+    if (bp_genmode_num_stages > 6)  { tev_stage(6);
+    if (bp_genmode_num_stages > 7)  { tev_stage(7);
+    if (bp_genmode_num_stages > 8)  { tev_stage(8);
+    if (bp_genmode_num_stages > 9)  { tev_stage(9);
+    if (bp_genmode_num_stages > 10) { tev_stage(10);
+    if (bp_genmode_num_stages > 11) { tev_stage(11);
+    if (bp_genmode_num_stages > 12) { tev_stage(12);
+    if (bp_genmode_num_stages > 13) { tev_stage(13);
+    if (bp_genmode_num_stages > 14) { tev_stage(14);
+    if (bp_genmode_num_stages > 15) { tev_stage(15);
+    }}}}}}}}}}}}}}}
+    // Store result of last TEV stage
+    dest = vec4(g_color[bp_tev_color_env[bp_genmode_num_stages * 9 - 1]].rgb, g_color[bp_tev_alpha_env[bp_genmode_num_stages * 9 - 1]].a);
+    }
 
     // Alpha compare
     // -------------
     
     int val = int(dest.a * 255.0f) & 0xFF;
-    
+
     switch (bp_alpha_func_logic) {
     case GX_AOP_AND:
         if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) && 
