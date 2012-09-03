@@ -15,7 +15,8 @@ GGfxFifoPlayerControl::GGfxFifoPlayerControl(QWidget* parent) : QDockWidget(pare
 
 GGfxFifoPlayerControl::~GGfxFifoPlayerControl()
 {
-    fifo_player::EndRecording();
+    if (fifo_player::IsRecording())
+        fifo_player::EndRecording();
 }
 
 void GGfxFifoPlayerControl::OnStartStopRecordingClicked()
