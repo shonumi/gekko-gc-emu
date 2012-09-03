@@ -200,17 +200,18 @@ vec4 tev_stage(in int stage) {
     vec4 tev_input_d = vec4(g_color[tev_c.sel_d].rgb, g_color[(tev_a.sel_d<<1)].a);
 
     // TODO: Should pre-lookup the values on the CPU and directly input the uniforms in this format
-    vec4 scale = vec4(tev_scale[tev_c.shift].rrr, tev_scale[tev_a.shift]);
+    //vec4 scale = vec4(tev_scale[tev_c.shift].rrr, tev_scale[tev_a.shift]);
+    // TODO: Reimplement alpha scale
     vec4 sub = vec4(tev_sub[tev_c.sub].rrr, tev_sub[tev_a.sub]);
     vec4 bias = vec4(tev_bias[tev_c.bias].rgb, tev_bias[tev_a.bias]);
 
     // Process stage
-    vec4 result = scale * (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
+    vec4 result = (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
     g_color[tev_c.dest].rgb = result.rgb;
 
     // Clamp color
-    if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(result.rgb, 0.0, 1.0);
-    else g_color[tev_c.dest].rgb = result.rgb;
+    if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(tev_scale[tev_c.shift] * result.rgb, 0.0, 1.0);
+    else g_color[tev_c.dest].rgb = tev_scale[tev_c.shift] * result.rgb;
 
     // Clamp alpha
     float alpha;
