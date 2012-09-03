@@ -78,9 +78,9 @@ void main() {
     // Vertex color 0 decoding (this should be 100% correct)
     switch (cp_col0_format) {
     case GX_RGB565:
-        vertexColor.r = float(int(color0[1]) >> 3) / 32.0f;
-        vertexColor.g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 64.0f;
-        vertexColor.b = float(int(color0[0]) & 0x1F) / 32.0f;
+        vertexColor.r = float(int(color0[1]) >> 3) / 31.0f;
+        vertexColor.g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
+        vertexColor.b = float(int(color0[0]) & 0x1F) / 31.0f;
         vertexColor.a = 1.0f;
         break;
         
@@ -93,17 +93,17 @@ void main() {
         break;
         
     case GX_RGBA4:
-        vertexColor.r = float(int(color0[1]) >> 4) / 16.0f;
-        vertexColor.g = float(int(color0[1]) & 0xF) / 16.0f;
-        vertexColor.b = float(int(color0[0]) >> 4) / 16.0f;
-        vertexColor.a = float(int(color0[0]) & 0xF) / 16.0f;
+        vertexColor.r = float(int(color0[1]) >> 4) / 15.0f;
+        vertexColor.g = float(int(color0[1]) & 0xF) / 15.0f;
+        vertexColor.b = float(int(color0[0]) >> 4) / 15.0f;
+        vertexColor.a = float(int(color0[0]) & 0xF) / 15.0f;
         break;
         
     case GX_RGBA6:
-        vertexColor.r = float(int(color0[0]) >> 2) / 64.0f;
-        vertexColor.g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 64.0f;
-        vertexColor.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 64.0f;
-        vertexColor.a = float(int(color0[2]) & 0x3F) / 64.0f;
+        vertexColor.r = float(int(color0[0]) >> 2) / 63.0f;
+        vertexColor.g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 63.0f;
+        vertexColor.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 63.0f;
+        vertexColor.a = float(int(color0[2]) & 0x3F) / 63.0f;
         break;
         
     case GX_RGBA8:
