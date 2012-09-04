@@ -79,7 +79,7 @@ public:
     void set_b_status(GCButtonState val) { b_status_= val; }
     GCButtonState x_status() { return x_status_; }
     void set_x_status(GCButtonState val) { x_status_= val; }
-    GCButtonState y_status() { return a_status_; }
+    GCButtonState y_status() { return y_status_; }
     void set_y_status(GCButtonState val) { y_status_= val; }
     GCButtonState z_status() { return z_status_; }
     void set_z_status(GCButtonState val) { z_status_= val; }
