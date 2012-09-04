@@ -387,6 +387,7 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
         // Parse keyboard configuration
         rapidxml::xml_node<> *keyboard_node = elem->first_node("KeyboardController");
         if (keyboard_node) {
+            attr = keyboard_node->first_attribute("enable");
             port_config.keys.enable = (E_OK == _stricmp(attr->value(), "true")) ? true : false;
             port_config.keys.a_key_code = GetXMLElementAsInt(keyboard_node, "AKey");
             port_config.keys.b_key_code = GetXMLElementAsInt(keyboard_node, "BKey");
@@ -417,6 +418,7 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
         // Parse joypad configuration
         rapidxml::xml_node<> *joypad_node = elem->first_node("JoypadController");
         if (joypad_node) {
+            attr = joypad_node->first_attribute("enable");
             port_config.pads.enable = (E_OK == _stricmp(attr->value(), "true")) ? true : false;
             port_config.pads.a_key_code = GetXMLElementAsInt(joypad_node, "AKey");
             port_config.pads.b_key_code = GetXMLElementAsInt(joypad_node, "BKey");
