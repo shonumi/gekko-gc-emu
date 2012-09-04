@@ -62,53 +62,53 @@
 
             <!-- Standard controller example -->
             <ControllerPort port="0" device="controller" enable="true">
-                <!-- Keyboard configuration example - codes are in ASCII decimal -->
-                <KeyboardController enable="false">
+                <!-- Keyboard configuration example - codes are for GLFW -->
+                <KeyboardController enable="true">
                     <!-- Default: "X" key -->
-                    <AKey>120</AKey>
+                    <AKey>88</AKey>
                     <!-- Default: "Z" key -->
-                    <BKey>122</BKey>
+                    <BKey>90</BKey>
                     <!-- Default: "C" key -->
-                    <XKey>99</XKey>
+                    <XKey>67</XKey>
                     <!-- Default: "S" key -->
-                    <YKey>115</YKey>
+                    <YKey>83</YKey>
                     <!-- Default: "Q" key -->
-                    <LKey>113</LKey>
+                    <LKey>81</LKey>
                     <!-- Default: "W" key -->
-                    <RKey>119</RKey>
+                    <RKey>87</RKey>
                     <!-- Default: "D" key -->
-                    <ZKey>100</ZKey>
+                    <ZKey>68</ZKey>
                     <!-- Default: Enter -->
-                    <StartKey>13</StartKey>
+                    <StartKey>257</StartKey>
                     <!-- Default: Up Arrow -->
-                    <AnalogUpKey>82</AnalogUpKey>
+                    <AnalogUpKey>265</AnalogUpKey>
                     <!-- Default: Down Arrow -->
-                    <AnalogDownKey>81</AnalogDownKey>
+                    <AnalogDownKey>264</AnalogDownKey>
                     <!-- Default: Left Arrow -->
-                    <AnalogLeftKey>80</AnalogLeftKey>
+                    <AnalogLeftKey>263</AnalogLeftKey>
                     <!-- Default: Right Arrow -->
-                    <AnalogRightKey>79</AnalogRightKey>
+                    <AnalogRightKey>262</AnalogRightKey>
                     <!-- Default: "I" key -->
-                    <CUpKey>105</CUpKey>
+                    <CUpKey>73</CUpKey>
                     <!-- Default: "K" key -->
-                    <CDownKey>107</CDownKey>
+                    <CDownKey>75</CDownKey>
                     <!-- Default: "J" key -->
-                    <CLeftKey>106</CLeftKey>
+                    <CLeftKey>74</CLeftKey>
                     <!-- Default: "L" key -->
-                    <CRightKey>108</CRightKey>
+                    <CRightKey>76</CRightKey>
                     <!-- Default: "T" key -->
-                    <DPadUpKey>116</DPadUpKey>
+                    <DPadUpKey>84</DPadUpKey>
                     <!-- Default: "G" key -->
-                    <DPadDownKey>103</DPadDownKey>
+                    <DPadDownKey>71</DPadDownKey>
                     <!-- Default: "F" key -->
-                    <DPadLeftKey>102</DPadLeftKey>
+                    <DPadLeftKey>70</DPadLeftKey>
                     <!-- Default: "H" key -->
-                    <DPadRightKey>104</DPadRightKey>
+                    <DPadRightKey>72</DPadRightKey>
                 </KeyboardController>
 
                 <!-- Joypad configuration example - codes based on pad syms -->
-		<!-- See "Joypad Configuration" Wiki entry on Google Code page -->
-                <JoypadController enable="true">
+                <!-- See "Joypad Configuration" Wiki entry on Google Code page -->
+                <JoypadController enable="false">
                     <!-- Button Joypad Config -->
                     <AKey>101</AKey>
                     <BKey>100</BKey>
