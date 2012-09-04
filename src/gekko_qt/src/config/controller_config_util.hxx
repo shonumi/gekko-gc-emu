@@ -33,6 +33,7 @@ class GStickConfig : public QWidget
     Q_OBJECT
 
 public:
+    // Parent needs to have a OnKeyConfigChanged(ControllerButtonId, int, const QString&) slot!
     GStickConfig(ControllerButtonId leftid, ControllerButtonId rightid, ControllerButtonId upid, ControllerButtonId downid, QWidget* parent = NULL);
 
 signals:
@@ -40,6 +41,11 @@ signals:
     void RightChanged();
     void UpChanged();
     void DownChanged();
+
+    void KeyConfigChanged(ControllerButtonId, int key, const QString&);
+
+public slots:
+    void OnKeyConfigChanged(ControllerButtonId, int key, const QString&);
 
 private:
     QPushButton* left;
@@ -55,11 +61,12 @@ class GKeyConfigButton : public QPushButton
     Q_OBJECT
 
 public:
+    // Parent needs to have a OnKeyConfigChanged(ControllerButtonId, int, const QString&) slot!
     GKeyConfigButton(ControllerButtonId id, const QIcon& icon, const QString& text, QWidget* parent);
     GKeyConfigButton(ControllerButtonId id, const QString& text, QWidget* parent);
 
 signals:
-    void KeyAssigned(ControllerButtonId id, const QString& text);
+    void KeyAssigned(ControllerButtonId id, int key, const QString& text);
 
 private slots:
     void OnClicked();

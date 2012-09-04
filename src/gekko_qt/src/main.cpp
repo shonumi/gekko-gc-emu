@@ -290,6 +290,8 @@ void GMainWindow::OnConfigure()
     dialog->setLayout(layout);
     dialog->setModal(true);
     dialog->show();
+
+    // TODO: Save and apply config when dialog closes
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event)

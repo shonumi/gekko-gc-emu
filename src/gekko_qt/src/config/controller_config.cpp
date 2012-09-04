@@ -19,3 +19,88 @@ GControllerConfig::GControllerConfig(QWidget* parent) : QWidget(parent)
     layout->addWidget(new GButtonConfigGroup("R Trigger", TRIGGER_R, ui.buttonsTab));
     layout->addWidget(new GButtonConfigGroup("Start Button", BUTTON_START, ui.buttonsTab));
 }
+
+void GControllerConfig::OnKeyConfigChanged(ControllerButtonId id, int key, const QString& name)
+{
+    // TODO: Clean up input_common interface mess and make this prettier
+    switch (id)
+    {
+        case BUTTON_A:
+            if (InputSourceJoypad())
+            {
+                // TODO
+            }
+            else
+            {
+                config[GetActiveController()].keys.a_key_code = key;
+            }
+            break;
+
+        case BUTTON_B:
+            break;
+
+        case BUTTON_X:
+            break;
+
+        case BUTTON_Y:
+            break;
+
+        case BUTTON_Z:
+            break;
+
+        case TRIGGER_L:
+            break;
+
+        case TRIGGER_R:
+            break;
+
+        case BUTTON_START:
+            break;
+
+        case MAINSTICK_LEFT:
+            break;
+
+        case MAINSTICK_RIGHT:
+            break;
+
+        case MAINSTICK_UP:
+            break;
+
+        case MAINSTICK_DOWN:
+            break;
+
+        case CSTICK_LEFT:
+            break;
+
+        case CSTICK_RIGHT:
+            break;
+
+        case CSTICK_UP:
+            break;
+
+        case CSTICK_DOWN:
+            break;
+
+        case DPAD_LEFT:
+            break;
+
+        case DPAD_RIGHT:
+            break;
+
+        case DPAD_UP:
+            break;
+
+        case DPAD_DOWN:
+            break;
+    }
+}
+
+int GControllerConfig::GetActiveController()
+{
+    return ui.activeControllerCB->currentIndex();
+}
+
+bool GControllerConfig::InputSourceJoypad()
+{
+    return ui.inputSourceCB->currentIndex() == 1;
+}

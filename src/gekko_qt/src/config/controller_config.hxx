@@ -1,9 +1,10 @@
 #ifndef _CONTROLLER_CONFIG_HXX_
 #define _CONTROLLER_CONFIG_HXX_
 
-class GStickConfig;
-
 #include "ui_controller_config.h"
+#include "controller_config_util.hxx"
+
+#include "config.h"
 
 class GControllerConfig : public QWidget
 {
@@ -12,8 +13,17 @@ class GControllerConfig : public QWidget
 public:
     GControllerConfig(QWidget* parent = NULL);
 
+    const common::Config::ControllerPort& GetControllerConfig(int index) const { return config[index]; }
+
+public slots:
+    void OnKeyConfigChanged(ControllerButtonId id, int key, const QString& name);
+
 private:
+    int GetActiveController();
+    bool InputSourceJoypad();
+
     Ui::ControllerConfig ui;
+    common::Config::ControllerPort config[4];
 };
 
 #endif  // _CONTROLLER_CONFIG_HXX_

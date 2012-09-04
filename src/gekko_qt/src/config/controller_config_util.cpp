@@ -23,16 +23,25 @@ GStickConfig::GStickConfig(ControllerButtonId leftid, ControllerButtonId rightid
     layout->addWidget(clear, 1, 1);
 
     setLayout(layout);
+
+    connect(this, SIGNAL(KeyConfigChanged(ControllerButtonId, int, const QString&)), parent, SLOT(OnKeyConfigChanged(ControllerButtonId, int, const QString&)));
+}
+
+void GStickConfig::OnKeyConfigChanged(ControllerButtonId id, int key, const QString& name)
+{
+    emit KeyConfigChanged(id, key, name);
 }
 
 GKeyConfigButton::GKeyConfigButton(ControllerButtonId id, const QIcon& icon, const QString& text, QWidget* parent) : QPushButton(icon, text, parent), id(id), inputGrabbed(false)
 {
     connect(this, SIGNAL(clicked()), this, SLOT(OnClicked()));
+    connect(this, SIGNAL(KeyAssigned(ControllerButtonId, int, const QString&)), parent, SLOT(OnKeyConfigChanged(ControllerButtonId, int, const QString&)));
 }
 
 GKeyConfigButton::GKeyConfigButton(ControllerButtonId id, const QString& text, QWidget* parent) : QPushButton(text, parent), id(id), inputGrabbed(false)
 {
     connect(this, SIGNAL(clicked()), this, SLOT(OnClicked()));
+    connect(this, SIGNAL(KeyAssigned(ControllerButtonId, int, const QString&)), parent, SLOT(OnKeyConfigChanged(ControllerButtonId, int, const QString&)));
 }
 
 void GKeyConfigButton::OnClicked()
@@ -60,7 +69,7 @@ void GKeyConfigButton::keyPressEvent(QKeyEvent* event)
         else if (event->modifiers() == Qt::MetaModifier) text = tr("Meta");
 
         setText(text);
-        emit KeyAssigned(id, text);
+        emit KeyAssigned(id, event->key(), text);
 
         inputGrabbed = false;
     }
