@@ -182,7 +182,6 @@ public:
     void SetWindow(EmuWindow* window);
 
     void Init();
-    void PollEvent();
     void ShutDown();
 
 private:
