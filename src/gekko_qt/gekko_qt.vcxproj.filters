@@ -7,6 +7,9 @@
     <Filter Include="qhexedit">
       <UniqueIdentifier>{dede739c-939b-4147-9e72-4a326b97d237}</UniqueIdentifier>
     </Filter>
+    <Filter Include="config">
+      <UniqueIdentifier>{80178741-d3ab-4031-892c-ec58490ea8bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
@@ -40,6 +43,12 @@
     <ClCompile Include="src\path_list.cpp" />
     <ClCompile Include="src\welcome_wizard.cpp" />
     <ClCompile Include="src\gamelist.cpp" />
+    <ClCompile Include="src\config\controller_config.cpp">
+      <Filter>config</Filter>
+    </ClCompile>
+    <ClCompile Include="src\config\controller_config_util.cpp">
+      <Filter>config</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MOC Include="src\main.hxx" />
@@ -73,6 +82,12 @@
     <MOC Include="src\path_list.hxx" />
     <MOC Include="src\welcome_wizard.hxx" />
     <MOC Include="src\gamelist.hxx" />
+    <MOC Include="src\config\controller_config.hxx">
+      <Filter>config</Filter>
+    </MOC>
+    <MOC Include="src\config\controller_config_util.hxx">
+      <Filter>config</Filter>
+    </MOC>
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\main.ui" />
@@ -88,6 +103,9 @@
     </UIC>
     <UIC Include="src\hotkeys.ui" />
     <UIC Include="src\welcome_wizard.ui" />
+    <UIC Include="src\config\controller_config.ui">
+      <Filter>config</Filter>
+    </UIC>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\version.h" />

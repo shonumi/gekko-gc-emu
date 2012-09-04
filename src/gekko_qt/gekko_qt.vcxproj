@@ -125,6 +125,8 @@
     <ClCompile Include="..\..\externals\qhexedit\xbytearray.cpp" />
     <ClCompile Include="src\bootmanager.cpp" />
     <ClCompile Include="src\callstack.cpp" />
+    <ClCompile Include="src\config\controller_config.cpp" />
+    <ClCompile Include="src\config\controller_config_util.cpp" />
     <ClCompile Include="src\disasm.cpp" />
     <ClCompile Include="src\gamelist.cpp" />
     <ClCompile Include="src\gekko_regs.cpp" />
@@ -138,21 +140,23 @@
   <ItemGroup>
     <MOC Include="src\bootmanager.hxx" />
     <MOC Include="src\callstack.hxx" />
+    <MOC Include="src\config\controller_config.hxx" />
+    <MOC Include="src\config\controller_config_util.hxx" />
     <MOC Include="src\disasm.hxx" />
     <MOC Include="src\gamelist.hxx" />
     <MOC Include="src\gekko_regs.hxx" />
     <MOC Include="src\hotkeys.hxx" />
     <MOC Include="src\image_info.hxx" />
-    <MOC Include="src\main.hxx">
-      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</QtKeywords>
-      <QtKeywords Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</QtKeywords>
-    </MOC>
+    <MOC Include="src\main.hxx" />
     <MOC Include="src\path_list.hxx" />
     <MOC Include="src\ramview.hxx" />
     <MOC Include="src\welcome_wizard.hxx" />
   </ItemGroup>
   <ItemGroup>
     <UIC Include="src\callstack.ui" />
+    <UIC Include="src\config\controller_config.ui">
+      <QtUicPrefix>src/config/ui_</QtUicPrefix>
+    </UIC>
     <UIC Include="src\disasm.ui" />
     <UIC Include="src\gekko_regs.ui" />
     <UIC Include="src\hotkeys.ui" />
