@@ -51,6 +51,8 @@
     <addaction name="action_Start"/>
     <addaction name="action_Pause"/>
     <addaction name="action_Stop"/>
+    <addaction name="separator"/>
+    <addaction name="action_Configure"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -176,6 +178,11 @@
     <string>Browse for Images ...</string>
    </property>
   </action>
+  <action name="action_Configure">
+   <property name="text">
+    <string>Configure ...</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -195,5 +202,24 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_Configure</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnConfigure()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>540</x>
+     <y>364</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>OnConfigure()</slot>
+ </slots>
 </ui>

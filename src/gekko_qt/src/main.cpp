@@ -15,6 +15,8 @@
 #include "hotkeys.hxx"
 #include "welcome_wizard.hxx"
 
+#include "config/controller_config.hxx"
+
 #include "core.h"
 #include "dvd/loader.h"
 #include "dvd/gcm.h"
@@ -269,6 +271,25 @@ void GMainWindow::SetGameBrowserStyle(GGameBrowser::Style style)
     ui.horizontalLayout->addWidget(game_browser);
     connect(game_browser, SIGNAL(IsoSelected(const IsoInfo&)), this, SLOT(OnIsoSelected(const IsoInfo&)));
     connect(game_browser, SIGNAL(EmuStartRequested()), this, SLOT(OnStartGame()));
+}
+
+void GMainWindow::OnConfigure()
+{
+    QDialog* dialog = new QDialog(this);
+    QVBoxLayout* layout = new QVBoxLayout(dialog);
+    GControllerConfig* config = new GControllerConfig(dialog);
+    layout->addWidget(config);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    layout->addWidget(buttons);
+
+    connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
+    connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
+
+    layout->setSizeConstraint(QLayout::SetFixedSize);
+    dialog->setLayout(layout);
+    dialog->setModal(true);
+    dialog->show();
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event)

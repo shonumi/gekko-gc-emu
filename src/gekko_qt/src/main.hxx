@@ -39,6 +39,7 @@ private slots:
     void OnOpenHotkeysDialog();
     void SetupEmuWindowMode();
     void OnChangeGameBrowserStyle(QAction* source);
+    void OnConfigure();
 
 private:
     Ui::MainWindow ui;

@@ -9,7 +9,9 @@ set(SRCS
             src/main.cpp
             src/path_list.cpp
             src/ramview.cpp
-            src/welcome_wizard.cpp)
+            src/welcome_wizard.cpp
+            src/config/controller_config.cpp
+            src/config/controller_config_util.cpp)
 
 qt4_wrap_ui(UI_HDRS
                     src/callstack.ui
@@ -18,7 +20,8 @@ qt4_wrap_ui(UI_HDRS
                     src/hotkeys.ui
                     src/image_info.ui
                     src/main.ui
-                    src/welcome_wizard.ui)
+                    src/welcome_wizard.ui
+                    src/config/controller_config.ui)
 
 qt4_wrap_cpp(MOC_SRCS
                         src/bootmanager.hxx
@@ -31,7 +34,9 @@ qt4_wrap_cpp(MOC_SRCS
                         src/main.hxx
                         src/path_list.hxx
                         src/ramview.hxx
-                        src/welcome_wizard.hxx)
+                        src/welcome_wizard.hxx
+                        src/config/controller_config.hxx
+                        src/config/controller_config_util.hxx)
 
 # add uic results to include directories
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
