@@ -3,16 +3,7 @@
 #include "emuwindow_sdl.h"
 
 EmuWindow_SDL::EmuWindow_SDL() {
-    char cpu_str[32];
-    char renderer_str[32];
-    char window_title[255];
-
-    common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str, 32);
-    common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str, 32);
-
-    sprintf_s(window_title, "gekko-git [%s|%s|sdl] - %s", cpu_str, renderer_str, __DATE__);
-
-    if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK    ) != 0 ) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0 ) {
         printf("Unable to initialize SDL: %s\n", SDL_GetError());
         return;
     }
@@ -23,7 +14,7 @@ EmuWindow_SDL::EmuWindow_SDL() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
-    main_window_ = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    main_window_ = SDL_CreateWindow("gekko", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
             640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
     /* Create our opengl context and attach it to our window */

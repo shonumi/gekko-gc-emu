@@ -53,6 +53,10 @@
 int __cdecl main(int argc, char **argv)
 {
     u32 tight_loop;
+    char cpu_str[32];
+    char renderer_str[32];
+    char window_title[255];
+
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
     char program_dir[MAX_PATH];
@@ -67,6 +71,13 @@ int __cdecl main(int argc, char **argv)
     core::SetConfigManager(&config_manager);
 
     EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
+
+    common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str, 32);
+    common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str, 32);
+
+    sprintf_s(window_title, "gekko-git [%s|%s|glfw] - %s", cpu_str, renderer_str, __DATE__);
+
+    emu_window->SetTitle(window_title);
 
     if (E_OK != core::Init(emu_window)) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");

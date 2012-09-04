@@ -27,8 +27,7 @@
 #include "gc_controller.h"
 #include "keyboard_input/keyboard_input.h"
 
-static void OnKeyEvent(GLFWwindow win, int key, int action)
-{
+static void OnKeyEvent(GLFWwindow win, int key, int action) {
     EmuWindow_GLFW* emuwin = (EmuWindow_GLFW*)glfwGetWindowUserPointer(win);
 	input_common::GCController::GCButtonState state;
 
@@ -42,17 +41,15 @@ static void OnKeyEvent(GLFWwindow win, int key, int action)
 }
 
 /// EmuWindow_GLFW constructor
-EmuWindow_GLFW::EmuWindow_GLFW()
-{
+EmuWindow_GLFW::EmuWindow_GLFW() {
     if(glfwInit() != GL_TRUE) {
         LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
         exit(E_ERR);
     }
-
     glfwOpenWindowHint(GLFW_WINDOW_RESIZABLE, GL_FALSE);
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 
-    render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko-glfw3", 0);
+    render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
     
 	glfwSetWindowUserPointer(render_window_, this);
     glfwSetKeyCallback(OnKeyEvent);
@@ -81,7 +78,7 @@ void EmuWindow_GLFW::PollEvents() {
  * @todo Disabled for now until it's used thread-savely
  */
 void EmuWindow_GLFW::SetTitle(const char* title) {
-//    glfwSetWindowTitle(render_window_, title);
+    glfwSetWindowTitle(render_window_, title);
 }
 
 /// Makes the GLFW OpenGL context current for the caller thread
