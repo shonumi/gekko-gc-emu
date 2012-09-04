@@ -151,7 +151,7 @@ bool SDLJoypads::DeadZone(int val) {
 }
 
 /// Poll for joypad input
-void SDLJoypads::PollEvent() {
+void SDLJoypads::PollEvents() {
     SDL_Event joyevent;
 
     while (SDL_PollEvent(&joyevent)) {

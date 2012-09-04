@@ -25,6 +25,9 @@ public:
     /// Swap buffers to display the next frame
     virtual void SwapBuffers() = 0;
 
+	/// Polls window events
+	virtual void PollEvents() = 0;
+
     /**
      * @brief Sets the window title
      * @param title Title to set the window to

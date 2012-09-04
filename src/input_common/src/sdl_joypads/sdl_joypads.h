@@ -36,7 +36,7 @@ public:
     ~SDLJoypads() {};
 
     bool Init();
-    void PollEvent();
+    void PollEvents();
     void ShutDown();
 
 private:

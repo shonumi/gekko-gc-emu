@@ -10,6 +10,8 @@
 #include "hw_si.h"
 #include "hw_pi.h"
 
+#include <GL/glfw3.h>
+
 sSI		si;
 u8		SIRegisters[REG_SIZE];
 
@@ -260,7 +262,7 @@ void SI_ReadKeys(int _channel)
 {
     // Update input
             
-    input_common::g_user_input->PollEvent();
+    input_common::g_user_input->PollEvents();
 
 sec_0:
     // Analog Stick Y Axis Up

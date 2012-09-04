@@ -38,6 +38,9 @@ public:
     /// Swap buffers to display the next frame
     void SwapBuffers();
 
+	/// Polls window events
+	void PollEvents();
+
     /**
      * @brief Sets the window title
      * @param title Title to set the window to
@@ -63,8 +66,10 @@ public:
      */
     void SetConfig(Config config);
 
+	GLFWwindow render_window_;      ///< Internal GLFW render window
+
 private:
-    GLFWwindow render_window_;      ///< Internal GLFW render window
+    
 };
 
 #endif // VIDEO_CORE_EMUWINDOW_GLFW_

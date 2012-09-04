@@ -38,7 +38,7 @@ public:
     ~KeyboardInput();
 
     bool Init();
-    void PollEvent();
+    void PollEvents();
     void ShutDown();
 
     /*!

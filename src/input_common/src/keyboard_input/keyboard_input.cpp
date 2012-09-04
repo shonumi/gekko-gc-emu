@@ -148,8 +148,8 @@ GCController::GCButtonState KeyboardInput::GetControllerStatus(int channel, int 
     return GCController::GC_CONTROLLER_NULL;   
 }
 
-void KeyboardInput::PollEvent() {
-    // TODO: Obsolete?
+void KeyboardInput::PollEvents() {
+    emuwindow_->PollEvents();
 }
 
 void KeyboardInput::ShutDown() {

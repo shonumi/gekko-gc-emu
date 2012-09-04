@@ -38,7 +38,7 @@ public:
 	virtual ~InputBase() {};
 
     virtual bool Init() = 0;
-    virtual void PollEvent() = 0;
+    virtual void PollEvents() = 0;
     virtual void ShutDown() = 0;
 
 private:

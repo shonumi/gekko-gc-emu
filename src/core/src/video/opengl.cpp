@@ -204,7 +204,7 @@ void OPENGL_Render()
     glFlush();
     s_render_window->SwapBuffers();
 
-    input_common::g_user_input->PollEvent();
+    input_common::g_user_input->PollEvents();
     OPENGL_SetTitle();
 }
 

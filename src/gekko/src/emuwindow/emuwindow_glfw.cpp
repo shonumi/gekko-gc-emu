@@ -30,8 +30,15 @@
 static void OnKeyEvent(GLFWwindow win, int key, int action)
 {
     EmuWindow_GLFW* emuwin = (EmuWindow_GLFW*)glfwGetWindowUserPointer(win);
+	input_common::GCController::GCButtonState state;
+
+	if (action == GLFW_PRESS) {
+		state = input_common::GCController::PRESSED;
+	} else {
+		state = input_common::GCController::RELEASED;
+	}
     for (unsigned int channel = 0; channel < 4 && emuwin->GetControllerInterface(); ++channel)
-        emuwin->GetControllerInterface()->SetControllerStatus(channel, key, input_common::GCController::PRESSED);
+		emuwin->GetControllerInterface()->SetControllerStatus(channel, key, state);
 }
 
 /// EmuWindow_GLFW constructor
@@ -46,7 +53,8 @@ EmuWindow_GLFW::EmuWindow_GLFW()
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 
     render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko-glfw3", 0);
-    glfwSetWindowUserPointer(render_window_, this);
+    
+	glfwSetWindowUserPointer(render_window_, this);
     glfwSetKeyCallback(OnKeyEvent);
 
     DoneCurrent();
@@ -59,8 +67,12 @@ EmuWindow_GLFW::~EmuWindow_GLFW() {
 
 /// Swap buffers to display the next frame
 void EmuWindow_GLFW::SwapBuffers() {
-    glfwPollEvents();
     glfwSwapBuffers();
+}
+
+/// Polls window events
+void EmuWindow_GLFW::PollEvents() {
+	glfwPollEvents();
 }
 
 /**
