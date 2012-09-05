@@ -67,7 +67,7 @@ out vec4 fragmentColor;
 // Texture
 vec4 g_tex = texture2D(texture0, vertexTexCoord0);
 
-vec4 g_color[] = {
+vec4 g_color[] = vec4[](
     bp_tev_color[0].rgba,
     bp_tev_color[0].aaaa,
     bp_tev_color[1].rgba,
@@ -84,10 +84,10 @@ vec4 g_color[] = {
     vec4(0.5f, 0.5f, 0.5f, 0.5f),
     vec4(0.0f, 0.0f, 0.0f, 0.0f), // konst - set dynamically
     vec4(0.0f, 0.0f, 0.0f, 0.0f)
-};
+);
 
 // TEV color constants
-vec4 tev_konst[32] = {
+vec4 tev_konst[32] = vec4[](
     vec4(1.0, 1.0, 1.0, 1.0),
     vec4(0.875, 0.875, 0.875, 0.875),
     vec4(0.75, 0.75, 0.75, 0.75),
@@ -119,23 +119,23 @@ vec4 tev_konst[32] = {
     bp_tev_konst[0].aaaa,
     bp_tev_konst[1].aaaa,
     bp_tev_konst[2].aaaa,
-    bp_tev_konst[3].aaaa,
-};
+    bp_tev_konst[3].aaaa
+);
 
 // TEV combiner functions
 // TODO(ShizZy): Verify these are actually right...
-const float tev_scale[4] = { 
+const float tev_scale[4] = float[](
     1.0, 2.0, 4.0, 0.5
-};
-const float tev_sub[2] = { 
-    1.0, -1.0 
-};
-const vec4 tev_bias[4] = {
+);
+const float tev_sub[2] = float[](
+    1.0, -1.0
+);
+const vec4 tev_bias[4] = vec4[](
     vec4(0.0, 0.0, 0.0, 0.0),
     vec4(0.5, 0.5, 0.5, 0.5),
     vec4(-0.5, -0.5, -0.5, -0.5),
     vec4(0.0, 0.0, 0.0, 0.0)
-};
+);
 
 bool alpha_compare(in int op, in int value, in int ref) {
     switch (op) {
@@ -202,7 +202,7 @@ vec4 tev_stage(in int stage) {
     // TODO: Should pre-lookup the values on the CPU and directly input the uniforms in this format
     //vec4 scale = vec4(tev_scale[tev_c.shift].rrr, tev_scale[tev_a.shift]);
     // TODO: Reimplement alpha scale
-    vec4 sub = vec4(tev_sub[tev_c.sub].rrr, tev_sub[tev_a.sub]);
+    vec4 sub = vec4(tev_sub[tev_c.sub], tev_sub[tev_c.sub], tev_sub[tev_c.sub], tev_sub[tev_a.sub]);
     vec4 bias = vec4(tev_bias[tev_c.bias].rgb, tev_bias[tev_a.bias]);
 
     // Process stage
@@ -218,7 +218,7 @@ vec4 tev_stage(in int stage) {
     if (tev_a.clamp == 1) alpha = clamp(result.a, 0.0, 1.0);
     else alpha = result.a;
     g_color[tev_a.dest<<1].a = alpha;
-    g_color[(tev_a.dest<<1)+1] = alpha.rrrr;
+    g_color[(tev_a.dest<<1)+1] = vec4(alpha, alpha, alpha, alpha);
 
     return vec4(g_color[tev_c.dest].rgb, alpha);
 }
