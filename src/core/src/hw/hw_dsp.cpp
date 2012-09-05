@@ -12,6 +12,8 @@
 
 //
 
+//TODO: Code cleanup (shonumi) 
+
 sDSP	dsp;
 u8		DSPRegisters[REG_SIZE];
 u8		ARAM[ARAM_SIZE];
@@ -21,6 +23,9 @@ u32		mbox_dsp_cpu; /* from the dsp to the cpu */
 u32		dspDMALenENBSet = 0;
 u32		dspCSRDSPIntMask = 0;
 u32		dspCSRDSPInt = 0;
+
+u16          g_AR_MODE;
+u16          g_AR_REFRESH;
 
 ////////////////////////////////////////////////////////////
 // DSP - Digital Signal Processor
@@ -180,7 +185,10 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 		return REGDSP16(addr);
 
 	case DSP_AR_MODE:
-		return 1; // hack
+		return g_AR_MODE;
+
+	case DSP_AR_REFRESH:
+		return g_AR_REFRESH;
 
 	case DSP_DMA_ADDR:
 		//printf("DSP_DMA_ADDR read %04x\n",REGDSP16(DSP_DMA_ADDR));
@@ -202,6 +210,7 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 	}
 }
 
+//TODO: Shouldn't data be u16? 
 void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 {
 	switch(addr)
@@ -268,6 +277,14 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 		REGDSP16(addr) = data;
 		return;
 
+	case DSP_AR_MODE:
+		g_AR_MODE = data;
+		return;
+
+	case DSP_AR_REFRESH:
+		g_AR_REFRESH = data;
+		return;
+		
 	case DSP_AR_DMA_CNT:
 		dsp.cntv[0] = true;
 		REGDSP16(addr) = data;
@@ -401,6 +418,8 @@ void DSP_Open(void)
 
 	g_DSPDMATime = 0;
 	g_AISampleRate = 32000;
+	g_AR_MODE = 1;
+        g_AR_REFRESH = 156;
 }
 
 ////////////////////////////////////////////////////////////
