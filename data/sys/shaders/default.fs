@@ -124,13 +124,13 @@ vec4 tev_konst[32] = vec4[](
 
 // TEV combiner functions
 // TODO(ShizZy): Verify these are actually right...
-const float tev_scale[4] = float[](
+float tev_scale[4] = float[](
     1.0, 2.0, 4.0, 0.5
 );
-const float tev_sub[2] = float[](
+float tev_sub[2] = float[](
     1.0, -1.0
 );
-const vec4 tev_bias[4] = vec4[](
+vec4 tev_bias[4] = vec4[](
     vec4(0.0, 0.0, 0.0, 0.0),
     vec4(0.5, 0.5, 0.5, 0.5),
     vec4(-0.5, -0.5, -0.5, -0.5),
@@ -203,7 +203,7 @@ vec4 tev_stage(in int stage) {
     //vec4 scale = vec4(tev_scale[tev_c.shift].rrr, tev_scale[tev_a.shift]);
     // TODO: Reimplement alpha scale
     vec4 sub = vec4(tev_sub[tev_c.sub], tev_sub[tev_c.sub], tev_sub[tev_c.sub], tev_sub[tev_a.sub]);
-    vec4 bias = vec4(tev_bias[tev_c.bias].rgb, tev_bias[tev_a.bias]);
+    vec4 bias = vec4(tev_bias[tev_c.bias].rgb, tev_bias[tev_a.bias].a);
 
     // Process stage
     vec4 result = (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
