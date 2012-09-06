@@ -332,7 +332,6 @@ struct BPTevOrder {
         };
         u32 _u32;
     };
-
     inline int get_texmap(int stage) { return (stage&1) ? texmap1 : texmap0; }
     inline int get_texcoord(int stage) { return (stage&1) ? texcoord1 : texcoord0; }
     inline int get_enable(int stage) { return (stage&1) ? texmapenable1 : texmapenable0; }
@@ -347,6 +346,110 @@ union BPAlphaFunc {
         unsigned comp0 : 3;
         unsigned comp1 : 3;
         unsigned logic : 2;
+    };
+    u32 _u32;
+};
+
+/// TX_SETMODE0 - Texture lookup and filtering mode
+struct BPTexMode0 {
+    union {
+        struct {
+            unsigned wrap_s : 2;
+            unsigned wrap_t : 2;        // 0 - clamp, 1 - repeat, 2 - mirror
+            unsigned mag_filter : 1;    // 0 - near, 1, linear
+            unsigned min_filter : 3;    // 0 - near, 1 - near mip near, 2, near mip linear, 4 - linear,
+                                        // 5 - linear mip near, 6 - linear mip linear
+            unsigned diag_lod : 1;      // 0 - edge LOD, 1 - diagonal LOD
+            signed lod_bias : 8;        // LODBIAS (s2.5)
+            unsigned pad0 : 2;
+            unsigned max_aniso : 2;     // 0 - 1, 1 - 2 (requires edge LOD), 2 - 4 (requires edge LOD)
+            unsigned lod_clamp : 1;     // 0 - off, 1 - on
+        };
+        u32 _u32;
+    };
+    inline int use_mipmaps() { return (min_filter & 3); }
+};
+
+/// TX_SETMODE1 - LOD Info
+union BPTexMode1 {
+    struct {
+        unsigned min_lod : 8;       // MIN LOD (U4.4)
+        unsigned max_lod : 8;       // MAX LOD (U4.4)
+    };
+    u32 _u32;
+};
+
+/// TX_SETIMAGE0 - Texture width, height, format
+struct BPTexImage0 {
+    union {
+        struct {
+            unsigned width : 10;        // width-1
+            unsigned height : 10;       // height-1
+            unsigned format : 4;
+        };
+        u32 _u32;
+    };
+    inline int get_width() { return width + 1; }
+    inline int get_height() { return height + 1; }
+};
+
+/// TX_SETIMAGE1 - even LOD address in TMEM
+union BPTexImage1 {
+    struct {
+        unsigned tmem_offset : 15;  // TMEM_OFFSET (address in TMEM >> 5)
+        unsigned cache_width : 3;   // CACHE_WIDTH (must be equal to CACHE_HEIGHT)
+        unsigned cache_height : 3;  // 3 - 32kb, 4 - 128kb, 5 - 512kb
+        unsigned image_type : 1;    // 1 - preloaded (texture is managed manually),
+                                    // 0 - cached, fetch the texture data whenever it changes
+    };
+    u32 _u32;
+};
+
+/// TX_SETIMAGE2 - odd LOD address in TMEM
+struct BPTexImage2 {
+    union {
+        struct {
+            unsigned tmem_offset : 15;  // TMEM_OFFSET (address in TMEM >> 5)
+            unsigned cache_width : 3;   // CACHE_WIDTH (must be equal to CACHE_HEIGHT) 
+            unsigned cache_height : 3;  // 3 - 32kb, 4 - 128kb, 5 - 512kb
+        };
+        u32 _u32;
+    };
+};
+
+/// TX_SETIMAGE3 - Address of Texture in main memory
+struct BPTexImage3 {
+    union {
+        struct {
+            unsigned image_base : 24;   // Physical address >> 5 (20-bit for GC, 24-bit for Wii)
+        };
+        u32 _u32;
+    };
+    inline int get_addr() { return (image_base << 5); }
+};
+
+/// TX_SETIMAGE3 - Address of Texture in main memory
+union BPTexTLUT {
+    struct {   
+        unsigned tmem_offset : 10;  // TMEM_OFFSET (offset of TLUT from start of TMEM high bank > 5)
+        unsigned format : 2;        // TLUT format, 0 - IA8, 1 - RGB565, 2 - RGB5A3
+    };
+    u32 _u32;
+};
+
+/// TEV_Z_ENV_0
+union BPTevZEnv0 {
+    struct {
+        unsigned bias : 24;         // ZOFF/BIAS
+    };
+    u32 _u32;
+};
+
+/// TEV_Z_ENV_1
+union BPTevZEnv1 {
+    struct {
+        unsigned format : 2;        // 0 - u8, 1 - u16, 2 - u24
+        unsigned op : 2;            // 0 - disable, 1 - add, 2 - replace
     };
     u32 _u32;
 };
@@ -377,7 +480,19 @@ union BPMemory {
         u32             clear_z;                // 0x51
         u32             pad5[0x7];              // 0x52
         BPEFBCoords10   scissor_offset;         // 0x59
-        u32             pad6[0x66];             // 0x5a
+        u32             pad6[0x26];             // 0x5a
+
+        struct {                                // 0x80
+            BPTexMode0  mode_0[4];
+            BPTexMode1  mode_1[4];
+            BPTexImage0 image_0[4];
+            BPTexImage1 image_1[4];
+            BPTexImage2 image_2[4];
+            BPTexImage3 image_3[4];
+            BPTexTLUT   tlut[4];
+            u32         pad[4];
+        } tex[2];
+
         //BPTevCombiner   combiner[0x10];         // 0xC0
 		u32             combiner[0x20];         // 0xC0
         u32             pad7[0x13];             // 0xE0

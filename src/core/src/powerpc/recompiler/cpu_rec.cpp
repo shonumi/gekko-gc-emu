@@ -769,34 +769,10 @@ GekkoF GekkoCPURecompiler::CompileInstruction(void)
 //	if(ireg.PC == 0x802531C0)
 //		_asm{int 3};
 
-	int WriteFlag = 0;
-	if(ireg.PC == 0x80048f78)
-		WriteFlag = 1;
-
 	for(;;)
 	{
 		cpu->opcode = PTR_PC;
 		iPtr = GekkoCPUOpset[OPCD];
-
-		if(WriteFlag)
-		{
-			char opcodeStr[32], operandStr[32];
-			u32 target;
-			char Buffer[8192];
-
-			DWORD DataLen;
-#ifdef _DEBUG
-#define FILENAME "c:\\temp\\data-debug.txt"
-#else
-#define FILENAME "c:\\temp\\data-release.txt"
-#endif
-			HANDLE f = CreateFile(FILENAME, GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
-			SetFilePointer(f, 0, 0, FILE_END);
-			DisassembleGekko(opcodeStr, operandStr, opcode, ireg.PC, &target);
-			sprintf(Buffer, "Opcode %d (ext: %d) (pc=%08X, op=%08X) instr=%s r%d, r%d, r%d\r\n",cpu->opcode>>26,((cpu->opcode>>1)&0x3FF),ireg.PC,cpu->opcode,opcodeStr, rD, rA, rB);
-			WriteFile(f, Buffer, strlen(Buffer), &DataLen, 0);
-			CloseHandle(f);
-		}
 
 		iPtr();
 
@@ -824,19 +800,6 @@ GekkoF GekkoCPURecompiler::CompileInstruction(void)
     // it now causes crashes. See Issue #1
     //VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READ, &OldFlags);
 	VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READWRITE, &OldFlags);
-
-	if(WriteFlag)
-	{
-#ifdef _DEBUG
-#define FILENAME "c:\\temp\\compiled-debug.bin"
-#else
-#define FILENAME "c:\\temp\\compiled-release.bin"
-#endif
-		HANDLE f = CreateFile(FILENAME, GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
-		DWORD WrittenLen;
-		WriteFile(f, BlockPtr->CodeBlock, BlockPtr->CommandLen, &WrittenLen, 0);
-		CloseHandle(f);
-	}
 
 	BlockPtr->CodeBlock();
 }

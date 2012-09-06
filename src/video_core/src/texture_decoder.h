@@ -12,7 +12,7 @@ namespace gp {
 extern u8 tmem[TMEM_SIZE];
 extern u32 texcache[TMEM_SIZE];
 
-void DecodeTexture(u8 format, u32 addr, u16 height, u16 width);
+void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width);
 
 } // namespace
 

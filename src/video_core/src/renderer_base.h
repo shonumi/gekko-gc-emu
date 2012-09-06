@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    renderer_base.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-08
- * \brief   Renderer base class for new video core
+ * @file    renderer_base.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-08
+ * @brief   Renderer base class for new video core
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -47,6 +47,14 @@ public:
         kRenderMode_UseDstAlpha = 4
     };
 
+    /// Supported formats for uploading texture data
+    enum TextureFormat {
+        kTextureFormat_None = 0,
+        kTextureFormat_RGBA,
+        kTextureFormat_Intensity,
+        kTextureFormat_LuminanceAlpha
+    };
+
     RendererBase() {
     }
 
@@ -54,21 +62,21 @@ public:
     }
 
     /**
-     * @brief Write data to BP for renderer internal use (e.g. direct to shader)
+     * Write data to BP for renderer internal use (e.g. direct to shader)
      * @param addr BP register address
      * @param data Value to write to BP register
      */
     virtual void WriteBP(u8 addr, u32 data) = 0;
 
     /**
-     * @brief Write data to CP for renderer internal use (e.g. direct to shader)
+     * Write data to CP for renderer internal use (e.g. direct to shader)
      * @param addr CP register address
      * @param data Value to write to CP register
      */
     virtual void WriteCP(u8 addr, u32 data) = 0;
 
     /**
-     * @brief Write data to XF for renderer internal use (e.g. direct to shader)
+     * Write data to XF for renderer internal use (e.g. direct to shader)
      * @param addr XF address
      * @param length Length (in 32-bit words) to write to XF
      * @param data Data buffer to write to XF
@@ -76,7 +84,7 @@ public:
     virtual void WriteXF(u16 addr, int length, u32* data) = 0;
 
     /**
-     * @brief Begin renderering of a primitive
+     * Begin renderering of a primitive
      * @param prim Primitive type (e.g. GX_TRIANGLES)
      * @param count Number of vertices to be drawn (used for appropriate memory management, only)
      * @param vbo Pointer to VBO, which will be set by API in this function
@@ -109,6 +117,30 @@ public:
 
     /// End a primitive (signal renderer to draw it)
     virtual void EndPrimitive(u32 vbo_offset, u32 vertex_num) = 0;
+
+    /**
+     * Adds a new texturer to the renderer
+     * @param format Format of texture, must be one of TextureFormat
+     * @param width Width of texture in pixels
+     * @param height Height of texture in pixels
+     * @param hash A unique hash of the texture, to be used as an ID
+     * @param data Buffer of raw texture data stored in correct format
+     */
+    virtual void AddTexture(TextureFormat format, u16 width, u16 height, u32 hash, u8* data) = 0;
+
+    /**
+     * Sets texture parameters for the selected texture (filtering, LOD, etc.)
+     * @param num Texture number to set parameters for (0-7)
+     */
+    virtual void SetTextureParameters(int num) = 0;
+
+    /**
+     * Binds a texture that was previously added to the renderer via AddTexture
+     * @param hash The unique hash of the texture to bind
+     * @param num Number of texture to bind to (0-7)
+     * @return True if bind succeeded, false if failed
+     */
+    virtual bool BindTexture(u32 hash, int num) = 0;
    
     /// Sets the render viewport location, width, and height
     virtual void SetViewport(int x, int y, int width, int height) = 0;
@@ -126,7 +158,7 @@ public:
     virtual void SetGenerationMode() = 0;
 
     /** 
-     * @brief Sets the renderer blend mode
+     * Sets the renderer blend mode
      * @param blend_mode_ Forces blend mode to update
      */
     virtual void SetBlendMode(bool force_update) = 0;
@@ -144,14 +176,14 @@ public:
     virtual void SetScissorBox() = 0;
 
     /**
-     * @brief Sets the line and point size
+     * Sets the line and point size
      * @param line_width Line width to use
      * @param point_size Point size to use
      */
     virtual void SetLinePointSize(f32 line_width, f32 point_size) = 0;
 
     /** 
-     * @brief Blits the EFB to the specified destination buffer
+     * Blits the EFB to the specified destination buffer
      * @param dest Destination framebuffer
      * @param rect EFB rectangle to copy
      * @param dest_width Destination width in pixels 
@@ -160,7 +192,7 @@ public:
     virtual void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) = 0;
 
     /**
-     * @brief Clear the screen
+     * Clear the screen
      * @param rect Screen rectangle to clear
      * @param enable_color Enable color clearing
      * @param enable_alpha Enable alpha clearing
@@ -172,7 +204,7 @@ public:
         u32 z) = 0;
 
     /**
-     * @brief Set a specific render mode
+     * Set a specific render mode
      * @param flag Render flags mode to enable
      */
     virtual void SetMode(kRenderMode flags) = 0;
@@ -187,7 +219,7 @@ public:
     virtual void RestoreRenderState() = 0;
 
     /** 
-     * @brief Set the emulator window to use for renderer
+     * Set the emulator window to use for renderer
      * @param window EmuWindow handle to emulator window to use for rendering
      */
     virtual void SetWindow(EmuWindow* window) = 0;

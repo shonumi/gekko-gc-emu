@@ -4,7 +4,7 @@
  * @file    renderer_gl3.h
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-03-09
- * @brief   Implementation of a OpenGL 3 renderer
+ *   Implementation of a OpenGL 3 renderer
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
 #define USE_GEOMETRY_SHADERS        1
 #define MAX_FRAMEBUFFERS            2
+#define MAX_CACHED_TEXTURES         0x1000000
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.x Renderer
@@ -44,21 +45,21 @@ public:
     ~RendererGL3() {};
 
     /**
-     * @brief Write data to BP for renderer internal use (e.g. direct to shader)
+     * Write data to BP for renderer internal use (e.g. direct to shader)
      * @param addr BP register address
      * @param data Value to write to BP register
      */
     void WriteBP(u8 addr, u32 data);
 
     /**
-     * @brief Write data to CP for renderer internal use (e.g. direct to shader)
+     * Write data to CP for renderer internal use (e.g. direct to shader)
      * @param addr CP register address
      * @param data Value to write to CP register
      */
     void WriteCP(u8 addr, u32 data);
 
     /**
-     * @brief Write data to XF for renderer internal use (e.g. direct to shader)
+     * Write data to XF for renderer internal use (e.g. direct to shader)
      * @param addr XF address
      * @param length Length (in 32-bit words) to write to XF
      * @param data Data buffer to write to XF
@@ -66,7 +67,7 @@ public:
     void WriteXF(u16 addr, int length, u32* data);
 
     /**
-     * @brief Begin renderering of a primitive
+     * Begin renderering of a primitive
      * @param prim Primitive type (e.g. GX_TRIANGLES)
      * @param count Number of vertices to be drawn (used for appropriate memory management, only)
      * @param vbo Pointer to VBO, which will be set by API in this function
@@ -100,6 +101,30 @@ public:
     /// End a primitive (signal renderer to draw it)
     void EndPrimitive(u32 vbo_offset, u32 vertex_num);
 
+    /**
+     * Adds a new texturer to the renderer
+     * @param format Format of texture, must be one of TextureFormat
+     * @param width Width of texture in pixels
+     * @param height Height of texture in pixels
+     * @param hash A unique hash of the texture, to be used as an ID
+     * @param data Buffer of raw texture data stored in correct format
+     */
+    void AddTexture(TextureFormat format, u16 width, u16 height, u32 hash, u8* data);
+
+    /**
+     * Sets texture parameters for the selected texture (filtering, LOD, etc.)
+     * @param num Texture number to set parameters for (0-7)
+     */
+    void SetTextureParameters(int num);
+
+    /**
+     * Binds a texture that was previously added to the renderer via AddTexture
+     * @param hash The unique hash of the texture to bind
+     * @param num Number of texture to bind to (0-7)
+     * @return True if bind succeeded, false if failed
+     */
+    bool BindTexture(u32 hash, int num);
+
     /// Sets the renderer viewport location, width, and height
     void SetViewport(int x, int y, int width, int height);
 
@@ -113,7 +138,7 @@ public:
     void SetGenerationMode();
 
     /** 
-     * @brief Sets the renderer blend mode
+     * Sets the renderer blend mode
      * @param blend_mode_ Forces blend mode to update
      */
     void SetBlendMode(bool force_update);
@@ -131,14 +156,14 @@ public:
     void SetScissorBox();
 
     /**
-     * @brief Sets the line and point size
+     * Sets the line and point size
      * @param line_width Line width to use
      * @param point_size Point size to use
      */
     void SetLinePointSize(f32 line_width, f32 point_size);
 
     /** 
-     * @brief Blits the EFB to the specified destination buffer
+     * Blits the EFB to the specified destination buffer
      * @param dest Destination framebuffer
      * @param rect EFB rectangle to copy
      * @param dest_width Destination width in pixels 
@@ -147,7 +172,7 @@ public:
     void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height);
 
     /**
-     * @brief Clear the screen
+     * Clear the screen
      * @param rect Screen rectangle to clear
      * @param enable_color Enable color clearing
      * @param enable_alpha Enable alpha clearing
@@ -158,7 +183,7 @@ public:
     void Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, u32 z);
 
     /**
-     * @brief Set a specific render mode
+     * Set a specific render mode
      * @param flags Render flag mode to enable
      */
     void SetMode(kRenderMode flags);
@@ -176,7 +201,7 @@ public:
     void SwapBuffers();
 
     /**
-     * @brief Set the window of the emulator
+     * Set the window of the emulator
      * @param window EmuWindow handle to emulator window to use for rendering
      */
     void SetWindow(EmuWindow* window);
@@ -204,6 +229,11 @@ private:
     GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
     GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
     GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
+
+    // Texture stuff
+    // -------------
+
+    GLuint texture_cache_[MAX_CACHED_TEXTURES];     ///< Cache of textures loaded to the renderer
 
     // Vertex buffer stuff
     // -------------------
