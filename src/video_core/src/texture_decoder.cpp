@@ -8,7 +8,7 @@
 #include "hw/hw_gx.h"
 #include "bp_mem.h"
 #include "texture_decoder.h"
-#include "renderer_gl3/renderer_gl3.h"
+#include "video_core.h"
 #include "fifo_player.h"
 
 #include <vector>
@@ -35,16 +35,13 @@ namespace gp {
 
 u8 tmem[TMEM_SIZE];
 
-// cache
-GLuint texcache[TMEM_SIZE];
-
 ////////////////////////////////////////////////////////////////////////////////
 // TEXTURE FORMAT DECODING
 
 static inline u32 __decode_col_rgb5a3(u16 _data) {
     u8 r, g, b, a;
 
-    if(_data & SIGNED_BIT16) // rgb5
+    if (_data & SIGNED_BIT16) // rgb5
     {
         r = (u8)(255.0f * (((_data >> 10) & 0x1f) / 32.0f));
         g = (u8)(255.0f * (((_data >> 5) & 0x1f) / 32.0f));
@@ -86,8 +83,8 @@ void DumpTextureTGA(char filename[], u16 width, u16 height, u8* data) {
 
     fwrite(&hdr, sizeof(TGAHeader), 1, fout);
 
-    for(int i = 0; i < height; i++) {
-        for(int j = 0; j < width; j++) {
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
             r = data[(4 * (i * width)) + (4 * j) + 0];
             g = data[(4 * (i * width)) + (4 * j) + 1];
             b = data[(4 * (i * width)) + (4 * j) + 2];
@@ -144,8 +141,8 @@ static inline void DecompressDxt1(u32* _dst, const u8* _src, int _width, int _he
     u8*	runner = (u8 *)_src;
 
     //#pragma omp for ordered schedule(dynamic)
-    for(int y = 0; y < _height; y += 8) {
-        for(int x = 0; x < _width; x += 8) {
+    for (int y = 0; y < _height; y += 8) {
+        for (int x = 0; x < _width; x += 8) {
 
             //#pragma omp ordered
             DecodeDtxBlock(runner, &_dst[(y*_width)+x], _width);
@@ -191,20 +188,18 @@ void unpack8(u8* dst, u8* src, int w, int h, u16* palette, u8 paletteFormat, int
     u8* runner = dst;
 
     //printf("fmt: %d", paletteFormat);
-    for(int y = 0; y < h; ++y)
-        for(int x = 0; x < neww; ++x, runner += 4)
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < neww; ++x, runner += 4)
             unpackPixel(src[y*w + x], runner, palette, paletteFormat);
 }
 
 
-void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
+void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
+    RendererBase::TextureFormat image_format;
     int	x, y, dx, dy, i = 0, w = width, h = height, j = 0, original_width = width;
     u32 val;
 
-    if(!addr) return;
-
-    //	while(w < width) w *= 2; // get power of two width
-    //	while(h < height) h *= 2; // .. height
+    if (!addr) return;
 
     u8	*dst8 = (u8*)malloc(w * h * 32);
     u8	*tmp = (u8*)malloc(w * h * 32);
@@ -218,30 +213,13 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
     u16	*src16 = ((u16*)(&Mem_RAM[addr & RAM_MASK]));
     u32	*src32 = ((u32*)(&Mem_RAM[addr & RAM_MASK]));
 
-    if (fifo_player::IsRecording())
+    if (fifo_player::IsRecording()) {
         fifo_player::MemUpdate(addr, src8, w * h * 4); // TODO: Use proper size!
-
-    //if(addr & 3)
-    //    printf("Texture at %08X not boundary aligned!\n", addr);
-
-    glGenTextures(1, &texcache[TEX_CACHE_LOCATION(addr >> 5)]);
-    glBindTexture(GL_TEXTURE_2D, texcache[TEX_CACHE_LOCATION(addr >> 5)]);
-    /*
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    */
-    //if(num < 4) 
-    //    gx_states::tx_setmode0(0x80 + num); 
-    //else 
-    //    gx_states::tx_setmode0(0xa0 + (_tx.num - 4));
+    }
 
     u8 pallette_fmt = (gp::g_bp_regs.mem[0x98] >> 10) & 3;
     u32 pallette_addr = ((gp::g_bp_regs.mem[0x98] & 0x3ff) << 5);
     u16	*pal16 = ((u16*)&gp::tmem[pallette_addr & TMEM_MASK]);
-
-    //printf("TEXTURE %d Width %d Height %d\n", _tx.fmt, original_width, _tx.height);
 
     switch(format) {
     case 0: // i4
@@ -250,34 +228,23 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
         width = (original_width + 7) & ~7;
 
         //#pragma omp for ordered schedule(dynamic)
-        for(y = 0; y < height; y += 8)
-            for(x = 0; x < width; x += 8)
-                for(dy = 0; dy < 8; dy++)
-                    for(dx = 0; dx < 8; dx+=2, src8++)
-                    {
+        for (y = 0; y < height; y += 8) {
+            for (x = 0; x < width; x += 8) {
+                for (dy = 0; dy < 8; dy++) {
+                    for (dx = 0; dx < 8; dx+=2, src8++) {
                         //#pragma omp ordered
 						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x00010101) | 0xFF000000;
 						dst32[(width * (y + dy) + x + dx + 1)] = val;
 						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x00010101) | 0xFF000000;
 						dst32[(width * (y + dy) + x + dx)] = val;
-						/*
-						dst8[(width * (y + dy) + x + dx + 1) * 4] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
-                        dst8[(width * (y + dy) + x + dx + 1) * 4 + 1] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
-                        dst8[(width * (y + dy) + x + dx + 1) * 4 + 2] = (17 * (*(u8 *)((u32)src8 ^ 3) & 0xf));
-                        dst8[(width * (y + dy) + x + dx + 1) * 4 + 3] = 0xFF;
-						dst8[(width * (y + dy) + x + dx) * 4 + 1] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
-						dst8[(width * (y + dy) + x + dx) * 4] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
-                        dst8[(width * (y + dy) + x + dx) * 4 + 2] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
-                        dst8[(width * (y + dy) + x + dx) * 4 + 3] = 0xFF;
-						*/
  					}
-
-        for(y=0; y < height; y++)
+                }
+            }
+        }
+        for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-        //gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-
+        }
+        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_Intensity, w, h, hash, tmp);
         break;
 
     case 1: // i8
@@ -285,58 +252,44 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
         width = (original_width + 7) & ~7;
 
         //#pragma omp for ordered schedule(dynamic)
-        for(y = 0; y < height; y += 4)
-            for(x = 0; x < original_width; x += 8)
-                for(dy = 0; dy < 4; dy++)
-                    for(dx = 0; dx < 8; dx++)
-                    {
+        for (y = 0; y < height; y += 4) {
+            for (x = 0; x < original_width; x += 8) {
+                for (dy = 0; dy < 4; dy++) {
+                    for (dx = 0; dx < 8; dx++) {
                         //#pragma omp ordered
 						val = ((*(u8 *)((uintptr_t)src8 ^ 3)) * 0x00010101) | 0xFF000000;
 						dst32[(width * (y + dy) + x + dx)] = val;
-						/*
-						dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
-                        dst8[(width * (y + dy) + x + dx) * 4+1] = *(u8 *)((u32)src8 ^ 3);
-                        dst8[(width * (y + dy) + x + dx) * 4+2] = *(u8 *)((u32)src8 ^ 3);
-                        dst8[(width * (y + dy) + x + dx) * 4+3] = 0xFF;
-						*/
                         src8++;
 					}
-
-        for(y=0; y < height; y++)
+                }
+            }
+        }
+        for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-        //gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-
+        }
+        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_Intensity, w, h, hash, tmp);
         break;
+
     case 2: // ia4
         //multiple of 8 for width
-       width = (original_width + 7) & ~7;
+        width = (original_width + 7) & ~7;
 
-       //#pragma omp for ordered schedule(dynamic)
-       for(y = 0; y < height; y += 4)
-           for(x = 0; x < width; x += 8)
-               for(dy = 0; dy < 4; dy++)
-                   for(dx = 0; dx < 8; dx++, src8++)
-                   {
-                       //#pragma omp ordered
-						val = ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
-						dst32[(width * (y + dy) + x + dx)] = val;
-
-						/*
-                       dst8[(width * (y + dy) + x + dx) * 4] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
-                       dst8[(width * (y + dy) + x + dx) * 4 + 1] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
-                       dst8[(width * (y + dy) + x + dx) * 4 + 2] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0x0f)));
-                       dst8[(width * (y + dy) + x + dx) * 4 + 3] = (17 * ((*(u8 *)((u32)src8 ^ 3) & 0xf0) >> 4));
-						*/
- 					}
-
-        for(y=0; y < height; y++)
+        //#pragma omp for ordered schedule(dynamic)
+        for (y = 0; y < height; y += 4) {
+            for (x = 0; x < width; x += 8) {
+                for (dy = 0; dy < 4; dy++) {
+                    for (dx = 0; dx < 8; dx++, src8++) {
+                        //#pragma omp ordered
+		 				val = ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
+		 				dst32[(width * (y + dy) + x + dx)] = val;
+ 		 			}
+                }
+            }
+        }
+        for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-		gluScaleImage(GL_RGBA, original_width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
-
+        }
+		video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_LuminanceAlpha, original_width, height, hash, tmp);
 		break;
 
     case 3: // ia8
@@ -344,29 +297,21 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
         width = (original_width + 3) & ~3;
 
         //#pragma omp for ordered schedule(dynamic)
-        for(y = 0; y < height; y += 4)
-            for(x = 0; x < width; x += 4)
-                for(dy = 0; dy < 4; dy++)
-                    for(dx = 0; dx < 4; dx++, src8+=2)
-					{
+        for (y = 0; y < height; y += 4) {
+            for (x = 0; x < width; x += 4) {
+                for (dy = 0; dy < 4; dy++) {
+                    for (dx = 0; dx < 4; dx++, src8+=2) {
                         //#pragma omp ordered
 						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
 						dst32[(width * (y + dy) + x + dx)] = val;
-						/*
-						dst8[(width * (y + dy) + x + dx) * 4 + 3] = *(u8 *)((u32)src8 ^ 3);
-						src8++;
-						dst8[(width * (y + dy) + x + dx) * 4] = *(u8 *)((u32)src8 ^ 3);
-						dst8[(width * (y + dy) + x + dx) * 4 + 1] = *(u8 *)((u32)src8 ^ 3);
-                        dst8[(width * (y + dy) + x + dx) * 4 + 2] = *(u8 *)((u32)src8 ^ 3);
-						*/
 					}
-
-        for(y=0; y < height; y++)
+                }
+            }
+        }
+        for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-
+        }
+        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_LuminanceAlpha, w, h, hash, tmp);
 		break;
 
     case 4: // rgb565
@@ -374,52 +319,51 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
 		width = (original_width + 3) & ~3;
 
         //#pragma omp for ordered schedule(dynamic)
-		for(y = 0; y < height; y += 4)
-			for(x = 0; x < width; x += 4)
-				for(dy = 0; dy < 4; dy++)
-					for(dx = 0; dx < 4; dx++)
-					{
+		for (y = 0; y < height; y += 4) {
+			for (x = 0; x < width; x += 4) {
+				for (dy = 0; dy < 4; dy++) {
+					for (dx = 0; dx < 4; dx++) {
                         //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1; 
 						// decode color
 						dst32[width * (y + dy) + x + dx] = __decode_col_rgb565((*((u16*)(src16 + j))));
 						// only increment every other time otherwise you get address doubles
-						if(!j) src16 += 2; 
+						if (!j) src16 += 2; 
 					}
-
-        for(y=0; y < height; y++)
+                }
+            }
+        }
+        for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-		break;
+        }
+        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
+        break;
 
     case 5: // rgb5a3
 		j=0;
 		width = (original_width + 3) & ~3;
 
         //#pragma omp for ordered schedule(dynamic)
-		for(y = 0; y < height; y += 4)
-			for(x = 0; x < width; x += 4)
-				for(dy = 0; dy < 4; dy++)
-					for(dx = 0; dx < 4; dx++)
-					{
+		for (y = 0; y < height; y += 4) {
+			for (x = 0; x < width; x += 4) {
+				for (dy = 0; dy < 4; dy++) {
+					for (dx = 0; dx < 4; dx++) {
                         //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
 						// decode color
 						dst32[width * (y + dy) + x + dx] = __decode_col_rgb5a3((*((u16*)(src16 + j))));
 						// only increment every other time otherwise you get address doubles
-						if(!j) src16 += 2;
+						if (!j) src16 += 2;
 					}
-
-		for(y=0; y < height; y++)
+                }
+            }
+        }
+		for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-
+        }
+		video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
 		break;
 
     case 6: // rgba8
@@ -427,24 +371,21 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
 		width = (original_width + 3) & ~3;
 
         //#pragma omp for ordered schedule(dynamic)
-		for(y = 0; y < height; y += 4)
-			for(x = 0; x < width; x += 4)
-			{
-				for(dy = 0; dy < 4; dy++)
-					for(dx = 0; dx < 4; dx++)
-					{
+		for (y = 0; y < height; y += 4) {
+			for (x = 0; x < width; x += 4) {
+				for (dy = 0; dy < 4; dy++) {
+					for (dx = 0; dx < 4; dx++) {
                         //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
 						// fetch data
 						dst32[width * (y + dy) + x + dx] = ((*((u16*)(src16 + j))) << 16);
 						// only increment every other time otherwise you get address doubles
-						if(!j) src16 += 2;
+						if (!j) src16 += 2;
 					}
-
-				for(dy = 0; dy < 4; dy++)
-					for(dx = 0; dx < 4; dx++)
-					{
+                }
+				for (dy = 0; dy < 4; dy++) {
+					for (dx = 0; dx < 4; dx++) {
                         //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
@@ -455,107 +396,81 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
 										((data & 0xff0000) >> 16) | 
 										((data & 0xff) << 16);
 						// only increment every other time otherwise you get address doubles
-						if(!j) src16 += 2;
+						if (!j) src16 += 2;
 					}
-
+                }
 			}
-
-		for(y=0; y < height; y++)
+        }
+		for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
-
-		//gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, original_width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-
+        }
+        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, original_width, height, hash, tmp);
 		break;
 
     case 8: // c4
     case 9: // c8
         {
             int _width = width;
-            switch(format)
-		    {
+            switch(format) {
             case 8:
-            
-			width = (_width + 7) & ~7;
+                width = (_width + 7) & ~7;
+                //#pragma omp for ordered schedule(dynamic)
+                for (y = 0; y < height; y += 8) {
+                    for (x = 0; x < width; x += 8) {
+                        //#pragma omp parallel for
+                        for (dy = 0; dy < 8; dy++) {
+                            //#pragma omp ordered
+                            dst8[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                            dst8[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                            src8++;
 
-            //#pragma omp for ordered schedule(dynamic)
-			for(y = 0; y < height; y += 8)
-				for(x = 0; x < width; x += 8)
-                   // //#pragma omp parallel for
+                            dst8[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                            dst8[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                            src8++;
 
-                    
-					for(dy = 0; dy < 8; dy++)
-					{
-						/*could probably do an asm version with
-							movd xmm0, src8
-							punpcklbw xmm0, xmm0
-							movq xmm1, xmm0
-							and xmm1, 0xF000...
-							shift xmm1 >> 4
-							and xmm0, 0x000F...
-							or xmm0, xmm1
-							movq tmp, xmm0
+                            dst8[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                            dst8[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                            src8++;
 
-							or something similar
-						*/
+                            dst8[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                            dst8[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                            src8++;
+                        }
+                    }
+                }
+                break;
+
+            case 9:
+                width = (_width + 7) & ~7;
+                //#pragma omp for ordered schedule(dynamic)
+                for (y = 0; y < height; y += 4) {
+                    //#pragma omp parallel for
+                    for (x = 0; x < width; x += 8) {
 
                         //#pragma omp ordered
-						tmp[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						src8++;
+                        *(u32 *)&dst8[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
+                        *(u32 *)&dst8[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
 
-						tmp[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						src8++;
+                        *(u32 *)&dst8[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
+                        *(u32 *)&dst8[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
 
-						tmp[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						src8++;
+                        *(u32 *)&dst8[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
+                        *(u32 *)&dst8[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
 
-						tmp[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-						tmp[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-						src8++;
-					}
+                        *(u32 *)&dst8[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
+                        *(u32 *)&dst8[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
+                        src8+=32;
+                    }
+                }
+                break;
+            }
+            unpack8(tmp, dst8, width, height, pal16, pallette_fmt, _width);
 
-			break;
-
-        case 9:
-			width = (_width + 7) & ~7;
-            //#pragma omp for ordered schedule(dynamic)
-			for(y = 0; y < height; y += 4)
-                ////#pragma omp parallel for
-
-                
-				for(x = 0; x < width; x += 8)
-				{
-
-                    //#pragma omp ordered
-					*(u32 *)&tmp[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
-					*(u32 *)&tmp[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
-
-					*(u32 *)&tmp[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
-					*(u32 *)&tmp[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
-
-					*(u32 *)&tmp[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
-					*(u32 *)&tmp[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
-
-					*(u32 *)&tmp[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
-					*(u32 *)&tmp[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
-					src8+=32;
-				}
-			break;
-		}
-
-		unpack8(dst8, tmp, width, height, pal16, pallette_fmt, _width);
-
-		    //gluScaleImage(GL_RGBA, original_width, _tx.height, GL_UNSIGNED_BYTE, dst8, w, h, GL_UNSIGNED_BYTE, dst);
-
-		if(pallette_fmt)
-		    {
-			    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
-		    }else{
-			    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst8);
-		    }
+            if (pallette_fmt)  {
+                video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
+            } else {
+                video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_LuminanceAlpha, w, h, hash, tmp);
+            }
         }
         break;
 
@@ -563,17 +478,15 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
         width = (width + 7) & ~7;
         DecompressDxt1(dst32, src8, width, height);
 
-        for(y=0; y < height; y++)
+        for (y=0; y < height; y++) {
             memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
-
-        //gluScaleImage(GL_RGBA, width, height, GL_UNSIGNED_BYTE, tmp, w, h, GL_UNSIGNED_BYTE, dst);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+        }
+        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
         break;
 
     default:
         LOG_ERROR(TGP, "Unsupported texture format %d!", format);
-
-        return;
+        break;
     }
 
     if (common::g_config->current_renderer_config().enable_texture_dumping) {
@@ -594,14 +507,7 @@ void DecodeTexture(u8 format, u32 addr, u16 height, u16 width) {
     free(dst);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// MAIN CONTROL
-
-void TexCacheInit() {
-    memset(&texcache, 0, sizeof(texcache));
-}
-
-void TexCacheShutdown() {
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 } // namespace

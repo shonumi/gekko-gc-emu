@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "crc.h"
 #include "memory.h"
 
 #include <GL/glew.h>
@@ -291,87 +292,24 @@ void BPRegisterWrite(u8 addr, u32 data) {
     }
 }
 
-static const GLenum gx_type_wrapst[8] = 
-{
-	GL_CLAMP_TO_EDGE,                 
-	GL_REPEAT,
-	GL_MIRRORED_REPEAT,
-	GL_REPEAT
-};
-
-static const GLenum gx_min_filter[8] =
-{
-	GL_NEAREST, 
-	GL_NEAREST_MIPMAP_NEAREST, 
-	GL_NEAREST_MIPMAP_LINEAR, 
-	GL_NONE,
-	GL_LINEAR, 
-	GL_LINEAR_MIPMAP_NEAREST, 
-	GL_LINEAR_MIPMAP_LINEAR, 
-	GL_NONE,
-};
-
-// set texture mode 0
-void tx_setmode0(u8 _addr)
-{
-	GLint mag_filter = ((g_bp_regs.mem[_addr] >> 4) & 1) ? GL_LINEAR : GL_NEAREST; 
-	GLint wrap_s = gx_type_wrapst[g_bp_regs.mem[_addr] & 3];
-	GLint wrap_t = gx_type_wrapst[(g_bp_regs.mem[_addr] >> 2) & 3];
-	GLfloat lodbias = (((f32)(s8)((g_bp_regs.mem[_addr] >> 9) & 0xff)) / 32.0f);
-	int use_mips = ((g_bp_regs.mem[_addr] >> 5) & 7); // use mip maps
-	GLint min_filter = gx_min_filter[use_mips];
-	use_mips &= 3;
-
-	if(use_mips)
-		glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-	else
-		glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-
-	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, lodbias);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
-
-
-
-#pragma todo(tx_setmod0: Missing LOD and BIAS clamping)
-}
-
-void LoadTexture(u8 index) {
-	u32 tx_setimage0;
-	u32 tx_setimage3;
-    int num;
+void LoadTexture(u8 num) {
     u32 addr;
-	//gx_texture_data tx;
+    // TODO(ShizZy): Make this a real hash without slowing the emu down terribly. Right now, this 
+    // is addr ^ first 4 bytes
+    u32 hash = (g_bp_regs.tex[0].image_3[0].image_base ^ *(u32*)&Mem_RAM[addr & RAM_MASK]);
 
-	num = GX_TX_SETIMAGE_NUM(index);
+    if(!video_core::g_renderer->BindTexture(hash, num)) {
 
-	if(num < 4) {
-		tx_setimage0 = g_bp_regs.mem[0x88 + num];
-		tx_setimage3 = g_bp_regs.mem[0x94 + num];
-	} else {
-		tx_setimage0 = g_bp_regs.mem[0xA8 + num - 4];
-		tx_setimage3 = g_bp_regs.mem[0xB4 + num - 4];
-	}
+        int set = (num & 4) >> 2;
+        int index = num & 7; 
 
-	addr = (tx_setimage3 & 0xffffff);
-
-	if(texcache[TEX_CACHE_LOCATION(addr)]) {
-		glBindTexture(GL_TEXTURE_2D, texcache[TEX_CACHE_LOCATION(addr)]);
-
-		if(num < 4) 
-			tx_setmode0(0x80 + num); 
-		else 
-			tx_setmode0(0xa0 + (num - 4));
-
-		glEnable(GL_TEXTURE_2D);
-	}else{
-		DecodeTexture(((tx_setimage0 >> 20) & 0xf), // Format
-                      (addr << 5), // Address
-                      (((tx_setimage0 >> 10) & 0x3ff) + 1), // Height
-                      ((tx_setimage0 & 0x3ff) + 1)); // Width
-	}
+        DecodeTexture(g_bp_regs.tex[set].image_0[0].format, 
+            hash, 
+            g_bp_regs.tex[set].image_3[index].get_addr(), 
+            g_bp_regs.tex[set].image_0[index].get_height(), 
+            g_bp_regs.tex[set].image_0[index].get_width());
+    }
+    video_core::g_renderer->SetTextureParameters(num);
 }
 
 /// Initialize BP

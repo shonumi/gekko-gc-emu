@@ -557,30 +557,6 @@ void DecodePrimitive(GXPrimitive type, int count) {
     // Configure renderer to begin a new primitive
     vertex_manager::BeginPrimitive(type, count);
 
-    // Decode and apply texture
-    /*
-    glActiveTexture(GL_TEXTURE0 + 0);
-    if(gp::g_bp_regs.tevorder[0 >> 1].get_enable(0)) gp::LoadTexture(0);
-    glActiveTexture(GL_TEXTURE0 + 1);
-    if(gp::g_bp_regs.tevorder[1 >> 1].get_enable(1)) gp::LoadTexture(1);
-    glActiveTexture(GL_TEXTURE0 + 2);
-    if(gp::g_bp_regs.tevorder[2 >> 1].get_enable(2)) gp::LoadTexture(2);
-    glActiveTexture(GL_TEXTURE0 + 3);
-    if(gp::g_bp_regs.tevorder[3 >> 1].get_enable(3)) gp::LoadTexture(3);
-    glActiveTexture(GL_TEXTURE0 + 4);
-    if(gp::g_bp_regs.tevorder[4 >> 1].get_enable(4)) gp::LoadTexture(4);
-    glActiveTexture(GL_TEXTURE0 + 5);
-    if(gp::g_bp_regs.tevorder[5 >> 1].get_enable(5)) gp::LoadTexture(5);
-    glActiveTexture(GL_TEXTURE0 + 6);
-    if(gp::g_bp_regs.tevorder[6 >> 1].get_enable(6)) gp::LoadTexture(6);
-    glActiveTexture(GL_TEXTURE0 + 7);
-    if(gp::g_bp_regs.tevorder[7 >> 1].get_enable(7)) gp::LoadTexture(7);
-    */
-
-    for (int i = 0; i < 8; i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        gp::LoadTexture(i);
-    }
     // Set renderer types
     video_core::g_renderer->VertexPosition_SetType((GXCompType)vat_a->pos_format,
         (GXCompCnt)vat_a->pos_count);
@@ -691,6 +667,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 0
         if (gp::g_cp_regs.vcd_hi[0].tex0_coord) {
+            gp::LoadTexture(0);
             switch(gp::g_cp_regs.vcd_hi[0].tex0_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_a->get_tex0()](0, &vertex_manager::g_vbo->texcoords[0 << 1]);
@@ -707,6 +684,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 1
         if (gp::g_cp_regs.vcd_hi[0].tex1_coord) {
+            gp::LoadTexture(1);
             switch(gp::g_cp_regs.vcd_hi[0].tex1_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex1()](0, &vertex_manager::g_vbo->texcoords[1 << 1]);
@@ -723,6 +701,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 2
         if (gp::g_cp_regs.vcd_hi[0].tex2_coord) {
+            gp::LoadTexture(2);
             switch(gp::g_cp_regs.vcd_hi[0].tex2_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex2()](0, &vertex_manager::g_vbo->texcoords[2 << 1]);
@@ -739,6 +718,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 3
         if (gp::g_cp_regs.vcd_hi[0].tex3_coord) {
+            gp::LoadTexture(3);
             switch(gp::g_cp_regs.vcd_hi[0].tex3_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex3()](0, &vertex_manager::g_vbo->texcoords[3 << 1]);
@@ -755,6 +735,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 4
         if (gp::g_cp_regs.vcd_hi[0].tex4_coord) {
+            gp::LoadTexture(4);
             switch(gp::g_cp_regs.vcd_hi[0].tex4_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex4()](0, &vertex_manager::g_vbo->texcoords[4 << 1]);
@@ -771,6 +752,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 5
         if (gp::g_cp_regs.vcd_hi[0].tex5_coord) {
+            gp::LoadTexture(5);
             switch(gp::g_cp_regs.vcd_hi[0].tex5_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex5()](0, &vertex_manager::g_vbo->texcoords[5 << 1]);
@@ -787,6 +769,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 6
         if (gp::g_cp_regs.vcd_hi[0].tex6_coord) {
+            gp::LoadTexture(6);
             switch(gp::g_cp_regs.vcd_hi[0].tex6_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex6()](0, &vertex_manager::g_vbo->texcoords[6 << 1]);
@@ -803,6 +786,7 @@ void DecodePrimitive(GXPrimitive type, int count) {
         }
         // Decode texcoord 7
         if (gp::g_cp_regs.vcd_hi[0].tex7_coord) {
+            gp::LoadTexture(7);
             switch(gp::g_cp_regs.vcd_hi[0].tex7_coord) {
             case CP_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex7()](0, &vertex_manager::g_vbo->texcoords[7 << 1]);

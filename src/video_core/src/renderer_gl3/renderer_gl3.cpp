@@ -4,7 +4,7 @@
  * @file    renderer_gl3.cpp
  * @author  ShizZy <shizzy247@gmail.com>
  * @date    2012-03-10
- * @brief   Implementation of a OpenGL 3.2 renderer
+ *   Implementation of a OpenGL 3.2 renderer
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -102,7 +102,8 @@ static const GLenum g_logic_opcodes[16] = {
 RendererGL3::RendererGL3() {
     memset(fbo_, 0, sizeof(fbo_));  
     memset(fbo_rbo_, 0, sizeof(fbo_rbo_));  
-    memset(fbo_depth_buffers_, 0, sizeof(fbo_depth_buffers_));  
+    memset(fbo_depth_buffers_, 0, sizeof(fbo_depth_buffers_));
+    memset(texture_cache_, 0, sizeof(texture_cache_));
     resolution_width_ = 640;
     resolution_height_ = 480;
     vbo_handle_ = 0;
@@ -128,7 +129,7 @@ RendererGL3::RendererGL3() {
 }
 
 /**
- * @brief Write data to BP for renderer internal use (e.g. direct to shader)
+ * Write data to BP for renderer internal use (e.g. direct to shader)
  * @param addr BP register address
  * @param data Value to write to BP register
  */
@@ -270,7 +271,7 @@ void RendererGL3::WriteBP(u8 addr, u32 data) {
 }
 
 /**
- * @brief Write data to CP for renderer internal use (e.g. direct to shader)
+ * Write data to CP for renderer internal use (e.g. direct to shader)
  * @param addr CP register address
  * @param data Value to write to CP register
  */
@@ -278,7 +279,7 @@ void RendererGL3::WriteCP(u8 addr, u32 data) {
 }
 
 /**
- * @brief Write data to XF for renderer internal use (e.g. direct to shader)
+ * Write data to XF for renderer internal use (e.g. direct to shader)
  * @param addr XF address
  * @param length Length (in 32-bit words) to write to XF
  * @param data Data buffer to write to XF
@@ -290,8 +291,98 @@ void RendererGL3::WriteXF(u16 addr, int length, u32* data) {
         length >> 2, (f32*)data);
 }
 
+
 /**
- * @brief Begin renderering of a primitive
+ * Adds a new texturer to the renderer
+ * @param format Format of texture, must be one of TextureFormat
+ * @param width Width of texture in pixels
+ * @param height Height of texture in pixels
+ * @param hash A unique hash of the texture, to be used as an ID
+ * @param data Buffer of raw texture data stored in correct format
+ */
+void RendererGL3::AddTexture(TextureFormat format, u16 width, u16 height, u32 hash, u8* data) {
+    static GLint internal_format[4] = {GL_RGBA, GL_RGBA, GL_INTENSITY, GL_LUMINANCE_ALPHA};
+    int id = hash & (MAX_CACHED_TEXTURES - 1);
+    
+    glGenTextures(1, &texture_cache_[id]);
+    glBindTexture(GL_TEXTURE_2D, texture_cache_[id]);
+
+    if (format != kTextureFormat_None) {
+        glTexImage2D(GL_TEXTURE_2D, 0, internal_format[format], width, height, 0, GL_RGBA,
+            GL_UNSIGNED_BYTE, data);
+    }
+}
+
+/**
+ * Sets texture parameters for the selected texture (filtering, LOD, etc.)
+ * @param num Texture number to set parameters for (0-7)
+ */
+void RendererGL3::SetTextureParameters(int num) {
+    int set = (num & 4) >> 2;
+    int index = num & 7; 
+    gp::BPTexMode0 tex_mode_0 = gp::g_bp_regs.tex[set].mode_0[index];
+    gp::BPTexMode1 tex_mode_1 = gp::g_bp_regs.tex[set].mode_1[index];
+
+    static const GLint gl_tex_wrap[4] = {
+        GL_CLAMP_TO_EDGE,
+        GL_REPEAT,
+        GL_MIRRORED_REPEAT,
+        GL_REPEAT
+    };
+    static const GLint gl_mag_filter[2] = {
+        GL_NEAREST,
+        GL_LINEAR
+    };
+    static const GLint gl_min_filter[8] = {
+        GL_NEAREST,
+        GL_NEAREST_MIPMAP_NEAREST,
+        GL_NEAREST_MIPMAP_LINEAR,
+        GL_NEAREST,
+        GL_LINEAR,
+        GL_LINEAR_MIPMAP_NEAREST,
+        GL_LINEAR_MIPMAP_LINEAR,
+        GL_LINEAR
+    };
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag_filter[tex_mode_0.mag_filter]);
+
+    if (tex_mode_0.use_mipmaps()) {
+        glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+            gl_min_filter[tex_mode_0.min_filter & 7]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, tex_mode_1.min_lod >> 4);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tex_mode_1.max_lod >> 4);
+        glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (tex_mode_0.lod_bias / 31.0f));
+    } else {
+        glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+            (tex_mode_0.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_tex_wrap[tex_mode_0.wrap_s]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_tex_wrap[tex_mode_0.wrap_t]);
+
+    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2);
+}
+
+/**
+ * Binds a texture that was previously added to the renderer via AddTexture
+ * @param hash The unique hash of the texture to bind
+ * @param num Number of texture to bind to (0-7)
+ * @return True if bind succeeded, false if failed
+ */
+bool RendererGL3::BindTexture(u32 hash, int num) {
+    int id = hash & (MAX_CACHED_TEXTURES - 1);
+
+    glActiveTexture(GL_TEXTURE0 + num);
+    
+    if (texture_cache_[id]) {
+        glBindTexture(GL_TEXTURE_2D, texture_cache_[id]);
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Begin renderering of a primitive
  * @param prim Primitive type (e.g. GX_TRIANGLES)
  * @param count Number of vertices to be drawn (used for appropriate memory management, only)
  * @param vbo Pointer to VBO, which will be set by API in this function
@@ -456,7 +547,7 @@ void RendererGL3::SetGenerationMode() {
 }
 
 /** 
- * @brief Sets the renderer blend mode
+ * Sets the renderer blend mode
  * @param blend_mode_ Forces blend mode to update
  */
 void RendererGL3::SetBlendMode(bool force_update) {
@@ -540,7 +631,7 @@ void RendererGL3::SetScissorBox() {
 }
 
 /**
- * @brief Sets the line and point size
+ * Sets the line and point size
  * @param line_width Line width to use
  * @param point_size Point size to use
  */
@@ -548,7 +639,7 @@ void RendererGL3::SetLinePointSize(f32 line_width, f32 point_size) {
 }
 
 /**
- * @brief Set a specific render mode
+ * Set a specific render mode
  * @param flag Render flag mode to set
  */
 void RendererGL3::SetMode(kRenderMode flags) {
@@ -664,7 +755,7 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 }
 
 /** 
- * @brief Blits the EFB to the specified destination buffer
+ * Blits the EFB to the specified destination buffer
  * @param dest Destination framebuffer
  * @param rect EFB rectangle to copy
  * @param dest_width Destination width in pixels 
@@ -694,7 +785,7 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
 }
 
 /**
- * @brief Clear the screen
+ * Clear the screen
  * @param rect Screen rectangle to clear
  * @param enable_color Enable color clearing
  * @param enable_alpha Enable alpha clearing
