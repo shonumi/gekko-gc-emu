@@ -36,8 +36,9 @@ static void OnKeyEvent(GLFWwindow win, int key, int action) {
 	} else {
 		state = input_common::GCController::RELEASED;
 	}
-    for (unsigned int channel = 0; channel < 4 && emuwin->GetControllerInterface(); ++channel)
+    for (int channel = 0; channel < 4 && emuwin->GetControllerInterface(); ++channel) {
 		emuwin->GetControllerInterface()->SetControllerStatus(channel, key, state);
+    }
 }
 
 /// EmuWindow_GLFW constructor
