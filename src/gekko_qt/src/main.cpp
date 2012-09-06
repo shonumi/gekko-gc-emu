@@ -22,6 +22,8 @@
 #include "dvd/gcm.h"
 #include "version.h"
 
+common::Config::ControllerPort controller_ports[4];
+
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
     ui.setupUi(this);
@@ -91,6 +93,32 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     ui.actionSingle_Window_Mode->setChecked(settings.value("singleWindowMode", false).toBool());
     SetupEmuWindowMode();
 
+	// Load controller settings, TODO: Move these settings to the main XML configuration and support joystick configuration
+    memset(controller_ports, 0, sizeof(controller_ports));
+    controller_ports[0].keys.enable = true;
+    controller_ports[0].keys.key_code[common::Config::BUTTON_A] = Qt::Key_X;
+    controller_ports[0].keys.key_code[common::Config::BUTTON_B] = Qt::Key_Y; // QWERTZ ftw
+    controller_ports[0].keys.key_code[common::Config::BUTTON_X] = Qt::Key_A;
+    controller_ports[0].keys.key_code[common::Config::BUTTON_Y] = Qt::Key_S;
+    controller_ports[0].keys.key_code[common::Config::TRIGGER_L] = Qt::Key_Q;
+    controller_ports[0].keys.key_code[common::Config::TRIGGER_R] = Qt::Key_W;
+    controller_ports[0].keys.key_code[common::Config::BUTTON_START] = Qt::Key_Return;
+    controller_ports[0].keys.key_code[common::Config::ANALOG_LEFT] = Qt::Key_Left;
+    controller_ports[0].keys.key_code[common::Config::ANALOG_RIGHT] = Qt::Key_Right;
+    controller_ports[0].keys.key_code[common::Config::ANALOG_UP] = Qt::Key_Up;
+    controller_ports[0].keys.key_code[common::Config::ANALOG_DOWN] = Qt::Key_Down;
+
+    int num_controllers = settings.beginReadArray("controllers");
+    for (int i = 0; i < num_controllers; ++i) {
+        settings.setArrayIndex(i);
+        for (int control = 0; control < common::Config::NUM_CONTROLS; ++control) {
+            if (settings.contains(QString("control%1").arg(control))) {
+                controller_ports[i].keys.key_code[control] = settings.value(QString("control%1").arg(control)).toInt();
+            }
+        }
+    }
+    settings.endArray();
+
     // Setup connections
     connect(ui.action_load_image, SIGNAL(triggered()), this, SLOT(OnMenuLoadImage()));
     connect(ui.action_browse_images, SIGNAL(triggered()), this, SLOT(OnMenuBrowseForImages()));
@@ -137,20 +165,9 @@ void GMainWindow::BootGame(const char* filename)
     render_window->GetEmuThread().SetFilename(filename);
     render_window->GetEmuThread().start();
 
-    // TODO: Remove this once ppl implement proper controller config
-    // Overrides the configuration from XML (which likely contains SDL-specific keycodes) with proper Qt keybindings
-    common::g_config->controller_ports(0).keys.enable = true;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::BUTTON_A] = Qt::Key_X;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::BUTTON_B] = Qt::Key_Y; // QWERTZ ftw
-    common::g_config->controller_ports(0).keys.key_code[common::Config::BUTTON_X] = Qt::Key_A;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::BUTTON_Y] = Qt::Key_S;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::TRIGGER_L] = Qt::Key_Q;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::TRIGGER_R] = Qt::Key_W;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::BUTTON_START] = Qt::Key_Return;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::ANALOG_LEFT] = Qt::Key_Left;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::ANALOG_RIGHT] = Qt::Key_Right;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::ANALOG_UP] = Qt::Key_Up;
-    common::g_config->controller_ports(0).keys.key_code[common::Config::ANALOG_DOWN] = Qt::Key_Down;
+    // TODO: Haxx
+    for (unsigned int i = 0; i < 4; ++i)
+        memcpy(&common::g_config->controller_ports(i), &controller_ports[i], sizeof(common::Config::ControllerPort));
 
     SetupEmuWindowMode();
     render_window->show();
@@ -277,7 +294,7 @@ void GMainWindow::OnConfigure()
 {
     QDialog* dialog = new QDialog(this);
     QVBoxLayout* layout = new QVBoxLayout(dialog);
-    GControllerConfig* config = new GControllerConfig(dialog);
+    GControllerConfig* config = new GControllerConfig(controller_ports, dialog);
     layout->addWidget(config);
 
     QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -306,6 +323,16 @@ void GMainWindow::closeEvent(QCloseEvent* event)
     settings.setValue("singleWindowMode", ui.actionSingle_Window_Mode->isChecked());
     settings.setValue("firstStart", false);
     SaveHotkeys(settings);
+
+    // TODO: Move this to XML config
+    settings.beginWriteArray("controllers");
+    for (int i = 0; i < 4; ++i) {
+        settings.setArrayIndex(i);
+        for (int control = 0; control < common::Config::NUM_CONTROLS; ++control) {
+            settings.setValue(QString("control%1").arg(control), controller_ports[i].keys.key_code[control]);
+        }
+    }
+    settings.endArray();
 
     // TODO: Should save Gekko config here
 

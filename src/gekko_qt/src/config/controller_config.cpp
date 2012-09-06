@@ -3,7 +3,7 @@
 
 using common::Config;
 
-GControllerConfig::GControllerConfig(QWidget* parent) : QWidget(parent)
+GControllerConfig::GControllerConfig(common::Config::ControllerPort* initial_config, QWidget* parent) : QWidget(parent)
 {
     ui.setupUi(this);
     ((QGridLayout*)ui.mainStickTab->layout())->addWidget(new GStickConfig(Config::ANALOG_LEFT, Config::ANALOG_RIGHT, Config::ANALOG_UP, Config::ANALOG_DOWN, this), 1, 1);
@@ -20,6 +20,8 @@ GControllerConfig::GControllerConfig(QWidget* parent) : QWidget(parent)
     layout->addWidget(new GButtonConfigGroup("L Trigger", Config::TRIGGER_L, ui.buttonsTab));
     layout->addWidget(new GButtonConfigGroup("R Trigger", Config::TRIGGER_R, ui.buttonsTab));
     layout->addWidget(new GButtonConfigGroup("Start Button", Config::BUTTON_START, ui.buttonsTab));
+
+    memcpy(config, initial_config, sizeof(config));
 }
 
 void GControllerConfig::OnKeyConfigChanged(common::Config::Control id, int key, const QString& name)

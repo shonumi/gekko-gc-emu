@@ -10,7 +10,7 @@ class GControllerConfig : public QWidget
     Q_OBJECT
 
 public:
-    GControllerConfig(QWidget* parent = NULL);
+    GControllerConfig(common::Config::ControllerPort* initial_config, QWidget* parent = NULL);
 
     const common::Config::ControllerPort& GetControllerConfig(int index) const { return config[index]; }
 
