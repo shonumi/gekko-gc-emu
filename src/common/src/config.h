@@ -52,56 +52,42 @@ public:
         bool enable;    ///< Enable (plugged in?)
     };
 
+    enum Control {
+        BUTTON_A = 0,
+        BUTTON_B,
+        BUTTON_X,
+        BUTTON_Y,
+        TRIGGER_L,
+        TRIGGER_R,
+        BUTTON_Z,
+        BUTTON_START,
+        ANALOG_UP,
+        ANALOG_DOWN,
+        ANALOG_LEFT,
+        ANALOG_RIGHT,
+        C_UP,
+        C_DOWN,
+        C_LEFT,
+        C_RIGHT,
+        DPAD_UP,
+        DPAD_DOWN,
+        DPAD_LEFT,
+        DPAD_RIGHT,
+        NUM_CONTROLS
+    };
+
     /// Struct used for defining a keyboard configuration for a GameCube controller
     /// Reads/Writes from/to members should be atomic
     struct KeyboardController {
         bool enable;                ///< Is the keyboard configation enabled?
-        int a_key_code;
-        int b_key_code;
-        int x_key_code;
-        int y_key_code;
-        int l_key_code;
-        int r_key_code;
-        int z_key_code;
-        int start_key_code;
-        int analog_up_key_code;
-        int analog_down_key_code;
-        int analog_left_key_code;
-        int analog_right_key_code;
-        int c_up_key_code;
-        int c_down_key_code;
-        int c_left_key_code;
-        int c_right_key_code;
-        int dpad_up_key_code;
-        int dpad_down_key_code;
-        int dpad_left_key_code;
-        int dpad_right_key_code;
+        int key_code[NUM_CONTROLS];
     };
 
     /// Struct used for defining a joypad configuration for a GameCube controller
     /// We'll make another struct in case the user wants seperate joypad config
     struct JoypadController {
         bool enable;                ///< Is the joypad configation enabled?
-        int a_key_code;
-        int b_key_code;
-        int x_key_code;
-        int y_key_code;
-        int l_key_code;
-        int r_key_code;
-        int z_key_code;
-        int start_key_code;
-        int analog_up_key_code;
-        int analog_down_key_code;
-        int analog_left_key_code;
-        int analog_right_key_code;
-        int c_up_key_code;
-        int c_down_key_code;
-        int c_left_key_code;
-        int c_right_key_code;
-        int dpad_up_key_code;
-        int dpad_down_key_code;
-        int dpad_left_key_code;
-        int dpad_right_key_code;
+        int key_code[NUM_CONTROLS];
     };
 
     /// Struct used for configuring what is inserted in a controller port

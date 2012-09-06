@@ -32,7 +32,7 @@ void GControllerConfig::OnKeyConfigChanged(ControllerButtonId id, int key, const
             }
             else
             {
-                config[GetActiveController()].keys.a_key_code = key;
+                config[GetActiveController()].keys.key_code[common::Config::BUTTON_A] = key;
             }
             break;
 

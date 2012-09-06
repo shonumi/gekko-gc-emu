@@ -264,126 +264,98 @@ void SI_ReadKeys(int _channel)
             
     input_common::g_user_input->PollEvents();
 
-sec_0:
-    // Analog Stick Y Axis Up
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_UP))) {
+    // Analog Stick Y Axis
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_UP))) {
         si.pad[_channel].aY = A_HIGH;
-        goto sec_1;
-    }else{
-        si.pad[_channel].aY = A_NEUTRAL;
-    }
-
-    // Analog Stick Y Axis Down
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_DOWN))) {
+    }else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_DOWN))) {
         si.pad[_channel].aY = A_LOW;
     }else{
         si.pad[_channel].aY = A_NEUTRAL;
     }
 
-sec_1:
-    // Analog Stick X Axis Left				
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_LEFT))) {
+    // Analog Stick X Axis
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_LEFT))) {
         si.pad[_channel].aX = A_LOW;
-        goto sec_2;
-    }else{
-        si.pad[_channel].aX = A_NEUTRAL;
-    }
-
-    // Analog Stick X Axis Right
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->analog_stick_status(input_common::GCController::STICK_RIGHT))) {
+    } else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_RIGHT))) {
         si.pad[_channel].aX = A_HIGH;
-    }else{
+    } else{
         si.pad[_channel].aX = A_NEUTRAL;
     }
 
-sec_2:
-    // C Stick Y Axis Up
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_UP))) {
+    // C Stick Y Axis
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_UP))) {
         si.pad[_channel].cY = A_HIGH;
-        goto sec_3;
-    }else{
-        si.pad[_channel].cY = A_NEUTRAL;
-    }
-
-    // C Stick Y Axis Down
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_DOWN))) {
+    } else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_DOWN))) {
         si.pad[_channel].cY = A_LOW;
-    }else{
+    } else {
         si.pad[_channel].cY = A_NEUTRAL;
     }
 
-sec_3:
-    // C Stick X Axis Left
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_LEFT))) {
+    // C Stick X Axis
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_LEFT))) {
         si.pad[_channel].cX = A_LOW;
-        goto sec_4;
-    }else{
-        si.pad[_channel].cX = A_NEUTRAL;
-    }
-
-    // C Stick X Axis Right
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->c_stick_status(input_common::GCController::STICK_RIGHT))) {
+    }else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_RIGHT))) {
         si.pad[_channel].cX = A_HIGH;
     }else{
         si.pad[_channel].cX = A_NEUTRAL;
     }
 
-sec_4:
     // Start button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->start_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::BUTTON_START))) {
         si.pad[_channel].buttons |= B_START;
     } else {
         si.pad[_channel].buttons &= ~B_START;
     }
 
     // B button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->b_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::BUTTON_B))) {
         si.pad[_channel].buttons |= B_B;
     } else {
         si.pad[_channel].buttons &= ~B_B;
     }
 
     // A button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->a_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::BUTTON_A))) {
         si.pad[_channel].buttons |= B_A;
     } else {
         si.pad[_channel].buttons &= ~B_A;
     }
 
     // X button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->x_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::BUTTON_X))) {
         si.pad[_channel].buttons |= B_X;
     } else {
         si.pad[_channel].buttons &= ~B_X;
     }
 
     // Y button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->y_status())){
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::BUTTON_Y))){
         si.pad[_channel].buttons |= B_Y;
     } else {
         si.pad[_channel].buttons &= ~B_Y;
     }
 
     // Z button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->z_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::BUTTON_Z))) {
         si.pad[_channel].buttons |= B_Z;
     } else {
         si.pad[_channel].buttons &= ~B_Z;
     }
 
     // L button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->l_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::TRIGGER_L))) {
         si.pad[_channel].buttons |= B_L;
     } else {
         si.pad[_channel].buttons &= ~B_L;
     }
 
     // R button
-    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->r_status())) {
+    if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::TRIGGER_R))) {
         si.pad[_channel].buttons |= B_R;
     } else {
         si.pad[_channel].buttons &= ~B_R;
     }
+    // TODO: Why is this code disabled?
     /*
     if(emu.keys[jp_cfg.pads[_channel].dpad[0]])					// Directional Pad Up
     {

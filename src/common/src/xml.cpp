@@ -298,10 +298,10 @@ void ParseVideoNode(rapidxml::xml_node<> *node, Config& config) {
     
     // Set resolutions
     GetXMLElementAsString(node, "WindowResolution", res_str);
-    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
+    sscanf(res_str, "%d_%d", &res.width, &res.height);
     config.set_window_resolution(res);
     GetXMLElementAsString(node, "FullscreenResolution", res_str);
-    sscanf_s(res_str, "%d_%d", &res.width, &res.height);
+    sscanf(res_str, "%d_%d", &res.width, &res.height);
     config.set_fullscreen_resolution(res);
 
     // Parse all search renderer nodes
@@ -384,35 +384,31 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
         LOG_NOTICE(TCONFIG, "Configured ControllerPort[%d]=%s enabled=%s", port, attr->value(),
             port_config.enable ? "true" : "false");
 
-        // Parse keyboard configuration
+        // Parse keyboard configuration - TODO: Move to EmuWindow (?)
         rapidxml::xml_node<> *keyboard_node = elem->first_node("KeyboardController");
         if (keyboard_node) {
             attr = keyboard_node->first_attribute("enable");
             port_config.keys.enable = (E_OK == _stricmp(attr->value(), "true")) ? true : false;
-            port_config.keys.a_key_code = GetXMLElementAsInt(keyboard_node, "AKey");
-            port_config.keys.b_key_code = GetXMLElementAsInt(keyboard_node, "BKey");
-            port_config.keys.x_key_code = GetXMLElementAsInt(keyboard_node, "XKey");
-            port_config.keys.y_key_code = GetXMLElementAsInt(keyboard_node, "YKey");
-            port_config.keys.l_key_code = GetXMLElementAsInt(keyboard_node, "LKey");
-            port_config.keys.r_key_code = GetXMLElementAsInt(keyboard_node, "RKey");
-            port_config.keys.z_key_code = GetXMLElementAsInt(keyboard_node, "ZKey");
-            port_config.keys.start_key_code = GetXMLElementAsInt(keyboard_node, "StartKey");
-            port_config.keys.analog_up_key_code = GetXMLElementAsInt(keyboard_node, "AnalogUpKey");
-            port_config.keys.analog_down_key_code = 
-                GetXMLElementAsInt(keyboard_node, "AnalogDownKey");
-            port_config.keys.analog_left_key_code = 
-                GetXMLElementAsInt(keyboard_node, "AnalogLeftKey");
-            port_config.keys.analog_right_key_code = 
-                GetXMLElementAsInt(keyboard_node, "AnalogRightKey");
-            port_config.keys.c_up_key_code = GetXMLElementAsInt(keyboard_node, "CUpKey");
-            port_config.keys.c_down_key_code = GetXMLElementAsInt(keyboard_node, "CDownKey");
-            port_config.keys.c_left_key_code = GetXMLElementAsInt(keyboard_node, "CLeftKey");
-            port_config.keys.c_right_key_code = GetXMLElementAsInt(keyboard_node, "CRightKey");
-            port_config.keys.dpad_up_key_code = GetXMLElementAsInt(keyboard_node, "DPadUpKey");
-            port_config.keys.dpad_down_key_code = GetXMLElementAsInt(keyboard_node, "DPadDownKey");
-            port_config.keys.dpad_left_key_code = GetXMLElementAsInt(keyboard_node, "DPadLeftKey");
-            port_config.keys.dpad_right_key_code = 
-                GetXMLElementAsInt(keyboard_node, "DPadRightKey");
+            port_config.keys.key_code[Config::BUTTON_A] = GetXMLElementAsInt(keyboard_node, "AKey");
+            port_config.keys.key_code[Config::BUTTON_B] = GetXMLElementAsInt(keyboard_node, "BKey");
+            port_config.keys.key_code[Config::BUTTON_X] = GetXMLElementAsInt(keyboard_node, "XKey");
+            port_config.keys.key_code[Config::BUTTON_Y] = GetXMLElementAsInt(keyboard_node, "YKey");
+            port_config.keys.key_code[Config::TRIGGER_L] = GetXMLElementAsInt(keyboard_node, "LKey");
+            port_config.keys.key_code[Config::TRIGGER_R] = GetXMLElementAsInt(keyboard_node, "RKey");
+            port_config.keys.key_code[Config::BUTTON_Z] = GetXMLElementAsInt(keyboard_node, "ZKey");
+            port_config.keys.key_code[Config::BUTTON_START] = GetXMLElementAsInt(keyboard_node, "StartKey");
+            port_config.keys.key_code[Config::ANALOG_UP] = GetXMLElementAsInt(keyboard_node, "AnalogUpKey");
+            port_config.keys.key_code[Config::ANALOG_DOWN] = GetXMLElementAsInt(keyboard_node, "AnalogDownKey");
+            port_config.keys.key_code[Config::ANALOG_LEFT] = GetXMLElementAsInt(keyboard_node, "AnalogLeftKey");
+            port_config.keys.key_code[Config::ANALOG_RIGHT] = GetXMLElementAsInt(keyboard_node, "AnalogRightKey");
+            port_config.keys.key_code[Config::C_UP] = GetXMLElementAsInt(keyboard_node, "CUpKey");
+            port_config.keys.key_code[Config::C_DOWN] = GetXMLElementAsInt(keyboard_node, "CDownKey");
+            port_config.keys.key_code[Config::C_LEFT] = GetXMLElementAsInt(keyboard_node, "CLeftKey");
+            port_config.keys.key_code[Config::C_RIGHT] = GetXMLElementAsInt(keyboard_node, "CRightKey");
+            port_config.keys.key_code[Config::DPAD_UP] = GetXMLElementAsInt(keyboard_node, "DPadUpKey");
+            port_config.keys.key_code[Config::DPAD_DOWN] = GetXMLElementAsInt(keyboard_node, "DPadDownKey");
+            port_config.keys.key_code[Config::DPAD_LEFT] = GetXMLElementAsInt(keyboard_node, "DPadLeftKey");
+            port_config.keys.key_code[Config::DPAD_RIGHT] = GetXMLElementAsInt(keyboard_node, "DPadRightKey");
         }
 
         // Parse joypad configuration
@@ -420,30 +416,26 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
         if (joypad_node) {
             attr = joypad_node->first_attribute("enable");
             port_config.pads.enable = (E_OK == _stricmp(attr->value(), "true")) ? true : false;
-            port_config.pads.a_key_code = GetXMLElementAsInt(joypad_node, "AKey");
-            port_config.pads.b_key_code = GetXMLElementAsInt(joypad_node, "BKey");
-            port_config.pads.x_key_code = GetXMLElementAsInt(joypad_node, "XKey");
-            port_config.pads.y_key_code = GetXMLElementAsInt(joypad_node, "YKey");
-            port_config.pads.l_key_code = GetXMLElementAsInt(joypad_node, "LKey");
-            port_config.pads.r_key_code = GetXMLElementAsInt(joypad_node, "RKey");
-            port_config.pads.z_key_code = GetXMLElementAsInt(joypad_node, "ZKey");
-            port_config.pads.start_key_code = GetXMLElementAsInt(joypad_node, "StartKey");
-            port_config.pads.analog_up_key_code = GetXMLElementAsInt(joypad_node, "AnalogUpKey");
-            port_config.pads.analog_down_key_code = 
-                GetXMLElementAsInt(joypad_node, "AnalogDownKey");
-            port_config.pads.analog_left_key_code = 
-                GetXMLElementAsInt(joypad_node, "AnalogLeftKey");
-            port_config.pads.analog_right_key_code = 
-                GetXMLElementAsInt(joypad_node, "AnalogRightKey");
-            port_config.pads.c_up_key_code = GetXMLElementAsInt(joypad_node, "CUpKey");
-            port_config.pads.c_down_key_code = GetXMLElementAsInt(joypad_node, "CDownKey");
-            port_config.pads.c_left_key_code = GetXMLElementAsInt(joypad_node, "CLeftKey");
-            port_config.pads.c_right_key_code = GetXMLElementAsInt(joypad_node, "CRightKey");
-            port_config.pads.dpad_up_key_code = GetXMLElementAsInt(joypad_node, "DPadUpKey");
-            port_config.pads.dpad_down_key_code = GetXMLElementAsInt(joypad_node, "DPadDownKey");
-            port_config.pads.dpad_left_key_code = GetXMLElementAsInt(joypad_node, "DPadLeftKey");
-            port_config.pads.dpad_right_key_code = 
-                GetXMLElementAsInt(joypad_node, "DPadRightKey");
+            port_config.pads.key_code[Config::BUTTON_A] = GetXMLElementAsInt(joypad_node, "AKey");
+            port_config.pads.key_code[Config::BUTTON_B] = GetXMLElementAsInt(joypad_node, "BKey");
+            port_config.pads.key_code[Config::BUTTON_X] = GetXMLElementAsInt(joypad_node, "XKey");
+            port_config.pads.key_code[Config::BUTTON_Y] = GetXMLElementAsInt(joypad_node, "YKey");
+            port_config.pads.key_code[Config::TRIGGER_L] = GetXMLElementAsInt(joypad_node, "LKey");
+            port_config.pads.key_code[Config::TRIGGER_R] = GetXMLElementAsInt(joypad_node, "RKey");
+            port_config.pads.key_code[Config::BUTTON_Z] = GetXMLElementAsInt(joypad_node, "ZKey");
+            port_config.pads.key_code[Config::BUTTON_START] = GetXMLElementAsInt(joypad_node, "StartKey");
+            port_config.pads.key_code[Config::ANALOG_UP] = GetXMLElementAsInt(joypad_node, "AnalogUpKey");
+            port_config.pads.key_code[Config::ANALOG_DOWN] = GetXMLElementAsInt(joypad_node, "AnalogDownKey");
+            port_config.pads.key_code[Config::ANALOG_LEFT] = GetXMLElementAsInt(joypad_node, "AnalogLeftKey");
+            port_config.pads.key_code[Config::ANALOG_RIGHT] = GetXMLElementAsInt(joypad_node, "AnalogRightKey");
+            port_config.pads.key_code[Config::C_UP] = GetXMLElementAsInt(joypad_node, "CUpKey");
+            port_config.pads.key_code[Config::C_DOWN] = GetXMLElementAsInt(joypad_node, "CDownKey");
+            port_config.pads.key_code[Config::C_LEFT] = GetXMLElementAsInt(joypad_node, "CLeftKey");
+            port_config.pads.key_code[Config::C_RIGHT] = GetXMLElementAsInt(joypad_node, "CRightKey");
+            port_config.pads.key_code[Config::DPAD_UP] = GetXMLElementAsInt(joypad_node, "DPadUpKey");
+            port_config.pads.key_code[Config::DPAD_DOWN] = GetXMLElementAsInt(joypad_node, "DPadDownKey");
+            port_config.pads.key_code[Config::DPAD_LEFT] = GetXMLElementAsInt(joypad_node, "DPadLeftKey");
+            port_config.pads.key_code[Config::DPAD_RIGHT] = GetXMLElementAsInt(joypad_node, "DPadRightKey");
         }
         config.set_controller_ports(port, port_config);
     }
