@@ -11,19 +11,14 @@ class GStickConfig : public QWidget
     Q_OBJECT
 
 public:
-    // Parent needs to have a OnKeyConfigChanged(common::Config::Control, int, const QString&) slot!
-    GStickConfig(common::Config::Control leftid, common::Config::Control rightid, common::Config::Control upid, common::Config::Control downid, QWidget* parent = NULL);
+    // change_receiver needs to have a OnKeyConfigChanged(common::Config::Control, int, const QString&) slot!
+    GStickConfig(common::Config::Control leftid, common::Config::Control rightid, common::Config::Control upid, common::Config::Control downid, QObject* change_receiver, QWidget* parent = NULL);
 
 signals:
     void LeftChanged();
     void RightChanged();
     void UpChanged();
     void DownChanged();
-
-    void KeyConfigChanged(common::Config::Control, int key, const QString&);
-
-public slots:
-    void OnKeyConfigChanged(common::Config::Control, int key, const QString&);
 
 private:
     QPushButton* left;
@@ -39,14 +34,17 @@ class GKeyConfigButton : public QPushButton
     Q_OBJECT
 
 public:
-    // Parent needs to have a OnKeyConfigChanged(common::Config::Control, int, const QString&) slot!
-    GKeyConfigButton(common::Config::Control id, const QIcon& icon, const QString& text, QWidget* parent);
-    GKeyConfigButton(common::Config::Control id, const QString& text, QWidget* parent);
+    // TODO: change_receiver also needs to have an ActivePortChanged(const common::Config::ControllerPort&) signal
+    // change_receiver needs to have a OnKeyConfigChanged(common::Config::Control, int, const QString&) slot!
+    GKeyConfigButton(common::Config::Control id, const QIcon& icon, const QString& text, QObject* change_receiver, QWidget* parent);
+    GKeyConfigButton(common::Config::Control id, const QString& text, QObject* change_receiver, QWidget* parent);
 
 signals:
     void KeyAssigned(common::Config::Control id, int key, const QString& text);
 
 private slots:
+    void OnActivePortChanged(const common::Config::ControllerPort& config);
+
     void OnClicked();
 
     void keyPressEvent(QKeyEvent* event); // TODO: bGrabbed?
@@ -55,12 +53,17 @@ private slots:
 private:
     common::Config::Control id;
     bool inputGrabbed;
+
+    QString old_text;
 };
 
 class GButtonConfigGroup : public QWidget
 {
+    Q_OBJECT
+
 public:
-    GButtonConfigGroup(const QString& name, common::Config::Control id, QWidget* parent = NULL);
+    // change_receiver needs to have a OnKeyConfigChanged(common::Config::Control, int, const QString&) slot!
+    GButtonConfigGroup(const QString& name, common::Config::Control id, QObject* change_receiver, QWidget* parent = NULL);
 
 private:
     GKeyConfigButton* config_button;

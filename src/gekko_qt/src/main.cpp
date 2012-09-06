@@ -292,23 +292,7 @@ void GMainWindow::SetGameBrowserStyle(GGameBrowser::Style style)
 
 void GMainWindow::OnConfigure()
 {
-    QDialog* dialog = new QDialog(this);
-    QVBoxLayout* layout = new QVBoxLayout(dialog);
-    GControllerConfig* config = new GControllerConfig(controller_ports, dialog);
-    layout->addWidget(config);
-
-    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    layout->addWidget(buttons);
-
-    connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
-    connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
-
-    layout->setSizeConstraint(QLayout::SetFixedSize);
-    dialog->setLayout(layout);
-    dialog->setModal(true);
-    dialog->show();
-
-    // TODO: Save and apply config when dialog closes
+    GControllerConfigDialog* dialog = new GControllerConfigDialog(controller_ports, this);
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event)
