@@ -260,7 +260,7 @@ bool SDLJoypads::Init() {
     if(SDL_WasInit(SDL_INIT_VIDEO) == 0) {
         
         if(SDL_Init(SDL_INIT_VIDEO) != 0) {
-            LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin not initialized");
+            LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin could not initialize");
             return false;
         }
         
@@ -277,9 +277,11 @@ bool SDLJoypads::Init() {
 
     //Check to see if joypad was not opened
     if(jpad == NULL) {
-        LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin not initialized");
+        LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin could not initialize");
         return false;
-    } else if(jpad != NULL) {
+    } else if(!common::g_config->controller_ports(0).pads.enable) {
+        return false;
+    } else {
         LOG_NOTICE(TJOYPAD, "Joypad detected");
         LOG_NOTICE(TJOYPAD, SDL_JoystickName(0));
         LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin initialized ok");
