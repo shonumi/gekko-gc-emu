@@ -12,7 +12,7 @@
 
 //
 
-//TODO: Code cleanup (shonumi) 
+//TODO: Code cleanup (shonumi) and soon too
 
 sDSP	dsp;
 u8		DSPRegisters[REG_SIZE];
@@ -24,8 +24,9 @@ u32		dspDMALenENBSet = 0;
 u32		dspCSRDSPIntMask = 0;
 u32		dspCSRDSPInt = 0;
 
-u16          g_AR_MODE;
-u16          g_AR_REFRESH;
+u16		g_AR_INFO;
+u16		g_AR_MODE;
+u16		g_AR_REFRESH;
 
 ////////////////////////////////////////////////////////////
 // DSP - Digital Signal Processor
@@ -181,8 +182,10 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 	case DSP_AR_DMA_ARADDR + 2:
 	case DSP_AR_DMA_CNT:
 	case DSP_AR_DMA_CNT + 2:
-	case DSP_AR_SIZE:
 		return REGDSP16(addr);
+
+	case DSP_AR_INFO:
+		return g_AR_INFO;
 
 	case DSP_AR_MODE:
 		return g_AR_MODE;
@@ -273,9 +276,11 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 	case DSP_AR_DMA_MMADDR + 2:
 	case DSP_AR_DMA_ARADDR:
 	case DSP_AR_DMA_ARADDR + 2:
-	case DSP_AR_SIZE:
 		REGDSP16(addr) = data;
 		return;
+
+	case DSP_AR_INFO:
+		g_AR_INFO = data;
 
 	case DSP_AR_MODE:
 		g_AR_MODE = data;
@@ -418,6 +423,7 @@ void DSP_Open(void)
 
 	g_DSPDMATime = 0;
 	g_AISampleRate = 32000;
+	g_AR_INFO = 0;
 	g_AR_MODE = 1;
         g_AR_REFRESH = 156;
 }
