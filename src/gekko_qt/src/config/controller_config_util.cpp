@@ -7,7 +7,7 @@
 
 #include "controller_config_util.hxx"
 
-GStickConfig::GStickConfig(ControllerButtonId leftid, ControllerButtonId rightid, ControllerButtonId upid, ControllerButtonId downid, QWidget* parent) : QWidget(parent)
+GStickConfig::GStickConfig(common::Config::Control leftid, common::Config::Control rightid, common::Config::Control upid, common::Config::Control downid, QWidget* parent) : QWidget(parent)
 {
     left = new GKeyConfigButton(leftid, style()->standardIcon(QStyle::SP_ArrowLeft), QString(), this);
     right = new GKeyConfigButton(rightid, style()->standardIcon(QStyle::SP_ArrowRight), QString(), this);
@@ -24,24 +24,24 @@ GStickConfig::GStickConfig(ControllerButtonId leftid, ControllerButtonId rightid
 
     setLayout(layout);
 
-    connect(this, SIGNAL(KeyConfigChanged(ControllerButtonId, int, const QString&)), parent, SLOT(OnKeyConfigChanged(ControllerButtonId, int, const QString&)));
+    connect(this, SIGNAL(KeyConfigChanged(common::Config::Control, int, const QString&)), parent, SLOT(OnKeyConfigChanged(common::Config::Control, int, const QString&)));
 }
 
-void GStickConfig::OnKeyConfigChanged(ControllerButtonId id, int key, const QString& name)
+void GStickConfig::OnKeyConfigChanged(common::Config::Control id, int key, const QString& name)
 {
     emit KeyConfigChanged(id, key, name);
 }
 
-GKeyConfigButton::GKeyConfigButton(ControllerButtonId id, const QIcon& icon, const QString& text, QWidget* parent) : QPushButton(icon, text, parent), id(id), inputGrabbed(false)
+GKeyConfigButton::GKeyConfigButton(common::Config::Control id, const QIcon& icon, const QString& text, QWidget* parent) : QPushButton(icon, text, parent), id(id), inputGrabbed(false)
 {
     connect(this, SIGNAL(clicked()), this, SLOT(OnClicked()));
-    connect(this, SIGNAL(KeyAssigned(ControllerButtonId, int, const QString&)), parent, SLOT(OnKeyConfigChanged(ControllerButtonId, int, const QString&)));
+    connect(this, SIGNAL(KeyAssigned(common::Config::Control, int, const QString&)), parent, SLOT(OnKeyConfigChanged(common::Config::Control, int, const QString&)));
 }
 
-GKeyConfigButton::GKeyConfigButton(ControllerButtonId id, const QString& text, QWidget* parent) : QPushButton(text, parent), id(id), inputGrabbed(false)
+GKeyConfigButton::GKeyConfigButton(common::Config::Control id, const QString& text, QWidget* parent) : QPushButton(text, parent), id(id), inputGrabbed(false)
 {
     connect(this, SIGNAL(clicked()), this, SLOT(OnClicked()));
-    connect(this, SIGNAL(KeyAssigned(ControllerButtonId, int, const QString&)), parent, SLOT(OnKeyConfigChanged(ControllerButtonId, int, const QString&)));
+    connect(this, SIGNAL(KeyAssigned(common::Config::Control, int, const QString&)), parent, SLOT(OnKeyConfigChanged(common::Config::Control, int, const QString&)));
 }
 
 void GKeyConfigButton::OnClicked()
@@ -91,7 +91,7 @@ void GKeyConfigButton::mousePressEvent(QMouseEvent* event)
     QAbstractButton::mousePressEvent(event);
 }
 
-GButtonConfigGroup::GButtonConfigGroup(const QString& name, ControllerButtonId id, QWidget* parent) : QWidget(parent), id(id)
+GButtonConfigGroup::GButtonConfigGroup(const QString& name, common::Config::Control id, QWidget* parent) : QWidget(parent), id(id)
 {
     QHBoxLayout* layout = new QHBoxLayout(this);
 

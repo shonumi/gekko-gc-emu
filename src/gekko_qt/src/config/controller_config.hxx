@@ -2,7 +2,6 @@
 #define _CONTROLLER_CONFIG_HXX_
 
 #include "ui_controller_config.h"
-#include "controller_config_util.hxx"
 
 #include "config.h"
 
@@ -16,7 +15,7 @@ public:
     const common::Config::ControllerPort& GetControllerConfig(int index) const { return config[index]; }
 
 public slots:
-    void OnKeyConfigChanged(ControllerButtonId id, int key, const QString& name);
+    void OnKeyConfigChanged(common::Config::Control id, int key, const QString& name);
 
 private:
     int GetActiveController();
