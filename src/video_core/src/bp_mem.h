@@ -309,9 +309,27 @@ struct BPTevKSel {
         };
         u32 _u32;
     };
-
     int getkc (int stage) { return (stage&1) ? kcsel1 : kcsel0; }
     int getka (int stage) { return (stage&1) ? kasel1 : kasel0; }
+};
+
+/// TEV indirect texture map
+union BPTevTexMap {
+    struct {
+        unsigned stage_0_tex_map : 3;
+        unsigned stage_0_tex_coord : 3;
+        unsigned stage_1_tex_map : 3;
+        unsigned stage_1_tex_coord : 3;
+        unsigned stage_2_tex_map : 3;
+        unsigned stage_2_tex_coord : 3;
+        unsigned stage_3_tex_map : 3;
+        unsigned stage_3_tex_coord : 3;
+        unsigned rid : 8;
+    };
+    u32 _u32;
+
+    u32 get_tex_coord(int i) { return (_u32 >> (6 * i + 3)) & 3; }
+    u32 get_tex_map(int i) { return (_u32 >> (6 * i)) & 3; }
 };
 
 /// TEV raster color order
@@ -462,7 +480,8 @@ union BPMemory {
         u32             pad0[0x1F];             // 0x01
         BPEFBCoords12   scissor_top_left;       // 0x20
         BPEFBCoords12   scissor_bottom_right;   // 0x21
-        u32             pad1[0x6];              // 0x22
+        u32             pad1[0x5];              // 0x22
+        BPTevTexMap     tev_tex_map;            // 0x27
         BPTevOrder      tevorder[0x8];          // 0x28
         u32             pad2[0x10];             // 0x30
         BPPEZMode       zmode;                  // 0x40
