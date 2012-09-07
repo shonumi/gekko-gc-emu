@@ -43,7 +43,7 @@ GLuint g_shader_default_id;       ///< Handle to default shader program
  * @param shader_id Shader program to use
  */
 void SetShader(GLuint shader_id) {
-    g_current_shader_id = g_shader_default_id;
+    g_current_shader_id = shader_id;
     glUseProgram(g_current_shader_id);
 }
 
@@ -220,7 +220,7 @@ void Init() {
 
     g_shader_default_id = LoadShader(vs_filename, NULL, fs_filename);
     
-    SetShader(g_current_shader_id);
+    SetShader(g_shader_default_id);
 
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }
