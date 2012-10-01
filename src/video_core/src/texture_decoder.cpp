@@ -195,7 +195,6 @@ void unpack8(u8* dst, u8* src, int w, int h, u16* palette, u8 paletteFormat, int
 
 
 void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
-    RendererBase::TextureFormat image_format;
     int	x, y, dx, dy, i = 0, w = width, h = height, j = 0, original_width = width;
     u32 val;
 
@@ -233,18 +232,19 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
                 for (dy = 0; dy < 8; dy++) {
                     for (dx = 0; dx < 8; dx+=2, src8++) {
                         //#pragma omp ordered
-						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x00010101) | 0xFF000000;
+                        // This is correct - Converts 2 4-bit instensity pixels to 32-bit RGBA
+						val = ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x11111111;
 						dst32[(width * (y + dy) + x + dx + 1)] = val;
-						val = ((17 * (*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x00010101) | 0xFF000000;
+						val = ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x11111111;
 						dst32[(width * (y + dy) + x + dx)] = val;
  					}
                 }
             }
         }
-        for (y=0; y < height; y++) {
+        for (y = 0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_Intensity, w, h, hash, tmp);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     case 1: // i8
@@ -257,7 +257,8 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 8; dx++) {
                         //#pragma omp ordered
-						val = ((*(u8 *)((uintptr_t)src8 ^ 3)) * 0x00010101) | 0xFF000000;
+                        // This is correct - Converts one 8-bit instensity pixel to 32-bit RGBA
+						val = (*(u8 *)((uintptr_t)src8 ^ 3)) * 0x1010101;
 						dst32[(width * (y + dy) + x + dx)] = val;
                         src8++;
 					}
@@ -267,7 +268,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_Intensity, w, h, hash, tmp);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     case 2: // ia4
@@ -280,7 +281,8 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 8; dx++, src8++) {
                         //#pragma omp ordered
-		 				val = ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f))) * 0x00010101) | ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
+		 				val = (((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x111111) | 
+                            ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
 		 				dst32[(width * (y + dy) + x + dx)] = val;
  		 			}
                 }
@@ -289,7 +291,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-		video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_LuminanceAlpha, original_width, height, hash, tmp);
+		video_core::g_renderer->AddTexture(original_width, height, hash, tmp);
 		break;
 
     case 3: // ia8
@@ -302,7 +304,8 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 4; dx++, src8+=2) {
                         //#pragma omp ordered
-						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
+						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | 
+                            ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
 						dst32[(width * (y + dy) + x + dx)] = val;
 					}
                 }
@@ -311,7 +314,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_LuminanceAlpha, w, h, hash, tmp);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
 		break;
 
     case 4: // rgb565
@@ -337,7 +340,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     case 5: // rgb5a3
@@ -363,7 +366,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
 		for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-		video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
+		video_core::g_renderer->AddTexture(w, h, hash, tmp);
 		break;
 
     case 6: // rgba8
@@ -404,7 +407,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
 		for (y=0; y < height; y++) {
             memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
         }
-        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, original_width, height, hash, tmp);
+        video_core::g_renderer->AddTexture(original_width, height, hash, tmp);
 		break;
 
     case 8: // c4
@@ -466,11 +469,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
             }
             unpack8(tmp, dst8, width, height, pal16, pallette_fmt, _width);
 
-            if (pallette_fmt)  {
-                video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
-            } else {
-                video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_LuminanceAlpha, w, h, hash, tmp);
-            }
+            video_core::g_renderer->AddTexture(w, h, hash, tmp);
         }
         break;
 
@@ -481,7 +480,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         for (y=0; y < height; y++) {
             memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
         }
-        video_core::g_renderer->AddTexture(RendererBase::kTextureFormat_RGBA, w, h, hash, tmp);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     default:

@@ -47,14 +47,6 @@ public:
         kRenderMode_UseDstAlpha = 4
     };
 
-    /// Supported formats for uploading texture data
-    enum TextureFormat {
-        kTextureFormat_None = 0,
-        kTextureFormat_RGBA,
-        kTextureFormat_Intensity,
-        kTextureFormat_LuminanceAlpha
-    };
-
     RendererBase() {
     }
 
@@ -119,14 +111,13 @@ public:
     virtual void EndPrimitive(u32 vbo_offset, u32 vertex_num) = 0;
 
     /**
-     * Adds a new texturer to the renderer
-     * @param format Format of texture, must be one of TextureFormat
+     * Adds a new texturer to the renderer (must be 32-bit RGBA)
      * @param width Width of texture in pixels
      * @param height Height of texture in pixels
      * @param hash A unique hash of the texture, to be used as an ID
      * @param data Buffer of raw texture data stored in correct format
      */
-    virtual void AddTexture(TextureFormat format, u16 width, u16 height, u32 hash, u8* data) = 0;
+    virtual void AddTexture(u16 width, u16 height, u32 hash, u8* data) = 0;
 
     /**
      * Sets texture parameters for the selected texture (filtering, LOD, etc.)
