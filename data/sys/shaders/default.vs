@@ -1,4 +1,4 @@
-#version 150
+#version 140
 #extension GL_ARB_explicit_attrib_location : enable
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_uniform_buffer_object : enable
@@ -42,7 +42,10 @@ out vec4 vertexColor;
 out vec2 vertexTexCoord0;
 
 // XF memory
-uniform vec4    xf_mem[0x40];
+
+layout(std140) uniform XFRegisters {
+	vec4 pos_mem[0x40];
+} xf_regs;
 
 mat4 convert_matrix(in vec4 v0, in vec4 v1, in vec4 v2) {
     return mat4(v0[0], v1[0], v2[0], 0.0,
@@ -57,13 +60,13 @@ void main() {
     float cp_tex_dqf_0 = 1.0 / float(1 << cp_tex_shift_0);
     
     if (m_idx_a[0] != 0) {
-        modelview_matrix = convert_matrix(xf_mem[int(m_idx_a[0])],
-                                          xf_mem[int(m_idx_a[0]) + 1],
-                                          xf_mem[int(m_idx_a[0]) + 2]);
+        modelview_matrix = convert_matrix(xf_regs.pos_mem[int(m_idx_a[0])],
+                                          xf_regs.pos_mem[int(m_idx_a[0]) + 1],
+                                          xf_regs.pos_mem[int(m_idx_a[0]) + 2]);
     } else {
-        modelview_matrix = convert_matrix(xf_mem[cp_pos_matrix_index],
-                                          xf_mem[cp_pos_matrix_index + 1],
-                                          xf_mem[cp_pos_matrix_index + 2]);
+        modelview_matrix = convert_matrix(xf_regs.pos_mem[cp_pos_matrix_index],
+                                          xf_regs.pos_mem[cp_pos_matrix_index + 1],
+                                          xf_regs.pos_mem[cp_pos_matrix_index + 2]);
     }
     
     // Position shift (dequantization factor) only applicable to U8/S8/U16/S16 formats
