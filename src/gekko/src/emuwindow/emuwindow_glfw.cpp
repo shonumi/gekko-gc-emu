@@ -49,6 +49,7 @@ EmuWindow_GLFW::EmuWindow_GLFW() {
     }
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
+    glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
     
