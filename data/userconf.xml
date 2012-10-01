@@ -34,7 +34,7 @@
 
         <!-- OpenGL 3 renderer -->
         <Renderer name="opengl3">
-            <EnableWireframe>true</EnableWireframe>
+            <EnableWireframe>false</EnableWireframe>
             <EnableShaders>true</EnableShaders> <!-- Not implemented -->
             <EnableTextures>true</EnableTextures> <!-- Not implemented -->
             <EnableTextureDumping>false</EnableTextureDumping>
