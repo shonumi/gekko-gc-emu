@@ -30,9 +30,9 @@
 #include "common.h"
 #include "gx_types.h"
 #include "renderer_base.h"
+#include "uniform_manager.h"
 
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
-#define USE_GEOMETRY_SHADERS        1
 #define MAX_FRAMEBUFFERS            2
 #define MAX_CACHED_TEXTURES         0x1000000
 
@@ -102,14 +102,13 @@ public:
     void EndPrimitive(u32 vbo_offset, u32 vertex_num);
 
     /**
-     * Adds a new texturer to the renderer
-     * @param format Format of texture, must be one of TextureFormat
+     * Adds a new texturer to the renderer (must be 32-bit RGBA)
      * @param width Width of texture in pixels
      * @param height Height of texture in pixels
      * @param hash A unique hash of the texture, to be used as an ID
      * @param data Buffer of raw texture data stored in correct format
      */
-    void AddTexture(TextureFormat format, u16 width, u16 height, u32 hash, u8* data);
+    void AddTexture(u16 width, u16 height, u32 hash, u8* data);
 
     /**
      * Sets texture parameters for the selected texture (filtering, LOD, etc.)
@@ -263,6 +262,8 @@ private:
     GXCompCnt   vertex_texcoord_component_count_[8];
 
     EmuWindow*  render_window_;
+
+    UniformManager* uniform_manager_;
 
     GLuint      generic_shader_id_;
 

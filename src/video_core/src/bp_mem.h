@@ -255,44 +255,44 @@ union BPEFBCoords12 {
     u32 _u32;
 };
 
-/// TEV color combiners
-struct BPTevColorCombiner {
-    union {
-        struct {
-            unsigned seld : 4;
-            unsigned selc : 4;
-            unsigned selb : 4;
-            unsigned sela : 4;
-            unsigned bias : 2;
-            unsigned sub : 1;
-            unsigned clamp : 1;
-            unsigned shift : 2;
-            unsigned dest : 2;
-            unsigned rid : 8;
+/// TEV color/alpha combiner
+struct BPTevCombiner {
+    struct {
+        union {
+            struct {
+                unsigned sel_d  : 4;
+                unsigned sel_c  : 4;
+                unsigned sel_b  : 4;
+                unsigned sel_a  : 4;
+                unsigned bias   : 2;
+                unsigned sub    : 1;
+                unsigned clamp  : 1;
+                unsigned shift  : 2;
+                unsigned dest   : 2;
+                unsigned rid    : 8;
+            };
+            u32 _u32;
         };
-        u32 _u32;
-    };
-};
-
-/// TEV alpha combiners
-struct BPTevAlphaCombiner {
-    union {
-        struct {
-            unsigned rswap : 2;
-            unsigned tswap : 2;
-            unsigned seld : 3;
-            unsigned selc : 3;
-            unsigned selb : 3;
-            unsigned sela : 3;
-            unsigned bias : 2;
-            unsigned sub : 1;
-            unsigned clamp : 1;
-            unsigned shift : 2;
-            unsigned dest : 2;
-            unsigned rid : 8;
+    } color;
+    struct  {
+        union {
+            struct {
+                unsigned rswap  : 2;
+                unsigned tswap  : 2;
+                unsigned sel_d  : 3;
+                unsigned sel_c  : 3;
+                unsigned sel_b  : 3;
+                unsigned sel_a  : 3;
+                unsigned bias   : 2;
+                unsigned sub    : 1;
+                unsigned clamp  : 1;
+                unsigned shift  : 2;
+                unsigned dest   : 2;
+                unsigned rid    : 8;
+            };
+            u32 _u32;
         };
-        u32 _u32;
-    };
+    } alpha;
 };
 
 /// TEV konstant color/alpha selector
@@ -512,8 +512,7 @@ union BPMemory {
             u32         pad[4];
         } tex[2];
 
-        //BPTevCombiner   combiner[0x10];         // 0xC0
-		u32             combiner[0x20];         // 0xC0
+        BPTevCombiner   combiner[0x10];         // 0xC0
         u32             pad7[0x13];             // 0xE0
 		BPAlphaFunc		alpha_func;				// 0xF3
 		u32             pad8[0x2];				// 0xF4

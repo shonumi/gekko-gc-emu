@@ -19,6 +19,9 @@
     <ClCompile Include="src\texture_decoder.cpp" />
     <ClCompile Include="src\vertex_manager.cpp" />
     <ClCompile Include="src\fifo_player.cpp" />
+    <ClCompile Include="src\renderer_gl3\uniform_manager.cpp">
+      <Filter>renderer_gl3</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
@@ -44,6 +47,9 @@
     <ClInclude Include="src\fifo_player.h" />
     <ClInclude Include="src\texture_decoder.h" />
     <ClInclude Include="src\vertex_manager.h" />
+    <ClInclude Include="src\renderer_gl3\uniform_manager.h">
+      <Filter>renderer_gl3</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="renderer_gl3">

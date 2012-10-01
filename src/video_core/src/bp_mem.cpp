@@ -91,12 +91,14 @@ void UploadColor(u8 addr, u32 value)
 void BPRegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
 
-    // Write to renderer
-	//	Note: This should always happen first to compare what was last written!
-    video_core::g_renderer->WriteBP(addr, data);
+
 
 	// Write data to bp memory
     g_bp_regs.mem[addr] = data;
+
+    // Write to renderer
+	//	Note: This should always happen first to compare what was last written!
+    video_core::g_renderer->WriteBP(addr, data);
 
     // Adjust GX globals accordingly
     switch(addr) {
@@ -293,16 +295,13 @@ void BPRegisterWrite(u8 addr, u32 data) {
 }
 
 void LoadTexture(u8 num) {
-    u32 addr;
+    int index = num & 7;
+    int set = (num & 4) >> 2;
     // TODO(ShizZy): Make this a real hash without slowing the emu down terribly. Right now, this 
     // is addr ^ first 4 bytes
-    u32 hash = (g_bp_regs.tex[0].image_3[0].image_base ^ *(u32*)&Mem_RAM[addr & RAM_MASK]);
+    u32 hash = (g_bp_regs.tex[set].image_3[index].image_base ^ *(u32*)&Mem_RAM[g_bp_regs.tex[set].image_3[index].get_addr() & RAM_MASK]);
 
     if(!video_core::g_renderer->BindTexture(hash, num)) {
-
-        int set = (num & 4) >> 2;
-        int index = num & 7; 
-
         DecodeTexture(g_bp_regs.tex[set].image_0[0].format, 
             hash, 
             g_bp_regs.tex[set].image_3[index].get_addr(), 

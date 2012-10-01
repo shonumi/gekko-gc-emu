@@ -1,4 +1,7 @@
 #version 150
+#extension GL_ARB_explicit_attrib_location : enable
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_uniform_buffer_object : enable
 
 #define GX_NEVER    0
 #define GX_LESS     1
@@ -14,7 +17,36 @@
 #define GX_AOP_XOR  2
 #define GX_AOP_XNOR 3
 
-#define GX_TEV_BIAS_COMPARE  3
+struct BPTevStage {
+    int color_sel_a;
+    int color_sel_b;
+    int color_sel_c;
+    int color_sel_d;
+    int color_bias;
+    int color_sub;
+    int color_clamp;
+    int color_shift;
+    int color_dest;
+
+    int alpha_sel_a;
+    int alpha_sel_b;
+    int alpha_sel_c;
+    int alpha_sel_d;
+    int alpha_bias;
+    int alpha_sub;
+    int alpha_clamp;
+    int alpha_shift;
+    int alpha_dest;
+
+    // These don't really need to be here, but it's a reminder that this struct must be padded to a
+    // 16 byte boundary in order to be tightly packed in the UBO
+    int pad0;
+    int pad1;
+};
+
+layout(std140) uniform BPRegisters {
+   BPTevStage tev_stage[16];
+} bp_regs;
 
 // Textures
 uniform int tex_enable[8];
@@ -27,22 +59,10 @@ uniform vec4    bp_tev_konst[4];
 // BP_REG_GENMODE - 0x00
 uniform int     bp_genmode_num_stages;
 
-struct BPTevStage {
-    int sel_a;
-    int sel_b;
-    int sel_c;
-    int sel_d;
-    int bias;
-    int sub;
-    int clamp;
-    int shift;
-    int dest;
-};
-
-struct BPTevKSel {
-	int color_sel;
-	int alpha_sel;
-};
+// BP_REG_TEV_COLOR_ENV - 0xC0-
+uniform int bp_tev_color_env[128];
+//uniform int bp_tev_alpha_env[144];
+uniform int bp_tev_ksel[32];
 
 // BP_REG_ALPHACOMPARE - 0xF3
 uniform int     bp_alpha_func_ref0;
@@ -50,15 +70,6 @@ uniform int     bp_alpha_func_ref1;
 uniform int     bp_alpha_func_comp0;
 uniform int     bp_alpha_func_comp1;
 uniform int     bp_alpha_func_logic;
-
-// BP_REG_TEV_COLOR_ENV - 0xC0-
-uniform int		bp_tev_color_env[144];
-
-// BP_REG_TEV_ALPHA_ENV - 0xC1-
-uniform int 	bp_tev_alpha_env[144];
-
-// BP_REG_TEV_KSEL - 0xF6-
-uniform int 	bp_tev_ksel[32];
 
 in vec4 vertexColor;
 in vec2 vertexTexCoord0;
@@ -130,11 +141,8 @@ float tev_scale[4] = float[](
 float tev_sub[2] = float[](
     1.0, -1.0
 );
-vec4 tev_bias[4] = vec4[](
-    vec4(0.0, 0.0, 0.0, 0.0),
-    vec4(0.5, 0.5, 0.5, 0.5),
-    vec4(-0.5, -0.5, -0.5, -0.5),
-    vec4(0.0, 0.0, 0.0, 0.0)
+float tev_bias[4] = float[](
+    0.0, 0.5, -0.5, 0.0
 );
 
 bool alpha_compare(in int op, in int value, in int ref) {
@@ -159,82 +167,55 @@ bool alpha_compare(in int op, in int value, in int ref) {
     return true;
 }
 
+void tev_stage(in int stage) {
 
-vec4 tev_stage(in int stage) {
-    BPTevKSel tev_ksel;
-    
-    tev_ksel.color_sel = bp_tev_ksel[(stage << 1) + 0]; // should index stage?
-    tev_ksel.alpha_sel = bp_tev_ksel[(stage << 1) + 1]; // should index stage?
-    
-    int stage_offset = stage * 9;
+    int color_sel = bp_tev_ksel[(stage << 1) + 0]; // should index stage?
+    int alpha_sel = bp_tev_ksel[(stage << 1) + 1]; // should index stage?
 
-    BPTevStage tev_c;
-    tev_c.sel_a = bp_tev_color_env[stage_offset + 0];
-    tev_c.sel_b = bp_tev_color_env[stage_offset + 1];
-    tev_c.sel_c = bp_tev_color_env[stage_offset + 2];
-    tev_c.sel_d = bp_tev_color_env[stage_offset + 3];
-    tev_c.bias  = bp_tev_color_env[stage_offset + 4];
-    tev_c.sub   = bp_tev_color_env[stage_offset + 5];
-    tev_c.clamp = bp_tev_color_env[stage_offset + 6];
-    tev_c.shift = bp_tev_color_env[stage_offset + 7];
-    tev_c.dest  = bp_tev_color_env[stage_offset + 8];
-
-    BPTevStage tev_a;
-    tev_a.sel_a = bp_tev_alpha_env[stage_offset + 0];
-    tev_a.sel_b = bp_tev_alpha_env[stage_offset + 1];
-    tev_a.sel_c = bp_tev_alpha_env[stage_offset + 2];
-    tev_a.sel_d = bp_tev_alpha_env[stage_offset + 3];
-    tev_a.bias  = bp_tev_alpha_env[stage_offset + 4];
-    tev_a.sub   = bp_tev_alpha_env[stage_offset + 5];
-    tev_a.clamp = bp_tev_alpha_env[stage_offset + 6];
-    tev_a.shift = bp_tev_alpha_env[stage_offset + 7];
-    tev_a.dest  = bp_tev_alpha_env[stage_offset + 8];
+    BPTevStage tev_stage = bp_regs.tev_stage[stage];
 
     // Update konst register
-    g_color[14].rgb = tev_konst[tev_ksel.color_sel].rgb;
-    g_color[12].a = tev_konst[tev_ksel.alpha_sel].a;
+    g_color[14].rgb = tev_konst[color_sel].rgb;
+    g_color[12].a = tev_konst[alpha_sel].a;
 
-    vec4 tev_input_a = vec4(g_color[tev_c.sel_a].rgb, g_color[(tev_a.sel_a<<1)].a);
-    vec4 tev_input_b = vec4(g_color[tev_c.sel_b].rgb, g_color[(tev_a.sel_b<<1)].a);
-    vec4 tev_input_c = vec4(g_color[tev_c.sel_c].rgb, g_color[(tev_a.sel_c<<1)].a);
-    vec4 tev_input_d = vec4(g_color[tev_c.sel_d].rgb, g_color[(tev_a.sel_d<<1)].a);
-
-    // TODO: Should pre-lookup the values on the CPU and directly input the uniforms in this format
-    //vec4 scale = vec4(tev_scale[tev_c.shift].rrr, tev_scale[tev_a.shift]);
-    // TODO: Reimplement alpha scale
-    vec4 sub = vec4(tev_sub[tev_c.sub], tev_sub[tev_c.sub], tev_sub[tev_c.sub], tev_sub[tev_a.sub]);
-    vec4 bias = vec4(tev_bias[tev_c.bias].rgb, tev_bias[tev_a.bias].a);
+    vec4 tev_input_a = vec4(g_color[tev_stage.color_sel_a].rgb, 
+        g_color[(tev_stage.alpha_sel_a << 1)].a);
+    vec4 tev_input_b = vec4(g_color[tev_stage.color_sel_b].rgb, 
+        g_color[(tev_stage.alpha_sel_b << 1)].a);
+    vec4 tev_input_c = vec4(g_color[tev_stage.color_sel_c].rgb, 
+        g_color[(tev_stage.alpha_sel_c << 1)].a);
+    vec4 tev_input_d = vec4(g_color[tev_stage.color_sel_d].rgb, 
+        g_color[(tev_stage.alpha_sel_d << 1)].a);
+    vec4 sub = vec4(tev_sub[tev_stage.color_sub], tev_sub[tev_stage.color_sub], 
+        tev_sub[tev_stage.color_sub], tev_sub[tev_stage.alpha_sub]);
+    vec4 bias = vec4(tev_bias[tev_stage.color_bias], tev_bias[tev_stage.color_bias], 
+        tev_bias[tev_stage.color_bias], tev_bias[tev_stage.alpha_bias]);
 
     // Process stage
     vec4 result = (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
-    g_color[tev_c.dest].rgb = result.rgb;
 
     // Clamp color
-    if (tev_c.clamp == 1) g_color[tev_c.dest].rgb = clamp(tev_scale[tev_c.shift] * result.rgb, 0.0, 1.0);
-    else g_color[tev_c.dest].rgb = tev_scale[tev_c.shift] * result.rgb;
+    if (tev_stage.color_clamp == 1) {
+        g_color[tev_stage.color_dest].rgb = 
+            clamp(tev_scale[tev_stage.color_shift] * result.rgb, 0.0, 1.0);
+    } else {
+        g_color[tev_stage.color_dest].rgb = tev_scale[tev_stage.color_shift] * result.rgb;
+    }
 
     // Clamp alpha
     float alpha;
-    if (tev_a.clamp == 1) alpha = clamp(result.a, 0.0, 1.0);
-    else alpha = result.a;
-    g_color[tev_a.dest<<1].a = alpha;
-    g_color[(tev_a.dest<<1)+1] = vec4(alpha, alpha, alpha, alpha);
-
-    return vec4(g_color[tev_c.dest].rgb, alpha);
+    if (tev_stage.alpha_clamp == 1) {
+        alpha = clamp(result.a, 0.0, 1.0);
+    } else {
+        alpha = result.a;
+    }
+    g_color[tev_stage.alpha_dest << 1].a = alpha;
+    g_color[(tev_stage.alpha_dest << 1) + 1] = vec4(alpha, alpha, alpha, alpha);
 }
 
 void main() {
+
     vec4 dest;
-   
-    // ZComploc
-    // --------
-    
-    /*int z_comploc = (bp_mem[BP_REG_PE_CONTROL] >> 6) & 1;
-    int z_update_enable = (bp_mem[BP_REG_PE_ZMODE] >> 4) & 1;
-    
-    if (z_comploc == 0 && z_update_enable == 0) {
-        discard;
-    }*/
 
     // TEV stages
     // ----------    
@@ -257,12 +238,13 @@ void main() {
     if (bp_genmode_num_stages > 15) { tev_stage(15);
     }}}}}}}}}}}}}}}
     // Store result of last TEV stage
-    dest = vec4(g_color[bp_tev_color_env[bp_genmode_num_stages * 9 - 1]].rgb, g_color[bp_tev_alpha_env[bp_genmode_num_stages * 9 - 1]].a);
+    dest = vec4(g_color[bp_regs.tev_stage[bp_genmode_num_stages].color_dest].rgb, 
+        g_color[bp_regs.tev_stage[bp_genmode_num_stages].alpha_dest].a);
     }
 
     // Alpha compare
     // -------------
-    
+
     int val = int(dest.a * 255.0f) & 0xFF;
 
     switch (bp_alpha_func_logic) {
@@ -286,4 +268,3 @@ void main() {
 
     fragmentColor = dest;
 }
-
