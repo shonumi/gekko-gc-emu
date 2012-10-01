@@ -29,7 +29,6 @@
 
 #include "gx_types.h"
 
-#define USE_GEOMETRY_SHADERS
 #define VBO_SIZE                    (1024 * 1024 * 32)
 
 namespace vertex_manager {
@@ -38,10 +37,7 @@ extern GXVertex*   g_vbo;               ///< Pointer to VBO data (when mapped, i
 extern u32         g_vertex_num;        ///< Current vertex number
 
 /// Used for specifying next GX vertex is being sent to the renderer
-static inline void NextVertex() {
-    g_vbo++;
-    g_vertex_num++;
-}
+void NextVertex();
 
 /// Begin a primitive
 void BeginPrimitive(GXPrimitive prim, int count);
