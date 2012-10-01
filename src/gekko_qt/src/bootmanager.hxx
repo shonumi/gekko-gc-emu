@@ -86,6 +86,7 @@ public:
     void DoneCurrent();
     void GetWindowSize(int &width, int &height) {}
     void SetConfig(EmuWindow::Config config) {}
+    void PollEvents() {}
 
     void BackupGeometry();
     void RestoreGeometry();
