@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "platform.h"
 #include "config.h"
 #include "xml.h"
 #include "x86_utils.h"
