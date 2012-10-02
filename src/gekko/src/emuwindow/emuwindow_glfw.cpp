@@ -47,12 +47,12 @@ EmuWindow_GLFW::EmuWindow_GLFW() {
         LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
         exit(E_ERR);
     }
-    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    //glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
-    //glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    render_window_ = glfwOpenWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
-    
+    glfwWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
+
+    render_window_ = glfwCreateWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
+
 	glfwSetWindowUserPointer(render_window_, this);
     glfwSetKeyCallback(OnKeyEvent);
 
@@ -66,7 +66,7 @@ EmuWindow_GLFW::~EmuWindow_GLFW() {
 
 /// Swap buffers to display the next frame
 void EmuWindow_GLFW::SwapBuffers() {
-    glfwSwapBuffers();
+    glfwSwapBuffers(render_window_);
 }
 
 /// Polls window events

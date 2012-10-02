@@ -248,7 +248,6 @@ void UniformManager::ApplyChanges() {
             &uniform_blocks_.xf_regs.pos_mem[invalid_regions_xf_[i].offset >> 2]);
     }
     last_invalid_region_xf_ = 0;
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
 
     // Update invalid regions in BP UBO
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
@@ -263,7 +262,6 @@ void UniformManager::ApplyChanges() {
             sizeof(UniformStruct_TevStageParams), 
             &uniform_blocks_.bp_regs.tev_stage[stage]);
     }
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
 /// Initialize the Uniform Manager

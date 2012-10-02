@@ -44,14 +44,14 @@
 // TEV EMULATION
 
 // tev negate
-static char *tev_sub[2] = 
+static const char *tev_sub[2] = 
 {
 	"+",
 	"-", 
 };
 
 // tev bias
-static char *tev_bias[4] = 
+static const char *tev_bias[4] = 
 {
 	"",
 	"+ 0.5", 
@@ -60,7 +60,7 @@ static char *tev_bias[4] =
 };
 
 // tev scale
-static char *tev_scale[4] = 
+static const char *tev_scale[4] = 
 {
 	"1.0*",
 	"2.0*", 
@@ -69,7 +69,7 @@ static char *tev_scale[4] =
 };
 
 // tev color op format
-static char *tev_colorop_input[16] = 
+static const char *tev_colorop_input[16] = 
 {
 	"cc_cprev.rgb", 
 	"(cc_cprev.a * cc_one.rgb)",
@@ -90,7 +90,7 @@ static char *tev_colorop_input[16] =
 };
 
 // tev color out
-static char *tev_colorop_output[4] = 
+static const char *tev_colorop_output[4] = 
 {
 	"cc_cprev.rgb",
 	"cc_c0.rgb",
@@ -99,7 +99,7 @@ static char *tev_colorop_output[4] =
 };
 
 // tev out
-static char *tev_output[4] = 
+static const char *tev_output[4] = 
 {
 	"cc_cprev",
 	"cc_c0",
@@ -108,7 +108,7 @@ static char *tev_output[4] =
 };
 
 // tev konst color format
-static char *tev_konst_colorop[32] = 
+static const char *tev_konst_colorop[32] = 
 {
 	"1.0 * cc_one.rgb",
 	"0.875 * cc_one.rgb",
@@ -145,7 +145,7 @@ static char *tev_konst_colorop[32] =
 };
 
 // tev alpha op format input
-static char *tev_alphaop_input[8] = 
+static const char *tev_alphaop_input[8] = 
 {
 	"cc_cprev.a", 
 	"cc_c0.a",
@@ -158,7 +158,7 @@ static char *tev_alphaop_input[8] =
 };
 
 // tev alpha op format output
-static char *tev_alphaop_output[4] = 
+static const char *tev_alphaop_output[4] = 
 {
 	"cc_cprev.a",
 	"cc_c0.a",
@@ -167,7 +167,7 @@ static char *tev_alphaop_output[4] =
 };
 
 // tev konst alpha format
-static char *tev_konst_alphaop[32] = 
+static const char *tev_konst_alphaop[32] = 
 {
 	"1.0",
 	"0.875",

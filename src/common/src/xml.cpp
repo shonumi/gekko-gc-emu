@@ -124,7 +124,7 @@ void ParseDebugNode(rapidxml::xml_node<> *node, Config& config) {
  * @param node RapidXML node for the "Patches" or "Cheats" XML group
  * @param config Config class object to parse data into
  */
-void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_name) {
+void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, const char* node_name) {
     int i = 0;
     char node_name_str[8];
     
@@ -442,7 +442,7 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
 }
 
 /// Loads/parses an XML configuration file
-void LoadXMLConfig(Config& config, char* filename) {
+void LoadXMLConfig(Config& config, const char* filename) {
     // Open the XML file
     char full_filename[MAX_PATH];
     strcpy(full_filename, config.program_dir());

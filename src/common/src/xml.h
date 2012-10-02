@@ -34,7 +34,7 @@ namespace common {
  * @param config Reference to configuration object to populate
  * @param filename Filename of XMl file to load
  */
-void LoadXMLConfig(Config& config, char* filename);
+void LoadXMLConfig(Config& config, const char* filename);
 
 } // namespace
 

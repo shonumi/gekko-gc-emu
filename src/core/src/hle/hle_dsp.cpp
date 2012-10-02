@@ -13,7 +13,7 @@ u32 messagequeue[MESSAGEQUEUESIZE];
 int messagequeue_readloc;
 int messagequeue_writeloc;
 
-struct {
+struct ucode_loader {
 	u32 command;
 	u32 DMA_RAMaddr;
 	u32 DMA_IRAMaddr;
@@ -122,7 +122,7 @@ int is_msg_queue_empty(void) {
 	return (nextread==messagequeue_writeloc);
 }
 
-struct {
+struct ucode_zww {
 	int bufaddr;
 	u32 databuf[256];
 

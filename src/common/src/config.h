@@ -343,6 +343,7 @@ public:
     void ReloadConfig(const char* game_id);
 
     char* program_dir() { return program_dir_; }
+
     void set_program_dir(char* val, size_t size) { strcpy(program_dir_, val); }
 
 private:
