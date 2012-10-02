@@ -42,6 +42,8 @@ public:
      */
     void SetConfig(Config config);
 
+    void PollEvents();
+
 private:
     SDL_Window*     main_window_;
     SDL_GLContext   main_context_;
