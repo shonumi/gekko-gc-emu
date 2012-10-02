@@ -37,8 +37,8 @@
 #define DVD_BANNER_WIDTH				96
 #define DVD_BANNER_HEIGHT				32
 
-#define DVD_BANNER_ID					'BNR1'  // JP/US
-#define DVD_BANNER_ID2					'BNR2'  // EU
+#define DVD_BANNER_ID         0x424E5231 // 'BNR1', JP/US
+#define DVD_BANNER_ID2         0x424E5232 // 'BNR2', EU
 
 namespace dvd {
 

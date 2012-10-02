@@ -7,6 +7,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 // FIFO MACROS
 
+// Tyler: src/video_core/src/fifo.h redefines some of these macros!
+#undef GP_OPCODE
+#undef GP_SETOP
+#undef FIFO_SIZE
+#undef FIFO_MASK
+
 // gp opcode handling
 #define GP_OPMASK(n)				((n >> 3) & 0x1f)
 #define GP_DECLARE(name)			optype EMU_FASTCALL						\

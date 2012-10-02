@@ -29,6 +29,12 @@
 
 typedef void(*GPFuncPtr)(void); ///< Function pointer GP opcodes
 
+// Tyler: src/core/src/video/gx_fifo.h redefines some of these macros!
+#undef GP_OPCODE
+#undef GP_SETOP
+#undef FIFO_SIZE
+#undef FIFO_MASK
+
 // GP opcode decoding
 #define GP_OPMASK(n)            ((n >> 3) & 0x1f)
 #define GP_OPCODE(name)         void EMU_FASTCALL GPOPCODE_##name()
