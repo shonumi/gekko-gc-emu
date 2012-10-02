@@ -119,56 +119,56 @@ struct PPCDisasm
 
 /* Local data */
 
-static char *trap_condition[32] = {
+static const char *trap_condition[32] = {
   NULL,"lgt","llt",NULL,"eq","lge","lle",NULL,
   "gt",NULL,NULL,NULL,"ge",NULL,NULL,NULL,
   "lt",NULL,NULL,NULL,"le",NULL,NULL,NULL,
   "ne",NULL,NULL,NULL,NULL,NULL,NULL,NULL
 };
 
-static char *cmpname[4] = {
+static const char *cmpname[4] = {
   "cmpw","cmpd","cmplw","cmpld"
 };
 
-static char *b_ext[4] = {
+static const char *b_ext[4] = {
   "","l","a","la"
 };
 
-static char *b_condition[8] = {
+static const char *b_condition[8] = {
   "ge","le","ne","ns","lt","gt","eq","so"
 };
 
-static char *b_decr[16] = {
+static const char *b_decr[16] = {
   "nzf","zf",NULL,NULL,"nzt","zt",NULL,NULL,
   "nz","z",NULL,NULL,"nz","z",NULL,NULL
 };
 
-static char *regsel[2] = {
+static const char *regsel[2] = {
   "","r"
 };
 
-static char *oesel[2] = {
+static const char *oesel[2] = {
   "","o"
 };
 
-static char *rcsel[2] = {
+static const char *rcsel[2] = {
   "","."
 };
 
-static char *ldstnames[] = {
+static const char *ldstnames[] = {
   "lwz","lwzu","lbz","lbzu","stw","stwu","stb","stbu","lhz","lhzu",
   "lha","lhau","sth","sthu","lmw","stmw","lfs","lfsu","lfd","lfdu",
   "stfs","stfsu","stfd","stfdu"
 };
 
-static char *regnames[] = {
+static const char *regnames[] = {
  "r0" , "r1/sp" , "r2/sd1", "r3" , "r4" , "r5" , "r6" , "r7" , 
  "r8" , "r9" , "r10", "r11", "r12", "sd2", "r14", "r15", 
  "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23", 
  "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
 };
 
-static char *spr_name(int n)
+static const char *spr_name(int n)
 {
     static char def[8];
 
@@ -370,7 +370,7 @@ static char *fd_ra_rb(char *s,ppc_word in,int mask)
 
 static void trapi(struct PPCDisasm *dp,ppc_word in,unsigned char dmode)
 {
-  char *cnd;
+  const char *cnd;
 
   if (cnd = trap_condition[PPCGETD(in)]) {
     dp->flags |= dmode;
@@ -403,7 +403,7 @@ static void cmpi(struct PPCDisasm *dp,ppc_word in,int uimm)
 }
 
 
-static void addi(struct PPCDisasm *dp,ppc_word in,char *ext)
+static void addi(struct PPCDisasm *dp,ppc_word in,const char *ext)
 {
   if ((in&0x08000000) && !PPCGETA(in)) {
     sprintf(dp->opcode,"l%s",ext);  /* li, lis */
@@ -422,13 +422,13 @@ static void addi(struct PPCDisasm *dp,ppc_word in,char *ext)
 
 
 /* build a branch instr. and return number of chars written to operand */
-static int branch(struct PPCDisasm *dp,ppc_word in,char *bname,int aform,int bdisp)
+static int branch(struct PPCDisasm *dp,ppc_word in,const char *bname,int aform,int bdisp)
 {
   int bo = (int)PPCGETD(in);
   int bi = (int)PPCGETA(in);
   char y = (char)(bo & 1);
   int opercnt = 0;
-  char *ext = b_ext[aform*2+(int)(in&1)];
+  const char *ext = b_ext[aform*2+(int)(in&1)];
 
   if (bdisp < 0)
     y ^= 1;
@@ -516,7 +516,7 @@ static void mcrf(struct PPCDisasm *dp,ppc_word in,char c)
 }
 
 
-static void crop(struct PPCDisasm *dp,ppc_word in,char *n1,char *n2)
+static void crop(struct PPCDisasm *dp,ppc_word in,const char *n1,const char *n2)
 {
   int crd = (int)PPCGETD(in);
   int cra = (int)PPCGETA(in);
@@ -534,7 +534,7 @@ static void crop(struct PPCDisasm *dp,ppc_word in,char *n1,char *n2)
 }
 
 
-static void nooper(struct PPCDisasm *dp,ppc_word in,char *name,
+static void nooper(struct PPCDisasm *dp,ppc_word in,const char *name,
                    unsigned char dmode)
 {
   if (in & (PPCDMASK|PPCAMASK|PPCBMASK|1)) {
@@ -547,7 +547,7 @@ static void nooper(struct PPCDisasm *dp,ppc_word in,char *name,
 }
 
 
-static void rlw(struct PPCDisasm *dp,ppc_word in,char *name,int i)
+static void rlw(struct PPCDisasm *dp,ppc_word in,const char *name,int i)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -560,14 +560,14 @@ static void rlw(struct PPCDisasm *dp,ppc_word in,char *name,int i)
 }
 
 
-static void ori(struct PPCDisasm *dp,ppc_word in,char *name)
+static void ori(struct PPCDisasm *dp,ppc_word in,const char *name)
 {
   strcpy(dp->opcode,name);
   imm(dp,in,1,1,1);
 }
 
 
-static void rld(struct PPCDisasm *dp,ppc_word in,char *name,int i)
+static void rld(struct PPCDisasm *dp,ppc_word in,const char *name,int i)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -600,7 +600,7 @@ static void cmp(struct PPCDisasm *dp,ppc_word in)
 
 static void trap(struct PPCDisasm *dp,ppc_word in,unsigned char dmode)
 {
-  char *cnd;
+  const char *cnd;
   int to = (int)PPCGETD(in);
 
   if (cnd = trap_condition[to]) {
@@ -624,7 +624,7 @@ static void trap(struct PPCDisasm *dp,ppc_word in,unsigned char dmode)
 }
 
 
-static void dab(struct PPCDisasm *dp,ppc_word in,char *name,int mask,
+static void dab(struct PPCDisasm *dp,ppc_word in,const char *name,int mask,
                 int smode,int chkoe,int chkrc,unsigned char dmode)
 /* standard instruction: xxxx rD,rA,rB */
 {
@@ -642,7 +642,7 @@ static void dab(struct PPCDisasm *dp,ppc_word in,char *name,int mask,
 }
 
 
-static void rrn(struct PPCDisasm *dp,ppc_word in,char *name,
+static void rrn(struct PPCDisasm *dp,ppc_word in,const char *name,
                 int smode,int chkoe,int chkrc,unsigned char dmode)
 /* Last operand is no register: xxxx rD,rA,NB */
 {
@@ -705,7 +705,7 @@ static void mspr(struct PPCDisasm *dp,ppc_word in,int smode)
   int d = (int)PPCGETD(in);
   int spr = (int)((PPCGETB(in)<<5)+PPCGETA(in));
   int fmt = 0;
-  char *x;
+  const char *x;
 
   if (in & 1) {
     ill(dp,in);
@@ -785,7 +785,7 @@ static void sradi(struct PPCDisasm *dp,ppc_word in)
   sprintf(dp->operands,"%s, %s, %d",regnames[a],regnames[s],bsh);
 }
 
-static char *ldst_offs(unsigned long val)
+static const char *ldst_offs(unsigned long val)
 {
     static char buf[8];
 
@@ -813,7 +813,7 @@ static char *ldst_offs(unsigned long val)
     }
 }
 
-static void ldst(struct PPCDisasm *dp,ppc_word in,char *name,char reg,unsigned char dmode)
+static void ldst(struct PPCDisasm *dp,ppc_word in,const char *name,char reg,unsigned char dmode)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -835,7 +835,7 @@ static void ldst(struct PPCDisasm *dp,ppc_word in,char *name,char reg,unsigned c
 }
 
 /* standard floating point instruction: xxxx fD,fA,fB,fC */
-static void fdabc(struct PPCDisasm *dp,ppc_word in,char *name,int mask,unsigned char dmode)
+static void fdabc(struct PPCDisasm *dp,ppc_word in,const char *name,int mask,unsigned char dmode)
 {
   static const char *fmt = "f%d, ";
   char *s = dp->operands;
@@ -862,7 +862,7 @@ static void fdabc(struct PPCDisasm *dp,ppc_word in,char *name,int mask,unsigned 
 }
 
 /* indexed float instruction: xxxx fD,rA,rB */
-static void fdab(struct PPCDisasm *dp,ppc_word in,char *name,int mask)
+static void fdab(struct PPCDisasm *dp,ppc_word in,const char *name,int mask)
 {
   strcpy(dp->opcode,name);
   fd_ra_rb(dp->operands,in,mask);
@@ -899,12 +899,12 @@ static void mtfsb(struct PPCDisasm *dp,ppc_word in,int n)
 
 static void ps_cmpx(struct PPCDisasm *dp, ppc_word in, int n)
 {
-    static char *fix[] = { "u0", "o0", "u1", "o1" };
+    const static char *fix[] = { "u0", "o0", "u1", "o1" };
     sprintf(dp->opcode, "ps_cmp%s", fix[n]);
     sprintf(dp->operands, "cr%d, f%d, f%d", (int)PPCGETCRD(in), (int)PPCGETA(in), (int)PPCGETB(in));
 }
 
-static char *ps_ldst_offs(unsigned long val)
+static const char *ps_ldst_offs(unsigned long val)
 {
     static char buf[8];
 
@@ -933,7 +933,7 @@ static char *ps_ldst_offs(unsigned long val)
     }
 }
 
-static void ps_ldst(struct PPCDisasm *dp, ppc_word in, char *fix)
+static void ps_ldst(struct PPCDisasm *dp, ppc_word in, const char *fix)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -942,14 +942,14 @@ static void ps_ldst(struct PPCDisasm *dp, ppc_word in, char *fix)
   sprintf(dp->operands, "f%d, %s (%s), %d, %d", s, ps_ldst_offs(d), regnames[a], (in >> 15) & 1, (in >> 12) & 7);
 }
 
-static void ps_ldstx(struct PPCDisasm *dp, ppc_word in, char *fix)
+static void ps_ldstx(struct PPCDisasm *dp, ppc_word in, const char *fix)
 {
     int a = (int)PPCGETA(in), b = (int)PPCGETB(in);
     sprintf(dp->opcode, "psq_%s", fix);
     sprintf(dp->operands, "f%d, %s, %s, %d, %d", (int)PPCGETD(in), regnames[a], regnames[b], (in >> 10) & 1, (in >> 7) & 7);
 }
 
-static void ps_dacb(struct PPCDisasm *dp, ppc_word in, char *fix)
+static void ps_dacb(struct PPCDisasm *dp, ppc_word in, const char *fix)
 {
     int a = (int)PPCGETA(in), b = (int)PPCGETB(in), c = (int)PPCGETC(in), d = (int)PPCGETD(in);
     if(in & 1)
@@ -959,7 +959,7 @@ static void ps_dacb(struct PPCDisasm *dp, ppc_word in, char *fix)
     sprintf(dp->operands, "f%d, f%d, f%d, f%d", d, a, c, b);
 }
 
-static void ps_dac(struct PPCDisasm *dp, ppc_word in, char *fix)
+static void ps_dac(struct PPCDisasm *dp, ppc_word in, const char *fix)
 {
     int a = (int)PPCGETA(in), c = (int)PPCGETC(in), d = (int)PPCGETD(in);
     if(in & 1)
@@ -969,7 +969,7 @@ static void ps_dac(struct PPCDisasm *dp, ppc_word in, char *fix)
     sprintf(dp->operands, "f%d, f%d, f%d", d, a, c);
 }
 
-static void ps_dab(struct PPCDisasm *dp, ppc_word in, char *fix)
+static void ps_dab(struct PPCDisasm *dp, ppc_word in, const char *fix)
 {
     int d = (int)PPCGETD(in), a = (int)PPCGETA(in), b = (int)PPCGETB(in);
     if(in & 1)
@@ -979,7 +979,7 @@ static void ps_dab(struct PPCDisasm *dp, ppc_word in, char *fix)
     sprintf(dp->operands, "f%d, f%d, f%d", d, a, b);
 }
 
-static void ps_db(struct PPCDisasm *dp, ppc_word in, char *fix)
+static void ps_db(struct PPCDisasm *dp, ppc_word in, const char *fix)
 {
     int d = (int)PPCGETD(in), b = (int)PPCGETB(in);
     if(in & 1)
@@ -995,7 +995,7 @@ static void ps_db(struct PPCDisasm *dp, ppc_word in, char *fix)
 /* instruction, or NULL if an error occured. */
 static ppc_word *PPC_Disassemble(struct PPCDisasm *dp)
 {
-  char *tc;
+  const char *tc;
   ppc_word in = *(dp->instr);
 
   if (dp->opcode==NULL || dp->operands==NULL)
