@@ -136,7 +136,7 @@ public:
     };
     
     char* program_dir() { return program_dir_; }
-    void set_program_dir(char* val, size_t size) { strcpy(program_dir_, val); }
+    void set_program_dir(const char* val, size_t size) { strcpy(program_dir_, val); }
 
     bool enable_multicore() { return enable_multicore_; }
     bool enable_idle_skipping() {return enable_idle_skipping_; }
@@ -151,7 +151,7 @@ public:
 
     char* default_boot_file() { return default_boot_file_; }
     char* dvd_image_path(int path) { return dvd_image_paths_[path]; }
-    void set_default_boot_file(char* val, size_t size) { strcpy(default_boot_file_, val); }
+    void set_default_boot_file(const char* val, size_t size) { strcpy(default_boot_file_, val); }
     void set_dvd_image_path(int path, char* val, size_t size) { strcpy(dvd_image_paths_[path], val); }
 
     bool enable_show_fps() { return enable_show_fps_; }
@@ -344,7 +344,7 @@ public:
 
     char* program_dir() { return program_dir_; }
 
-    void set_program_dir(char* val, size_t size) { strcpy(program_dir_, val); }
+    void set_program_dir(const char* val, size_t size) { strcpy(program_dir_, val); }
 
 private:
     char program_dir_[MAX_PATH]; ///< Program directory, used for loading config files

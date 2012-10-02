@@ -171,7 +171,7 @@ public:
     void set_enabled(bool enabled) { enabled_ = enabled; }
 
     LogLevel level() const { return level_;	}
-    LogLevel set_level(LogLevel level) { level_ = level; }
+    void set_level(LogLevel level) { level_ = level; }
 
 private:
     char name_[32];             ///< Name of the logger (e.g. "SI")
