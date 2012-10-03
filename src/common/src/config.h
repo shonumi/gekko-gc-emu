@@ -136,7 +136,7 @@ public:
     };
     
     char* program_dir() { return program_dir_; }
-    void set_program_dir(char* val, size_t size) { strcpy_s(program_dir_, size, val); }
+    void set_program_dir(char* val, size_t size) { strcpy(program_dir_, val); }
 
     bool enable_multicore() { return enable_multicore_; }
     bool enable_idle_skipping() {return enable_idle_skipping_; }
@@ -151,8 +151,8 @@ public:
 
     char* default_boot_file() { return default_boot_file_; }
     char* dvd_image_path(int path) { return dvd_image_paths_[path]; }
-    void set_default_boot_file(char* val, size_t size) { strcpy_s(default_boot_file_, size, val); }
-    void set_dvd_image_path(int path, char* val, size_t size) { strcpy_s(dvd_image_paths_[path], size, val); }
+    void set_default_boot_file(char* val, size_t size) { strcpy(default_boot_file_, val); }
+    void set_dvd_image_path(int path, char* val, size_t size) { strcpy(dvd_image_paths_[path], val); }
 
     bool enable_show_fps() { return enable_show_fps_; }
     bool enable_dump_opcode0() { return enable_dump_opcode0_; }
@@ -235,28 +235,28 @@ public:
     static inline void RenderTypeToString(RendererType renderer, char* renderer_str, size_t size) {
         switch (renderer) {
         case RENDERER_OPENGL_2:
-            strcpy_s(renderer_str, size, "opengl2");
+            strcpy(renderer_str, "opengl2");
             break;
         case RENDERER_OPENGL_3:
-            strcpy_s(renderer_str, size, "opengl3");
+            strcpy(renderer_str, "opengl3");
             break;
         case RENDERER_DIRECTX9:
-            strcpy_s(renderer_str, size, "directx9");
+            strcpy(renderer_str, "directx9");
             break;
         case RENDERER_DIRECTX10:
-            strcpy_s(renderer_str, size, "directx10");
+            strcpy(renderer_str, "directx10");
             break;
         case RENDERER_DIRECTX11:
-            strcpy_s(renderer_str, size, "directx11");
+            strcpy(renderer_str, "directx11");
             break;
         case RENDERER_SOFTWARE:
-            strcpy_s(renderer_str, size, "software");
+            strcpy(renderer_str, "software");
             break;
         case RENDERER_HARDWARE:
-            strcpy_s(renderer_str, size, "hardware");
+            strcpy(renderer_str, "hardware");
             break;
         default:
-            strcpy_s(renderer_str, size, "null");
+            strcpy(renderer_str, "null");
             break;
         }
     }
@@ -270,13 +270,13 @@ public:
     static inline void CPUCoreTypeToString(CPUCoreType cpu, char* cpu_str, size_t size) {
         switch (cpu) {
         case CPU_INTERPRETER:
-            strcpy_s(cpu_str, size, "interpreter");
+            strcpy(cpu_str, "interpreter");
             break;
         case CPU_DYNAREC:
-            strcpy_s(cpu_str, size, "dynarec");
+            strcpy(cpu_str, "dynarec");
             break;
         default:
-            strcpy_s(cpu_str, size, "null");
+            strcpy(cpu_str, "null");
             break;
         }
     }
@@ -343,7 +343,7 @@ public:
     void ReloadConfig(const char* game_id);
 
     char* program_dir() { return program_dir_; }
-    void set_program_dir(char* val, size_t size) { strcpy_s(program_dir_, size, val); }
+    void set_program_dir(char* val, size_t size) { strcpy(program_dir_, val); }
 
 private:
     char program_dir_[MAX_PATH]; ///< Program directory, used for loading config files

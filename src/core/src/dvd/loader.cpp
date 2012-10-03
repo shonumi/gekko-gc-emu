@@ -43,18 +43,18 @@ int LoadBootableFile(char* filename) {
 
     c = strrchr(filename, '/');
     if (c) {
-        strcpy_s(str, 256, c + 1);
+        strcpy(str, c + 1);
     } else {
         c = strrchr(filename, '\\');
         if (c) {
-            strcpy_s(str, 256, c + 1);
+            strcpy(str, c + 1);
         } else {
-            strcpy_s(str, 256, filename);
+            strcpy(str, filename);
         }
     }
     c = strrchr(str, '.');
     if (c) {
-        strcpy_s(ext2, 64, c + 1);
+        strcpy(ext2, c + 1);
         common::LowerStr(ext2);
         ext = ext2;
     }
@@ -78,7 +78,7 @@ int LoadBootableFile(char* filename) {
 // TODO (ShizZy): Deprecated - port gcm_dump to standard file IO, or remove from the project if 
 //                  we no longer need it!
         LOG_ERROR(TDVD, "Support for DMP files has been removed.  If you need it, fix it!");
-        //strcpy_s(ext, 256, c - 3);
+        //strcpy(ext, c - 3);
         //if(E_OK == _stricmp(ext, "gcm.dmp")) {
         //    dvd::LoadDMP(filename);
         //}

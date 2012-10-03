@@ -77,10 +77,6 @@ extern char *kGekkoOS;
 #define __stdcall
 #define __cdecl
 
-#define sprintf_s               _snprintf           ///< Unsafe but only available on Windows
-#define strcpy_s(dst, len, src) strcpy(dst, src)    ///< Unsafe but only available on Windows
-#define strcat_s(dst, len, src) strcat(dst, src)    ///< Unsafe but only available on Windows
-
 #define LONG long
 #define BOOL bool
 #define DWORD u32

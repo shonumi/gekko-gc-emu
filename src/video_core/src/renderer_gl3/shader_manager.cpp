@@ -209,14 +209,11 @@ void Init() {
     char fs_filename[MAX_PATH];
     char fs_quads_filename[MAX_PATH];
 
-    strcpy_s(vs_filename, MAX_PATH, common::g_config->program_dir());
-    strcat_s(vs_filename, MAX_PATH, "sys/shaders/default.vs");
+    strcpy(vs_filename, common::g_config->program_dir());
+    strcat(vs_filename, "sys/shaders/default.vs");
 
-    strcpy_s(gs_filename, MAX_PATH, common::g_config->program_dir());
-    strcat_s(gs_filename, MAX_PATH, "sys/shaders/default.gs");
-
-    strcpy_s(fs_filename, MAX_PATH, common::g_config->program_dir());
-    strcat_s(fs_filename, MAX_PATH, "sys/shaders/default.fs");
+    strcpy(fs_filename, common::g_config->program_dir());
+    strcat(fs_filename, "sys/shaders/default.fs");
 
     g_shader_default_id = LoadShader(vs_filename, NULL, fs_filename);
     

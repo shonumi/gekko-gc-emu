@@ -81,7 +81,7 @@ int __cdecl main(int argc, char **argv)
     common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str, 32);
     common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str, 32);
 
-    sprintf_s(window_title, "gekko-git [%s|%s|glfw] - %s", cpu_str, renderer_str, __DATE__);
+    sprintf(window_title, "gekko-git [%s|%s|glfw] - %s", cpu_str, renderer_str, __DATE__);
 
     emu_window->SetTitle(window_title);
 

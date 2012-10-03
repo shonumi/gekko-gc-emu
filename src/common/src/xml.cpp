@@ -46,7 +46,7 @@ static char* GetXMLElementAsString(rapidxml::xml_node<> *node, const char* eleme
     char* element_value) {
     rapidxml::xml_node<> *sub_node = node->first_node(element_name);
     if (sub_node) {
-        strcpy_s(element_value, MAX_PATH, sub_node->value());
+        strcpy(element_value, sub_node->value());
         return element_value;
     }
     return NULL;
@@ -129,7 +129,7 @@ void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_nam
     char node_name_str[8];
     
     // Get lowercase section name
-    strcpy_s(node_name_str, 8, node_name);
+    strcpy(node_name_str, node_name);
 
     // TODO: not available on Unix
     common::LowerStr(node_name_str);
@@ -182,7 +182,7 @@ void ParsePatchesNode(rapidxml::xml_node<> *node, Config& config, char* node_nam
                     char instr_str[4];
                     
                     // Convert to lowercase
-                    strcpy_s(instr_str, 4, attr->value());
+                    strcpy(instr_str, attr->value());
                     // TODO: not available on Unix
                     common::LowerStr(instr_str);
 
@@ -257,7 +257,7 @@ void ParsePowerPCNode(rapidxml::xml_node<> *node, Config& config) {
         char core_str[12] = "null";
         
         // Convert to lowercase
-        strcpy_s(core_str, 12, attr->value());
+        strcpy(core_str, attr->value());
         // TODO: not available on Unix
         common::LowerStr(core_str);
 
@@ -445,8 +445,8 @@ void ParseDevicesNode(rapidxml::xml_node<> *node, Config& config) {
 void LoadXMLConfig(Config& config, char* filename) {
     // Open the XML file
     char full_filename[MAX_PATH];
-    strcpy_s(full_filename, MAX_PATH, config.program_dir());
-    strcat_s(full_filename, MAX_PATH, filename);
+    strcpy(full_filename, config.program_dir());
+    strcat(full_filename, filename);
     std::ifstream ifs(full_filename);
 
     // Check that the file is valid

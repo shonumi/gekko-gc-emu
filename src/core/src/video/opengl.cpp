@@ -30,7 +30,7 @@ void OPENGL_SetWindow(EmuWindow* render_window)
 
 // Set the window title
 void OPENGL_SetTitle(char* title) {
-    sprintf_s(g_window_title, 256, "%s", title); 
+    sprintf(g_window_title, "%s", title); 
 }
 
 void OPENGL_DrawFramebuffer()
@@ -188,11 +188,11 @@ void OPENGL_SetTitle()
 		opcount = cpu->GetTicks();
 
 		if (cpu->GetCPUType() == GekkoCPU::DynaRec) {
-			sprintf_s(str2, 15, "rec");
+			sprintf(str2, "rec");
         } else {
-            sprintf_s(str2, 15, "int");
+            sprintf(str2, "int");
 		}
-		sprintf_s(str1, 255, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
+		sprintf(str1, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
             g_window_title, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
 
         s_render_window->SetTitle(str1);

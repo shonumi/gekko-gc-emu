@@ -40,7 +40,7 @@ void TicksToFormattedString(u32 ticks, char* formatted_string) {
     u32 ss = ticks / 1000;
     ticks -= ss * 1000;
 
-    sprintf_s(formatted_string, 16, "%02d:%02d:%03d", mm, ss, ticks);
+    sprintf(formatted_string, "%02d:%02d:%03d", mm, ss, ticks);
 }
 
 } // namespace

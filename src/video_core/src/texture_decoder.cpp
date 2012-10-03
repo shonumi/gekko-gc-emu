@@ -490,13 +490,13 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
 
     if (common::g_config->current_renderer_config().enable_texture_dumping) {
         char filepath[MAX_PATH], filename[MAX_PATH];
-        strcpy_s(filepath, MAX_PATH, common::g_config->program_dir());
-        strcat_s(filepath, MAX_PATH, "dump");
+        strcpy(filepath, common::g_config->program_dir());
+        strcat(filepath, "dump");
         mkdir(filepath);
-        strcat_s(filepath, MAX_PATH, "/textures");
+        strcat(filepath, "/textures");
         mkdir(filepath);
-        sprintf_s(filename, MAX_PATH, "/%d.tga", addr);
-        strcat_s(filepath, MAX_PATH, filename);
+        sprintf(filename, "/%d.tga", addr);
+        strcat(filepath, filename);
         DumpTextureTGA(filepath, w, h, tmp);
     }
 

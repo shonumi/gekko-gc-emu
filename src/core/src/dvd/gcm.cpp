@@ -664,7 +664,7 @@ int LoadGCM(char *filename)
     char linestr[81] = "**********************************************************************";
     char hle_enable_str[10] = "disabled";
     if (common::g_config->enable_hle()) {
-        sprintf_s(hle_enable_str, 10, "enabled");
+        sprintf(hle_enable_str, "enabled");
     }
     LOG_NOTICE(TDVD, linestr);
     LOG_NOTICE(TDVD, "Loading \"%s\"", g_current_game_name);

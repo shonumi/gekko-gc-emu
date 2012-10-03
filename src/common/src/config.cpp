@@ -91,7 +91,7 @@ ConfigManager::~ConfigManager() {
  */
 void ConfigManager::ReloadGameConfig(const char* id) {
     char full_filename[MAX_PATH];
-    sprintf_s(full_filename, MAX_PATH, "user/games/%s.xml", id);
+    sprintf(full_filename, "user/games/%s.xml", id);
     common::LoadXMLConfig(*g_config, full_filename);
 }
 

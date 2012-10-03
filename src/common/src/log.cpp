@@ -80,12 +80,12 @@ void LogGeneric(LogLevel level, LogType type, const char *file, int line, bool a
     
     // Format the log message
     if (append) {
-        sprintf_s(msg, kMaxMsgLength, "%s", fmt);
+        sprintf(msg, "%s", fmt);
     } else {
         // char time_str[16];
         // u32 time_elapsed = common::GetTimeElapsed();
         // common::TicksToFormattedString(time_elapsed, time_str);
-        sprintf_s(msg, kMaxMsgLength, "%c[%s] %s", level_to_char[(int)level], g_logs[type]->name(), fmt);
+        sprintf(msg, "%c[%s] %s", level_to_char[(int)level], g_logs[type]->name(), fmt);
     }
 
     // If the last message didn't have a line break, print one
