@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    elf.h
- * \author  Lightning
- * \date    2006-01-01
- * \brief   Interface for loading an ELF
+ * @file    elf.h
+ * @author  Lightning
+ * @date    2006-01-01
+ * @brief   Interface for loading an ELF
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of

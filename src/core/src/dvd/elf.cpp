@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    elf.cpp
- * \author  Lightning, ShizZy
- * \date    2006-01-01
- * \brief   Interface for loading an ELF
+ * @file    elf.cpp
+ * @author  Lightning, ShizZy
+ * @date    2006-01-01
+ * @brief   Interface for loading an ELF
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -23,6 +23,10 @@
  */
 
 #include "common.h"
+#include "platform.h"
+#if EMU_PLATFORM == PLATFORM_LINUX
+#include <unistd.h>
+#endif
 #include "memory.h"
 #include "hw/hw.h"
 #include "powerpc/cpu_core.h"

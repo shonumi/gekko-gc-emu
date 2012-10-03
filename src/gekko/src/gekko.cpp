@@ -24,6 +24,11 @@
 
 #include "common.h"
 #include "platform.h"
+
+#if EMU_PLATFORM == PLATFORM_LINUX
+#include <unistd.h>
+#endif
+
 #include "config.h"
 #include "xml.h"
 #include "x86_utils.h"

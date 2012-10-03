@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko / ProjectCafe Emulator
  *
- * \file    loader.cpp
- * \author  Lightning, ShizZy <shizzy247@gmail.com>
- * \date    2012-02-12
- * \brief   Frontend interface for dvd/rom loading
+ * @file    loader.cpp
+ * @author  Lightning, ShizZy <shizzy247@gmail.com>
+ * @date    2012-02-12
+ * @brief   Frontend interface for dvd/rom loading
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of

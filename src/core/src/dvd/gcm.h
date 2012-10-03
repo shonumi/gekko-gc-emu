@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    gcm.h
- * \author  Lightning
- * \date    2006-01-01
- * \brief   Interface for loading a GCM GameCube DVD image
+ * @file    gcm.h
+ * @author  Lightning
+ * @date    2006-01-01
+ * @brief   Interface for loading a GCM GameCube DVD image
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
