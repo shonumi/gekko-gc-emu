@@ -116,13 +116,16 @@ void XFLoad(u32 length, u32 base_addr, u32* data) {
 
     // Transformation memory
     } else if (base_addr < 0x100) {
+        memcpy(&g_xf_mem[base_addr], data, length << 2);
         video_core::g_renderer->WriteXF(base_addr, length, data);
     }
 }
 
 /// Write data into a XF register indexed-form
 void XFLoadIndexed(u8 n, u16 index, u8 length, u16 addr) {
-    video_core::g_renderer->WriteXF(addr, length, (u32*)&Mem_RAM[CP_IDX_ADDR(index, n) & RAM_MASK]);
+    u32* data = (u32*)&Mem_RAM[CP_IDX_ADDR(index, n) & RAM_MASK];
+    memcpy(&g_xf_mem[addr], data, length << 2);
+    video_core::g_renderer->WriteXF(addr, length, data);
 }
 
 /// Initialize XF

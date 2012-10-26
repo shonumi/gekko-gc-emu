@@ -92,6 +92,12 @@ public:
     virtual void VertexPosition_SetType(GXCompType type, GXCompCnt count) = 0;
 
     /**
+     * Used to signal to the render that a region in XF is required by a primitive
+     * @param index Vector index in XF memory that is required
+     */
+    virtual void VertexPosition_UseIndexXF(u8 index) = 0;
+
+    /**
      * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
      * @param color Which color to configure (0 or 1)
      * @param type GXCompType color format type

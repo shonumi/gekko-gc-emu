@@ -118,6 +118,8 @@ public:
     GLuint	ubo_handle_bp_;
     GLuint	ubo_handle_xf_;
 
+    int invalid_xf_region_[0x40];
+
 private:
 
     /**

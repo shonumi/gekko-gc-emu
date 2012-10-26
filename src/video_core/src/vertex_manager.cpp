@@ -37,8 +37,8 @@ int         g_convert_quads_to_triangles = 0;
 int g_quad_counter = 0;
 
 void NextVertex() {
-    GXVertex zero;
-    memset(&zero, 0, sizeof(zero));
+    // Mark the vertex position XF index as "used" to renderer
+    video_core::g_renderer->VertexPosition_UseIndexXF(g_vbo->pm_idx);
 
     g_quad_counter++;
 

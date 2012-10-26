@@ -155,6 +155,13 @@ void RendererGL3::WriteXF(u16 addr, int length, u32* data) {
     uniform_manager_->WriteXF(addr, length, data);
 }
 
+/**
+ * Used to signal to the render that a region in XF is required by a primitive
+ * @param index Vector index in XF memory that is required
+ */
+void RendererGL3::VertexPosition_UseIndexXF(u8 index) {
+    uniform_manager_->invalid_xf_addr_[index] = 1;
+}
 
 /**
 * Adds a new texturer to the renderer (must be 32-bit RGBA)
