@@ -160,7 +160,6 @@ void RendererGL3::WriteXF(u16 addr, int length, u32* data) {
  * @param index Vector index in XF memory that is required
  */
 void RendererGL3::VertexPosition_UseIndexXF(u8 index) {
-    uniform_manager_->invalid_xf_addr_[index] = 1;
 }
 
 /**
