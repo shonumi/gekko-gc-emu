@@ -34,6 +34,21 @@
 #include "shader_manager.h"
 #include "uniform_manager.h"
 
+/// TEV color stage scale lookup
+const f32 tev_scale[] = {
+    1.0, 2.0, 4.0, 0.5
+};
+
+/// TEV color stage subtraction lookup
+const f32 tev_sub[] = {
+    1.0, -1.0
+};
+
+/// TEV color stage bias lookup
+const f32 tev_bias[] = {
+    0.0, 0.5, -0.5, 0.0
+};
+
 UniformManager::UniformManager() {
     ubo_handle_bp_ = 0;
     ubo_handle_xf_ = 0;
@@ -95,10 +110,10 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
             tev_stage.color_sel_b   = gp::g_bp_regs.combiner[stage].color.sel_b;
             tev_stage.color_sel_c   = gp::g_bp_regs.combiner[stage].color.sel_c;
             tev_stage.color_sel_d   = gp::g_bp_regs.combiner[stage].color.sel_d;
-            tev_stage.color_bias    = gp::g_bp_regs.combiner[stage].color.bias;
-            tev_stage.color_sub     = gp::g_bp_regs.combiner[stage].color.sub;
+            tev_stage.color_bias    = tev_bias[gp::g_bp_regs.combiner[stage].color.bias];
+            tev_stage.color_sub     = tev_sub[gp::g_bp_regs.combiner[stage].color.sub];
             tev_stage.color_clamp   = gp::g_bp_regs.combiner[stage].color.clamp;
-            tev_stage.color_shift   = gp::g_bp_regs.combiner[stage].color.shift;
+            tev_stage.color_scale   = tev_scale[gp::g_bp_regs.combiner[stage].color.shift];
             tev_stage.color_dest    = gp::g_bp_regs.combiner[stage].color.dest;
 
             // If region is already invalid, just write data
@@ -144,10 +159,10 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
             tev_stage.alpha_sel_b   = gp::g_bp_regs.combiner[stage].alpha.sel_b;
             tev_stage.alpha_sel_c   = gp::g_bp_regs.combiner[stage].alpha.sel_c;
             tev_stage.alpha_sel_d   = gp::g_bp_regs.combiner[stage].alpha.sel_d;
-            tev_stage.alpha_bias    = gp::g_bp_regs.combiner[stage].alpha.bias;
-            tev_stage.alpha_sub     = gp::g_bp_regs.combiner[stage].alpha.sub;
+            tev_stage.alpha_bias    = tev_bias[gp::g_bp_regs.combiner[stage].alpha.bias];
+            tev_stage.alpha_sub     = tev_sub[gp::g_bp_regs.combiner[stage].alpha.sub];
             tev_stage.alpha_clamp   = gp::g_bp_regs.combiner[stage].alpha.clamp;
-            tev_stage.alpha_shift   = gp::g_bp_regs.combiner[stage].alpha.shift;
+            tev_stage.alpha_scale   = tev_scale[gp::g_bp_regs.combiner[stage].alpha.shift];
             tev_stage.alpha_dest    = gp::g_bp_regs.combiner[stage].alpha.dest;
 
             // If region is already invalid, just write data

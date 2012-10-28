@@ -52,20 +52,20 @@ public:
         int color_sel_b;
         int color_sel_c;
         int color_sel_d;
-        int color_bias;
-        int color_sub;
+        f32 color_bias;
+        f32 color_sub;
         int color_clamp;
-        int color_shift;
+        f32 color_scale;
         int color_dest;
 
         int alpha_sel_a;
         int alpha_sel_b;
         int alpha_sel_c;
         int alpha_sel_d;
-        int alpha_bias;
-        int alpha_sub;
+        f32 alpha_bias;
+        f32 alpha_sub;
         int alpha_clamp;
-        int alpha_shift;
+        f32 alpha_scale;
         int alpha_dest;
 
         int pad[2];

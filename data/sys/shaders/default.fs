@@ -22,20 +22,20 @@ struct BPTevStage {
     int color_sel_b;
     int color_sel_c;
     int color_sel_d;
-    int color_bias;
-    int color_sub;
+    float color_bias;
+    float color_sub;
     int color_clamp;
-    int color_shift;
+    float color_scale;
     int color_dest;
 
     int alpha_sel_a;
     int alpha_sel_b;
     int alpha_sel_c;
     int alpha_sel_d;
-    int alpha_bias;
-    int alpha_sub;
+    float alpha_bias;
+    float alpha_sub;
     int alpha_clamp;
-    int alpha_shift;
+    float alpha_scale;
     int alpha_dest;
 
     // These don't really need to be here, but it's a reminder that this struct must be padded to a
@@ -133,18 +133,6 @@ vec4 tev_konst[32] = vec4[](
     bp_tev_konst[3].aaaa
 );
 
-// TEV combiner functions
-// TODO(ShizZy): Verify these are actually right...
-float tev_scale[4] = float[](
-    1.0, 2.0, 4.0, 0.5
-);
-float tev_sub[2] = float[](
-    1.0, -1.0
-);
-float tev_bias[4] = float[](
-    0.0, 0.5, -0.5, 0.0
-);
-
 bool alpha_compare(in int op, in int value, in int ref) {
     switch (op) {
     case GX_NEVER:
@@ -186,10 +174,10 @@ void tev_stage(in int stage) {
         g_color[(tev_stage.alpha_sel_c << 1)].a);
     vec4 tev_input_d = vec4(g_color[tev_stage.color_sel_d].rgb, 
         g_color[(tev_stage.alpha_sel_d << 1)].a);
-    vec4 sub = vec4(tev_sub[tev_stage.color_sub], tev_sub[tev_stage.color_sub], 
-        tev_sub[tev_stage.color_sub], tev_sub[tev_stage.alpha_sub]);
-    vec4 bias = vec4(tev_bias[tev_stage.color_bias], tev_bias[tev_stage.color_bias], 
-        tev_bias[tev_stage.color_bias], tev_bias[tev_stage.alpha_bias]);
+    vec4 sub = vec4(tev_stage.color_sub, tev_stage.color_sub, tev_stage.color_sub, 
+		tev_stage.alpha_sub);
+    vec4 bias = vec4(tev_stage.color_bias, tev_stage.color_bias, tev_stage.color_bias, 
+		tev_stage.alpha_bias);
 
     // Process stage
     vec4 result = (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
@@ -197,9 +185,9 @@ void tev_stage(in int stage) {
     // Clamp color
     if (tev_stage.color_clamp == 1) {
         g_color[tev_stage.color_dest].rgb = 
-            clamp(tev_scale[tev_stage.color_shift] * result.rgb, 0.0, 1.0);
+            clamp(tev_stage.color_scale * result.rgb, 0.0, 1.0);
     } else {
-        g_color[tev_stage.color_dest].rgb = tev_scale[tev_stage.color_shift] * result.rgb;
+        g_color[tev_stage.color_dest].rgb = tev_stage.color_scale * result.rgb;
     }
 
     // Clamp alpha
