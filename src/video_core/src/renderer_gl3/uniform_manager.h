@@ -68,7 +68,8 @@ public:
         f32 alpha_scale;
         int alpha_dest;
 
-        int pad[2];
+		int konst_color_sel;
+		int konst_alpha_sel;
     };
 
     // Uniform blocks - These are mappings of the uniform blocks in the shader
@@ -84,7 +85,10 @@ public:
             UniformStruct_TevStageParams tev_stage[16];
         } bp_regs;
 
-    } uniform_blocks_;
+    };
+
+	UniformBlocks __uniform_data_;
+	UniformBlocks staged_uniform_data_;
 
     /**
      * Write data to BP for renderer internal use (e.g. direct to shader)

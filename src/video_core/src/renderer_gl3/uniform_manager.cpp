@@ -55,8 +55,8 @@ UniformManager::UniformManager() {
     last_invalid_region_bp_ = 0;
     last_invalid_region_xf_ = 0;
     memset(invalid_regions_xf_, 0, sizeof(invalid_regions_xf_));
-    //memset(invalid_regions_bp_, 0, sizeof(invalid_regions_bp_));
-    memset(&uniform_blocks_, 0, sizeof(uniform_blocks_));
+    memset(&staged_uniform_data_, 0, sizeof(staged_uniform_data_));
+    memset(&__uniform_data_, 0, sizeof(__uniform_data_));
     memset(invalid_bp_tev_stages_, 0, sizeof(invalid_bp_tev_stages_));
 }
 
@@ -66,15 +66,6 @@ UniformManager::UniformManager() {
  * @param data Value to write to BP register
  */
 void UniformManager::WriteBP(u8 addr, u32 data) {
-    static char uniform_name[256];
-    static u8   test_byte = 0;
-
-
-    //if (data == gp::g_bp_regs.mem[addr]) {
-    //	return;
-    //}
-    //sprintf(uniform_name, "bp_mem[%d]", addr);
-    //glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), data);
     switch(addr) {
     case BP_REG_GENMODE:
         {
@@ -104,33 +95,24 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         {
             int stage = (addr - BP_REG_TEV_COLOR_ENV) >> 1;
 
-            UniformStruct_TevStageParams tev_stage = uniform_blocks_.bp_regs.tev_stage[stage];
-
-            tev_stage.color_sel_a   = gp::g_bp_regs.combiner[stage].color.sel_a;
-            tev_stage.color_sel_b   = gp::g_bp_regs.combiner[stage].color.sel_b;
-            tev_stage.color_sel_c   = gp::g_bp_regs.combiner[stage].color.sel_c;
-            tev_stage.color_sel_d   = gp::g_bp_regs.combiner[stage].color.sel_d;
-            tev_stage.color_bias    = tev_bias[gp::g_bp_regs.combiner[stage].color.bias];
-            tev_stage.color_sub     = tev_sub[gp::g_bp_regs.combiner[stage].color.sub];
-            tev_stage.color_clamp   = gp::g_bp_regs.combiner[stage].color.clamp;
-            tev_stage.color_scale   = tev_scale[gp::g_bp_regs.combiner[stage].color.shift];
-            tev_stage.color_dest    = gp::g_bp_regs.combiner[stage].color.dest;
-
-            // If region is already invalid, just write data
-            if (invalid_bp_tev_stages_[stage]) {
-                uniform_blocks_.bp_regs.tev_stage[stage] = tev_stage;
-
-            // Otherwise, invalidate region in UBO if a change is detected
-            } else {
-                u32 new_hash = GenerateCRC((u8*)&tev_stage, sizeof(UniformStruct_TevStageParams));
-                u32 old_hash = GenerateCRC((u8*)&uniform_blocks_.bp_regs.tev_stage[stage], 
-                    sizeof(UniformStruct_TevStageParams));
-
-                if (new_hash != old_hash) {
-                    uniform_blocks_.bp_regs.tev_stage[stage] = tev_stage;
-                    invalid_bp_tev_stages_[stage] = 1;
-                }
-            }
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_a = 
+				gp::g_bp_regs.combiner[stage].color.sel_a;
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_b = 
+				gp::g_bp_regs.combiner[stage].color.sel_b;
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_c = 
+				gp::g_bp_regs.combiner[stage].color.sel_c;
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_d = 
+				gp::g_bp_regs.combiner[stage].color.sel_d;
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_bias = 
+				tev_bias[gp::g_bp_regs.combiner[stage].color.bias];
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_sub = 
+				tev_sub[gp::g_bp_regs.combiner[stage].color.sub];
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_clamp = 
+				gp::g_bp_regs.combiner[stage].color.clamp;
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_scale = 
+				tev_scale[gp::g_bp_regs.combiner[stage].color.shift];
+            staged_uniform_data_.bp_regs.tev_stage[stage].color_dest = 
+				gp::g_bp_regs.combiner[stage].color.dest;
         }
         break;
         
@@ -153,33 +135,24 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         {
             int stage = (addr - BP_REG_TEV_ALPHA_ENV) >> 1;
 
-            UniformStruct_TevStageParams tev_stage = uniform_blocks_.bp_regs.tev_stage[stage];
-
-            tev_stage.alpha_sel_a   = gp::g_bp_regs.combiner[stage].alpha.sel_a;
-            tev_stage.alpha_sel_b   = gp::g_bp_regs.combiner[stage].alpha.sel_b;
-            tev_stage.alpha_sel_c   = gp::g_bp_regs.combiner[stage].alpha.sel_c;
-            tev_stage.alpha_sel_d   = gp::g_bp_regs.combiner[stage].alpha.sel_d;
-            tev_stage.alpha_bias    = tev_bias[gp::g_bp_regs.combiner[stage].alpha.bias];
-            tev_stage.alpha_sub     = tev_sub[gp::g_bp_regs.combiner[stage].alpha.sub];
-            tev_stage.alpha_clamp   = gp::g_bp_regs.combiner[stage].alpha.clamp;
-            tev_stage.alpha_scale   = tev_scale[gp::g_bp_regs.combiner[stage].alpha.shift];
-            tev_stage.alpha_dest    = gp::g_bp_regs.combiner[stage].alpha.dest;
-
-            // If region is already invalid, just write data
-            if (invalid_bp_tev_stages_[stage]) {
-                uniform_blocks_.bp_regs.tev_stage[stage] = tev_stage;
-
-            // Otherwise, invalidate region in UBO if a change is detected
-            } else {
-                u32 new_hash = GenerateCRC((u8*)&tev_stage, sizeof(UniformStruct_TevStageParams));
-                u32 old_hash = GenerateCRC((u8*)&uniform_blocks_.bp_regs.tev_stage[stage], 
-                    sizeof(UniformStruct_TevStageParams));
-
-                if (new_hash != old_hash) {
-                    uniform_blocks_.bp_regs.tev_stage[stage] = tev_stage;
-                    invalid_bp_tev_stages_[stage] = 1;
-                }
-            }
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_a = 
+				gp::g_bp_regs.combiner[stage].alpha.sel_a;
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_b = 
+				gp::g_bp_regs.combiner[stage].alpha.sel_b;
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_c = 
+				gp::g_bp_regs.combiner[stage].alpha.sel_c;
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_d = 
+				gp::g_bp_regs.combiner[stage].alpha.sel_d;
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_bias = 
+				tev_bias[gp::g_bp_regs.combiner[stage].alpha.bias];
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sub = 
+				tev_sub[gp::g_bp_regs.combiner[stage].alpha.sub];
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_clamp = 
+				gp::g_bp_regs.combiner[stage].alpha.clamp;
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_scale = 
+				tev_scale[gp::g_bp_regs.combiner[stage].alpha.shift];
+            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_dest = 
+				gp::g_bp_regs.combiner[stage].alpha.dest;
         }
         break;
 
@@ -201,27 +174,22 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         break;
 
     case BP_REG_TEV_KSEL:
-        /*case BP_REG_TEV_KSEL + 1:
+        case BP_REG_TEV_KSEL + 1:
         case BP_REG_TEV_KSEL + 2:
         case BP_REG_TEV_KSEL + 3:
         case BP_REG_TEV_KSEL + 4:
         case BP_REG_TEV_KSEL + 5:
         case BP_REG_TEV_KSEL + 6:
-        case BP_REG_TEV_KSEL + 7:*/
+        case BP_REG_TEV_KSEL + 7:
         {
             int stage = (addr - BP_REG_TEV_KSEL) << 1;
             gp::BPTevKSel ksel;
             ksel._u32 = data;
 
-            int temp0[2] = { ksel.kcsel0, ksel.kasel0 };
-            int temp1[2] = { ksel.kcsel1, ksel.kasel1 };
-
-            sprintf(uniform_name, "bp_tev_ksel[%d]", stage*2);
-            glUniform1iv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 2, temp0);
-
-            sprintf(uniform_name, "bp_tev_ksel[%d]", stage+1);
-            glUniform1iv(glGetUniformLocation(shader_manager::g_shader_default_id, uniform_name), 2, temp1);
-
+			staged_uniform_data_.bp_regs.tev_stage[stage].konst_color_sel = ksel.kcsel0;
+			staged_uniform_data_.bp_regs.tev_stage[stage + 1].konst_color_sel = ksel.kcsel1;
+			staged_uniform_data_.bp_regs.tev_stage[stage].konst_alpha_sel = ksel.kasel0;
+			staged_uniform_data_.bp_regs.tev_stage[stage + 1].konst_alpha_sel = ksel.kasel1;
         }
         break;
     }
@@ -238,15 +206,15 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
 
     // Invalidate region in UBO if a change is detected
     if (GenerateCRC((u8*)data, bytelen) != 
-        GenerateCRC((u8*)&uniform_blocks_.xf_regs.pos_mem[addr], bytelen)) {
+        GenerateCRC((u8*)&__uniform_data_.xf_regs.pos_mem[addr], bytelen)) {
 
         // Update data block
-        memcpy(&uniform_blocks_.xf_regs.pos_mem[addr], data, bytelen);
+        memcpy(&__uniform_data_.xf_regs.pos_mem[addr], data, bytelen);
 
         // Invalidate GPU data block region
         invalid_regions_xf_[last_invalid_region_xf_].offset = addr << 2;
         invalid_regions_xf_[last_invalid_region_xf_].length = bytelen;
-        //invalid_regions_xf_[last_invalid_region_xf_].start_addr = (u8*)&uniform_blocks_.xf_regs.pos_mem[addr];
+        //invalid_regions_xf_[last_invalid_region_xf_].start_addr = (u8*)&__uniform_data_.xf_regs.pos_mem[addr];
 
         last_invalid_region_xf_++;
     }
@@ -260,22 +228,26 @@ void UniformManager::ApplyChanges() {
         glBufferSubData(GL_UNIFORM_BUFFER, 
             invalid_regions_xf_[i].offset, 
             invalid_regions_xf_[i].length, 
-            &uniform_blocks_.xf_regs.pos_mem[invalid_regions_xf_[i].offset >> 2]);
+            &__uniform_data_.xf_regs.pos_mem[invalid_regions_xf_[i].offset >> 2]);
     }
     last_invalid_region_xf_ = 0;
 
     // Update invalid regions in BP UBO
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
     for (int stage = 0; stage < 16; stage++) {
+		u32 new_hash = GenerateCRC((u8*)&staged_uniform_data_.bp_regs.tev_stage[stage], 
+			sizeof(UniformStruct_TevStageParams));
+		u32 old_hash = GenerateCRC((u8*)&__uniform_data_.bp_regs.tev_stage[stage], 
+			sizeof(UniformStruct_TevStageParams));
 
-        if (!invalid_bp_tev_stages_[stage]) continue;
-
-        invalid_bp_tev_stages_[stage] = 0;
-
-        glBufferSubData(GL_UNIFORM_BUFFER, 
-            stage * sizeof(UniformStruct_TevStageParams), 
-            sizeof(UniformStruct_TevStageParams), 
-            &uniform_blocks_.bp_regs.tev_stage[stage]);
+		if (new_hash != old_hash) {
+			__uniform_data_.bp_regs.tev_stage[stage] = 
+				staged_uniform_data_.bp_regs.tev_stage[stage];
+			glBufferSubData(GL_UNIFORM_BUFFER, 
+				stage * sizeof(UniformStruct_TevStageParams), 
+				sizeof(UniformStruct_TevStageParams), 
+				&__uniform_data_.bp_regs.tev_stage[stage]);
+		}
     }
 }
 

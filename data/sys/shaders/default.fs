@@ -38,10 +38,10 @@ struct BPTevStage {
     float alpha_scale;
     int alpha_dest;
 
-    // These don't really need to be here, but it's a reminder that this struct must be padded to a
-    // 16 byte boundary in order to be tightly packed in the UBO
-    int pad0;
-    int pad1;
+    int konst_color_sel;
+    int konst_alpha_sel;
+
+    // NOTE: this struct must be padded to a 16 byte boundary in order to be tightly packed
 };
 
 layout(std140) uniform BPRegisters {
@@ -58,11 +58,6 @@ uniform vec4    bp_tev_konst[4];
 
 // BP_REG_GENMODE - 0x00
 uniform int     bp_genmode_num_stages;
-
-// BP_REG_TEV_COLOR_ENV - 0xC0-
-uniform int bp_tev_color_env[128];
-//uniform int bp_tev_alpha_env[144];
-uniform int bp_tev_ksel[32];
 
 // BP_REG_ALPHACOMPARE - 0xF3
 uniform int     bp_alpha_func_ref0;
@@ -156,15 +151,11 @@ bool alpha_compare(in int op, in int value, in int ref) {
 }
 
 void tev_stage(in int stage) {
-
-    int color_sel = bp_tev_ksel[(stage << 1) + 0]; // should index stage?
-    int alpha_sel = bp_tev_ksel[(stage << 1) + 1]; // should index stage?
-
     BPTevStage tev_stage = bp_regs.tev_stage[stage];
 
     // Update konst register
-    g_color[14].rgb = tev_konst[color_sel].rgb;
-    g_color[12].a = tev_konst[alpha_sel].a;
+    g_color[14].rgb = tev_konst[tev_stage.konst_color_sel].rgb;
+    g_color[12].a = tev_konst[tev_stage.konst_alpha_sel].a;
 
     vec4 tev_input_a = vec4(g_color[tev_stage.color_sel_a].rgb, 
         g_color[(tev_stage.alpha_sel_a << 1)].a);
