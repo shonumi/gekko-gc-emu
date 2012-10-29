@@ -57,7 +57,6 @@ UniformManager::UniformManager() {
     memset(invalid_regions_xf_, 0, sizeof(invalid_regions_xf_));
     memset(&staged_uniform_data_, 0, sizeof(staged_uniform_data_));
     memset(&__uniform_data_, 0, sizeof(__uniform_data_));
-    memset(invalid_bp_tev_stages_, 0, sizeof(invalid_bp_tev_stages_));
 }
 
 /**
@@ -220,6 +219,8 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     }
 }
 
+#define _COMBINE_BP_UBO_WRITES
+
 /// Apply any uniform changes to the shader
 void UniformManager::ApplyChanges() {
     // Update invalid regions in XF UBO
@@ -234,20 +235,59 @@ void UniformManager::ApplyChanges() {
 
     // Update invalid regions in BP UBO
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
-    for (int stage = 0; stage < 16; stage++) {
-		u32 new_hash = GenerateCRC((u8*)&staged_uniform_data_.bp_regs.tev_stage[stage], 
-			sizeof(UniformStruct_TevStageParams));
-		u32 old_hash = GenerateCRC((u8*)&__uniform_data_.bp_regs.tev_stage[stage], 
-			sizeof(UniformStruct_TevStageParams));
 
-		if (new_hash != old_hash) {
-			__uniform_data_.bp_regs.tev_stage[stage] = 
-				staged_uniform_data_.bp_regs.tev_stage[stage];
-			glBufferSubData(GL_UNIFORM_BUFFER, 
-				stage * sizeof(UniformStruct_TevStageParams), 
-				sizeof(UniformStruct_TevStageParams), 
-				&__uniform_data_.bp_regs.tev_stage[stage]);
-		}
+    // Init changeset markers
+#ifdef _COMBINE_BP_UBO_WRITES
+    int changeset_start = -1;
+    int changeset_length = 0;
+    int num_stage_iterations = kGXNumTevStages + 1;
+#else
+    int num_stage_iterations = kGXNumTevStages;
+#endif
+    
+    // Iterate through each stage of UBO data, upload to GPU memory if a change is detected, 
+    // otherwise ignore. If _COMBINE_BP_UBO_WRITES is defined, sequentially changes will be combined
+    // when uploaded. Otherwise, they will be uploaed individually.
+    for (int stage = 0; stage < num_stage_iterations; stage++) {
+
+        // No change found
+        // ---------------
+
+        if ((staged_uniform_data_.bp_regs.tev_stage[stage] == 
+            __uniform_data_.bp_regs.tev_stage[stage]) || (stage >= kGXNumTevStages)) {
+
+            // Upload last changeset
+#ifdef _COMBINE_BP_UBO_WRITES               
+            if (changeset_start != -1) {
+                glBufferSubData(GL_UNIFORM_BUFFER, changeset_start * sizeof(UniformStruct_TevStageParams), 
+	                sizeof(UniformStruct_TevStageParams) * changeset_length, 
+	                &__uniform_data_.bp_regs.tev_stage[changeset_start]);
+
+                // Reset changeset markers
+                changeset_start = -1;
+                changeset_length = 0;
+            }
+#endif
+            continue;
+
+        // Change found
+        // ------------
+
+        } else {
+#ifdef _COMBINE_BP_UBO_WRITES 
+            // If new changeset, mark start point of next uniform burst
+            if (changeset_start == -1) {
+                changeset_start = stage;
+            }
+            __uniform_data_.bp_regs.tev_stage[stage] = staged_uniform_data_.bp_regs.tev_stage[stage];
+            changeset_length++;
+#else
+            __uniform_data_.bp_regs.tev_stage[stage] = staged_uniform_data_.bp_regs.tev_stage[stage];
+            glBufferSubData(GL_UNIFORM_BUFFER, stage * sizeof(UniformStruct_TevStageParams), 
+	            sizeof(UniformStruct_TevStageParams), 
+	            &__uniform_data_.bp_regs.tev_stage[stage]);
+#endif
+        }
     }
 }
 

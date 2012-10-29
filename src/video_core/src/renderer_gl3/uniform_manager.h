@@ -70,6 +70,32 @@ public:
 
 		int konst_color_sel;
 		int konst_alpha_sel;
+
+        inline bool operator == (const UniformStruct_TevStageParams &val) const {
+            return (color_sel_a     == val.color_sel_a     &&
+                    color_sel_b     == val.color_sel_b     &&
+                    color_sel_c     == val.color_sel_c     &&
+                    color_sel_d     == val.color_sel_d     &&
+                    color_bias      == val.color_bias      &&
+                    color_sub       == val.color_sub       &&
+                    color_clamp     == val.color_clamp     &&
+                    color_scale     == val.color_scale     &&
+                    color_dest      == val.color_dest      &&
+
+                    alpha_sel_a     == val.alpha_sel_a     &&
+                    alpha_sel_b     == val.alpha_sel_b     &&
+                    alpha_sel_c     == val.alpha_sel_c     &&
+                    alpha_sel_d     == val.alpha_sel_d     &&
+                    alpha_bias      == val.alpha_bias      &&
+                    alpha_sub       == val.alpha_sub       &&
+                    alpha_clamp     == val.alpha_clamp     &&
+                    alpha_scale     == val.alpha_scale     &&
+                    alpha_dest      == val.alpha_dest      &&
+
+                    konst_color_sel == val.konst_color_sel &&
+                    konst_alpha_sel == val.konst_alpha_sel );
+        }
+
     };
 
     // Uniform blocks - These are mappings of the uniform blocks in the shader
@@ -82,7 +108,7 @@ public:
         } xf_regs;
 
         struct BPRegisters {
-            UniformStruct_TevStageParams tev_stage[16];
+            UniformStruct_TevStageParams tev_stage[kGXNumTevStages];
         } bp_regs;
 
     };
@@ -134,12 +160,8 @@ private:
 
     int last_invalid_region_xf_;
     int last_invalid_region_bp_;
-
     
     UniformRegion invalid_regions_xf_[kMaxUniformRegions];
-
-    int invalid_bp_tev_stages_[16];
-    //UniformRegion invalid_regions_bp_[kMaxUniformRegions];
 };
 
 #endif // VIDEO_CORE_UNIFORM_MANAGER_H_
