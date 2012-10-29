@@ -115,7 +115,7 @@ RendererGL3::RendererGL3() {
     vertex_color_cur_count_[0] = vertex_color_cur_count_[1] = GX_CLR_RGBA;
     vertex_texcoord_cur_ = 0;
     last_mode_ = 0;
-    for (int i = 0; i < kNumTextures; i++) {
+    for (int i = 0; i < kGXNumTextures; i++) {
         vertex_texcoord_format_[i] = 0;
         vertex_texcoord_enable_[i] = 0;
         vertex_texcoord_format_size_[i] = 0;

@@ -25,7 +25,8 @@
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
 
-static const int kNumTextures = 8; ///< Number of textures supported
+static const int kGXNumTextures = 8;      ///< Number of textures supported
+static const int kGXNumTevStages = 16;    ///< Number of TEV stages supported
 
 /**
  * General struct used for describing a GX Vertex
