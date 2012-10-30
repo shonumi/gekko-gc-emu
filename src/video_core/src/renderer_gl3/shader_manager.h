@@ -32,16 +32,19 @@
 namespace shader_manager {
 
 extern GLuint g_current_shader_id;       ///< Handle to current shader program
-extern GLuint g_shader_default_id;       ///< Handle to default shader program
 
 /// Updates the uniform values for the current shader
 void UpdateUniforms();
 
+/// Sets the current shader program based on a set of GP parameters
+void SetShader();
+
 /**
- * @brief Sets the current shader program
- * @param shader_id Shader program to use
+ * @brief Assign a binding point to an active uniform block
+ * @param ubo_index The index of the active uniform block within program whose binding to assign
+ * @param ubo_binding Specifies the binding point to which to bind the uniform block
  */
-void SetShader(GLuint shader_id);
+void BindUBO(GLuint ubo_index, GLuint ubo_binding);
 
 /**
  * @brief Gets the shader ID of the current shader program

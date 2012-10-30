@@ -36,15 +36,27 @@
 namespace shader_manager {
 
 GLuint g_current_shader_id;       ///< Handle to current shader program
-GLuint g_shader_default_id;       ///< Handle to default shader program
+
+GLuint g_shader_cache[0x100];
 
 /**
- * @brief Sets the current shader program
- * @param shader_id Shader program to use
+ * @brief Assign a binding point to an active uniform block
+ * @param ubo_index The index of the active uniform block within program whose binding to assign
+ * @param ubo_binding Specifies the binding point to which to bind the uniform block
  */
-void SetShader(GLuint shader_id) {
-    g_current_shader_id = shader_id;
-    glUseProgram(g_current_shader_id);
+void BindUBO(GLuint ubo_index, GLuint ubo_binding) {
+    for (int i = 0; i < 4; i++) {
+        glUniformBlockBinding(g_shader_cache[i], ubo_index, ubo_binding);
+    }
+}
+
+/// Sets the current shader program based on a set of GP parameters
+void SetShader() {
+    //g_current_shader_id = g_shader_cache[gp::g_bp_regs.alpha_func.logic];
+    if (g_current_shader_id != g_shader_cache[0]) {
+        g_current_shader_id = g_shader_cache[0];
+        glUseProgram(g_current_shader_id);
+    }
 }
 
 /**
@@ -54,8 +66,6 @@ void SetShader(GLuint shader_id) {
 GLuint GetCurrentShaderID() {
     return g_current_shader_id;
 }
-
-
 
 /// Updates the uniform values for the current shader
 void UpdateUniforms() {
@@ -85,6 +95,22 @@ void UpdateUniforms() {
     int tex_enable[8] = { gp::g_bp_regs.tevorder[0].get_enable(0), 0, 0, 0, 0, 0, 0, 0 };
     glUniform1i(glGetUniformLocation(g_current_shader_id, "texture0"), 0);
     glUniform1iv(glGetUniformLocation(g_current_shader_id, "tex_enable"), 8, tex_enable);
+
+    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_ref0"),
+        gp::g_bp_regs.alpha_func.ref0);
+    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_ref1"),
+        gp::g_bp_regs.alpha_func.ref1);
+    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_comp0"),
+        gp::g_bp_regs.alpha_func.comp0);
+    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_comp1"),
+        gp::g_bp_regs.alpha_func.comp1);
+
+    //glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_color"), 4, 
+    //    (f32*)gp::g_tev_color_reg);
+    //glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_konst"), 4, 
+    //    (f32*)gp::g_tev_konst_reg);
+
+    
 }
 
 /**
@@ -95,7 +121,7 @@ void UpdateUniforms() {
  * @remark When geometry shaders are not available (e.g. OpenGL ES), the "gs" parameter is unused
  * @return GLuint of new shader program
  */
-GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
+GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preprocessor) {
     GLint res;
 
     // Create the shaders
@@ -103,23 +129,6 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
     GLuint vs_id = glCreateShader(GL_VERTEX_SHADER);
     GLuint fs_id = glCreateShader(GL_FRAGMENT_SHADER);
 
-#ifdef USE_GEOMETRY_SHADERS
-    if (NULL != gs) {
-        gs_id = glCreateShader(GL_GEOMETRY_SHADER);
-
-        // Compile Geometry Shader
-        glShaderSource(gs_id, 1, &gs , NULL);
-        glCompileShader(gs_id);
-        glGetShaderiv(gs_id, GL_COMPILE_STATUS, &res);
-        if (res == GL_FALSE) {
-	        glGetShaderiv(gs_id, GL_INFO_LOG_LENGTH, &res);
-	        char* log = new char[res];
-	        glGetShaderInfoLog(gs_id, res, &res, log);
-            _ASSERT_MSG(TVIDEO, 0, "Geometry shader failed to compile! Error(s):\n%s", log);
-            delete [] log;
-        }
-    }
-#endif
     // Compile Vertex Shader
     glShaderSource(vs_id, 1, &vs , NULL);
     glCompileShader(vs_id);
@@ -132,7 +141,8 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
         delete [] log;
     }
     // Compile Fragment Shader
-    glShaderSource(fs_id, 1, &fs , NULL);
+    const char *fs_sources[2] = { preprocessor, fs };
+    glShaderSource(fs_id, 2, fs_sources, NULL);
     glCompileShader(fs_id);
     glGetShaderiv(fs_id, GL_COMPILE_STATUS, &res);
     if (res == GL_FALSE) {
@@ -172,34 +182,24 @@ GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs) {
 
 // Loads a shader from VS, GS, and FS paths (absolute). GS is ignored if the path is NULL.
 // Returns 0 on error, otherwise the GLuint of the newly compiled shader.
-GLuint LoadShader(char* vs_path, char* gs_path, char* fs_path) {
+void LoadShader(char* vs_path, char* fs_path) {
     std::ifstream vs_ifs(vs_path);
     if (vs_ifs.fail()) {
         LOG_ERROR(TVIDEO, "Failed to open shader %s", vs_path);
-        return 0;
+        return;
     }
     std::ifstream fs_ifs(fs_path);
     if (fs_ifs.fail()) {
         LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fs_path);
-        return 0;
+        return;
     }
     std::string vs_str((std::istreambuf_iterator<char>(vs_ifs)), std::istreambuf_iterator<char>());
     std::string fs_str((std::istreambuf_iterator<char>(fs_ifs)), std::istreambuf_iterator<char>());
 
-    if (gs_path != NULL) {
-        std::ifstream gs_ifs(gs_path);
-        if (gs_ifs.fail()) {
-            LOG_ERROR(TVIDEO, "Failed to geometry shader %s", gs_path);
-            return 0;
-        }
-        std::string gs_str((std::istreambuf_iterator<char>(gs_ifs)), 
-            std::istreambuf_iterator<char>());
-
-        return CompileShaderProgram(vs_str.c_str(), gs_str.c_str(), fs_str.c_str());
-    } else {
-        return CompileShaderProgram(vs_str.c_str(), NULL, fs_str.c_str());
-    }
-    return 0;
+    g_shader_cache[0] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_AND");
+    g_shader_cache[1] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_OR");
+    g_shader_cache[2] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XOR");
+    g_shader_cache[3] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XNOR");
 }
 
 /// Initialize the shader manager
@@ -215,9 +215,9 @@ void Init() {
     strcpy(fs_filename, common::g_config->program_dir());
     strcat(fs_filename, "sys/shaders/default.fs");
 
-    g_shader_default_id = LoadShader(vs_filename, NULL, fs_filename);
+    LoadShader(vs_filename, fs_filename);
     
-    SetShader(g_shader_default_id);
+    SetShader();
 
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }

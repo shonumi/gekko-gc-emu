@@ -270,10 +270,9 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
     if (0 == count) {
         return;
     }
-
-    // Update shader manager uniforms
+    // Update shader(s)
+    shader_manager::SetShader();
     shader_manager::UpdateUniforms();
-
     uniform_manager_->ApplyChanges();
 
     // Bind pointers to buffers

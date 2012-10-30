@@ -47,6 +47,20 @@ public:
     // Uniform structures - These are structs used in the shader
     // ---------------------------------------------------------
 
+    struct UniformStruct_TevState {
+        int num_stages;
+        
+        int alpha_func_ref0;
+        int alpha_func_ref1;
+        int alpha_func_comp0;
+        int alpha_func_comp1;
+
+        f32 color[4][4];
+        f32 konst[4][4];
+
+        int pad[3];
+    };
+
     struct UniformStruct_TevStageParams {
         int color_sel_a;
         int color_sel_b;
@@ -108,7 +122,18 @@ public:
         } xf_regs;
 
         struct BPRegisters {
-            UniformStruct_TevStageParams tev_stage[kGXNumTevStages];
+            int num_stages;
+        
+            //int alpha_func_ref0;
+            //int alpha_func_ref1;
+            //int alpha_func_comp0;
+            //int alpha_func_comp1;
+
+            //f32 color[4][4];
+            //f32 konst[4][4];
+
+            int pad[3];
+            UniformStruct_TevStageParams tev_stages[kGXNumTevStages];
         } bp_regs;
 
     };

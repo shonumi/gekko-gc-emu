@@ -65,14 +65,12 @@ UniformManager::UniformManager() {
  * @param data Value to write to BP register
  */
 void UniformManager::WriteBP(u8 addr, u32 data) {
+    static f32 color[4][4];
+    static f32 konst[4][4];
+
     switch(addr) {
     case BP_REG_GENMODE:
-        {
-            gp::BPGenMode gen_mode;
-            gen_mode._u32 = data;
-            glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_genmode_num_stages"),
-                (gen_mode.num_tevstages+1));
-        }
+        staged_uniform_data_.bp_regs.num_stages = gp::g_bp_regs.genmode.num_tevstages + 1;
         break;
 
     case BP_REG_TEV_COLOR_ENV + 0:
@@ -94,23 +92,23 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         {
             int stage = (addr - BP_REG_TEV_COLOR_ENV) >> 1;
 
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_a = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_a = 
 				gp::g_bp_regs.combiner[stage].color.sel_a;
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_b = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_b = 
 				gp::g_bp_regs.combiner[stage].color.sel_b;
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_c = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_c = 
 				gp::g_bp_regs.combiner[stage].color.sel_c;
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_sel_d = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_d = 
 				gp::g_bp_regs.combiner[stage].color.sel_d;
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_bias = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_bias = 
 				tev_bias[gp::g_bp_regs.combiner[stage].color.bias];
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_sub = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_sub = 
 				tev_sub[gp::g_bp_regs.combiner[stage].color.sub];
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_clamp = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_clamp = 
 				gp::g_bp_regs.combiner[stage].color.clamp;
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_scale = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_scale = 
 				tev_scale[gp::g_bp_regs.combiner[stage].color.shift];
-            staged_uniform_data_.bp_regs.tev_stage[stage].color_dest = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].color_dest = 
 				gp::g_bp_regs.combiner[stage].color.dest;
         }
         break;
@@ -134,61 +132,82 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         {
             int stage = (addr - BP_REG_TEV_ALPHA_ENV) >> 1;
 
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_a = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_a = 
 				gp::g_bp_regs.combiner[stage].alpha.sel_a;
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_b = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_b = 
 				gp::g_bp_regs.combiner[stage].alpha.sel_b;
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_c = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_c = 
 				gp::g_bp_regs.combiner[stage].alpha.sel_c;
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sel_d = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_d = 
 				gp::g_bp_regs.combiner[stage].alpha.sel_d;
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_bias = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_bias = 
 				tev_bias[gp::g_bp_regs.combiner[stage].alpha.bias];
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_sub = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sub = 
 				tev_sub[gp::g_bp_regs.combiner[stage].alpha.sub];
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_clamp = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_clamp = 
 				gp::g_bp_regs.combiner[stage].alpha.clamp;
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_scale = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_scale = 
 				tev_scale[gp::g_bp_regs.combiner[stage].alpha.shift];
-            staged_uniform_data_.bp_regs.tev_stage[stage].alpha_dest = 
+            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_dest = 
 				gp::g_bp_regs.combiner[stage].alpha.dest;
         }
         break;
 
-    case BP_REG_ALPHACOMPARE:
-        {
-            gp::BPAlphaFunc alpha_func;
-            alpha_func._u32 = data;
-            glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_ref0"),
-                alpha_func.ref0);
-            glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_ref1"),
-                alpha_func.ref1);
-            glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_comp0"),
-                alpha_func.comp0);
-            glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_comp1"),
-                alpha_func.comp1);
-            glUniform1i(glGetUniformLocation(shader_manager::g_shader_default_id, "bp_alpha_func_logic"),
-                alpha_func.logic);
+	case 0xe0: // TEV_REGISTERL_0
+	case 0xe2: // TEV_REGISTERL_1
+	case 0xe4: // TEV_REGISTERL_2
+	case 0xe6: // TEV_REGISTERL_3
+	case 0xe1: // TEV_REGISTERH_0
+	case 0xe3: // TEV_REGISTERH_1
+	case 0xe5: // TEV_REGISTERH_2
+	case 0xe7: // TEV_REGISTERH_3
+
+        if (addr & 1) { // green/blue
+            if (!(data >> 23)) {
+                // unpack
+                color[(addr - 0xe1) / 2][1] = ((data >> 12) & 0xff) / 255.0f;
+                color[(addr - 0xe1) / 2][2] = ((data >> 0) & 0xff) / 255.0f;
+            } else { // konstant
+                // unpack
+                konst[(addr - 0xe1) / 2][1] = ((data >> 12) & 0xff) / 255.0f;
+                konst[(addr - 0xe1) / 2][2] = ((data >> 0) & 0xff) / 255.0f;
+            }
+        } else { // red/alpha
+            if (!(data >> 23)) {
+                // unpack
+                color[(addr - 0xe0) / 2][3] = ((data >> 12) & 0xff) / 255.0f;
+                color[(addr - 0xe0) / 2][0] = ((data >> 0) & 0xff) / 255.0f;
+            } else { // konstant
+                // unpack
+                konst[(addr - 0xe0) / 2][3] = ((data >> 12) & 0xff) / 255.0f;
+                konst[(addr - 0xe0) / 2][0] = ((data >> 0) & 0xff) / 255.0f;
+            }
         }
-        break;
+
+        glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_color"), 4, 
+            (f32*)color);
+        glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_konst"), 4, 
+            (f32*)konst);
+
+		break;
 
     case BP_REG_TEV_KSEL:
-        case BP_REG_TEV_KSEL + 1:
-        case BP_REG_TEV_KSEL + 2:
-        case BP_REG_TEV_KSEL + 3:
-        case BP_REG_TEV_KSEL + 4:
-        case BP_REG_TEV_KSEL + 5:
-        case BP_REG_TEV_KSEL + 6:
-        case BP_REG_TEV_KSEL + 7:
+    case BP_REG_TEV_KSEL + 1:
+    case BP_REG_TEV_KSEL + 2:
+    case BP_REG_TEV_KSEL + 3:
+    case BP_REG_TEV_KSEL + 4:
+    case BP_REG_TEV_KSEL + 5:
+    case BP_REG_TEV_KSEL + 6:
+    case BP_REG_TEV_KSEL + 7:
         {
             int stage = (addr - BP_REG_TEV_KSEL) << 1;
             gp::BPTevKSel ksel;
             ksel._u32 = data;
 
-			staged_uniform_data_.bp_regs.tev_stage[stage].konst_color_sel = ksel.kcsel0;
-			staged_uniform_data_.bp_regs.tev_stage[stage + 1].konst_color_sel = ksel.kcsel1;
-			staged_uniform_data_.bp_regs.tev_stage[stage].konst_alpha_sel = ksel.kasel0;
-			staged_uniform_data_.bp_regs.tev_stage[stage + 1].konst_alpha_sel = ksel.kasel1;
+			staged_uniform_data_.bp_regs.tev_stages[stage].konst_color_sel = ksel.kcsel0;
+			staged_uniform_data_.bp_regs.tev_stages[stage + 1].konst_color_sel = ksel.kcsel1;
+			staged_uniform_data_.bp_regs.tev_stages[stage].konst_alpha_sel = ksel.kasel0;
+			staged_uniform_data_.bp_regs.tev_stages[stage + 1].konst_alpha_sel = ksel.kasel1;
         }
         break;
     }
@@ -233,8 +252,14 @@ void UniformManager::ApplyChanges() {
     }
     last_invalid_region_xf_ = 0;
 
-    // Update invalid regions in BP UBO
+    // Update invalid regions in BP UBO(s)
+    // -----------------------------------
+
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
+
+    //__uniform_data_.bp_regs.num_stages = staged_uniform_data_.bp_regs.num_stages;
+
+    //glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, &__uniform_data_.bp_regs);
 
     // Init changeset markers
 #ifdef _COMBINE_BP_UBO_WRITES
@@ -244,24 +269,37 @@ void UniformManager::ApplyChanges() {
 #else
     int num_stage_iterations = kGXNumTevStages;
 #endif
+
+    if (staged_uniform_data_.bp_regs.num_stages != __uniform_data_.bp_regs.num_stages || !(__uniform_data_.bp_regs.tev_stages[0] == staged_uniform_data_.bp_regs.tev_stages[0])) {
+        __uniform_data_.bp_regs.num_stages = staged_uniform_data_.bp_regs.num_stages;
+        __uniform_data_.bp_regs.tev_stages[0] = staged_uniform_data_.bp_regs.tev_stages[0];
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 + sizeof(UniformStruct_TevStageParams), 
+            &__uniform_data_.bp_regs);
+    }
+
+
+
     
     // Iterate through each stage of UBO data, upload to GPU memory if a change is detected, 
     // otherwise ignore. If _COMBINE_BP_UBO_WRITES is defined, sequentially changes will be combined
     // when uploaded. Otherwise, they will be uploaed individually.
-    for (int stage = 0; stage < num_stage_iterations; stage++) {
+    for (int stage = 1; stage < num_stage_iterations; stage++) {
 
         // No change found
         // ---------------
 
-        if ((staged_uniform_data_.bp_regs.tev_stage[stage] == 
-            __uniform_data_.bp_regs.tev_stage[stage]) || (stage >= kGXNumTevStages)) {
+        if ((staged_uniform_data_.bp_regs.tev_stages[stage] == 
+            __uniform_data_.bp_regs.tev_stages[stage]) || (stage >= kGXNumTevStages)) {
 
             // Upload last changeset
 #ifdef _COMBINE_BP_UBO_WRITES               
             if (changeset_start != -1) {
-                glBufferSubData(GL_UNIFORM_BUFFER, changeset_start * sizeof(UniformStruct_TevStageParams), 
+                // NOTE: 160 is size of TevState structure in shader
+                int byte_offset = 16 + (changeset_start * sizeof(UniformStruct_TevStageParams));
+                glBufferSubData(GL_UNIFORM_BUFFER, 
+                    byte_offset, 
 	                sizeof(UniformStruct_TevStageParams) * changeset_length, 
-	                &__uniform_data_.bp_regs.tev_stage[changeset_start]);
+	                &__uniform_data_.bp_regs.tev_stages[changeset_start]);
 
                 // Reset changeset markers
                 changeset_start = -1;
@@ -279,13 +317,17 @@ void UniformManager::ApplyChanges() {
             if (changeset_start == -1) {
                 changeset_start = stage;
             }
-            __uniform_data_.bp_regs.tev_stage[stage] = staged_uniform_data_.bp_regs.tev_stage[stage];
+            __uniform_data_.bp_regs.tev_stages[stage] = 
+                staged_uniform_data_.bp_regs.tev_stages[stage];
             changeset_length++;
 #else
-            __uniform_data_.bp_regs.tev_stage[stage] = staged_uniform_data_.bp_regs.tev_stage[stage];
-            glBufferSubData(GL_UNIFORM_BUFFER, stage * sizeof(UniformStruct_TevStageParams), 
-	            sizeof(UniformStruct_TevStageParams), 
-	            &__uniform_data_.bp_regs.tev_stage[stage]);
+            __uniform_data_.bp_regs.tev_stages[stage] = 
+                staged_uniform_data_.bp_regs.tev_stages[stage];
+
+            int byte_offset = 16 + (stage * sizeof(UniformStruct_TevStageParams));
+
+            glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(UniformStruct_TevStageParams), 
+	            &__uniform_data_.bp_regs.tev_stages[stage]);
 #endif
         }
     }
@@ -295,27 +337,23 @@ void UniformManager::ApplyChanges() {
 void UniformManager::Init() {
     GLuint block_index;
 
-    // Initialize BP UBO
-    // -----------------
-
-    block_index = glGetUniformBlockIndex(shader_manager::g_shader_default_id, "BPRegisters");
-    glUniformBlockBinding(shader_manager::g_shader_default_id, block_index, 0);
-
+    // Initialize BP UBO(s)
+    // --------------------
+    
+    block_index = glGetUniformBlockIndex(shader_manager::g_current_shader_id, "BPRegisters");
+    shader_manager::BindUBO(block_index, 0);
     glGenBuffers(1, &ubo_handle_bp_);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
-
-    glBufferData(GL_UNIFORM_BUFFER, 1280, NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(__uniform_data_.bp_regs), NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo_handle_bp_);
 
     // Initialize XF UBO
     // -----------------
 
-    block_index = glGetUniformBlockIndex(shader_manager::g_shader_default_id, "XFRegisters");
-    glUniformBlockBinding(shader_manager::g_shader_default_id, block_index, 1);
-
+    block_index = glGetUniformBlockIndex(shader_manager::g_current_shader_id, "XFRegisters");
+    shader_manager::BindUBO(block_index, 1);
     glGenBuffers(1, &ubo_handle_xf_);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_xf_);
-
     glBufferData(GL_UNIFORM_BUFFER, 0x400, NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubo_handle_xf_);
 }
