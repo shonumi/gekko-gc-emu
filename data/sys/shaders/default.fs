@@ -1,8 +1,3 @@
-#version 140
-#extension GL_ARB_explicit_attrib_location : enable
-#extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_uniform_buffer_object : enable
-
 #define GX_NEVER    0
 #define GX_LESS     1
 #define GX_EQUAL    2
@@ -11,11 +6,6 @@
 #define GX_NEQUAL   5
 #define GX_GEQUAL   6
 #define GX_ALWAYS   7
-
-#define GX_AOP_AND  0
-#define GX_AOP_OR   1
-#define GX_AOP_XOR  2
-#define GX_AOP_XNOR 3
 
 struct TevStage {
     int color_sel_a;
@@ -44,16 +34,26 @@ struct TevStage {
     // NOTE: this struct must be padded to a 16 byte boundary in order to be tightly packed
 };
 
-layout(std140) uniform BPRegisters {
+struct TevState {
     int num_stages;
     
-    //int alpha_func_ref0;
-    //int alpha_func_ref1;
-    //int alpha_func_comp0;
-    //int alpha_func_comp1;
+    int alpha_func_ref0;
+    int alpha_func_ref1;
+    int alpha_func_comp0;
+    int alpha_func_comp1;
 
-    //vec4 color[4];
-    //vec4 konst[4];
+    int pad0;
+    int pad1;
+    int pad2;
+    
+    vec4 color[4];
+    vec4 konst[4];
+
+    // NOTE: this struct must be padded to a 16 byte boundary in order to be tightly packed
+};
+
+layout(std140) uniform BPRegisters {
+    TevState tev_state;
     TevStage tev_stages[16];
 } bp_regs;
 
@@ -65,22 +65,18 @@ in vec4 vertexColor;
 in vec2 vertexTexCoord0;
 out vec4 fragmentColor;
 
-// BP memory
-uniform vec4    bp_tev_color[4];
-uniform vec4    bp_tev_konst[4];
-
 // Texture
 vec4 g_tex = texture2D(texture0, vertexTexCoord0);
 
-vec4 g_color[] = vec4[](
-    bp_tev_color[0].rgba,
-    bp_tev_color[0].aaaa,
-    bp_tev_color[1].rgba,
-    bp_tev_color[1].aaaa,
-    bp_tev_color[2].rgba,
-    bp_tev_color[2].aaaa,
-    bp_tev_color[3].rgba,
-    bp_tev_color[3].aaaa,
+vec4 g_color[16] = vec4[16](
+    bp_regs.tev_state.color[0].rgba,
+    bp_regs.tev_state.color[0].aaaa,
+    bp_regs.tev_state.color[1].rgba,
+    bp_regs.tev_state.color[1].aaaa,
+    bp_regs.tev_state.color[2].rgba,
+    bp_regs.tev_state.color[2].aaaa,
+    bp_regs.tev_state.color[3].rgba,
+    bp_regs.tev_state.color[3].aaaa,
     g_tex.rgba,
     g_tex.aaaa,
     vertexColor.rgba,
@@ -92,7 +88,7 @@ vec4 g_color[] = vec4[](
 );
 
 // TEV color constants
-vec4 tev_konst[32] = vec4[](
+vec4 tev_konst[32] = vec4[32](
     vec4(1.0, 1.0, 1.0, 1.0),
     vec4(0.875, 0.875, 0.875, 0.875),
     vec4(0.75, 0.75, 0.75, 0.75),
@@ -105,26 +101,26 @@ vec4 tev_konst[32] = vec4[](
     vec4(0.0, 0.0, 0.0, 0.0),            // undefined
     vec4(0.0, 0.0, 0.0, 0.0),            // undefined
     vec4(0.0, 0.0, 0.0, 0.0),            // undefined
-    bp_tev_konst[0].rgba,                // alpha unconfirmed
-    bp_tev_konst[1].rgba,                // alpha unconfirmed
-    bp_tev_konst[2].rgba,                // alpha unconfirmed
-    bp_tev_konst[3].rgba,                // alpha unconfirmed
-    bp_tev_konst[0].rrrr,
-    bp_tev_konst[1].rrrr,
-    bp_tev_konst[2].rrrr,
-    bp_tev_konst[3].rrrr,
-    bp_tev_konst[0].gggg,
-    bp_tev_konst[1].gggg,
-    bp_tev_konst[2].gggg,
-    bp_tev_konst[3].gggg,
-    bp_tev_konst[0].bbbb,
-    bp_tev_konst[1].bbbb,
-    bp_tev_konst[2].bbbb,
-    bp_tev_konst[3].bbbb,
-    bp_tev_konst[0].aaaa,
-    bp_tev_konst[1].aaaa,
-    bp_tev_konst[2].aaaa,
-    bp_tev_konst[3].aaaa
+    bp_regs.tev_state.konst[0].rgba,                // alpha unconfirmed
+    bp_regs.tev_state.konst[1].rgba,                // alpha unconfirmed
+    bp_regs.tev_state.konst[2].rgba,                // alpha unconfirmed
+    bp_regs.tev_state.konst[3].rgba,                // alpha unconfirmed
+    bp_regs.tev_state.konst[0].rrrr,
+    bp_regs.tev_state.konst[1].rrrr,
+    bp_regs.tev_state.konst[2].rrrr,
+    bp_regs.tev_state.konst[3].rrrr,
+    bp_regs.tev_state.konst[0].gggg,
+    bp_regs.tev_state.konst[1].gggg,
+    bp_regs.tev_state.konst[2].gggg,
+    bp_regs.tev_state.konst[3].gggg,
+    bp_regs.tev_state.konst[0].bbbb,
+    bp_regs.tev_state.konst[1].bbbb,
+    bp_regs.tev_state.konst[2].bbbb,
+    bp_regs.tev_state.konst[3].bbbb,
+    bp_regs.tev_state.konst[0].aaaa,
+    bp_regs.tev_state.konst[1].aaaa,
+    bp_regs.tev_state.konst[2].aaaa,
+    bp_regs.tev_state.konst[3].aaaa
 );
 
 bool alpha_compare(in int op, in int value, in int ref) {
@@ -197,8 +193,8 @@ void main() {
 
     // TEV stages
     // ----------
-    
-    int num_stages = bp_regs.num_stages;
+
+    int num_stages = bp_regs.tev_state.num_stages;
 
     if (num_stages > 0)  { tev_stage(0);
     if (num_stages > 1)  { tev_stage(1);
@@ -227,26 +223,19 @@ void main() {
 
     int val = int(dest.a * 255.0f) & 0xFF;
 
-    /*
 #ifdef BP_ALPHA_FUNC_AND
-    if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) && 
-        alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
+    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) && 
+        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1))) discard;
+#elif defined(BP_ALPHA_FUNC_OR)
+    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) || 
+        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1))) discard;
+#elif defined(BP_ALPHA_FUNC_XOR)
+    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) != 
+        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1))) discard;
+#elif defined(BP_ALPHA_FUNC_XNOR)
+    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) == 
+        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1))) discard;
 #endif
 
-#ifdef BP_ALPHA_FUNC_OR:
-    if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) || 
-        alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
-#endif
-
-#ifdef BP_ALPHA_FUNC_XOR:
-    if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) != 
-        alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
-#endif
-
-#ifdef BP_ALPHA_FUNC_XNOR:
-    if (!(alpha_compare(bp_alpha_func_comp0, val, bp_alpha_func_ref0) == 
-        alpha_compare(bp_alpha_func_comp1, val, bp_alpha_func_ref1))) discard;
-#endif
-*/
     fragmentColor = dest;
 }

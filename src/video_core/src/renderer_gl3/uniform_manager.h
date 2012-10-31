@@ -49,16 +49,60 @@ public:
 
     struct UniformStruct_TevState {
         int num_stages;
-        
+
         int alpha_func_ref0;
         int alpha_func_ref1;
         int alpha_func_comp0;
         int alpha_func_comp1;
 
-        f32 color[4][4];
-        f32 konst[4][4];
+        int pad0;
+        int pad1;
+        int pad2;
 
-        int pad[3];
+        f32 color[16];
+        f32 konst[16];
+
+        inline bool operator == (const UniformStruct_TevState &val) const {
+            return (num_stages       == val.num_stages       &&
+                    alpha_func_ref0  == val.alpha_func_ref0  &&
+                    alpha_func_ref1  == val.alpha_func_ref1  &&
+                    alpha_func_comp0 == val.alpha_func_comp0 &&
+                    alpha_func_comp1 == val.alpha_func_comp1 &&
+
+                    color[0]  == val.color[0]  &&
+                    color[1]  == val.color[1]  &&
+                    color[2]  == val.color[2]  &&
+                    color[3]  == val.color[3]  &&
+                    color[4]  == val.color[4]  &&
+                    color[5]  == val.color[5]  &&
+                    color[6]  == val.color[6]  &&
+                    color[7]  == val.color[7]  &&
+                    color[8]  == val.color[8]  &&
+                    color[9]  == val.color[9]  &&
+                    color[10] == val.color[10] &&
+                    color[11] == val.color[11] &&
+                    color[12] == val.color[12] &&
+                    color[13] == val.color[13] &&
+                    color[14] == val.color[14] &&
+                    color[15] == val.color[15] &&
+
+                    konst[0]  == val.konst[0]  &&
+                    konst[1]  == val.konst[1]  &&
+                    konst[2]  == val.konst[2]  &&
+                    konst[3]  == val.konst[3]  &&
+                    konst[4]  == val.konst[4]  &&
+                    konst[5]  == val.konst[5]  &&
+                    konst[6]  == val.konst[6]  &&
+                    konst[7]  == val.konst[7]  &&
+                    konst[8]  == val.konst[8]  &&
+                    konst[9]  == val.konst[9]  &&
+                    konst[10] == val.konst[10] &&
+                    konst[11] == val.konst[11] &&
+                    konst[12] == val.konst[12] &&
+                    konst[13] == val.konst[13] &&
+                    konst[14] == val.konst[14] &&
+                    konst[15] == val.konst[15]);
+        }
     };
 
     struct UniformStruct_TevStageParams {
@@ -122,17 +166,7 @@ public:
         } xf_regs;
 
         struct BPRegisters {
-            int num_stages;
-        
-            //int alpha_func_ref0;
-            //int alpha_func_ref1;
-            //int alpha_func_comp0;
-            //int alpha_func_comp1;
-
-            //f32 color[4][4];
-            //f32 konst[4][4];
-
-            int pad[3];
+            UniformStruct_TevState tev_state;
             UniformStruct_TevStageParams tev_stages[kGXNumTevStages];
         } bp_regs;
 

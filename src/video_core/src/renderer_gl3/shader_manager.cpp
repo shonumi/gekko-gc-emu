@@ -33,11 +33,19 @@
 #include "renderer_gl3.h"
 #include "shader_base_types.h"
 
+// Default shader header prefixed on all shaders. Contains minimum shader version and required 
+// extensions enabled
+static const char __default_shader_header[] = {
+    "#version 140\n"
+    "#extension GL_ARB_explicit_attrib_location : enable\n"
+    "#extension GL_ARB_separate_shader_objects : enable\n"
+    "#extension GL_ARB_uniform_buffer_object : enable\n"
+};
+
 namespace shader_manager {
 
-GLuint g_current_shader_id;       ///< Handle to current shader program
-
-GLuint g_shader_cache[0x100];
+GLuint g_current_shader_id;     ///< Handle to current shader program
+GLuint g_shader_cache[0x40];    ///< Array of precompiled shader programs
 
 /**
  * @brief Assign a binding point to an active uniform block
@@ -52,9 +60,10 @@ void BindUBO(GLuint ubo_index, GLuint ubo_binding) {
 
 /// Sets the current shader program based on a set of GP parameters
 void SetShader() {
-    //g_current_shader_id = g_shader_cache[gp::g_bp_regs.alpha_func.logic];
-    if (g_current_shader_id != g_shader_cache[0]) {
-        g_current_shader_id = g_shader_cache[0];
+    int alpha_logic = gp::g_bp_regs.alpha_func.logic & 3;
+
+    if (g_current_shader_id != g_shader_cache[alpha_logic]) {
+        g_current_shader_id = g_shader_cache[alpha_logic];
         glUseProgram(g_current_shader_id);
     }
 }
@@ -95,22 +104,6 @@ void UpdateUniforms() {
     int tex_enable[8] = { gp::g_bp_regs.tevorder[0].get_enable(0), 0, 0, 0, 0, 0, 0, 0 };
     glUniform1i(glGetUniformLocation(g_current_shader_id, "texture0"), 0);
     glUniform1iv(glGetUniformLocation(g_current_shader_id, "tex_enable"), 8, tex_enable);
-
-    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_ref0"),
-        gp::g_bp_regs.alpha_func.ref0);
-    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_ref1"),
-        gp::g_bp_regs.alpha_func.ref1);
-    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_comp0"),
-        gp::g_bp_regs.alpha_func.comp0);
-    glUniform1i(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_alpha_func_comp1"),
-        gp::g_bp_regs.alpha_func.comp1);
-
-    //glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_color"), 4, 
-    //    (f32*)gp::g_tev_color_reg);
-    //glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_konst"), 4, 
-    //    (f32*)gp::g_tev_konst_reg);
-
-    
 }
 
 /**
@@ -130,9 +123,11 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
     GLuint fs_id = glCreateShader(GL_FRAGMENT_SHADER);
 
     // Compile Vertex Shader
-    glShaderSource(vs_id, 1, &vs , NULL);
+    const char *vs_sources[] = { __default_shader_header, vs };
+    glShaderSource(vs_id, 2, vs_sources, NULL);
     glCompileShader(vs_id);
     glGetShaderiv(vs_id, GL_COMPILE_STATUS, &res);
+
     if (res == GL_FALSE) {
 	    glGetShaderiv(vs_id, GL_INFO_LOG_LENGTH, &res);
 	    char* log = new char[res];
@@ -140,11 +135,13 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
         _ASSERT_MSG(TVIDEO, 0, "Vertex shader failed to compile! Error(s):\n%s", log);
         delete [] log;
     }
+
     // Compile Fragment Shader
-    const char *fs_sources[2] = { preprocessor, fs };
-    glShaderSource(fs_id, 2, fs_sources, NULL);
+    const char *fs_sources[] = { __default_shader_header, preprocessor, fs };
+    glShaderSource(fs_id, 3, fs_sources, NULL);
     glCompileShader(fs_id);
     glGetShaderiv(fs_id, GL_COMPILE_STATUS, &res);
+
     if (res == GL_FALSE) {
 	    glGetShaderiv(fs_id, GL_INFO_LOG_LENGTH, &res);
 	    char* log = new char[res];
@@ -152,6 +149,7 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
         _ASSERT_MSG(TVIDEO, 0, "Fragment shader failed to compile! Error(s):\n%s", log);
         delete [] log;
     }
+
     // Create the program
     GLuint program_id = glCreateProgram();
     glAttachShader(program_id, vs_id);
@@ -196,10 +194,10 @@ void LoadShader(char* vs_path, char* fs_path) {
     std::string vs_str((std::istreambuf_iterator<char>(vs_ifs)), std::istreambuf_iterator<char>());
     std::string fs_str((std::istreambuf_iterator<char>(fs_ifs)), std::istreambuf_iterator<char>());
 
-    g_shader_cache[0] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_AND");
-    g_shader_cache[1] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_OR");
-    g_shader_cache[2] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XOR");
-    g_shader_cache[3] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XNOR");
+    g_shader_cache[0] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_AND\n");
+    g_shader_cache[1] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_OR\n");
+    g_shader_cache[2] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XOR\n");
+    g_shader_cache[3] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XNOR\n");
 }
 
 /// Initialize the shader manager

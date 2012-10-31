@@ -1,8 +1,3 @@
-#version 140
-#extension GL_ARB_explicit_attrib_location : enable
-#extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_uniform_buffer_object : enable
-
 #define GX_U8       0
 #define GX_S8       1
 #define GX_U16      2

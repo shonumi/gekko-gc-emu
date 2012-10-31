@@ -65,12 +65,9 @@ UniformManager::UniformManager() {
  * @param data Value to write to BP register
  */
 void UniformManager::WriteBP(u8 addr, u32 data) {
-    static f32 color[4][4];
-    static f32 konst[4][4];
-
     switch(addr) {
     case BP_REG_GENMODE:
-        staged_uniform_data_.bp_regs.num_stages = gp::g_bp_regs.genmode.num_tevstages + 1;
+        staged_uniform_data_.bp_regs.tev_state.num_stages = gp::g_bp_regs.genmode.num_tevstages + 1;
         break;
 
     case BP_REG_TEV_COLOR_ENV + 0:
@@ -161,35 +158,40 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
 	case 0xe3: // TEV_REGISTERH_1
 	case 0xe5: // TEV_REGISTERH_2
 	case 0xe7: // TEV_REGISTERH_3
+        {
 
-        if (addr & 1) { // green/blue
-            if (!(data >> 23)) {
-                // unpack
-                color[(addr - 0xe1) / 2][1] = ((data >> 12) & 0xff) / 255.0f;
-                color[(addr - 0xe1) / 2][2] = ((data >> 0) & 0xff) / 255.0f;
-            } else { // konstant
-                // unpack
-                konst[(addr - 0xe1) / 2][1] = ((data >> 12) & 0xff) / 255.0f;
-                konst[(addr - 0xe1) / 2][2] = ((data >> 0) & 0xff) / 255.0f;
-            }
-        } else { // red/alpha
-            if (!(data >> 23)) {
-                // unpack
-                color[(addr - 0xe0) / 2][3] = ((data >> 12) & 0xff) / 255.0f;
-                color[(addr - 0xe0) / 2][0] = ((data >> 0) & 0xff) / 255.0f;
-            } else { // konstant
-                // unpack
-                konst[(addr - 0xe0) / 2][3] = ((data >> 12) & 0xff) / 255.0f;
-                konst[(addr - 0xe0) / 2][0] = ((data >> 0) & 0xff) / 255.0f;
+            int base_addr = ((addr >> 1) - 0x70) << 2;
+
+            if (addr & 1) { // green/blue
+                if (!(data >> 23)) {
+                    // unpack
+                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 1] = ((data >> 12) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 2] = ((data >> 0) & 0xff) / 255.0f;
+                } else { // konstant
+                    // unpack
+                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 1] = ((data >> 12) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 2] = ((data >> 0) & 0xff) / 255.0f;
+                }
+            } else { // red/alpha
+                if (!(data >> 23)) {
+                    // unpack
+                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 3] = ((data >> 12) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 0] = ((data >> 0) & 0xff) / 255.0f;
+                } else { // konstant
+                    // unpack
+                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 3] = ((data >> 12) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 0] = ((data >> 0) & 0xff) / 255.0f;
+                }
             }
         }
-
-        glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_color"), 4, 
-            (f32*)color);
-        glUniform4fv(glGetUniformLocation(shader_manager::g_current_shader_id, "bp_tev_konst"), 4, 
-            (f32*)konst);
-
 		break;
+
+    case BP_REG_ALPHACOMPARE:
+        staged_uniform_data_.bp_regs.tev_state.alpha_func_ref0 = gp::g_bp_regs.alpha_func.ref0;
+        staged_uniform_data_.bp_regs.tev_state.alpha_func_ref1 = gp::g_bp_regs.alpha_func.ref1;
+        staged_uniform_data_.bp_regs.tev_state.alpha_func_comp0 = gp::g_bp_regs.alpha_func.comp0;
+        staged_uniform_data_.bp_regs.tev_state.alpha_func_comp1 = gp::g_bp_regs.alpha_func.comp1;
+        break;
 
     case BP_REG_TEV_KSEL:
     case BP_REG_TEV_KSEL + 1:
@@ -257,10 +259,6 @@ void UniformManager::ApplyChanges() {
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
 
-    //__uniform_data_.bp_regs.num_stages = staged_uniform_data_.bp_regs.num_stages;
-
-    //glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, &__uniform_data_.bp_regs);
-
     // Init changeset markers
 #ifdef _COMBINE_BP_UBO_WRITES
     int changeset_start = -1;
@@ -270,16 +268,15 @@ void UniformManager::ApplyChanges() {
     int num_stage_iterations = kGXNumTevStages;
 #endif
 
-    if (staged_uniform_data_.bp_regs.num_stages != __uniform_data_.bp_regs.num_stages || !(__uniform_data_.bp_regs.tev_stages[0] == staged_uniform_data_.bp_regs.tev_stages[0])) {
-        __uniform_data_.bp_regs.num_stages = staged_uniform_data_.bp_regs.num_stages;
+    if (!(__uniform_data_.bp_regs.tev_state == staged_uniform_data_.bp_regs.tev_state) || 
+        !(__uniform_data_.bp_regs.tev_stages[0] == staged_uniform_data_.bp_regs.tev_stages[0])) {
+        __uniform_data_.bp_regs.tev_state  = staged_uniform_data_.bp_regs.tev_state;
         __uniform_data_.bp_regs.tev_stages[0] = staged_uniform_data_.bp_regs.tev_stages[0];
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 + sizeof(UniformStruct_TevStageParams), 
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, 
+            sizeof(UniformStruct_TevState) + sizeof(UniformStruct_TevStageParams), 
             &__uniform_data_.bp_regs);
     }
 
-
-
-    
     // Iterate through each stage of UBO data, upload to GPU memory if a change is detected, 
     // otherwise ignore. If _COMBINE_BP_UBO_WRITES is defined, sequentially changes will be combined
     // when uploaded. Otherwise, they will be uploaed individually.
@@ -294,8 +291,8 @@ void UniformManager::ApplyChanges() {
             // Upload last changeset
 #ifdef _COMBINE_BP_UBO_WRITES               
             if (changeset_start != -1) {
-                // NOTE: 160 is size of TevState structure in shader
-                int byte_offset = 16 + (changeset_start * sizeof(UniformStruct_TevStageParams));
+                int byte_offset = sizeof(UniformStruct_TevState) + 
+                    (changeset_start * sizeof(UniformStruct_TevStageParams));
                 glBufferSubData(GL_UNIFORM_BUFFER, 
                     byte_offset, 
 	                sizeof(UniformStruct_TevStageParams) * changeset_length, 
@@ -324,7 +321,8 @@ void UniformManager::ApplyChanges() {
             __uniform_data_.bp_regs.tev_stages[stage] = 
                 staged_uniform_data_.bp_regs.tev_stages[stage];
 
-            int byte_offset = 16 + (stage * sizeof(UniformStruct_TevStageParams));
+            int byte_offset = sizeof(UniformStruct_TevState) + 
+                (stage * sizeof(UniformStruct_TevStageParams));
 
             glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(UniformStruct_TevStageParams), 
 	            &__uniform_data_.bp_regs.tev_stages[stage]);
