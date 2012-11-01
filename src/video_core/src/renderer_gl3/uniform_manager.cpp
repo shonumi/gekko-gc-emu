@@ -34,29 +34,53 @@
 #include "shader_manager.h"
 #include "uniform_manager.h"
 
-/// TEV color stage scale lookup
-const f32 tev_scale[] = {
-    1.0, 2.0, 4.0, 0.5
-};
-
-/// TEV color stage subtraction lookup
-const f32 tev_sub[] = {
-    1.0, -1.0
-};
-
-/// TEV color stage bias lookup
-const f32 tev_bias[] = {
-    0.0, 0.5, -0.5, 0.0
-};
-
 UniformManager::UniformManager() {
     ubo_handle_bp_ = 0;
     ubo_handle_xf_ = 0;
-    last_invalid_region_bp_ = 0;
     last_invalid_region_xf_ = 0;
     memset(invalid_regions_xf_, 0, sizeof(invalid_regions_xf_));
     memset(&staged_uniform_data_, 0, sizeof(staged_uniform_data_));
     memset(&__uniform_data_, 0, sizeof(__uniform_data_));
+    memset(&konst_, 0, sizeof(konst_));
+}
+
+/**
+ * Lookup the TEV konst color value for a given kont selector
+ * @param sel Konst selector corresponding to the desired konst color
+ */
+Vec4Color UniformManager::GetTevKonst(int sel) {
+    switch(sel) {
+    case 0:  return Vec4Color(1.0, 1.0, 1.0, 1.0);
+    case 1:  return Vec4Color(0.875, 0.875, 0.875, 0.875);
+    case 2:  return Vec4Color(0.75, 0.75, 0.75, 0.75);
+    case 3:  return Vec4Color(0.625, 0.625,0.625, 0.625);
+    case 4:  return Vec4Color(0.5, 0.5, 0.5, 0.5);
+    case 5:  return Vec4Color(0.375, 0.375, 0.375,  0.375);
+    case 6:  return Vec4Color(0.25, 0.25, 0.25, 0.25);
+    case 7:  return Vec4Color(0.125, 0.125, 0.125, 0.125);
+    case 12: return konst_[0];
+    case 13: return konst_[1];
+    case 14: return konst_[2];
+    case 15: return konst_[3];
+    case 16: return Vec4Color(konst_[0].r, konst_[0].r, konst_[0].r, konst_[0].r);
+    case 17: return Vec4Color(konst_[1].r, konst_[1].r, konst_[1].r, konst_[1].r);
+    case 18: return Vec4Color(konst_[2].r, konst_[2].r, konst_[2].r, konst_[2].r);
+    case 19: return Vec4Color(konst_[3].r, konst_[3].r, konst_[3].r, konst_[3].r);
+    case 20: return Vec4Color(konst_[0].g, konst_[0].g, konst_[0].g, konst_[0].g);
+    case 21: return Vec4Color(konst_[1].g, konst_[1].g, konst_[1].g, konst_[1].g);
+    case 22: return Vec4Color(konst_[2].g, konst_[2].g, konst_[2].g, konst_[2].g);
+    case 23: return Vec4Color(konst_[3].g, konst_[3].g, konst_[3].g, konst_[3].g);
+    case 24: return Vec4Color(konst_[0].b, konst_[0].b, konst_[0].b, konst_[0].b);
+    case 25: return Vec4Color(konst_[1].b, konst_[1].b, konst_[1].b, konst_[1].b);
+    case 26: return Vec4Color(konst_[2].b, konst_[2].b, konst_[2].b, konst_[2].b);
+    case 27: return Vec4Color(konst_[3].b, konst_[3].b, konst_[3].b, konst_[3].b);
+    case 28: return Vec4Color(konst_[0].a, konst_[0].a, konst_[0].a, konst_[0].a);
+    case 29: return Vec4Color(konst_[1].a, konst_[1].a, konst_[1].a, konst_[1].a);
+    case 30: return Vec4Color(konst_[2].a, konst_[2].a, konst_[2].a, konst_[2].a);
+    case 31: return Vec4Color(konst_[3].a, konst_[3].a, konst_[3].a, konst_[3].a);
+    default: LOG_ERROR(TGP, "Unknown TEV konst lookup index = %d", sel);
+    }
+    return Vec4Color();
 }
 
 /**
@@ -65,6 +89,10 @@ UniformManager::UniformManager() {
  * @param data Value to write to BP register
  */
 void UniformManager::WriteBP(u8 addr, u32 data) {
+    static const f32 tev_scale[] = { 1.0, 2.0, 4.0, 0.5 };
+    static const f32 tev_sub[] = { 1.0, -1.0 };
+    static const f32 tev_bias[] = { 0.0, 0.5, -0.5, 0.0 };
+
     switch(addr) {
     case BP_REG_TEV_COLOR_ENV + 0:
     case BP_REG_TEV_COLOR_ENV + 2:
@@ -155,27 +183,31 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
 	case 0xe5: // TEV_REGISTERH_2
 	case 0xe7: // TEV_REGISTERH_3
         {
-            int base_addr = ((addr >> 1) - 0x70) << 2;
+            int index = ((addr >> 1) - 0x70);
 
             if (addr & 1) { // green/blue
                 if (!(data >> 23)) {
                     // unpack
-                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 1] = ((data >> 12) & 0xff) / 255.0f;
-                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 2] = ((data >> 0) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.color[index].g = 
+                        ((data >> 12) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.color[index].b = 
+                        ((data >> 0) & 0xff) / 255.0f;
                 } else { // konstant
                     // unpack
-                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 1] = ((data >> 12) & 0xff) / 255.0f;
-                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 2] = ((data >> 0) & 0xff) / 255.0f;
+                    konst_[index].g = ((data >> 12) & 0xff) / 255.0f;
+                    konst_[index].b = ((data >> 0) & 0xff) / 255.0f;
                 }
             } else { // red/alpha
                 if (!(data >> 23)) {
                     // unpack
-                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 3] = ((data >> 12) & 0xff) / 255.0f;
-                    staged_uniform_data_.bp_regs.tev_state.color[base_addr + 0] = ((data >> 0) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.color[index].a = 
+                        ((data >> 12) & 0xff) / 255.0f;
+                    staged_uniform_data_.bp_regs.tev_state.color[index].r = 
+                        ((data >> 0) & 0xff) / 255.0f;
                 } else { // konstant
                     // unpack
-                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 3] = ((data >> 12) & 0xff) / 255.0f;
-                    staged_uniform_data_.bp_regs.tev_state.konst[base_addr + 0] = ((data >> 0) & 0xff) / 255.0f;
+                    konst_[index].a = ((data >> 12) & 0xff) / 255.0f;
+                    konst_[index].r = ((data >> 0) & 0xff) / 255.0f;
                 }
             }
         }
@@ -186,26 +218,6 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         staged_uniform_data_.bp_regs.tev_state.alpha_func_ref1 = gp::g_bp_regs.alpha_func.ref1;
         staged_uniform_data_.bp_regs.tev_state.alpha_func_comp0 = gp::g_bp_regs.alpha_func.comp0;
         staged_uniform_data_.bp_regs.tev_state.alpha_func_comp1 = gp::g_bp_regs.alpha_func.comp1;
-        break;
-
-    case BP_REG_TEV_KSEL:
-    case BP_REG_TEV_KSEL + 1:
-    case BP_REG_TEV_KSEL + 2:
-    case BP_REG_TEV_KSEL + 3:
-    case BP_REG_TEV_KSEL + 4:
-    case BP_REG_TEV_KSEL + 5:
-    case BP_REG_TEV_KSEL + 6:
-    case BP_REG_TEV_KSEL + 7:
-        {
-            int stage = (addr - BP_REG_TEV_KSEL) << 1;
-            gp::BPTevKSel ksel;
-            ksel._u32 = data;
-
-			staged_uniform_data_.bp_regs.tev_stages[stage].konst_color_sel = ksel.kcsel0;
-			staged_uniform_data_.bp_regs.tev_stages[stage + 1].konst_color_sel = ksel.kcsel1;
-			staged_uniform_data_.bp_regs.tev_stages[stage].konst_alpha_sel = ksel.kasel0;
-			staged_uniform_data_.bp_regs.tev_stages[stage + 1].konst_alpha_sel = ksel.kasel1;
-        }
         break;
     }
 }
@@ -229,7 +241,6 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
         // Invalidate GPU data block region
         invalid_regions_xf_[last_invalid_region_xf_].offset = addr << 2;
         invalid_regions_xf_[last_invalid_region_xf_].length = bytelen;
-        //invalid_regions_xf_[last_invalid_region_xf_].start_addr = (u8*)&__uniform_data_.xf_regs.pos_mem[addr];
 
         last_invalid_region_xf_++;
     }
@@ -263,6 +274,10 @@ void UniformManager::ApplyChanges() {
     int num_stage_iterations = kGXNumTevStages;
 #endif
 
+    staged_uniform_data_.bp_regs.tev_stages[0].konst = GetTevKonst(gp::g_bp_regs.ksel[0].kcsel0);
+    staged_uniform_data_.bp_regs.tev_stages[0].konst.a = 
+        GetTevKonst(gp::g_bp_regs.ksel[0].kasel0).a;
+
     if (!(__uniform_data_.bp_regs.tev_state == staged_uniform_data_.bp_regs.tev_state) || 
         !(__uniform_data_.bp_regs.tev_stages[0] == staged_uniform_data_.bp_regs.tev_stages[0])) {
         __uniform_data_.bp_regs.tev_state  = staged_uniform_data_.bp_regs.tev_state;
@@ -276,6 +291,20 @@ void UniformManager::ApplyChanges() {
     // otherwise ignore. If _COMBINE_BP_UBO_WRITES is defined, sequentially changes will be combined
     // when uploaded. Otherwise, they will be uploaed individually.
     for (int stage = 1; stage < num_stage_iterations; stage++) {
+
+        int ksel = stage >> 1;
+
+        if (stage & 1 && stage < kGXNumTevStages) {
+            staged_uniform_data_.bp_regs.tev_stages[stage].konst = 
+                GetTevKonst(gp::g_bp_regs.ksel[ksel].kcsel0);
+            staged_uniform_data_.bp_regs.tev_stages[stage].konst.a = 
+                GetTevKonst(gp::g_bp_regs.ksel[ksel].kasel0).a;
+        } else {
+            staged_uniform_data_.bp_regs.tev_stages[stage].konst = 
+                GetTevKonst(gp::g_bp_regs.ksel[ksel].kcsel1);
+            staged_uniform_data_.bp_regs.tev_stages[stage].konst.a = 
+                GetTevKonst(gp::g_bp_regs.ksel[ksel].kasel1).a;
+        }
 
         // No change found
         // ---------------

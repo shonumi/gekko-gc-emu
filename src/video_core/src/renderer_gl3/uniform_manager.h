@@ -25,9 +25,24 @@
 #ifndef VIDEO_CORE_UNIFORM_MANAGER_H_
 #define VIDEO_CORE_UNIFORM_MANAGER_H_
 
-
 #include "renderer_gl3/renderer_gl3.h"
 #include "gx_types.h"
+
+/// Struct to represent a Vec4 GLSL color in a UBO
+struct Vec4Color {
+    f32 r, g, b, a;
+
+    Vec4Color(const f32 r = 0, const f32 g = 0, const f32 b = 0, const f32 a = 0) {
+        this->r = r;
+        this->g = g;
+        this->b = b;
+        this->a = a;
+    }
+
+    inline bool operator == (const Vec4Color &val) const {
+        return (r == val.r && g  == val.g && b == val.b &&  a == val.a);
+    }
+};
 
 class UniformManager {
 
@@ -38,6 +53,7 @@ public:
     UniformManager();
     ~UniformManager() {};
 
+    /// Struct to represent a memory region in a UBO
     struct UniformRegion {
         u8* start_addr;
         int length;
@@ -58,8 +74,7 @@ public:
         int pad2;
         int pad3;
 
-        f32 color[16];
-        f32 konst[16];
+        Vec4Color color[4];
 
         inline bool operator == (const UniformStruct_TevState &val) const {
             return (alpha_func_ref0  == val.alpha_func_ref0  &&
@@ -70,36 +85,7 @@ public:
                     color[0]  == val.color[0]  &&
                     color[1]  == val.color[1]  &&
                     color[2]  == val.color[2]  &&
-                    color[3]  == val.color[3]  &&
-                    color[4]  == val.color[4]  &&
-                    color[5]  == val.color[5]  &&
-                    color[6]  == val.color[6]  &&
-                    color[7]  == val.color[7]  &&
-                    color[8]  == val.color[8]  &&
-                    color[9]  == val.color[9]  &&
-                    color[10] == val.color[10] &&
-                    color[11] == val.color[11] &&
-                    color[12] == val.color[12] &&
-                    color[13] == val.color[13] &&
-                    color[14] == val.color[14] &&
-                    color[15] == val.color[15] &&
-
-                    konst[0]  == val.konst[0]  &&
-                    konst[1]  == val.konst[1]  &&
-                    konst[2]  == val.konst[2]  &&
-                    konst[3]  == val.konst[3]  &&
-                    konst[4]  == val.konst[4]  &&
-                    konst[5]  == val.konst[5]  &&
-                    konst[6]  == val.konst[6]  &&
-                    konst[7]  == val.konst[7]  &&
-                    konst[8]  == val.konst[8]  &&
-                    konst[9]  == val.konst[9]  &&
-                    konst[10] == val.konst[10] &&
-                    konst[11] == val.konst[11] &&
-                    konst[12] == val.konst[12] &&
-                    konst[13] == val.konst[13] &&
-                    konst[14] == val.konst[14] &&
-                    konst[15] == val.konst[15]);
+                    color[3]  == val.color[3]);
         }
     };
 
@@ -124,8 +110,10 @@ public:
         f32 alpha_scale;
         int alpha_dest;
 
-		int konst_color_sel;
-		int konst_alpha_sel;
+        int pad0;
+        int pad1;
+
+        Vec4Color konst;
 
         inline bool operator == (const UniformStruct_TevStageParams &val) const {
             return (color_sel_a     == val.color_sel_a     &&
@@ -148,8 +136,7 @@ public:
                     alpha_scale     == val.alpha_scale     &&
                     alpha_dest      == val.alpha_dest      &&
 
-                    konst_color_sel == val.konst_color_sel &&
-                    konst_alpha_sel == val.konst_alpha_sel );
+                    konst           == val.konst);
         }
 
     };
@@ -215,10 +202,16 @@ private:
      */
     void InvalidateRegion(UniformRegion region);
 
-    int last_invalid_region_xf_;
-    int last_invalid_region_bp_;
-    
-    UniformRegion invalid_regions_xf_[kMaxUniformRegions];
+    /**
+     * Lookup the TEV konst color value for a given kont selector
+     * @param sel Konst selector corresponding to the desired konst color
+     */
+    Vec4Color GetTevKonst(int sel);
+
+    int             last_invalid_region_xf_;
+    UniformRegion   invalid_regions_xf_[kMaxUniformRegions];
+
+    Vec4Color konst_[4];
 };
 
 #endif // VIDEO_CORE_UNIFORM_MANAGER_H_

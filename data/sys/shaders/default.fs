@@ -28,8 +28,10 @@ struct TevStage {
     float alpha_scale;
     int alpha_dest;
 
-    int konst_color_sel;
-    int konst_alpha_sel;
+    int pad0;
+    int pad1;
+    
+    vec4 konst;
 
     // NOTE: this struct must be padded to a 16 byte boundary in order to be tightly packed
 };
@@ -46,7 +48,6 @@ struct TevState {
     int pad3;
     
     vec4 color[4];
-    vec4 konst[4];
 
     // NOTE: this struct must be padded to a 16 byte boundary in order to be tightly packed
 };
@@ -86,42 +87,6 @@ vec4 g_color[16] = vec4[16](
     vec4(0.0f, 0.0f, 0.0f, 0.0f)
 );
 
-// TEV color constants
-vec4 tev_konst[32] = vec4[32](
-    vec4(1.0, 1.0, 1.0, 1.0),
-    vec4(0.875, 0.875, 0.875, 0.875),
-    vec4(0.75, 0.75, 0.75, 0.75),
-    vec4(0.625, 0.625, 0.625, 0.625),
-    vec4(0.5, 0.5, 0.5, 0.5),
-    vec4(0.375, 0.375, 0.375, 0.375),
-    vec4(0.25, 0.25, 0.25, 0.25),
-    vec4(0.125, 0.125, 0.125, 0.125),
-    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
-    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
-    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
-    vec4(0.0, 0.0, 0.0, 0.0),            // undefined
-    bp_regs.tev_state.konst[0].rgba,                // alpha unconfirmed
-    bp_regs.tev_state.konst[1].rgba,                // alpha unconfirmed
-    bp_regs.tev_state.konst[2].rgba,                // alpha unconfirmed
-    bp_regs.tev_state.konst[3].rgba,                // alpha unconfirmed
-    bp_regs.tev_state.konst[0].rrrr,
-    bp_regs.tev_state.konst[1].rrrr,
-    bp_regs.tev_state.konst[2].rrrr,
-    bp_regs.tev_state.konst[3].rrrr,
-    bp_regs.tev_state.konst[0].gggg,
-    bp_regs.tev_state.konst[1].gggg,
-    bp_regs.tev_state.konst[2].gggg,
-    bp_regs.tev_state.konst[3].gggg,
-    bp_regs.tev_state.konst[0].bbbb,
-    bp_regs.tev_state.konst[1].bbbb,
-    bp_regs.tev_state.konst[2].bbbb,
-    bp_regs.tev_state.konst[3].bbbb,
-    bp_regs.tev_state.konst[0].aaaa,
-    bp_regs.tev_state.konst[1].aaaa,
-    bp_regs.tev_state.konst[2].aaaa,
-    bp_regs.tev_state.konst[3].aaaa
-);
-
 bool alpha_compare(in int op, in int value, in int ref) {
     switch (op) {
     case GX_NEVER:
@@ -148,8 +113,8 @@ void StageResult(in int stage_index) {
     TevStage stage = bp_regs.tev_stages[stage_index];
 
     // Update konst register
-    g_color[14].rgb = tev_konst[stage.konst_color_sel].rgb;
-    g_color[12].a = tev_konst[stage.konst_alpha_sel].a;
+    g_color[14].rgb = stage.konst.rgb;
+    g_color[12].a = stage.konst.a;
 
     vec4 tev_input_a = vec4(g_color[stage.color_sel_a].rgb, 
         g_color[(stage.alpha_sel_a << 1)].a);
@@ -187,12 +152,6 @@ void StageResult(in int stage_index) {
 }
 
 void main() {
-
-    vec4 dest;
-
-    // TEV stages
-    // ----------
-
     StageResult(0);
 #if NUM_STAGES > 1
     StageResult(1);
@@ -241,7 +200,7 @@ void main() {
 #endif
 
     // Store result of last TEV stage
-    dest = vec4(g_color[bp_regs.tev_stages[NUM_STAGES - 1].color_dest].rgb, 
+    vec4 dest = vec4(g_color[bp_regs.tev_stages[NUM_STAGES - 1].color_dest].rgb, 
         g_color[bp_regs.tev_stages[NUM_STAGES - 1].alpha_dest].a);
 
     // Alpha compare
