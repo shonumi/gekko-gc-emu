@@ -48,8 +48,6 @@ public:
     // ---------------------------------------------------------
 
     struct UniformStruct_TevState {
-        int num_stages;
-
         int alpha_func_ref0;
         int alpha_func_ref1;
         int alpha_func_comp0;
@@ -58,13 +56,13 @@ public:
         int pad0;
         int pad1;
         int pad2;
+        int pad3;
 
         f32 color[16];
         f32 konst[16];
 
         inline bool operator == (const UniformStruct_TevState &val) const {
-            return (num_stages       == val.num_stages       &&
-                    alpha_func_ref0  == val.alpha_func_ref0  &&
+            return (alpha_func_ref0  == val.alpha_func_ref0  &&
                     alpha_func_ref1  == val.alpha_func_ref1  &&
                     alpha_func_comp0 == val.alpha_func_comp0 &&
                     alpha_func_comp1 == val.alpha_func_comp1 &&

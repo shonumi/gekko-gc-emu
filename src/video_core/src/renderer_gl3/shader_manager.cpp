@@ -44,8 +44,9 @@ static const char __default_shader_header[] = {
 
 namespace shader_manager {
 
-GLuint g_current_shader_id;     ///< Handle to current shader program
-GLuint g_shader_cache[0x40];    ///< Array of precompiled shader programs
+GLuint g_current_shader_id = 0; ///< Handle to current shader program
+GLuint g_shader_cache[256];     ///< Array of precompiled shader programs
+int    g_num_shaders = 0;
 
 /**
  * @brief Assign a binding point to an active uniform block
@@ -53,17 +54,16 @@ GLuint g_shader_cache[0x40];    ///< Array of precompiled shader programs
  * @param ubo_binding Specifies the binding point to which to bind the uniform block
  */
 void BindUBO(GLuint ubo_index, GLuint ubo_binding) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < g_num_shaders; i++) {
         glUniformBlockBinding(g_shader_cache[i], ubo_index, ubo_binding);
     }
 }
 
 /// Sets the current shader program based on a set of GP parameters
 void SetShader() {
-    int alpha_logic = gp::g_bp_regs.alpha_func.logic & 3;
-
-    if (g_current_shader_id != g_shader_cache[alpha_logic]) {
-        g_current_shader_id = g_shader_cache[alpha_logic];
+    int shader_id = (gp::g_bp_regs.genmode.num_tevstages << 2) | gp::g_bp_regs.alpha_func.logic;
+    if (g_current_shader_id != g_shader_cache[shader_id]) {
+        g_current_shader_id = g_shader_cache[shader_id];
         glUseProgram(g_current_shader_id);
     }
 }
@@ -194,10 +194,26 @@ void LoadShader(char* vs_path, char* fs_path) {
     std::string vs_str((std::istreambuf_iterator<char>(vs_ifs)), std::istreambuf_iterator<char>());
     std::string fs_str((std::istreambuf_iterator<char>(fs_ifs)), std::istreambuf_iterator<char>());
 
-    g_shader_cache[0] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_AND\n");
-    g_shader_cache[1] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_OR\n");
-    g_shader_cache[2] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XOR\n");
-    g_shader_cache[3] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), "#define BP_ALPHA_FUNC_XNOR\n");
+    // Compile shaders with prespecified macros
+    char preprocessor_line[255];
+    for (int i = 0; i < kGXNumTevStages; i++) {
+        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_AND\n", (i + 1));
+        g_shader_cache[(i * 4) + 0] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), preprocessor_line);
+        
+        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_OR\n", (i + 1));
+        g_shader_cache[(i * 4) + 1] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), 
+            preprocessor_line);
+
+        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_XOR\n", (i + 1));
+        g_shader_cache[(i * 4) + 2] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), 
+            preprocessor_line);
+
+        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_XNOR\n", (i + 1));
+        g_shader_cache[(i * 4) + 3] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), 
+            preprocessor_line);
+
+        g_num_shaders += 4;
+    }
 }
 
 /// Initialize the shader manager

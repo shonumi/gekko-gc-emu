@@ -66,10 +66,6 @@ UniformManager::UniformManager() {
  */
 void UniformManager::WriteBP(u8 addr, u32 data) {
     switch(addr) {
-    case BP_REG_GENMODE:
-        staged_uniform_data_.bp_regs.tev_state.num_stages = gp::g_bp_regs.genmode.num_tevstages + 1;
-        break;
-
     case BP_REG_TEV_COLOR_ENV + 0:
     case BP_REG_TEV_COLOR_ENV + 2:
     case BP_REG_TEV_COLOR_ENV + 4:
@@ -159,7 +155,6 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
 	case 0xe5: // TEV_REGISTERH_2
 	case 0xe7: // TEV_REGISTERH_3
         {
-
             int base_addr = ((addr >> 1) - 0x70) << 2;
 
             if (addr & 1) { // green/blue
