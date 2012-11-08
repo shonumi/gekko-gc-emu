@@ -246,7 +246,8 @@ void LoadTexture(u8 num) {
     int set = (num & 4) >> 2;
     // TODO(ShizZy): Make this a real hash without slowing the emu down terribly. Right now, this 
     // is addr ^ first 4 bytes
-    u32 hash = (g_bp_regs.tex[set].image_3[index].image_base ^ *(u32*)&Mem_RAM[g_bp_regs.tex[set].image_3[index].get_addr() & RAM_MASK]);
+    u32 hash = (g_bp_regs.tex[set].image_3[index].image_base ^ 
+        *(u32*)&Mem_RAM[g_bp_regs.tex[set].image_3[index].get_addr() & RAM_MASK]);
 
     if(!video_core::g_renderer->BindTexture(hash, num)) {
         DecodeTexture(g_bp_regs.tex[set].image_0[0].format, 
