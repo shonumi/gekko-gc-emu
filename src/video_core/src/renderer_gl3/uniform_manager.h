@@ -216,7 +216,7 @@ private:
      * Updates any staged data to be written in the next uniform data upload
      * @param stage Stage to update data for
      */
-    void UniformManager::UpdateStagedData(int stage);
+    void UpdateStagedData(int stage);
 
     /**
      * Lookup the TEV konst color value for a given kont selector
