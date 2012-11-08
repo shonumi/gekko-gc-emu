@@ -110,6 +110,9 @@ union CPVatRegA {
     inline u32 get_col0() { return ((col0_count << 3) | col0_format); }
     inline u32 get_col1() { return ((col1_count << 3) | col1_format); }
     inline u32 get_tex0() { return ((tex0_count << 3) | tex0_format); }
+
+	inline f32 get_pos_dqf() { return (1.0f / f32(1 << pos_shift)); }
+	inline f32 get_tex0_dqf() { return (1.0f / f32(1 << tex0_shift)); }
 };
 
 /// Vertex attribute table (VAT) register B
@@ -139,6 +142,10 @@ union CPVatRegB {
     inline u32 get_tex2() { return ((tex2_count << 3) | tex2_format); }
     inline u32 get_tex3() { return ((tex3_count << 3) | tex3_format); }
     inline u32 get_tex4() { return ((tex4_count << 3) | tex4_format); }
+
+	inline f32 get_tex1_dqf() { return (1.0f / f32(1 << tex1_shift)); }
+	inline f32 get_tex2_dqf() { return (1.0f / f32(1 << tex2_shift)); }
+	inline f32 get_tex3_dqf() { return (1.0f / f32(1 << tex3_shift)); }
 };
 
 /// Vertex attribute table (VAT) register C
@@ -164,6 +171,11 @@ union CPVatRegC {
     inline u32 get_tex5() { return ((tex5_count << 3) | tex5_format); }
     inline u32 get_tex6() { return ((tex6_count << 3) | tex6_format); }
     inline u32 get_tex7() { return ((tex7_count << 3) | tex7_format); }
+
+	inline f32 get_tex4_dqf() { return (1.0f / f32(1 << tex4_shift)); }
+	inline f32 get_tex5_dqf() { return (1.0f / f32(1 << tex5_shift)); }
+	inline f32 get_tex6_dqf() { return (1.0f / f32(1 << tex6_shift)); }
+	inline f32 get_tex7_dqf() { return (1.0f / f32(1 << tex7_shift)); }
 };
 
 

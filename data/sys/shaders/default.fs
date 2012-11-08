@@ -28,8 +28,13 @@ struct TevStage {
     float alpha_scale;
     int alpha_dest;
 
+    int texture_enable;
+    int texture_map;
+    int texture_coords;
+    
     int pad0;
     int pad1;
+    int pad2;
     
     vec4 konst;
 
@@ -58,15 +63,12 @@ layout(std140) uniform BPRegisters {
 } bp_regs;
 
 // Textures
-uniform int tex_enable[8];
-uniform sampler2D texture0;
+uniform sampler2D texture[8];
 
-in vec4 vertexColor;
-in vec2 vertexTexCoord0;
-out vec4 fragmentColor;
+in vec4 vtx_color_0;
+in vec2 vtx_texcoord[8];
 
-// Texture
-vec4 g_tex = texture2D(texture0, vertexTexCoord0);
+out vec4 frag_dest;
 
 vec4 g_color[16] = vec4[16](
     bp_regs.tev_state.color[0].rgba,
@@ -77,10 +79,10 @@ vec4 g_color[16] = vec4[16](
     bp_regs.tev_state.color[2].aaaa,
     bp_regs.tev_state.color[3].rgba,
     bp_regs.tev_state.color[3].aaaa,
-    g_tex.rgba,
-    g_tex.aaaa,
-    vertexColor.rgba,
-    vertexColor.aaaa,
+    vec4(0.0f, 0.0f, 0.0f, 0.0f), // g_tex.rgba,
+    vec4(0.0f, 0.0f, 0.0f, 0.0f), // g_tex.aaaa,
+    vtx_color_0.rgba,
+    vtx_color_0.aaaa,
     vec4(1.0f, 1.0f, 1.0f, 1.0f),
     vec4(0.5f, 0.5f, 0.5f, 0.5f),
     vec4(0.0f, 0.0f, 0.0f, 0.0f), // konst - set dynamically
@@ -113,21 +115,24 @@ void StageResult(in int stage_index) {
     TevStage stage = bp_regs.tev_stages[stage_index];
 
     // Update konst register
-    g_color[14].rgb = stage.konst.rgb;
+    g_color[14].rgb = stage.konst.rgb; // Note 'a' is used for alpha konst zero value
     g_color[12].a = stage.konst.a;
-
-    vec4 tev_input_a = vec4(g_color[stage.color_sel_a].rgb, 
-        g_color[(stage.alpha_sel_a << 1)].a);
-    vec4 tev_input_b = vec4(g_color[stage.color_sel_b].rgb, 
-        g_color[(stage.alpha_sel_b << 1)].a);
-    vec4 tev_input_c = vec4(g_color[stage.color_sel_c].rgb, 
-        g_color[(stage.alpha_sel_c << 1)].a);
-    vec4 tev_input_d = vec4(g_color[stage.color_sel_d].rgb, 
-        g_color[(stage.alpha_sel_d << 1)].a);
-    vec4 sub = vec4(stage.color_sub, stage.color_sub, stage.color_sub, 
-		stage.alpha_sub);
-    vec4 bias = vec4(stage.color_bias, stage.color_bias, stage.color_bias, 
-		stage.alpha_bias);
+    
+    // Texture
+    if (stage.texture_enable != 0) {
+        g_color[8] = texture2D(texture[stage.texture_map], vtx_texcoord[stage.texture_coords]);
+        g_color[9] = vec4(g_color[8].a, g_color[8].a, g_color[8].a, g_color[8].a);
+    } else {
+        g_color[8] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_color[9] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    
+    vec4 tev_input_a = vec4(g_color[stage.color_sel_a].rgb, g_color[stage.alpha_sel_a].a);
+    vec4 tev_input_b = vec4(g_color[stage.color_sel_b].rgb, g_color[stage.alpha_sel_b].a);
+    vec4 tev_input_c = vec4(g_color[stage.color_sel_c].rgb, g_color[stage.alpha_sel_c].a);
+    vec4 tev_input_d = vec4(g_color[stage.color_sel_d].rgb, g_color[stage.alpha_sel_d].a);
+    vec4 sub = vec4(stage.color_sub, stage.color_sub, stage.color_sub, stage.alpha_sub);
+    vec4 bias = vec4(stage.color_bias, stage.color_bias, stage.color_bias, stage.alpha_bias);
 
     // Process stage
     vec4 result = (tev_input_d + (sub * (mix(tev_input_a, tev_input_b, tev_input_c) + bias)));
@@ -226,5 +231,5 @@ void main() {
             discard;
 #endif
 
-    fragmentColor = dest;
+    frag_dest = dest;
 }

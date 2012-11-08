@@ -78,14 +78,14 @@ public:
 
         inline bool operator == (const UniformStruct_TevState &val) const {
             return (alpha_func_ref0  == val.alpha_func_ref0  &&
-                    alpha_func_ref1  == val.alpha_func_ref1  &&
-                    alpha_func_comp0 == val.alpha_func_comp0 &&
-                    alpha_func_comp1 == val.alpha_func_comp1 &&
+                alpha_func_ref1  == val.alpha_func_ref1  &&
+                alpha_func_comp0 == val.alpha_func_comp0 &&
+                alpha_func_comp1 == val.alpha_func_comp1 &&
 
-                    color[0]  == val.color[0]  &&
-                    color[1]  == val.color[1]  &&
-                    color[2]  == val.color[2]  &&
-                    color[3]  == val.color[3]);
+                color[0]  == val.color[0]  &&
+                color[1]  == val.color[1]  &&
+                color[2]  == val.color[2]  &&
+                color[3]  == val.color[3]);
         }
     };
 
@@ -110,33 +110,43 @@ public:
         f32 alpha_scale;
         int alpha_dest;
 
+        int texture_enable;
+        int texture_map;
+        int texture_coords;
+
         int pad0;
         int pad1;
+        int pad2;
 
         Vec4Color konst;
 
         inline bool operator == (const UniformStruct_TevStageParams &val) const {
-            return (color_sel_a     == val.color_sel_a     &&
-                    color_sel_b     == val.color_sel_b     &&
-                    color_sel_c     == val.color_sel_c     &&
-                    color_sel_d     == val.color_sel_d     &&
-                    color_bias      == val.color_bias      &&
-                    color_sub       == val.color_sub       &&
-                    color_clamp     == val.color_clamp     &&
-                    color_scale     == val.color_scale     &&
-                    color_dest      == val.color_dest      &&
+            return (
+                color_sel_a     == val.color_sel_a		&&
+                color_sel_b     == val.color_sel_b		&&
+                color_sel_c     == val.color_sel_c		&&
+                color_sel_d     == val.color_sel_d		&&
+                color_bias      == val.color_bias		&&
+                color_sub       == val.color_sub		&&
+                color_clamp     == val.color_clamp		&&
+                color_scale     == val.color_scale		&&
+                color_dest      == val.color_dest		&&
 
-                    alpha_sel_a     == val.alpha_sel_a     &&
-                    alpha_sel_b     == val.alpha_sel_b     &&
-                    alpha_sel_c     == val.alpha_sel_c     &&
-                    alpha_sel_d     == val.alpha_sel_d     &&
-                    alpha_bias      == val.alpha_bias      &&
-                    alpha_sub       == val.alpha_sub       &&
-                    alpha_clamp     == val.alpha_clamp     &&
-                    alpha_scale     == val.alpha_scale     &&
-                    alpha_dest      == val.alpha_dest      &&
+                alpha_sel_a     == val.alpha_sel_a		&&
+                alpha_sel_b     == val.alpha_sel_b		&&
+                alpha_sel_c     == val.alpha_sel_c		&&
+                alpha_sel_d     == val.alpha_sel_d		&&
+                alpha_bias      == val.alpha_bias		&&
+                alpha_sub       == val.alpha_sub		&&
+                alpha_clamp     == val.alpha_clamp		&&
+                alpha_scale     == val.alpha_scale		&&
+                alpha_dest      == val.alpha_dest		&&
 
-                    konst           == val.konst);
+                texture_enable  == val.texture_enable   &&
+                texture_map     == val.texture_map      &&
+                texture_coords  == val.texture_coords   &&
+
+                konst           == val.konst);
         }
 
     };
@@ -157,29 +167,29 @@ public:
 
     };
 
-	UniformBlocks __uniform_data_;
-	UniformBlocks staged_uniform_data_;
+    UniformBlocks __uniform_data_;
+    UniformBlocks staged_uniform_data_;
 
     /**
-     * Write data to BP for renderer internal use (e.g. direct to shader)
-     * @param addr BP register address
-     * @param data Value to write to BP register
-     */
+    * Write data to BP for renderer internal use (e.g. direct to shader)
+    * @param addr BP register address
+    * @param data Value to write to BP register
+    */
     void WriteBP(u8 addr, u32 data);
 
     /**
-     * Write data to CP for renderer internal use (e.g. direct to shader)
-     * @param addr CP register address
-     * @param data Value to write to CP register
-     */
+    * Write data to CP for renderer internal use (e.g. direct to shader)
+    * @param addr CP register address
+    * @param data Value to write to CP register
+    */
     void WriteCP(u8 addr, u32 data);
 
     /**
-     * Write data to XF for renderer internal use (e.g. direct to shader)
-     * @param addr XF address
-     * @param length Length (in 32-bit words) to write to XF
-     * @param data Data buffer to write to XF
-     */
+    * Write data to XF for renderer internal use (e.g. direct to shader)
+    * @param addr XF address
+    * @param length Length (in 32-bit words) to write to XF
+    * @param data Data buffer to write to XF
+    */
     void WriteXF(u16 addr, int length, u32* data);
 
 
@@ -201,6 +211,12 @@ private:
      * @param region Uniform region to invalidate with function call
      */
     void InvalidateRegion(UniformRegion region);
+
+    /** 
+     * Updates any staged data to be written in the next uniform data upload
+     * @param stage Stage to update data for
+     */
+    void UniformManager::UpdateStagedData(int stage);
 
     /**
      * Lookup the TEV konst color value for a given kont selector

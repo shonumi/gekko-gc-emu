@@ -309,8 +309,8 @@ struct BPTevKSel {
         };
         u32 _u32;
     };
-    int getkc (int stage) { return (stage&1) ? kcsel1 : kcsel0; }
-    int getka (int stage) { return (stage&1) ? kasel1 : kasel0; }
+    int get_konst_color_sel(int stage) { return (stage&1) ? kcsel1 : kcsel0; }
+    int get_konst_alpha_sel(int stage) { return (stage&1) ? kasel1 : kasel0; }
 };
 
 /// TEV indirect texture map
@@ -336,17 +336,20 @@ union BPTevTexMap {
 struct BPTevOrder {
     union {
         struct {
-            unsigned texmap0 : 3;
-            unsigned texcoord0 : 3;
-            unsigned texmapenable0 : 1;
-            unsigned colorid0 : 3;
-            unsigned pad0 : 2;
-            unsigned texmap1 : 3;
-            unsigned texcoord1 : 3;
-            unsigned texmapenable1 : 1;
-            unsigned colorid1 : 3;
-            unsigned pad1 : 2;
-            unsigned rid : 8;
+            unsigned texmap0        : 3;
+            unsigned texcoord0      : 3;
+            unsigned texmapenable0  : 1;
+            unsigned colorid0       : 3;
+
+            unsigned pad0           : 2;
+
+            unsigned texmap1        : 3;
+            unsigned texcoord1      : 3;
+            unsigned texmapenable1  : 1;
+            unsigned colorid1       : 3;
+
+            unsigned pad1           : 2;
+            unsigned rid            : 8;
         };
         u32 _u32;
     };

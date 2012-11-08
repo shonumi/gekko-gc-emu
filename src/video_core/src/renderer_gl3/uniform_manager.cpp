@@ -153,14 +153,17 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
         {
             int stage = (addr - BP_REG_TEV_ALPHA_ENV) >> 1;
 
+            // Automatically << 1 each selector so that we can use the same lookup table as for the 
+            // color selectors in the GLSL shader
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_a = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_a;
+				gp::g_bp_regs.combiner[stage].alpha.sel_a << 1;
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_b = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_b;
+				gp::g_bp_regs.combiner[stage].alpha.sel_b << 1;
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_c = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_c;
+				gp::g_bp_regs.combiner[stage].alpha.sel_c << 1;
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_d = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_d;
+				gp::g_bp_regs.combiner[stage].alpha.sel_d << 1;
+
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_bias = 
 				tev_bias[gp::g_bp_regs.combiner[stage].alpha.bias];
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sub = 
@@ -246,6 +249,37 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     }
 }
 
+/** 
+ * Updates any staged data to be written in the next uniform data upload
+ * @param stage Stage to update data for
+ */
+void UniformManager::UpdateStagedData(int stage) {
+    if (stage < kGXNumTevStages) {
+        int reg_index = stage >> 1;
+    
+        // Texturing
+        // ---------
+
+        staged_uniform_data_.bp_regs.tev_stages[stage].texture_enable = 
+            gp::g_bp_regs.tevorder[reg_index].get_enable(stage);
+
+        staged_uniform_data_.bp_regs.tev_stages[stage].texture_coords = 
+            gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage);
+
+        staged_uniform_data_.bp_regs.tev_stages[stage].texture_map = 
+            gp::g_bp_regs.tevorder[reg_index].get_texmap(stage);
+
+        // Konst color
+        // -----------
+
+        staged_uniform_data_.bp_regs.tev_stages[stage].konst = 
+            GetTevKonst(gp::g_bp_regs.ksel[reg_index].get_konst_color_sel(stage));
+
+        staged_uniform_data_.bp_regs.tev_stages[stage].konst.a = 
+            GetTevKonst(gp::g_bp_regs.ksel[reg_index].get_konst_alpha_sel(stage)).a;
+    }
+}
+
 #define _COMBINE_BP_UBO_WRITES
 
 /// Apply any uniform changes to the shader
@@ -274,14 +308,14 @@ void UniformManager::ApplyChanges() {
     int num_stage_iterations = kGXNumTevStages;
 #endif
 
-    staged_uniform_data_.bp_regs.tev_stages[0].konst = GetTevKonst(gp::g_bp_regs.ksel[0].kcsel0);
-    staged_uniform_data_.bp_regs.tev_stages[0].konst.a = 
-        GetTevKonst(gp::g_bp_regs.ksel[0].kasel0).a;
+    this->UpdateStagedData(0);
 
     if (!(__uniform_data_.bp_regs.tev_state == staged_uniform_data_.bp_regs.tev_state) || 
         !(__uniform_data_.bp_regs.tev_stages[0] == staged_uniform_data_.bp_regs.tev_stages[0])) {
-        __uniform_data_.bp_regs.tev_state  = staged_uniform_data_.bp_regs.tev_state;
+
+        __uniform_data_.bp_regs.tev_state = staged_uniform_data_.bp_regs.tev_state;
         __uniform_data_.bp_regs.tev_stages[0] = staged_uniform_data_.bp_regs.tev_stages[0];
+
         glBufferSubData(GL_UNIFORM_BUFFER, 0, 
             sizeof(UniformStruct_TevState) + sizeof(UniformStruct_TevStageParams), 
             &__uniform_data_.bp_regs);
@@ -292,19 +326,7 @@ void UniformManager::ApplyChanges() {
     // when uploaded. Otherwise, they will be uploaed individually.
     for (int stage = 1; stage < num_stage_iterations; stage++) {
 
-        int ksel = stage >> 1;
-
-        if (stage & 1 && stage < kGXNumTevStages) {
-            staged_uniform_data_.bp_regs.tev_stages[stage].konst = 
-                GetTevKonst(gp::g_bp_regs.ksel[ksel].kcsel0);
-            staged_uniform_data_.bp_regs.tev_stages[stage].konst.a = 
-                GetTevKonst(gp::g_bp_regs.ksel[ksel].kasel0).a;
-        } else {
-            staged_uniform_data_.bp_regs.tev_stages[stage].konst = 
-                GetTevKonst(gp::g_bp_regs.ksel[ksel].kcsel1);
-            staged_uniform_data_.bp_regs.tev_stages[stage].konst.a = 
-                GetTevKonst(gp::g_bp_regs.ksel[ksel].kasel1).a;
-        }
+        this->UpdateStagedData(stage);
 
         // No change found
         // ---------------

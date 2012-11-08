@@ -337,13 +337,8 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     if (vertex_num == 0) {
         return;
     }
-
-
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_handle_);
     glUnmapBuffer(GL_ARRAY_BUFFER);
-
-    
 
     // Position
     glEnableVertexAttribArray(0);
@@ -355,15 +350,21 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
         reinterpret_cast<void*>(12));
 
     // TexCoords
-    if (vertex_texcoord_enable_[0]) {
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 3, vertex_texcoord_format_[0], GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(56));
-    }
+	for (int i = 0; i < 4; i++) {
+		u32 texture_index = i << 1;
+		if (vertex_texcoord_enable_[texture_index] || vertex_texcoord_enable_[texture_index + 1]) {
+			GLuint layout_index = i + 4;
+			glEnableVertexAttribArray(layout_index);
+			glVertexAttribPointer(layout_index, 4, vertex_texcoord_format_[i], GL_FALSE, sizeof(GXVertex), 
+				reinterpret_cast<void*>(56 + (i * 16)));
+		}
+	}
 
     // Position matrix index
     if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
         glEnableVertexAttribArray(8);
-        glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), reinterpret_cast<void*>(120));
+        glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+			reinterpret_cast<void*>(120));
     }
 
     glDrawArrays(gl_prim_type_, vbo_offset, vertex_num);
@@ -372,10 +373,9 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
         "VBO is full! There is either a bug or it must be > %dMB!", 
         (VBO_SIZE / 1048576));
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(4);
-    glDisableVertexAttribArray(8);
+	for (int i = 0; i < 11; i++) { 
+		glDisableVertexAttribArray(i);
+	}
 }
 
 

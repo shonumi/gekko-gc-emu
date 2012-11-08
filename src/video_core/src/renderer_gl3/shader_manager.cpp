@@ -96,14 +96,25 @@ void UpdateUniforms() {
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
 
     // CP - dequantization shift values
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_shift"), VAT_POSSHFT);
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_tex_shift_0"), VAT_TEX0SHFT);
+	if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format != GX_F32) {
+		glUniform1f(glGetUniformLocation(g_current_shader_id, "cp_pos_dqf"), gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf());
+	}
+
+	const f32 tex_dqf[8] = {
+		gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_tex0_dqf(),
+		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex1_dqf(),
+		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex2_dqf(),
+		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex3_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex4_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex5_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7_dqf() 
+	};
+    glUniform1fv(glGetUniformLocation(g_current_shader_id, "cp_tex_dqf"), 8, tex_dqf);
 
     // Textures
-    // TODO(ShizZy): Enable the remaining textures
-    int tex_enable[8] = { gp::g_bp_regs.tevorder[0].get_enable(0), 0, 0, 0, 0, 0, 0, 0 };
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "texture0"), 0);
-    glUniform1iv(glGetUniformLocation(g_current_shader_id, "tex_enable"), 8, tex_enable);
+    const int tex_map[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; 
+    glUniform1iv(glGetUniformLocation(g_current_shader_id, "texture"), 8, tex_map);
 }
 
 /**
