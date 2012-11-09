@@ -8,8 +8,13 @@
 #define GX_ALWAYS   7
 
 #define STAGE_RESULT(stage) \
-    g_color[8] = texture2D(texture[stage], vtx_texcoord[bp_regs.tev_stages[stage].texture_coords]); \
-    g_color[9] = vec4(g_color[8].a, g_color[8].a, g_color[8].a, g_color[8].a); \
+    if (bp_regs.tev_stages[stage].texture_enable != 0) { \
+        g_color[8] = texture2D(texture[stage], vtx_texcoord[bp_regs.tev_stages[stage].texture_coords]); \
+        g_color[9] = g_color[8].aaaa; \
+    } else { \
+        g_color[8] = vec4(1.0f, 1.0f, 1.0f, 1.0f); \
+        g_color[9] = vec4(1.0f, 1.0f, 1.0f, 1.0f); \
+    } \
     g_color[12].a = bp_regs.tev_stages[stage].konst.a; \
     g_color[14].rgb = bp_regs.tev_stages[stage].konst.rgb; \
     StageResult(stage);
@@ -77,22 +82,26 @@ in vec2 vtx_texcoord[8];
 
 out vec4 frag_dest;
 
+vec4 g_tex_0 = texture2D(texture[0], vtx_texcoord[bp_regs.tev_stages[0].texture_coords]);
+
+// This is setup for stage 0, but certain parts are updated with each stage - mainly, konst and
+// texture indices
 vec4 g_color[16] = vec4[16](
-    bp_regs.tev_state.color[0].rgba,
+    bp_regs.tev_state.color[0],
     bp_regs.tev_state.color[0].aaaa,
-    bp_regs.tev_state.color[1].rgba,
+    bp_regs.tev_state.color[1],
     bp_regs.tev_state.color[1].aaaa,
-    bp_regs.tev_state.color[2].rgba,
+    bp_regs.tev_state.color[2],
     bp_regs.tev_state.color[2].aaaa,
-    bp_regs.tev_state.color[3].rgba,
+    bp_regs.tev_state.color[3],
     bp_regs.tev_state.color[3].aaaa,
-    vec4(0.0f, 0.0f, 0.0f, 0.0f), // g_tex.rgba,
-    vec4(0.0f, 0.0f, 0.0f, 0.0f), // g_tex.aaaa,
-    vtx_color_0.rgba,
+    g_tex_0,
+    g_tex_0.aaaa,
+    vtx_color_0,
     vtx_color_0.aaaa,
-    vec4(1.0f, 1.0f, 1.0f, 1.0f),
+    vec4(1.0f, 1.0f, 1.0f, bp_regs.tev_stages[0].konst.a),
     vec4(0.5f, 0.5f, 0.5f, 0.5f),
-    vec4(0.0f, 0.0f, 0.0f, 0.0f), // konst - set dynamically
+    vec4(bp_regs.tev_stages[0].konst.rgb, 0.0f), // konst - set dynamically
     vec4(0.0f, 0.0f, 0.0f, 0.0f)
 );
 
@@ -151,7 +160,11 @@ void StageResult(in int stage_index) {
 }
 
 void main() {
-    STAGE_RESULT(0);
+    if (bp_regs.tev_stages[0].texture_enable == 0) {
+        g_color[8] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_color[9] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    StageResult(0);
 #if NUM_STAGES > 1
     STAGE_RESULT(1);
 #endif
