@@ -49,7 +49,7 @@ GLuint g_shader_cache[256];     ///< Array of precompiled shader programs
 int    g_num_shaders = 0;
 
 /**
- * @brief Assign a binding point to an active uniform block
+ * Assign a binding point to an active uniform block
  * @param ubo_index The index of the active uniform block within program whose binding to assign
  * @param ubo_binding Specifies the binding point to which to bind the uniform block
  */
@@ -69,7 +69,7 @@ void SetShader() {
 }
 
 /**
- * @brief Gets the shader ID of the current shader program
+ * Gets the shader ID of the current shader program
  * @return GLuint of current shader ID
  */
 GLuint GetCurrentShaderID() {
@@ -113,12 +113,29 @@ void UpdateUniforms() {
     glUniform1fv(glGetUniformLocation(g_current_shader_id, "cp_tex_dqf"), 8, tex_dqf);
 
     // Textures
-    const int tex_map[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; 
-    glUniform1iv(glGetUniformLocation(g_current_shader_id, "texture"), 8, tex_map);
+    const int tex_map[16] = { 
+        gp::g_bp_regs.tevorder[0].get_texmap(0),
+        gp::g_bp_regs.tevorder[0].get_texmap(1),
+        gp::g_bp_regs.tevorder[1].get_texmap(2),
+        gp::g_bp_regs.tevorder[1].get_texmap(3),
+        gp::g_bp_regs.tevorder[2].get_texmap(4),
+        gp::g_bp_regs.tevorder[2].get_texmap(5),
+        gp::g_bp_regs.tevorder[3].get_texmap(6),
+        gp::g_bp_regs.tevorder[3].get_texmap(7),
+        gp::g_bp_regs.tevorder[4].get_texmap(8),
+        gp::g_bp_regs.tevorder[4].get_texmap(9),
+        gp::g_bp_regs.tevorder[5].get_texmap(10),
+        gp::g_bp_regs.tevorder[5].get_texmap(11),
+        gp::g_bp_regs.tevorder[6].get_texmap(12),
+        gp::g_bp_regs.tevorder[6].get_texmap(13),
+        gp::g_bp_regs.tevorder[7].get_texmap(14),
+        gp::g_bp_regs.tevorder[7].get_texmap(15)
+    }; 
+    glUniform1iv(glGetUniformLocation(g_current_shader_id, "texture"), 16, tex_map);
 }
 
 /**
- * @brief Compiles a shader program
+ * Compiles a shader program
  * @param vs Vertex shader program source string
  * @param gs Geometry shader program source string (optional)
  * @param fs Fragment shader program source string

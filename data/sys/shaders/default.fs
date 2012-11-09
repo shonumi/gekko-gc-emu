@@ -7,6 +7,13 @@
 #define GX_GEQUAL   6
 #define GX_ALWAYS   7
 
+#define STAGE_RESULT(stage) \
+    g_color[8] = texture2D(texture[stage], vtx_texcoord[bp_regs.tev_stages[stage].texture_coords]); \
+    g_color[9] = vec4(g_color[8].a, g_color[8].a, g_color[8].a, g_color[8].a); \
+    g_color[12].a = bp_regs.tev_stages[stage].konst.a; \
+    g_color[14].rgb = bp_regs.tev_stages[stage].konst.rgb; \
+    StageResult(stage);
+
 struct TevStage {
     int color_sel_a;
     int color_sel_b;
@@ -63,7 +70,7 @@ layout(std140) uniform BPRegisters {
 } bp_regs;
 
 // Textures
-uniform sampler2D texture[8];
+uniform sampler2D texture[16];
 
 in vec4 vtx_color_0;
 in vec2 vtx_texcoord[8];
@@ -114,19 +121,6 @@ bool alpha_compare(in int op, in int value, in int ref) {
 void StageResult(in int stage_index) {
     TevStage stage = bp_regs.tev_stages[stage_index];
 
-    // Update konst register
-    g_color[14].rgb = stage.konst.rgb; // Note 'a' is used for alpha konst zero value
-    g_color[12].a = stage.konst.a;
-    
-    // Texture
-    if (stage.texture_enable != 0) {
-        g_color[8] = texture2D(texture[stage.texture_map], vtx_texcoord[stage.texture_coords]);
-        g_color[9] = vec4(g_color[8].a, g_color[8].a, g_color[8].a, g_color[8].a);
-    } else {
-        g_color[8] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_color[9] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-    
     vec4 tev_input_a = vec4(g_color[stage.color_sel_a].rgb, g_color[stage.alpha_sel_a].a);
     vec4 tev_input_b = vec4(g_color[stage.color_sel_b].rgb, g_color[stage.alpha_sel_b].a);
     vec4 tev_input_c = vec4(g_color[stage.color_sel_c].rgb, g_color[stage.alpha_sel_c].a);
@@ -157,51 +151,51 @@ void StageResult(in int stage_index) {
 }
 
 void main() {
-    StageResult(0);
+    STAGE_RESULT(0);
 #if NUM_STAGES > 1
-    StageResult(1);
+    STAGE_RESULT(1);
 #endif
 #if NUM_STAGES > 2
-    StageResult(2);
+    STAGE_RESULT(2);
 #endif
 #if NUM_STAGES > 3
-    StageResult(3);
+    STAGE_RESULT(3);
 #endif
 #if NUM_STAGES > 4
-    StageResult(4);
+    STAGE_RESULT(4);
 #endif
 #if NUM_STAGES > 5
-    StageResult(5);
+    STAGE_RESULT(5);
 #endif
 #if NUM_STAGES > 6
-    StageResult(6);
+    STAGE_RESULT(6);
 #endif
 #if NUM_STAGES > 7
-    StageResult(7);
+    STAGE_RESULT(7);
 #endif
 #if NUM_STAGES > 8
-    StageResult(8);
+    STAGE_RESULT(8);
 #endif
 #if NUM_STAGES > 9
-    StageResult(9);
+    STAGE_RESULT(9);
 #endif
 #if NUM_STAGES > 10
-    StageResult(10);
+    STAGE_RESULT(10);
 #endif
 #if NUM_STAGES > 11
-    StageResult(11);
+    STAGE_RESULT(11);
 #endif
 #if NUM_STAGES > 12
-    StageResult(12);
+    STAGE_RESULT(12);
 #endif
 #if NUM_STAGES > 13
-    StageResult(13);
+    STAGE_RESULT(13);
 #endif
 #if NUM_STAGES > 14
-    StageResult(14);
+    STAGE_RESULT(14);
 #endif
 #if NUM_STAGES > 15
-    StageResult(15);
+    STAGE_RESULT(15);
 #endif
 
     // Store result of last TEV stage
