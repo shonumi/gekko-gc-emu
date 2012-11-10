@@ -65,14 +65,14 @@ private:
      * @param preprocessor Preprocessor string to include before shader program
      * @return GLuint of new shader program
      */
-    GLuint ShaderManager::CompileShaderProgram(const char* preprocessor);
+    GLuint CompileShaderProgram(const char* preprocessor);
 
     /**
      * Compiles a shader program given the specified shader inputs
      * @param num_stages: Number of TEV stages to compile program for
      * @param alpha_compare_function: Alpha comparision function logic
      */
-    GLuint ShaderManager::LoadShader(int num_stages, int alpha_compare_function);
+    GLuint LoadShader(int num_stages, int alpha_compare_function);
 
     GLuint current_shader_;             ///< Handle to current shader program
     GLuint default_shader_;             ///< Handle to default shader program
