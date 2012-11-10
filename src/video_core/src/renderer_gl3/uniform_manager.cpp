@@ -37,6 +37,8 @@
 UniformManager::UniformManager() {
     ubo_handle_bp_ = 0;
     ubo_handle_xf_ = 0;
+    ubo_block_index_bp_ = 0;
+    ubo_block_index_xf_ = 0;
     last_invalid_region_xf_ = 0;
     memset(invalid_regions_xf_, 0, sizeof(invalid_regions_xf_));
     memset(&staged_uniform_data_, 0, sizeof(staged_uniform_data_));
@@ -377,25 +379,26 @@ void UniformManager::ApplyChanges() {
     }
 }
 
-/// Initialize the Uniform Manager
-void UniformManager::Init() {
-    GLuint block_index;
+/**
+ * Attach a shader to the Uniform Manager for uniform binding
+ * @param shader Compiled GLSL shader program
+ */
+void UniformManager::AttachShader(GLuint shader) {
+    glUniformBlockBinding(shader, ubo_block_index_bp_, 0);
+    glUniformBlockBinding(shader, ubo_block_index_xf_, 1);
+}
 
+/// Initialize the Uniform Manager
+void UniformManager::Init(GLuint default_shader) {
     // Initialize BP UBO(s)
-    // --------------------
-    
-    block_index = glGetUniformBlockIndex(shader_manager::g_current_shader_id, "BPRegisters");
-    shader_manager::BindUBO(block_index, 0);
+    ubo_block_index_bp_ = glGetUniformBlockIndex(default_shader, "BPRegisters");
     glGenBuffers(1, &ubo_handle_bp_);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_bp_);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(__uniform_data_.bp_regs), NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo_handle_bp_);
 
     // Initialize XF UBO
-    // -----------------
-
-    block_index = glGetUniformBlockIndex(shader_manager::g_current_shader_id, "XFRegisters");
-    shader_manager::BindUBO(block_index, 1);
+    ubo_block_index_xf_ = glGetUniformBlockIndex(default_shader, "XFRegisters");
     glGenBuffers(1, &ubo_handle_xf_);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_handle_xf_);
     glBufferData(GL_UNIFORM_BUFFER, 0x400, NULL, GL_DYNAMIC_DRAW);

@@ -123,6 +123,8 @@ RendererGL3::RendererGL3() {
     }
     blend_mode_ = 0;
     render_window_ = NULL;
+    uniform_manager_ = NULL;
+    shader_manager_ = NULL;
     generic_shader_id_ = 0;
     prim_type_ = (GXPrimitive)0;
     gl_prim_type_ = 0;
@@ -271,8 +273,7 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
         return;
     }
     // Update shader(s)
-    shader_manager::SetShader();
-    shader_manager::UpdateUniforms();
+    shader_manager_->SetShader();
     uniform_manager_->ApplyChanges();
 
     // Bind pointers to buffers
@@ -804,10 +805,11 @@ void RendererGL3::Init() {
 
     InitFramebuffer();
 
-    shader_manager::Init();
-
+    shader_manager_ = new ShaderManager();
     uniform_manager_ = new UniformManager();
-    uniform_manager_->Init();
+
+    shader_manager_->Init(uniform_manager_);
+    uniform_manager_->Init(shader_manager_->GetDefaultShader());
 
     g_raster_font = new RasterFont();
 

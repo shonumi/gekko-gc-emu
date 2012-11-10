@@ -30,8 +30,18 @@
 #include "cp_mem.h"
 #include "xf_mem.h"
 
+#include "shader_manager.h"
+#include "uniform_manager.h"
+
 #include "renderer_gl3.h"
-#include "shader_base_types.h"
+
+/// Const defines for alpha compare logic
+static const char* kDefAlphaCompareLogic[4] = {
+    "BP_ALPHA_FUNC_AND",
+    "BP_ALPHA_FUNC_OR",
+    "BP_ALPHA_FUNC_XOR",
+    "BP_ALPHA_FUNC_XNOR"
+};
 
 // Default shader header prefixed on all shaders. Contains minimum shader version and required 
 // extensions enabled
@@ -42,62 +52,64 @@ static const char __default_shader_header[] = {
     "#extension GL_ARB_uniform_buffer_object : enable\n"
 };
 
-namespace shader_manager {
+ShaderManager::ShaderManager() {
+    memset(shader_cache_, 0, sizeof(shader_cache_));
+    num_shaders_ = 0;
 
-GLuint g_current_shader_id = 0; ///< Handle to current shader program
-GLuint g_shader_cache[256];     ///< Array of precompiled shader programs
-int    g_num_shaders = 0;
-
-/**
- * Assign a binding point to an active uniform block
- * @param ubo_index The index of the active uniform block within program whose binding to assign
- * @param ubo_binding Specifies the binding point to which to bind the uniform block
- */
-void BindUBO(GLuint ubo_index, GLuint ubo_binding) {
-    for (int i = 0; i < g_num_shaders; i++) {
-        glUniformBlockBinding(g_shader_cache[i], ubo_index, ubo_binding);
+    // Load vertex shader source
+    strcpy(vertex_shader_path_, common::g_config->program_dir());
+    strcat(vertex_shader_path_, "sys/shaders/default.vs");
+    std::ifstream vs_ifs(vertex_shader_path_);
+    if (vs_ifs.fail()) {
+        LOG_ERROR(TVIDEO, "Failed to open shader %s", vertex_shader_path_);
+        return;
     }
-}
+    vertex_shader_src_ = std::string((std::istreambuf_iterator<char>(vs_ifs)), 
+        std::istreambuf_iterator<char>());
 
-/// Sets the current shader program based on a set of GP parameters
-void SetShader() {
-    int shader_id = (gp::g_bp_regs.genmode.num_tevstages << 2) | gp::g_bp_regs.alpha_func.logic;
-    if (g_current_shader_id != g_shader_cache[shader_id]) {
-        g_current_shader_id = g_shader_cache[shader_id];
-        glUseProgram(g_current_shader_id);
+    // Load fragment shader source
+    strcpy(fragment_shader_path_, common::g_config->program_dir());
+    strcat(fragment_shader_path_, "sys/shaders/default.fs");
+    std::ifstream fs_ifs(fragment_shader_path_);
+    if (fs_ifs.fail()) {
+        LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fragment_shader_path_);
+        return;
     }
+    fragment_shader_src_ = std::string((std::istreambuf_iterator<char>(fs_ifs)), 
+        std::istreambuf_iterator<char>());
+
+    uniform_manager_ = NULL;
+
+    // Build and assign default shader
+    default_shader_ = LoadShader(0, 0);
+    current_shader_ = default_shader_;
+    glUseProgram(current_shader_);
 }
 
-/**
- * Gets the shader ID of the current shader program
- * @return GLuint of current shader ID
- */
-GLuint GetCurrentShaderID() {
-    return g_current_shader_id;
-}
 
 /// Updates the uniform values for the current shader
-void UpdateUniforms() {
+void ShaderManager::UpdateUniforms() {
 
     // Projection matrix (already converted to GL4x4 format)
-    glUniformMatrix4fv(glGetUniformLocation(g_current_shader_id, "projection_matrix"), 1, 
+    glUniformMatrix4fv(glGetUniformLocation(current_shader_, "projection_matrix"), 1, 
         GL_FALSE, gp::g_projection_matrix);
 
     // CP - position matrix index
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_matrix_index"), 
+    glUniform1i(glGetUniformLocation(current_shader_, "cp_pos_matrix_index"), 
         gp::g_cp_regs.matrix_index_a.pos_normal_midx);
 
     // CP - vertex formats
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_pos_format"), 
+    glUniform1i(glGetUniformLocation(current_shader_, "cp_pos_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format);
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_col0_format"), 
+    glUniform1i(glGetUniformLocation(current_shader_, "cp_col0_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format);
-    glUniform1i(glGetUniformLocation(g_current_shader_id, "cp_col1_format"), 
+    glUniform1i(glGetUniformLocation(current_shader_, "cp_col1_format"), 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
 
     // CP - dequantization shift values
 	if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format != GX_F32) {
-		glUniform1f(glGetUniformLocation(g_current_shader_id, "cp_pos_dqf"), gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf());
+		glUniform1f(glGetUniformLocation(current_shader_, "cp_pos_dqf"), 
+            gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf());
 	}
 
 	const f32 tex_dqf[8] = {
@@ -110,7 +122,7 @@ void UpdateUniforms() {
 		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6_dqf(),
 		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7_dqf() 
 	};
-    glUniform1fv(glGetUniformLocation(g_current_shader_id, "cp_tex_dqf"), 8, tex_dqf);
+    glUniform1fv(glGetUniformLocation(current_shader_, "cp_tex_dqf"), 8, tex_dqf);
 
     // Textures
     const int tex_map[16] = { 
@@ -131,18 +143,15 @@ void UpdateUniforms() {
         gp::g_bp_regs.tevorder[7].get_texmap(14),
         gp::g_bp_regs.tevorder[7].get_texmap(15)
     }; 
-    glUniform1iv(glGetUniformLocation(g_current_shader_id, "texture"), 16, tex_map);
+    glUniform1iv(glGetUniformLocation(current_shader_, "texture"), 16, tex_map);
 }
 
 /**
  * Compiles a shader program
- * @param vs Vertex shader program source string
- * @param gs Geometry shader program source string (optional)
- * @param fs Fragment shader program source string
- * @remark When geometry shaders are not available (e.g. OpenGL ES), the "gs" parameter is unused
+ * @param preprocessor Preprocessor string to include before shader program
  * @return GLuint of new shader program
  */
-GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preprocessor) {
+GLuint ShaderManager::CompileShaderProgram(const char* preprocessor) {
     GLint res;
 
     // Create the shaders
@@ -151,7 +160,7 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
     GLuint fs_id = glCreateShader(GL_FRAGMENT_SHADER);
 
     // Compile Vertex Shader
-    const char *vs_sources[] = { __default_shader_header, vs };
+    const char *vs_sources[] = { __default_shader_header, vertex_shader_src_.c_str() };
     glShaderSource(vs_id, 2, vs_sources, NULL);
     glCompileShader(vs_id);
     glGetShaderiv(vs_id, GL_COMPILE_STATUS, &res);
@@ -165,7 +174,7 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
     }
 
     // Compile Fragment Shader
-    const char *fs_sources[] = { __default_shader_header, preprocessor, fs };
+    const char *fs_sources[] = { __default_shader_header, preprocessor, fragment_shader_src_.c_str() };
     glShaderSource(fs_id, 3, fs_sources, NULL);
     glCompileShader(fs_id);
     glGetShaderiv(fs_id, GL_COMPILE_STATUS, &res);
@@ -181,11 +190,6 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
     // Create the program
     GLuint program_id = glCreateProgram();
     glAttachShader(program_id, vs_id);
-#ifdef USE_GEOMETRY_SHADERS
-    if (NULL != gs) {
-        glAttachShader(program_id, gs_id);
-    }
-#endif
     glAttachShader(program_id, fs_id);
     glLinkProgram(program_id);
     glGetShaderiv(program_id, GL_LINK_STATUS, &res);
@@ -198,70 +202,53 @@ GLuint CompileShaderProgram(const char * vs, const char* fs, const char* preproc
     }
     // Cleanup
     glDeleteShader(vs_id);
-#ifdef USE_GEOMETRY_SHADERS
-    glDeleteShader(gs_id);
-#endif
     glDeleteShader(fs_id);
 
     return program_id;
 }
 
-// Loads a shader from VS, GS, and FS paths (absolute). GS is ignored if the path is NULL.
-// Returns 0 on error, otherwise the GLuint of the newly compiled shader.
-void LoadShader(char* vs_path, char* fs_path) {
-    std::ifstream vs_ifs(vs_path);
-    if (vs_ifs.fail()) {
-        LOG_ERROR(TVIDEO, "Failed to open shader %s", vs_path);
-        return;
-    }
-    std::ifstream fs_ifs(fs_path);
-    if (fs_ifs.fail()) {
-        LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fs_path);
-        return;
-    }
-    std::string vs_str((std::istreambuf_iterator<char>(vs_ifs)), std::istreambuf_iterator<char>());
-    std::string fs_str((std::istreambuf_iterator<char>(fs_ifs)), std::istreambuf_iterator<char>());
-
-    // Compile shaders with prespecified macros
+/**
+ * Compiles a shader program given the specified shader inputs
+ * @param num_stages: Number of TEV stages to compile program for
+ * @param alpha_compare_function: Alpha comparision function logic
+ */
+GLuint ShaderManager::LoadShader(int num_stages, int alpha_compare_function) {
     char preprocessor_line[255];
-    for (int i = 0; i < kGXNumTevStages; i++) {
-        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_AND\n", (i + 1));
-        g_shader_cache[(i * 4) + 0] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), preprocessor_line);
-        
-        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_OR\n", (i + 1));
-        g_shader_cache[(i * 4) + 1] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), 
-            preprocessor_line);
-
-        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_XOR\n", (i + 1));
-        g_shader_cache[(i * 4) + 2] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), 
-            preprocessor_line);
-
-        sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define BP_ALPHA_FUNC_XNOR\n", (i + 1));
-        g_shader_cache[(i * 4) + 3] = CompileShaderProgram(vs_str.c_str(), fs_str.c_str(), 
-            preprocessor_line);
-
-        g_num_shaders += 4;
-    }
+    sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define %s\n", num_stages + 1, 
+        kDefAlphaCompareLogic[alpha_compare_function]);
+    return CompileShaderProgram(preprocessor_line);
 }
 
-/// Initialize the shader manager
-void Init() {
-    char vs_filename[MAX_PATH];
-    char gs_filename[MAX_PATH];
-    char fs_filename[MAX_PATH];
-    char fs_quads_filename[MAX_PATH];
+/// Sets the current shader program based on a set of GP parameters
+void ShaderManager::SetShader() {
+    static int last_shader_index = 0;
+    int shader_index = (gp::g_bp_regs.genmode.num_tevstages << 2) | gp::g_bp_regs.alpha_func.logic;
+    if (shader_index != last_shader_index) {
+        if (0 == shader_cache_[shader_index]) {
+            shader_cache_[shader_index] = LoadShader(gp::g_bp_regs.genmode.num_tevstages, 
+                gp::g_bp_regs.alpha_func.logic);
+            uniform_manager_->AttachShader(shader_cache_[shader_index]);
+        }
+        current_shader_ = shader_cache_[shader_index];
+        glUseProgram(current_shader_);
+    }
+    last_shader_index = shader_index;
+    this->UpdateUniforms();
+}
 
-    strcpy(vs_filename, common::g_config->program_dir());
-    strcat(vs_filename, "sys/shaders/default.vs");
+/**
+ * Gets the default shader
+ * @returns Handle to the default shader program
+ */
+GLuint ShaderManager::GetDefaultShader() {
+    return default_shader_;   
+}
 
-    strcpy(fs_filename, common::g_config->program_dir());
-    strcat(fs_filename, "sys/shaders/default.fs");
-
-    LoadShader(vs_filename, fs_filename);
-    
-    SetShader();
-
+/*
+ * Initialize the shader manager
+ * @param uniform_manager Handle to the UniformManager instance that handles uniform data
+ */
+void ShaderManager::Init(UniformManager* uniform_manager) {
+    uniform_manager_ = uniform_manager;
     LOG_NOTICE(TGP, "shader_manager initialized ok");
 }
-
-} // namespace

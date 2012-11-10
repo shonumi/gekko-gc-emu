@@ -30,6 +30,7 @@
 #include "common.h"
 #include "gx_types.h"
 #include "renderer_base.h"
+#include "shader_manager.h"
 #include "uniform_manager.h"
 
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
@@ -238,7 +239,7 @@ private:
     // Texture stuff
     // -------------
 
-    GLuint texture_cache_[MAX_CACHED_TEXTURES];     ///< Cache of textures loaded to the renderer
+    GLuint      texture_cache_[MAX_CACHED_TEXTURES];    ///< Cache of textures loaded to renderer
 
     // Vertex buffer stuff
     // -------------------
@@ -270,6 +271,7 @@ private:
     EmuWindow*  render_window_;
 
     UniformManager* uniform_manager_;
+    ShaderManager*  shader_manager_;
 
     GLuint      generic_shader_id_;
 

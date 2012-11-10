@@ -10,9 +10,6 @@
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer_gl3\shader_manager.cpp">
-      <Filter>renderer_gl3</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer_gl3\raster_font.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
@@ -20,6 +17,9 @@
     <ClCompile Include="src\vertex_manager.cpp" />
     <ClCompile Include="src\fifo_player.cpp" />
     <ClCompile Include="src\renderer_gl3\uniform_manager.cpp">
+      <Filter>renderer_gl3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer_gl3\shader_manager.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,9 +33,6 @@
     <ClInclude Include="src\video_core.h" />
     <ClInclude Include="src\xf_mem.h" />
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h">
-      <Filter>renderer_gl3</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer_gl3\shader_base_types.h">
       <Filter>renderer_gl3</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer_gl3\shader_manager.h">

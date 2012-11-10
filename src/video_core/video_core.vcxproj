@@ -42,7 +42,6 @@
     <ClInclude Include="src\renderer_base.h" />
     <ClInclude Include="src\renderer_gl3\raster_font.h" />
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h" />
-    <ClInclude Include="src\renderer_gl3\shader_base_types.h" />
     <ClInclude Include="src\renderer_gl3\shader_manager.h" />
     <ClInclude Include="src\renderer_gl3\uniform_manager.h" />
     <ClInclude Include="src\texture_decoder.h" />

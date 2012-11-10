@@ -25,7 +25,9 @@
 #ifndef VIDEO_CORE_UNIFORM_MANAGER_H_
 #define VIDEO_CORE_UNIFORM_MANAGER_H_
 
-#include "renderer_gl3/renderer_gl3.h"
+#include <GL/glew.h>
+
+#include "common.h"
 #include "gx_types.h"
 
 /// Struct to represent a Vec4 GLSL color in a UBO
@@ -51,7 +53,7 @@ public:
     static const int kMaxUniformRegions = 1024;     ///< Maximum number of regions to invalidate
 
     UniformManager();
-    ~UniformManager() {};
+    ~UniformManager() {}
 
     /// Struct to represent a memory region in a UBO
     struct UniformRegion {
@@ -192,15 +194,23 @@ public:
     */
     void WriteXF(u16 addr, int length, u32* data);
 
-
     /// Updates the uniform changes
     void ApplyChanges();
 
+    /**
+     * Attach a shader to the Uniform Manager for uniform binding
+     * @param shader Compiled GLSL shader program
+     */
+    void AttachShader(GLuint shader);
+
     /// Initialize the shader manager
-    void Init();
+    void Init(GLuint default_shader);
 
     GLuint	ubo_handle_bp_;
     GLuint	ubo_handle_xf_;
+
+    GLuint  ubo_block_index_bp_;
+    GLuint  ubo_block_index_xf_;
 
     int invalid_xf_region_[0x40];
 

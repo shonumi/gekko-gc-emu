@@ -22,49 +22,71 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#ifndef VIDEO_CORE_SHADER_BASE_TYPES_H_
-#define VIDEO_CORE_SHADER_BASE_TYPES_H_
+#ifndef VIDEO_CORE_SHADER_MANAGER_H_
+#define VIDEO_CORE_SHADER_MANAGER_H_
 
-#include "renderer_gl3/renderer_gl3.h"
+#include <GL/glew.h>
 
+#include "common.h"
 #include "gx_types.h"
+#include "uniform_manager.h"
 
-namespace shader_manager {
+#define MAX_SHADERS 512
 
-extern GLuint g_current_shader_id;       ///< Handle to current shader program
+class ShaderManager {
 
-/// Updates the uniform values for the current shader
-void UpdateUniforms();
+public:
 
-/// Sets the current shader program based on a set of GP parameters
-void SetShader();
+    ShaderManager();
+    ~ShaderManager() {};
 
-/**
- * @brief Assign a binding point to an active uniform block
- * @param ubo_index The index of the active uniform block within program whose binding to assign
- * @param ubo_binding Specifies the binding point to which to bind the uniform block
- */
-void BindUBO(GLuint ubo_index, GLuint ubo_binding);
+    /// Updates the uniform values for the current shader
+    void UpdateUniforms();
 
-/**
- * @brief Gets the shader ID of the current shader program
- * @return GLuint of current shader ID
- */
-GLuint GetCurrentShaderID();
+    /// Sets the current shader program based on a set of GP parameters
+    void SetShader();
 
-/**
- * @brief Compiles a shader program
- * @param vs Vertex shader program source string
- * @param gs Geometry shader program source string (optional)
- * @param fs Fragment shader program source string
- * @remark When geometry shaders are not available (e.g. OpenGL ES), the "gs" parameter is unused
- * @return GLuint of new shader program
- */
-GLuint CompileShaderProgram(const char * vs, const char* gs, const char* fs);
+    /**
+     * Gets the default shader
+     * @returns Handle to the default shader program
+     */
+    GLuint GetDefaultShader();
 
-/// Initialize the shader manager
-void Init();
+    /*
+     * Initialize the shader manager
+     * @param uniform_manager Handle to the UniformManager instance that handles uniform data
+     */
+    void Init(UniformManager* uniform_manager);
 
-} // namespace
+private:
 
-#endif // VIDEO_CORE_SHADER_BASE_TYPES_H_
+    /**
+     * Compiles a shader program
+     * @param preprocessor Preprocessor string to include before shader program
+     * @return GLuint of new shader program
+     */
+    GLuint ShaderManager::CompileShaderProgram(const char* preprocessor);
+
+    /**
+     * Compiles a shader program given the specified shader inputs
+     * @param num_stages: Number of TEV stages to compile program for
+     * @param alpha_compare_function: Alpha comparision function logic
+     */
+    GLuint ShaderManager::LoadShader(int num_stages, int alpha_compare_function);
+
+    GLuint current_shader_;             ///< Handle to current shader program
+    GLuint default_shader_;             ///< Handle to default shader program
+    GLuint shader_cache_[MAX_SHADERS];  ///< Array of precompiled shader programs
+    
+    int num_shaders_;
+
+    std::string vertex_shader_src_;
+    std::string fragment_shader_src_;
+
+    char vertex_shader_path_[MAX_PATH];
+    char fragment_shader_path_[MAX_PATH];
+
+    UniformManager* uniform_manager_;
+};
+
+#endif // VIDEO_CORE_SHADER_MANAGER_H_
