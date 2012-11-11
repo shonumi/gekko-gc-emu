@@ -209,20 +209,19 @@ GLuint ShaderManager::CompileShaderProgram(const char* preprocessor) {
 #define _SHADER_PREDEF(...) offset += sprintf(&_shader_predef[offset], __VA_ARGS__)
 /// Compiles a shader program given the specified shader inputs
 GLuint ShaderManager::LoadShader() {
-    static const char* alpha_logic[] = { "AND", "OR", "XOR", "XNOR" };
-    static const char* alpha_compare[] = { "NEVER", "LESS", "EQUAL", "LEQUAL", "GREATER", "NEQUAL", 
-        "GEQUAL", "ALWAYS" };
-
+    static const char* alpha_logic[] = { "&&", "||", "|=", "==" };
+    static const char* alpha_compare_0[] = { "false", "(val < ref0)", "(val == ref0)", "(val <= ref0)", 
+        "(val > ref0)", "(val != ref0)", "(val >= ref0)", "true" };
+    static const char* alpha_compare_1[] = { "false", "(val < ref1)", "(val == ref1)", "(val <= ref1)", 
+        "(val > ref1)", "(val != ref1)", "(val >= ref1)", "true" };
     int offset = 0;
-    char _shader_predef[256];
+    char _shader_predef[1024];
 
     _SHADER_PREDEF("#define __PREDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages + 1); 
-    _SHADER_PREDEF("#define __PREDEF_ALPHA_COMPARE_0(val, ref) _ALPHA_COMPARE_%s(val, ref)\n", 
-        alpha_compare[gp::g_bp_regs.alpha_func.comp0]);
-    _SHADER_PREDEF("#define __PREDEF_ALPHA_COMPARE_1(val, ref) _ALPHA_COMPARE_%s(val, ref)\n", 
-        alpha_compare[gp::g_bp_regs.alpha_func.comp1]);
-    _SHADER_PREDEF("#define __PREDEF_ALPHA_FUNC(val) _ALPHA_FUNC_%s(val)\n", 
-        alpha_logic[gp::g_bp_regs.alpha_func.logic]);
+    _SHADER_PREDEF("#define __PREDEF_ALPHA_COMPARE(val, ref0, ref1) (%s %s %s)\n",
+        alpha_compare_0[gp::g_bp_regs.alpha_func.comp0],
+        alpha_logic[gp::g_bp_regs.alpha_func.logic],
+        alpha_compare_1[gp::g_bp_regs.alpha_func.comp1]);
 
     return CompileShaderProgram(_shader_predef);
 }
