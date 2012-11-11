@@ -31,7 +31,7 @@
 #include "gx_types.h"
 #include "uniform_manager.h"
 
-#define MAX_SHADERS 512
+#define MAX_SHADERS 0x1000
 
 class ShaderManager {
 
@@ -67,12 +67,8 @@ private:
      */
     GLuint CompileShaderProgram(const char* preprocessor);
 
-    /**
-     * Compiles a shader program given the specified shader inputs
-     * @param num_stages: Number of TEV stages to compile program for
-     * @param alpha_compare_function: Alpha comparision function logic
-     */
-    GLuint LoadShader(int num_stages, int alpha_compare_function);
+    /// Compiles a shader program given the specified shader inputs
+    GLuint LoadShader();
 
     GLuint current_shader_;             ///< Handle to current shader program
     GLuint default_shader_;             ///< Handle to default shader program

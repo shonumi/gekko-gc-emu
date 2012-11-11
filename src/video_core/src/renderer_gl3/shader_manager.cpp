@@ -81,11 +81,10 @@ ShaderManager::ShaderManager() {
     uniform_manager_ = NULL;
 
     // Build and assign default shader
-    default_shader_ = LoadShader(0, 0);
+    default_shader_ = LoadShader();
     current_shader_ = default_shader_;
     glUseProgram(current_shader_);
 }
-
 
 /// Updates the uniform values for the current shader
 void ShaderManager::UpdateUniforms() {
@@ -207,26 +206,35 @@ GLuint ShaderManager::CompileShaderProgram(const char* preprocessor) {
     return program_id;
 }
 
-/**
- * Compiles a shader program given the specified shader inputs
- * @param num_stages: Number of TEV stages to compile program for
- * @param alpha_compare_function: Alpha comparision function logic
- */
-GLuint ShaderManager::LoadShader(int num_stages, int alpha_compare_function) {
-    char preprocessor_line[255];
-    sprintf(preprocessor_line, "#define NUM_STAGES %d\n#define %s\n", num_stages + 1, 
-        kDefAlphaCompareLogic[alpha_compare_function]);
-    return CompileShaderProgram(preprocessor_line);
+#define _SHADER_PREDEF(...) offset += sprintf(&_shader_predef[offset], __VA_ARGS__)
+/// Compiles a shader program given the specified shader inputs
+GLuint ShaderManager::LoadShader() {
+    static const char* alpha_logic[] = { "AND", "OR", "XOR", "XNOR" };
+    static const char* alpha_compare[] = { "NEVER", "LESS", "EQUAL", "LEQUAL", "GREATER", "NEQUAL", 
+        "GEQUAL", "ALWAYS" };
+
+    int offset = 0;
+    char _shader_predef[256];
+
+    _SHADER_PREDEF("#define __PREDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages + 1); 
+    _SHADER_PREDEF("#define __PREDEF_ALPHA_COMPARE_0(val, ref) _ALPHA_COMPARE_%s(val, ref)\n", 
+        alpha_compare[gp::g_bp_regs.alpha_func.comp0]);
+    _SHADER_PREDEF("#define __PREDEF_ALPHA_COMPARE_1(val, ref) _ALPHA_COMPARE_%s(val, ref)\n", 
+        alpha_compare[gp::g_bp_regs.alpha_func.comp1]);
+    _SHADER_PREDEF("#define __PREDEF_ALPHA_FUNC(val) _ALPHA_FUNC_%s(val)\n", 
+        alpha_logic[gp::g_bp_regs.alpha_func.logic]);
+
+    return CompileShaderProgram(_shader_predef);
 }
 
 /// Sets the current shader program based on a set of GP parameters
 void ShaderManager::SetShader() {
     static int last_shader_index = 0;
-    int shader_index = (gp::g_bp_regs.genmode.num_tevstages << 2) | gp::g_bp_regs.alpha_func.logic;
+    int shader_index = (gp::g_bp_regs.alpha_func.comp1 << 9) | (gp::g_bp_regs.alpha_func.comp0 << 6)
+        | (gp::g_bp_regs.alpha_func.logic << 4) | (gp::g_bp_regs.genmode.num_tevstages);
     if (shader_index != last_shader_index) {
         if (0 == shader_cache_[shader_index]) {
-            shader_cache_[shader_index] = LoadShader(gp::g_bp_regs.genmode.num_tevstages, 
-                gp::g_bp_regs.alpha_func.logic);
+            shader_cache_[shader_index] = LoadShader();
             uniform_manager_->AttachShader(shader_cache_[shader_index]);
         }
         current_shader_ = shader_cache_[shader_index];

@@ -1,23 +1,43 @@
-#define GX_NEVER    0
-#define GX_LESS     1
-#define GX_EQUAL    2
-#define GX_LEQUAL   3
-#define GX_GREATER  4
-#define GX_NEQUAL   5
-#define GX_GEQUAL   6
-#define GX_ALWAYS   7
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// NOTE The following definitions interface to the dynamically generated preprocessor code, which 
+// are prefaced by the __PREDEF tag. Do not use directly, instead create an interface macro here to
+// clearly distinguish between generated code and non-generated code
 
-#define STAGE_RESULT(stage) \
-    if (bp_regs.tev_stages[stage].texture_enable != 0) { \
-        g_color[8] = texture2D(texture[stage], vtx_texcoord[bp_regs.tev_stages[stage].texture_coords]); \
+#define NUM_STAGES              __PREDEF_NUM_STAGES
+#define _ALPHA_COMPARE_0(val)   __PREDEF_ALPHA_COMPARE_0(val, bp_regs.tev_state.alpha_func_ref0)
+#define _ALPHA_COMPARE_1(val)   __PREDEF_ALPHA_COMPARE_1(val, bp_regs.tev_state.alpha_func_ref1)
+#define ALPHA_FUNC(val)         __PREDEF_ALPHA_FUNC(val)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Alpha comparsion operations
+#define _ALPHA_COMPARE_NEVER(val, ref)      false
+#define _ALPHA_COMPARE_LESS(val, ref)       (val < ref)
+#define _ALPHA_COMPARE_EQUAL(val, ref)      (val == ref)
+#define _ALPHA_COMPARE_LEQUAL(val, ref)     (val <= ref)
+#define _ALPHA_COMPARE_GREATER(val, ref)    (val > ref)
+#define _ALPHA_COMPARE_NEQUAL(val, ref)     (val != ref)
+#define _ALPHA_COMPARE_GEQUAL(val, ref)     (val >= ref)
+#define _ALPHA_COMPARE_ALWAYS(val, ref)     true
+
+// Alpha logic functions
+#define _ALPHA_FUNC_AND(val)        (_ALPHA_COMPARE_0(val) && _ALPHA_COMPARE_1(val))
+#define _ALPHA_FUNC_OR(val)         (_ALPHA_COMPARE_0(val) || _ALPHA_COMPARE_1(val))
+#define _ALPHA_FUNC_XOR(val)        (_ALPHA_COMPARE_0(val) != _ALPHA_COMPARE_1(val))
+#define _ALPHA_FUNC_XNOR(val)       (_ALPHA_COMPARE_0(val) == _ALPHA_COMPARE_1(val))
+
+// Prepare and compute TEV stage result
+#define STAGE_RESULT(s) \
+    if (bp_regs.tev_stages[s].texture_enable != 0) { \
+        g_color[8] = texture2D(texture[s], vtx_texcoord[bp_regs.tev_stages[s].texture_coords]); \
         g_color[9] = g_color[8].aaaa; \
     } else { \
         g_color[8] = vec4(1.0f, 1.0f, 1.0f, 1.0f); \
         g_color[9] = vec4(1.0f, 1.0f, 1.0f, 1.0f); \
     } \
-    g_color[12].a = bp_regs.tev_stages[stage].konst.a; \
-    g_color[14].rgb = bp_regs.tev_stages[stage].konst.rgb; \
-    StageResult(stage);
+    g_color[12].a = bp_regs.tev_stages[s].konst.a; \
+    g_color[14].rgb = bp_regs.tev_stages[s].konst.rgb; \
+    StageResult(s);
 
 struct TevStage {
     int color_sel_a;
@@ -104,28 +124,6 @@ vec4 g_color[16] = vec4[16](
     vec4(bp_regs.tev_stages[0].konst.rgb, 0.0f), // konst - set dynamically
     vec4(0.0f, 0.0f, 0.0f, 0.0f)
 );
-
-bool alpha_compare(in int op, in int value, in int ref) {
-    switch (op) {
-    case GX_NEVER:
-        return false;
-    case GX_LESS:
-        return (value < ref);
-    case GX_EQUAL:
-        return (value == ref);
-    case GX_LEQUAL:
-        return (value <= ref);
-    case GX_GREATER:
-        return (value > ref);
-    case GX_NEQUAL:
-        return (value != ref);
-    case GX_GEQUAL:
-        return (value >= ref);
-    case GX_ALWAYS:
-        return true;
-    }
-    return true;
-}
 
 void StageResult(in int stage_index) {
     TevStage stage = bp_regs.tev_stages[stage_index];
@@ -219,24 +217,9 @@ void main() {
     // -------------
 
     int val = int(dest.a * 255.0f) & 0xFF;
-
-#ifdef BP_ALPHA_FUNC_AND
-    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) && 
-        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1)))
-            discard;
-#elif defined(BP_ALPHA_FUNC_OR)
-    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) || 
-        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1)))
-            discard;
-#elif defined(BP_ALPHA_FUNC_XOR)
-    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) != 
-        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1)))
-            discard;
-#elif defined(BP_ALPHA_FUNC_XNOR)
-    if (!(alpha_compare(bp_regs.tev_state.alpha_func_comp0, val, bp_regs.tev_state.alpha_func_ref0) == 
-        alpha_compare(bp_regs.tev_state.alpha_func_comp1, val, bp_regs.tev_state.alpha_func_ref1)))
-            discard;
-#endif
-
+                                        
+    if (!ALPHA_FUNC(val))
+        discard;
+    
     frag_dest = dest;
 }
