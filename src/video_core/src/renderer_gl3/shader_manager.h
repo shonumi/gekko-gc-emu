@@ -102,17 +102,17 @@ private:
 
     /**
      * Compiles a shader program
-     * @param preprocessor Preprocessor string to include before shader program
+     * @param vs_def Preprocessor string to include before vertex shader program
+     * @param fs_def Preprocessor string to include before fragment shader program
      * @return GLuint of new shader program
      */
-    GLuint CompileShaderProgram(const char* preprocessor);
+    GLuint CompileShaderProgram(const char* vs_def, const char* fs_def);
 
     /**
      * Compute a 32-bit hash for the current TEV state, used for identifying the current shader
      * @return Unsigned short hash
      */
     u32 GetCurrentHash();
-
 
     /// Compiles a shader program given the specified shader inputs
     GLuint LoadShader();

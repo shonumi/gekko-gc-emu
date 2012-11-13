@@ -110,7 +110,7 @@ union CPVatRegA {
     inline u32 get_col0() { return ((col0_count << 3) | col0_format); }
     inline u32 get_col1() { return ((col1_count << 3) | col1_format); }
     inline u32 get_tex0() { return ((tex0_count << 3) | tex0_format); }
-
+    inline u32 get_pos_dqf_enabled() { return (GX_F32 != pos_format) ? 1 : 0; }
 	inline f32 get_pos_dqf() { return (1.0f / f32(1 << pos_shift)); }
 	inline f32 get_tex0_dqf() { return (1.0f / f32(1 << tex0_shift)); }
 };
