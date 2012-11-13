@@ -114,28 +114,15 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
     case BP_REG_TEV_COLOR_ENV + 30:
         {
             int stage = (addr - BP_REG_TEV_COLOR_ENV) >> 1;
-
-            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_a = 
-				gp::g_bp_regs.combiner[stage].color.sel_a;
-            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_b = 
-				gp::g_bp_regs.combiner[stage].color.sel_b;
-            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_c = 
-				gp::g_bp_regs.combiner[stage].color.sel_c;
-            staged_uniform_data_.bp_regs.tev_stages[stage].color_sel_d = 
-				gp::g_bp_regs.combiner[stage].color.sel_d;
             staged_uniform_data_.bp_regs.tev_stages[stage].color_bias = 
 				tev_bias[gp::g_bp_regs.combiner[stage].color.bias];
             staged_uniform_data_.bp_regs.tev_stages[stage].color_sub = 
 				tev_sub[gp::g_bp_regs.combiner[stage].color.sub];
-            staged_uniform_data_.bp_regs.tev_stages[stage].color_clamp = 
-				gp::g_bp_regs.combiner[stage].color.clamp;
             staged_uniform_data_.bp_regs.tev_stages[stage].color_scale = 
 				tev_scale[gp::g_bp_regs.combiner[stage].color.shift];
-            staged_uniform_data_.bp_regs.tev_stages[stage].color_dest = 
-				gp::g_bp_regs.combiner[stage].color.dest;
         }
         break;
-        
+
     case BP_REG_TEV_ALPHA_ENV + 0:
     case BP_REG_TEV_ALPHA_ENV + 2:
     case BP_REG_TEV_ALPHA_ENV + 4:
@@ -154,28 +141,12 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
     case BP_REG_TEV_ALPHA_ENV + 30:
         {
             int stage = (addr - BP_REG_TEV_ALPHA_ENV) >> 1;
-
-            // Automatically << 1 each selector so that we can use the same lookup table as for the 
-            // color selectors in the GLSL shader
-            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_a = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_a << 1;
-            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_b = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_b << 1;
-            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_c = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_c << 1;
-            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sel_d = 
-				gp::g_bp_regs.combiner[stage].alpha.sel_d << 1;
-
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_bias = 
 				tev_bias[gp::g_bp_regs.combiner[stage].alpha.bias];
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_sub = 
 				tev_sub[gp::g_bp_regs.combiner[stage].alpha.sub];
-            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_clamp = 
-				gp::g_bp_regs.combiner[stage].alpha.clamp;
             staged_uniform_data_.bp_regs.tev_stages[stage].alpha_scale = 
 				tev_scale[gp::g_bp_regs.combiner[stage].alpha.shift];
-            staged_uniform_data_.bp_regs.tev_stages[stage].alpha_dest = 
-				gp::g_bp_regs.combiner[stage].alpha.dest;
         }
         break;
 
@@ -221,8 +192,6 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
     case BP_REG_ALPHACOMPARE:
         staged_uniform_data_.bp_regs.tev_state.alpha_func_ref0 = gp::g_bp_regs.alpha_func.ref0;
         staged_uniform_data_.bp_regs.tev_state.alpha_func_ref1 = gp::g_bp_regs.alpha_func.ref1;
-        staged_uniform_data_.bp_regs.tev_state.alpha_func_comp0 = gp::g_bp_regs.alpha_func.comp0;
-        staged_uniform_data_.bp_regs.tev_state.alpha_func_comp1 = gp::g_bp_regs.alpha_func.comp1;
         break;
     }
 }
@@ -258,32 +227,16 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
 void UniformManager::UpdateStagedData(int stage) {
     if (stage < kGXNumTevStages) {
         int reg_index = stage >> 1;
-    
-        // Texturing
-        // ---------
-
-        staged_uniform_data_.bp_regs.tev_stages[stage].texture_enable = 
-            gp::g_bp_regs.tevorder[reg_index].get_enable(stage);
-
-        staged_uniform_data_.bp_regs.tev_stages[stage].texture_coords = 
-            gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage);
-
-        staged_uniform_data_.bp_regs.tev_stages[stage].texture_map = 
-            gp::g_bp_regs.tevorder[reg_index].get_texmap(stage);
 
         // Konst color
-        // -----------
-
         staged_uniform_data_.bp_regs.tev_stages[stage].konst = 
             GetTevKonst(gp::g_bp_regs.ksel[reg_index].get_konst_color_sel(stage));
-
         staged_uniform_data_.bp_regs.tev_stages[stage].konst.a = 
             GetTevKonst(gp::g_bp_regs.ksel[reg_index].get_konst_alpha_sel(stage)).a;
     }
 }
 
 #define _COMBINE_BP_UBO_WRITES
-
 /// Apply any uniform changes to the shader
 void UniformManager::ApplyChanges() {
     // Update invalid regions in XF UBO

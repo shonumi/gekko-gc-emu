@@ -68,21 +68,15 @@ public:
     struct UniformStruct_TevState {
         int alpha_func_ref0;
         int alpha_func_ref1;
-        int alpha_func_comp0;
-        int alpha_func_comp1;
 
         int pad0;
         int pad1;
-        int pad2;
-        int pad3;
 
         Vec4Color color[4];
 
         inline bool operator == (const UniformStruct_TevState &val) const {
             return (alpha_func_ref0  == val.alpha_func_ref0  &&
                 alpha_func_ref1  == val.alpha_func_ref1  &&
-                alpha_func_comp0 == val.alpha_func_comp0 &&
-                alpha_func_comp1 == val.alpha_func_comp1 &&
 
                 color[0]  == val.color[0]  &&
                 color[1]  == val.color[1]  &&
@@ -92,65 +86,31 @@ public:
     };
 
     struct UniformStruct_TevStageParams {
-        int color_sel_a;
-        int color_sel_b;
-        int color_sel_c;
-        int color_sel_d;
         f32 color_bias;
         f32 color_sub;
-        int color_clamp;
         f32 color_scale;
-        int color_dest;
 
-        int alpha_sel_a;
-        int alpha_sel_b;
-        int alpha_sel_c;
-        int alpha_sel_d;
         f32 alpha_bias;
         f32 alpha_sub;
-        int alpha_clamp;
         f32 alpha_scale;
-        int alpha_dest;
-
-        int texture_enable;
-        int texture_map;
-        int texture_coords;
 
         int pad0;
         int pad1;
-        int pad2;
 
         Vec4Color konst;
 
         inline bool operator == (const UniformStruct_TevStageParams &val) const {
             return (
-                color_sel_a     == val.color_sel_a		&&
-                color_sel_b     == val.color_sel_b		&&
-                color_sel_c     == val.color_sel_c		&&
-                color_sel_d     == val.color_sel_d		&&
                 color_bias      == val.color_bias		&&
                 color_sub       == val.color_sub		&&
-                color_clamp     == val.color_clamp		&&
                 color_scale     == val.color_scale		&&
-                color_dest      == val.color_dest		&&
 
-                alpha_sel_a     == val.alpha_sel_a		&&
-                alpha_sel_b     == val.alpha_sel_b		&&
-                alpha_sel_c     == val.alpha_sel_c		&&
-                alpha_sel_d     == val.alpha_sel_d		&&
                 alpha_bias      == val.alpha_bias		&&
                 alpha_sub       == val.alpha_sub		&&
-                alpha_clamp     == val.alpha_clamp		&&
                 alpha_scale     == val.alpha_scale		&&
-                alpha_dest      == val.alpha_dest		&&
-
-                texture_enable  == val.texture_enable   &&
-                texture_map     == val.texture_map      &&
-                texture_coords  == val.texture_coords   &&
 
                 konst           == val.konst);
         }
-
     };
 
     // Uniform blocks - These are mappings of the uniform blocks in the shader

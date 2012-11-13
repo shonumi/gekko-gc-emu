@@ -293,6 +293,12 @@ struct BPTevCombiner {
             u32 _u32;
         };
     } alpha;
+
+    /// Returns a hash for combiner state to use in shader generation
+    inline u32 hash() {
+        return ((color._u32 & 0xFFFF) << 16) | (alpha._u32 & 0xFFF0) | (color.clamp << 3) | 
+            (alpha.clamp << 2);
+    }
 };
 
 /// TEV konstant color/alpha selector

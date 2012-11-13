@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "crc.h"
 #include "config.h"
 
 #include "gx_types.h"
@@ -35,14 +36,6 @@
 
 #include "renderer_gl3.h"
 
-/// Const defines for alpha compare logic
-static const char* kDefAlphaCompareLogic[4] = {
-    "BP_ALPHA_FUNC_AND",
-    "BP_ALPHA_FUNC_OR",
-    "BP_ALPHA_FUNC_XOR",
-    "BP_ALPHA_FUNC_XNOR"
-};
-
 // Default shader header prefixed on all shaders. Contains minimum shader version and required 
 // extensions enabled
 static const char __default_shader_header[] = {
@@ -53,8 +46,7 @@ static const char __default_shader_header[] = {
 };
 
 ShaderManager::ShaderManager() {
-    memset(shader_cache_, 0, sizeof(shader_cache_));
-    num_shaders_ = 0;
+    memset(&cache_, 0, sizeof(cache_));
 
     // Load vertex shader source
     strcpy(vertex_shader_path_, common::g_config->program_dir());
@@ -124,25 +116,8 @@ void ShaderManager::UpdateUniforms() {
     glUniform1fv(glGetUniformLocation(current_shader_, "cp_tex_dqf"), 8, tex_dqf);
 
     // Textures
-    const int tex_map[16] = { 
-        gp::g_bp_regs.tevorder[0].get_texmap(0),
-        gp::g_bp_regs.tevorder[0].get_texmap(1),
-        gp::g_bp_regs.tevorder[1].get_texmap(2),
-        gp::g_bp_regs.tevorder[1].get_texmap(3),
-        gp::g_bp_regs.tevorder[2].get_texmap(4),
-        gp::g_bp_regs.tevorder[2].get_texmap(5),
-        gp::g_bp_regs.tevorder[3].get_texmap(6),
-        gp::g_bp_regs.tevorder[3].get_texmap(7),
-        gp::g_bp_regs.tevorder[4].get_texmap(8),
-        gp::g_bp_regs.tevorder[4].get_texmap(9),
-        gp::g_bp_regs.tevorder[5].get_texmap(10),
-        gp::g_bp_regs.tevorder[5].get_texmap(11),
-        gp::g_bp_regs.tevorder[6].get_texmap(12),
-        gp::g_bp_regs.tevorder[6].get_texmap(13),
-        gp::g_bp_regs.tevorder[7].get_texmap(14),
-        gp::g_bp_regs.tevorder[7].get_texmap(15)
-    }; 
-    glUniform1iv(glGetUniformLocation(current_shader_, "texture"), 16, tex_map);
+    static const int texture_locations[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    glUniform1iv(glGetUniformLocation(current_shader_, "texture"), 8, texture_locations);
 }
 
 /**
@@ -206,40 +181,116 @@ GLuint ShaderManager::CompileShaderProgram(const char* preprocessor) {
     return program_id;
 }
 
+/**
+ * Compute a 32-bit hash for the current TEV state, used for identifying the current shader to use
+ * @return Unsigned int hash
+ */
+u32 ShaderManager::GetCurrentHash() {
+	u32 crc = - 1;
+    const u8 cur_alpha_func = ((gp::g_bp_regs.alpha_func.comp1 << 5) | 
+        (gp::g_bp_regs.alpha_func.comp0 << 2) | (gp::g_bp_regs.alpha_func.logic));
+    u32 cur_clamp = 0;
+    u16 cur_tex_enable = 0;
+
+	// Generate a hash based off of CRC32 to attempt to avoid collisions
+	crc ^= ((cur_tex_enable << 12) | (cur_alpha_func << 4) | gp::g_bp_regs.genmode.num_tevstages);
+	crc = crc32_table[3][((crc) & 0xFF)] ^ crc32_table[2][((crc >> 8) & 0xFF)] ^ 
+        crc32_table[1][((crc >> 16) & 0xFF)] ^ crc32_table[0][((crc >> 24))];
+
+    for (int stage = 0; stage < (gp::g_bp_regs.genmode.num_tevstages + 1); stage++) {
+        crc ^= (gp::g_bp_regs.combiner[stage].hash() | 
+            gp::g_bp_regs.tevorder[stage >> 1].get_enable(stage));
+	    crc = crc32_table[3][((crc) & 0xFF)] ^ crc32_table[2][((crc >> 8) & 0xFF)] ^ 
+            crc32_table[1][((crc >> 16) & 0xFF)] ^ crc32_table[0][((crc >> 24))];
+    }
+	return crc;
+}
+
 #define _SHADER_PREDEF(...) offset += sprintf(&_shader_predef[offset], __VA_ARGS__)
 /// Compiles a shader program given the specified shader inputs
 GLuint ShaderManager::LoadShader() {
+    static const char* clamp[] = {"val", "clamp(val, 0.0, 1.0)"};
     static const char* alpha_logic[] = { "&&", "||", "|=", "==" };
-    static const char* alpha_compare_0[] = { "false", "(val < ref0)", "(val == ref0)", "(val <= ref0)", 
-        "(val > ref0)", "(val != ref0)", "(val >= ref0)", "true" };
-    static const char* alpha_compare_1[] = { "false", "(val < ref1)", "(val == ref1)", "(val <= ref1)", 
-        "(val > ref1)", "(val != ref1)", "(val >= ref1)", "true" };
-    int offset = 0;
-    char _shader_predef[1024];
+    static const char* alpha_compare_0[] = { "false", "(val < ref0)", "(val == ref0)", 
+        "(val <= ref0)", "(val > ref0)", "(val != ref0)", "(val >= ref0)", "true" };
+    static const char* alpha_compare_1[] = { "false", "(val < ref1)", "(val == ref1)", 
+        "(val <= ref1)", "(val > ref1)", "(val != ref1)", "(val >= ref1)", "true" };
+    static const char* texture[] = { "vec4(1.0f, 1.0f, 1.0f, 1.0f)", 
+        "texture2D(texture[%d], vtx_texcoord[%d])" };
+    static const char* tev_color_input[] = { "prev.rgb",  "prev.aaa", "color0.rgb", "color0.aaa",
+        "color1.rgb", "color1.aaa", "color2.rgb", "color2.aaa", "tex.rgb", "tex.aaa", "ras.rgb",
+        "ras.aaa", "vec3(1.0f, 1.0f, 1.0f)", "vec3(0.5f, 0.5f, 0.5f)", "konst.rgb", 
+        "vec3(0.0f, 0.0f, 0.0f)"  };
+    static const char* tev_alpha_input[] = { "prev.a", "color0.a", "color1.a", "color2.a", "tex.a",
+        "ras.a", "konst.a", "0.0f" };
+    static const char* tev_dest[] = { "prev", "color0", "color1", "color2" };
 
-    _SHADER_PREDEF("#define __PREDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages + 1); 
+    int offset = 0;
+    char temp_line[1024];
+    char _shader_predef[4096*2];
+
+    _SHADER_PREDEF("#define __PREDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages);
     _SHADER_PREDEF("#define __PREDEF_ALPHA_COMPARE(val, ref0, ref1) (%s %s %s)\n",
         alpha_compare_0[gp::g_bp_regs.alpha_func.comp0],
         alpha_logic[gp::g_bp_regs.alpha_func.logic],
         alpha_compare_1[gp::g_bp_regs.alpha_func.comp1]);
 
+    for (int stage = 0; stage <= gp::g_bp_regs.genmode.num_tevstages; stage++) {
+        int reg_index = stage >> 1;
+
+        _SHADER_PREDEF("#define __PREDEF_CLAMP_COLOR_%d(val) %s\n", stage, 
+            clamp[gp::g_bp_regs.combiner[stage].color.clamp]);
+        _SHADER_PREDEF("#define __PREDEF_CLAMP_ALPHA_%d(val) %s\n", stage, 
+            clamp[gp::g_bp_regs.combiner[stage].alpha.clamp]);
+
+        sprintf(temp_line, "#define __PREDEF_TEXTURE_%d %s\n", stage, 
+            texture[gp::g_bp_regs.tevorder[reg_index].get_enable(stage)]);
+        if (gp::g_bp_regs.tevorder[reg_index].get_enable(stage)) {
+            _SHADER_PREDEF(temp_line, gp::g_bp_regs.tevorder[reg_index].get_texmap(stage), 
+                gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage));
+        } else {
+            _SHADER_PREDEF(temp_line);
+        }
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_COLOR_A_%d %s\n", stage, 
+            tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_a]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_COLOR_B_%d %s\n", stage, 
+            tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_b]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_COLOR_C_%d %s\n", stage, 
+            tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_c]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_COLOR_D_%d %s\n", stage, 
+            tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_d]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_COLOR_DEST_%d %s.rgb\n", stage, 
+            tev_dest[gp::g_bp_regs.combiner[stage].color.dest]);
+
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_ALPHA_A_%d %s\n", stage, 
+            tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_a]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_ALPHA_B_%d %s\n", stage, 
+            tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_b]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_ALPHA_C_%d %s\n", stage, 
+            tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_c]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_ALPHA_D_%d %s\n", stage, 
+            tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_d]);
+        _SHADER_PREDEF("#define __PREDEF_COMBINER_ALPHA_DEST_%d %s.a\n", stage, 
+            tev_dest[gp::g_bp_regs.combiner[stage].alpha.dest]);
+    }
     return CompileShaderProgram(_shader_predef);
 }
 
 /// Sets the current shader program based on a set of GP parameters
-void ShaderManager::SetShader() {
-    static int last_shader_index = 0;
-    int shader_index = (gp::g_bp_regs.alpha_func.comp1 << 9) | (gp::g_bp_regs.alpha_func.comp0 << 6)
-        | (gp::g_bp_regs.alpha_func.logic << 4) | (gp::g_bp_regs.genmode.num_tevstages);
-    if (shader_index != last_shader_index) {
-        if (0 == shader_cache_[shader_index]) {
-            shader_cache_[shader_index] = LoadShader();
-            uniform_manager_->AttachShader(shader_cache_[shader_index]);
+void ShaderManager::SetShader() {    
+    u32 hash = this->GetCurrentHash();
+    GLuint program = cache_.GetProgram(hash);
+
+    if (current_shader_ != program) {
+        // Generate shader if it does not already exist
+        if (0 == program) {
+            program = LoadShader();
+            cache_.AddProgram(hash, program);
+            uniform_manager_->AttachShader(program);
         }
-        current_shader_ = shader_cache_[shader_index];
+        current_shader_ = program;
         glUseProgram(current_shader_);
     }
-    last_shader_index = shader_index;
     this->UpdateUniforms();
 }
 
