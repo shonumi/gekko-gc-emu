@@ -86,8 +86,22 @@ void ShaderManager::UpdateUniforms() {
         GL_FALSE, gp::g_projection_matrix);
 
     // CP - position matrix index
-    glUniform1i(glGetUniformLocation(current_shader_, "cp_pos_matrix_index"), 
+    glUniform1i(glGetUniformLocation(current_shader_, "cp_pos_matrix_offset"), 
         gp::g_cp_regs.matrix_index_a.pos_normal_midx);
+
+    // CP - texture matrix indices
+    const int tex_matrix_offsets[8] = {
+        gp::g_cp_regs.matrix_index_a.tex0_midx,
+        gp::g_cp_regs.matrix_index_a.tex1_midx,
+        gp::g_cp_regs.matrix_index_a.tex2_midx,
+        gp::g_cp_regs.matrix_index_a.tex3_midx,
+        gp::g_cp_regs.matrix_index_b.tex4_midx,
+        gp::g_cp_regs.matrix_index_b.tex5_midx,
+        gp::g_cp_regs.matrix_index_b.tex6_midx,
+        gp::g_cp_regs.matrix_index_b.tex7_midx
+    };
+    glUniform1iv(glGetUniformLocation(current_shader_, "cp_tex_matrix_offset"), 8, 
+        tex_matrix_offsets);
 
     // CP - dequantization shift values
 	if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format != GX_F32) {
@@ -187,8 +201,7 @@ u32 ShaderManager::GetCurrentHash() {
     u32 cur_clamp = 0;
 
 	// Generate a hash based off of CRC32 to attempt to avoid collisions
-
-	crc ^= ((gp::g_cp_regs.vcd_lo[0].pos_midx_enable << 16) | 
+	crc ^= (((gp::g_cp_regs.vcd_lo[0]._u32 & 0x1FF) << 16) | 
         (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled() << 15) | 
         (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format << 12) | (cur_alpha_func << 4) | 
         gp::g_bp_regs.genmode.num_tevstages);
@@ -221,10 +234,10 @@ GLuint ShaderManager::LoadShader() {
     static const char* vertex_color[] = { "RGB565", "RGB8", "RGBX8", "RGBA4", "RGBA6", "RGBA8" };
     static const char* clamp[] = { "val", "clamp(val, 0.0, 1.0)" };
     static const char* alpha_logic[] = { "&&", "||", "|=", "==" };
-    static const char* alpha_compare_0[] = { "false", "(val < ref0)", "(val == ref0)", 
-        "(val <= ref0)", "(val > ref0)", "(val != ref0)", "(val >= ref0)", "true" };
-    static const char* alpha_compare_1[] = { "false", "(val < ref1)", "(val == ref1)", 
-        "(val <= ref1)", "(val > ref1)", "(val != ref1)", "(val >= ref1)", "true" };
+    static const char* alpha_compare_0[] = { "(false)", "(val < ref0)", "(val == ref0)", 
+        "(val <= ref0)", "(val > ref0)", "(val != ref0)", "(val >= ref0)", "(true)" };
+    static const char* alpha_compare_1[] = { "(false)", "(val < ref1)", "(val == ref1)", 
+        "(val <= ref1)", "(val > ref1)", "(val != ref1)", "(val >= ref1)", "(true)" };
     static const char* texture[] = { "vec4(1.0f, 1.0f, 1.0f, 1.0f)", 
         "texture2D(texture[%d], vtx_texcoord[%d])" };
     static const char* tev_color_input[] = { "prev.rgb",  "prev.aaa", "color0.rgb", "color0.aaa",
@@ -244,12 +257,18 @@ GLuint ShaderManager::LoadShader() {
     // Generate vertex preprocessor
     // ----------------------------
 
-    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled()) {
+    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled()) 
         _SHADER_VSDEF("#define __VSDEF_POS_DQF\n");
-    }
-    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
-        _SHADER_VSDEF("#define __VSDEF_POS_MIDX\n");
-    }
+    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) _SHADER_VSDEF("#define __VSDEF_POS_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_0_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex1_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_1_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex2_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_2_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_3_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_4_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex5_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_5_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex6_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_6_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_7_MIDX\n");
+
     _SHADER_VSDEF("#define __VSDEF_COLOR0_%s\n", 
         vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format]);
 
@@ -257,7 +276,7 @@ GLuint ShaderManager::LoadShader() {
     // ------------------------------
 
     _SHADER_FSDEF("#define __FSDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages);
-    _SHADER_FSDEF("#define __FSDEF_ALPHA_COMPARE(val, ref0, ref1) (%s %s %s)\n",
+    _SHADER_FSDEF("#define __FSDEF_ALPHA_COMPARE(val, ref0, ref1) (false == bool(%s %s %s))\n",
         alpha_compare_0[gp::g_bp_regs.alpha_func.comp0],
         alpha_logic[gp::g_bp_regs.alpha_func.logic],
         alpha_compare_1[gp::g_bp_regs.alpha_func.comp1]);

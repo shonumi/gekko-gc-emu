@@ -42,6 +42,7 @@ struct GXVertex {
     u32 normal[9];                  ///< Normals (3 or 9) - Offset 20
     u32 texcoords[16];              ///< Texture 0 coordinates (S or ST) - Offset 56
     u8 pm_idx;                      ///< Position matrix index - Offset 120
+    u8 pad[3];
     u8 tm_idx[8];                   ///< Texture coord matrix index - Offset 124
 };
 

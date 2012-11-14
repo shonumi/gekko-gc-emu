@@ -122,7 +122,7 @@ void main() {
     // -------------
 
     int val = int(frag_dest.a * 255.0f) & 0xFF;                                   
-    if (!__FSDEF_ALPHA_COMPARE(val, bp_regs.tev_state.alpha_func_ref0, 
+    if (__FSDEF_ALPHA_COMPARE(val, bp_regs.tev_state.alpha_func_ref0, 
         bp_regs.tev_state.alpha_func_ref1))
         discard;
 }

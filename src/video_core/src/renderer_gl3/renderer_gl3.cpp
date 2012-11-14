@@ -357,15 +357,28 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
 			GLuint layout_index = i + 4;
 			glEnableVertexAttribArray(layout_index);
 			glVertexAttribPointer(layout_index, 4, vertex_texcoord_format_[i], GL_FALSE, sizeof(GXVertex), 
-				reinterpret_cast<void*>(56 + (i * 16)));
+            reinterpret_cast<void*>(56 + (i * 16)));
 		}
 	}
-
     // Position matrix index
     if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
         glEnableVertexAttribArray(8);
         glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
-			reinterpret_cast<void*>(120));
+            reinterpret_cast<void*>(120));
+    }
+    // Texture coord 0-3 matrix index
+    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable || gp::g_cp_regs.vcd_lo[0].tex1_midx_enable || 
+        gp::g_cp_regs.vcd_lo[0].tex2_midx_enable || gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) {
+        glEnableVertexAttribArray(9);
+        glVertexAttribPointer(9, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+            reinterpret_cast<void*>(124));
+    }
+    // Texture coord 4-7 matrix index
+    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable || gp::g_cp_regs.vcd_lo[0].tex5_midx_enable || 
+        gp::g_cp_regs.vcd_lo[0].tex6_midx_enable || gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) {
+        glEnableVertexAttribArray(10);
+        glVertexAttribPointer(10, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+            reinterpret_cast<void*>(128));
     }
 
     glDrawArrays(gl_prim_type_, vbo_offset, vertex_num);
