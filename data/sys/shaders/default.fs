@@ -2,7 +2,7 @@
 #define STAGE_RESULT(s) \
     tex = __FSDEF_TEXTURE_##s; \
  \
-    stage = bp_regs.tev_stages[s]; \
+    stage = fs_ubo.tev_stages[s]; \
     konst = stage.konst; \
  \
     stage_result = (vec4(__FSDEF_COMBINER_COLOR_D_##s, __FSDEF_COMBINER_ALPHA_D_##s) + \
@@ -45,10 +45,10 @@ struct TevState {
     // NOTE: this struct must be padded to a 16 byte boundary in order to be tightly packed
 };
 
-layout(std140) uniform BPRegisters {
+layout(std140) uniform _FS_UBO {
     TevState tev_state;
     TevStage tev_stages[16];
-} bp_regs;
+} fs_ubo;
 
 // Textures
 uniform sampler2D texture[8];
@@ -62,10 +62,10 @@ void main() {
     TevStage stage;
     vec4 stage_result;
 
-    vec4 prev = bp_regs.tev_state.color[0];
-    vec4 color0= bp_regs.tev_state.color[1];
-    vec4 color1 = bp_regs.tev_state.color[2];
-    vec4 color2 = bp_regs.tev_state.color[3];
+    vec4 prev = fs_ubo.tev_state.color[0];
+    vec4 color0= fs_ubo.tev_state.color[1];
+    vec4 color1 = fs_ubo.tev_state.color[2];
+    vec4 color2 = fs_ubo.tev_state.color[3];
     vec4 tex;
     vec4 konst;
     vec4 ras = vtx_color_0;
@@ -122,7 +122,7 @@ void main() {
     // -------------
 
     int val = int(frag_dest.a * 255.0f) & 0xFF;                                   
-    if (__FSDEF_ALPHA_COMPARE(val, bp_regs.tev_state.alpha_func_ref0, 
-        bp_regs.tev_state.alpha_func_ref1))
+    if (__FSDEF_ALPHA_COMPARE(val, fs_ubo.tev_state.alpha_func_ref0, 
+        fs_ubo.tev_state.alpha_func_ref1))
         discard;
 }

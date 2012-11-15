@@ -65,6 +65,10 @@ public:
     // Uniform structures - These are structs used in the shader
     // ---------------------------------------------------------
 
+    struct UniformStruct_CPState {
+        
+    };
+
     struct UniformStruct_TevState {
         int alpha_func_ref0;
         int alpha_func_ref1;
@@ -117,16 +121,16 @@ public:
     // -----------------------------------------------------------------------
 
     struct UniformBlocks {
+        /// Vertex shader UBO
+        struct _VS_UBO {
+            u32 xf_mem[0x100];
+        } vs_ubo;
 
-        struct XFRegisters {
-            u32 pos_mem[0x100];
-        } xf_regs;
-
-        struct BPRegisters {
+        /// Fragment shader UBO
+        struct _FS_UBO {
             UniformStruct_TevState tev_state;
             UniformStruct_TevStageParams tev_stages[kGXNumTevStages];
-        } bp_regs;
-
+        } fs_ubo;
     };
 
     UniformBlocks __uniform_data_;
@@ -166,11 +170,11 @@ public:
     /// Initialize the shader manager
     void Init(GLuint default_shader);
 
-    GLuint	ubo_handle_bp_;
-    GLuint	ubo_handle_xf_;
+    GLuint	ubo_fs_handle_;         ///< Fragment shader UBO handle
+    GLuint	ubo_vs_handle_;         ///< Vertex shader UBO handle
 
-    GLuint  ubo_block_index_bp_;
-    GLuint  ubo_block_index_xf_;
+    GLuint  ubo_fs_block_index_;    ///< Fragment shader UBO block index
+    GLuint  ubo_vs_block_index_;    ///< Vertex shader UBO block index
 
     int invalid_xf_region_[0x40];
 

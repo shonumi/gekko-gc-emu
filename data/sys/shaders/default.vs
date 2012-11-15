@@ -20,19 +20,19 @@ uniform int cp_tex_matrix_offset[8];
 
 // XF memory
 uniform mat4 projection_matrix;
-layout(std140) uniform XFRegisters {
-	vec4 pos_mem[0x40];
-} xf_regs;
+layout(std140) uniform _VS_UBO {
+	vec4 xf_mem[0x40];
+} vs_ubo;
 
 // Vertex shader outputs
 out vec4 vtx_color_0;
 out vec2 vtx_texcoord[8];
 
 #define XF_MEM_MTX44(addr) mat4( \
-    xf_regs.pos_mem[addr].x, xf_regs.pos_mem[addr + 1].x, xf_regs.pos_mem[addr + 2].x, 0.0, \
-    xf_regs.pos_mem[addr].y, xf_regs.pos_mem[addr + 1].y, xf_regs.pos_mem[addr + 2].y, 0.0, \
-    xf_regs.pos_mem[addr].z, xf_regs.pos_mem[addr + 1].z, xf_regs.pos_mem[addr + 2].z, 0.0, \
-    xf_regs.pos_mem[addr].w, xf_regs.pos_mem[addr + 1].w, xf_regs.pos_mem[addr + 2].w, 1.0)
+    vs_ubo.xf_mem[addr].x, vs_ubo.xf_mem[addr + 1].x, vs_ubo.xf_mem[addr + 2].x, 0.0, \
+    vs_ubo.xf_mem[addr].y, vs_ubo.xf_mem[addr + 1].y, vs_ubo.xf_mem[addr + 2].y, 0.0, \
+    vs_ubo.xf_mem[addr].z, vs_ubo.xf_mem[addr + 1].z, vs_ubo.xf_mem[addr + 2].z, 0.0, \
+    vs_ubo.xf_mem[addr].w, vs_ubo.xf_mem[addr + 1].w, vs_ubo.xf_mem[addr + 2].w, 1.0)
 
 void main() {
     mat4 modelview_matrix;
