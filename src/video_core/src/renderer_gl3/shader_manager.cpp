@@ -80,48 +80,6 @@ ShaderManager::ShaderManager() {
 
 /// Updates the uniform values for the current shader
 void ShaderManager::UpdateUniforms() {
-
-    // Projection matrix (already converted to GL4x4 format)
-    glUniformMatrix4fv(glGetUniformLocation(current_shader_, "projection_matrix"), 1, 
-        GL_FALSE, gp::g_projection_matrix);
-
-    // CP - position matrix index
-    glUniform1i(glGetUniformLocation(current_shader_, "cp_pos_matrix_offset"), 
-        gp::g_cp_regs.matrix_index_a.pos_normal_midx);
-
-    // CP - texture matrix indices
-    const int tex_matrix_offsets[8] = {
-        gp::g_cp_regs.matrix_index_a.tex0_midx,
-        gp::g_cp_regs.matrix_index_a.tex1_midx,
-        gp::g_cp_regs.matrix_index_a.tex2_midx,
-        gp::g_cp_regs.matrix_index_a.tex3_midx,
-        gp::g_cp_regs.matrix_index_b.tex4_midx,
-        gp::g_cp_regs.matrix_index_b.tex5_midx,
-        gp::g_cp_regs.matrix_index_b.tex6_midx,
-        gp::g_cp_regs.matrix_index_b.tex7_midx
-    };
-    glUniform1iv(glGetUniformLocation(current_shader_, "cp_tex_matrix_offset"), 8, 
-        tex_matrix_offsets);
-
-    // CP - dequantization shift values
-	if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format != GX_F32) {
-		glUniform1f(glGetUniformLocation(current_shader_, "cp_pos_dqf"), 
-            gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf());
-	}
-
-	const f32 tex_dqf[8] = {
-		gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_tex0_dqf(),
-		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex1_dqf(),
-		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex2_dqf(),
-		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex3_dqf(),
-		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex4_dqf(),
-		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex5_dqf(),
-		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6_dqf(),
-		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7_dqf() 
-	};
-    glUniform1fv(glGetUniformLocation(current_shader_, "cp_tex_dqf"), 8, tex_dqf);
-
-    // Textures
     static const int texture_locations[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     glUniform1iv(glGetUniformLocation(current_shader_, "texture"), 8, texture_locations);
 }

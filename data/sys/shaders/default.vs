@@ -12,15 +12,19 @@ layout(location = 8) in vec4 matrix_idx_pos;
 layout(location = 9) in vec4 matrix_idx_tex03;
 layout(location = 10) in vec4 matrix_idx_tex47;
 
-// CP memory
-uniform float cp_pos_dqf;
-uniform float cp_tex_dqf[8];
-uniform int cp_pos_matrix_offset;
-uniform int cp_tex_matrix_offset[8];
+struct VertexState {
+    float cp_pos_dqf; 
+    int cp_pos_matrix_offset;
+    int pad0;
+    int pad1;
+    vec4 cp_tex_dqf[2];
+    ivec4 cp_tex_matrix_offset[2];
+    mat4 projection_matrix;
+};
 
 // XF memory
-uniform mat4 projection_matrix;
 layout(std140) uniform _VS_UBO {
+    VertexState state;
 	vec4 xf_mem[0x40];
 } vs_ubo;
 
@@ -39,68 +43,69 @@ void main() {
 #ifdef __VSDEF_POS_MIDX // Position modelview matrix
     modelview_matrix = XF_MEM_MTX44(int(matrix_idx_pos[0]));
 #else
-    modelview_matrix = XF_MEM_MTX44(cp_pos_matrix_offset);
+    modelview_matrix = XF_MEM_MTX44(vs_ubo.state.cp_pos_matrix_offset);
 #endif
 #ifdef __VSDEF_POS_DQF // Position shift (dequantization factor) only U8/S8/U16/S16 formats
-    gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz * cp_pos_dqf, 1.0);
+    gl_Position = vs_ubo.state.projection_matrix * modelview_matrix * 
+        vec4(position.xyz * vs_ubo.state.cp_pos_dqf, 1.0);
 #else
-    gl_Position = projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
+    gl_Position = vs_ubo.state.projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
 #endif
 #ifdef __VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[0])) * 
-        vec4(texcoord01.xy * cp_tex_dqf[0], 0.0f, 1.0f)).st;
+        vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[0] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[0])  * 
-        vec4(texcoord01.xy * cp_tex_dqf[0], 0.0f, 1.0f)).st;
+    vtx_texcoord[0] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][0]) * 
+        vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_1_MIDX // Texture coord 1
     vtx_texcoord[1] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[1])) * 
-        vec4(texcoord01.zw * cp_tex_dqf[1], 0.0f, 1.0f)).st;
+        vec4(texcoord01.zw * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[1] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[1])  * 
-        vec4(texcoord01.zw * cp_tex_dqf[1], 0.0f, 1.0f)).st;
+    vtx_texcoord[1] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][1]) * 
+        vec4(texcoord01.zw * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_2_MIDX // Texture coord 2
     vtx_texcoord[2] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[2])) * 
-        vec4(texcoord23.xy * cp_tex_dqf[2], 0.0f, 1.0f)).st;
+        vec4(texcoord23.xy * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[2] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[2])  * 
-        vec4(texcoord23.xy * cp_tex_dqf[2], 0.0f, 1.0f)).st;
+    vtx_texcoord[2] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][2]) * 
+        vec4(texcoord23.xy * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_3_MIDX // Texture coord 3
     vtx_texcoord[3] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[3])) * 
-        vec4(texcoord23.zw * cp_tex_dqf[3], 0.0f, 1.0f)).st;
+        vec4(texcoord23.zw * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[3] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[3])  * 
-        vec4(texcoord23.zw * cp_tex_dqf[3], 0.0f, 1.0f)).st;
+    vtx_texcoord[3] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][3]) * 
+        vec4(texcoord23.zw * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_4_MIDX // Texture coord 4
     vtx_texcoord[4] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[0])) * 
-        vec4(texcoord45.xy * cp_tex_dqf[4], 0.0f, 1.0f)).st;
+        vec4(texcoord45.xy * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[4] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[4])  * 
-        vec4(texcoord45.xy * cp_tex_dqf[4], 0.0f, 1.0f)).st;
+    vtx_texcoord[4] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][0]) * 
+        vec4(texcoord45.xy * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_5_MIDX // Texture coord 5
     vtx_texcoord[5] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[1])) * 
-        vec4(texcoord45.zw * cp_tex_dqf[5], 0.0f, 1.0f)).st;
+        vec4(texcoord45.zw * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[5] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[5])  * 
-        vec4(texcoord45.zw * cp_tex_dqf[5], 0.0f, 1.0f)).st;
+    vtx_texcoord[5] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][1]) * 
+        vec4(texcoord45.zw * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_6_MIDX // Texture coord 6
     vtx_texcoord[6] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[2])) * 
-        vec4(texcoord67.xy * cp_tex_dqf[6], 0.0f, 1.0f)).st;
+        vec4(texcoord67.xy * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[6] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[6])  * 
-        vec4(texcoord67.xy * cp_tex_dqf[6], 0.0f, 1.0f)).st;
+    vtx_texcoord[6] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][2]) * 
+        vec4(texcoord67.xy * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef __VSDEF_TEX_7_MIDX // Texture coord 7
     vtx_texcoord[7] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[3])) * 
-        vec4(texcoord67.zw * cp_tex_dqf[7], 0.0f, 1.0f)).st;
+        vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[7] = vec4(XF_MEM_MTX44(cp_tex_matrix_offset[7])  * 
-        vec4(texcoord67.zw * cp_tex_dqf[7], 0.0f, 1.0f)).st;
+    vtx_texcoord[7] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][3]) * 
+        vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #endif
     // Vertex color 0
 #ifdef __VSDEF_COLOR0_RGB565

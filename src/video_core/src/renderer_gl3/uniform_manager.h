@@ -65,8 +65,55 @@ public:
     // Uniform structures - These are structs used in the shader
     // ---------------------------------------------------------
 
-    struct UniformStruct_CPState {
-        
+    struct UniformStruct_VertexState {
+        f32 cp_pos_dqf; 
+        int cp_pos_matrix_offset;
+
+        int pad0;
+        int pad1;
+
+        f32 cp_tex_dqf[8];
+        int cp_tex_matrix_offset[8];
+
+        f32 projection_matrix[4][4];
+
+        inline bool operator == (const UniformStruct_VertexState &val) const {
+            return (
+                cp_pos_dqf                  == val.cp_pos_dqf &&
+                cp_pos_matrix_offset        == val.cp_pos_matrix_offset &&
+                cp_tex_dqf[0]               == val.cp_tex_dqf[0] &&
+                cp_tex_dqf[1]               == val.cp_tex_dqf[1] &&
+                cp_tex_dqf[2]               == val.cp_tex_dqf[2] &&
+                cp_tex_dqf[3]               == val.cp_tex_dqf[3] &&
+                cp_tex_dqf[4]               == val.cp_tex_dqf[4] &&
+                cp_tex_dqf[5]               == val.cp_tex_dqf[5] &&
+                cp_tex_dqf[6]               == val.cp_tex_dqf[6] &&
+                cp_tex_dqf[7]               == val.cp_tex_dqf[7] &&
+                cp_tex_matrix_offset[0]     == val.cp_tex_matrix_offset[0] &&
+                cp_tex_matrix_offset[1]     == val.cp_tex_matrix_offset[1] &&
+                cp_tex_matrix_offset[2]     == val.cp_tex_matrix_offset[2] &&
+                cp_tex_matrix_offset[3]     == val.cp_tex_matrix_offset[3] &&
+                cp_tex_matrix_offset[4]     == val.cp_tex_matrix_offset[4] &&
+                cp_tex_matrix_offset[5]     == val.cp_tex_matrix_offset[5] &&
+                cp_tex_matrix_offset[6]     == val.cp_tex_matrix_offset[6] &&
+                cp_tex_matrix_offset[7]     == val.cp_tex_matrix_offset[7] &&
+                projection_matrix[0][0]     == val.projection_matrix[0][0] &&
+                projection_matrix[0][1]     == val.projection_matrix[0][1] &&
+                projection_matrix[0][2]     == val.projection_matrix[0][2] &&
+                projection_matrix[0][3]     == val.projection_matrix[0][3] &&
+                projection_matrix[1][0]     == val.projection_matrix[1][0] &&
+                projection_matrix[1][1]     == val.projection_matrix[1][1] &&
+                projection_matrix[1][2]     == val.projection_matrix[1][2] &&
+                projection_matrix[1][3]     == val.projection_matrix[1][3] &&
+                projection_matrix[2][0]     == val.projection_matrix[2][0] &&
+                projection_matrix[2][1]     == val.projection_matrix[2][1] &&
+                projection_matrix[2][2]     == val.projection_matrix[2][2] &&
+                projection_matrix[2][3]     == val.projection_matrix[2][3] &&
+                projection_matrix[3][0]     == val.projection_matrix[3][0] &&
+                projection_matrix[3][1]     == val.projection_matrix[3][1] &&
+                projection_matrix[3][2]     == val.projection_matrix[3][2] &&
+                projection_matrix[3][3]     == val.projection_matrix[3][3]);
+        }
     };
 
     struct UniformStruct_TevState {
@@ -79,13 +126,13 @@ public:
         Vec4Color color[4];
 
         inline bool operator == (const UniformStruct_TevState &val) const {
-            return (alpha_func_ref0  == val.alpha_func_ref0  &&
-                alpha_func_ref1  == val.alpha_func_ref1  &&
-
-                color[0]  == val.color[0]  &&
-                color[1]  == val.color[1]  &&
-                color[2]  == val.color[2]  &&
-                color[3]  == val.color[3]);
+            return (
+                alpha_func_ref0 == val.alpha_func_ref0  &&
+                alpha_func_ref1 == val.alpha_func_ref1  &&
+                color[0]        == val.color[0]  &&
+                color[1]        == val.color[1]  &&
+                color[2]        == val.color[2]  &&
+                color[3]        == val.color[3]);
         }
     };
 
@@ -108,11 +155,9 @@ public:
                 color_bias      == val.color_bias		&&
                 color_sub       == val.color_sub		&&
                 color_scale     == val.color_scale		&&
-
                 alpha_bias      == val.alpha_bias		&&
                 alpha_sub       == val.alpha_sub		&&
                 alpha_scale     == val.alpha_scale		&&
-
                 konst           == val.konst);
         }
     };
@@ -123,6 +168,7 @@ public:
     struct UniformBlocks {
         /// Vertex shader UBO
         struct _VS_UBO {
+            UniformStruct_VertexState state;
             u32 xf_mem[0x100];
         } vs_ubo;
 
@@ -186,11 +232,8 @@ private:
      */
     void InvalidateRegion(UniformRegion region);
 
-    /** 
-     * Updates any staged data to be written in the next uniform data upload
-     * @param stage Stage to update data for
-     */
-    void UpdateStagedData(int stage);
+    /// Updates any staged data to be written in the next uniform data upload
+    void UpdateStagedData();
 
     /**
      * Lookup the TEV konst color value for a given kont selector

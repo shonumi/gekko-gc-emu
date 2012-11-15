@@ -215,19 +215,52 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
         memcpy(&__uniform_data_.vs_ubo.xf_mem[addr], data, bytelen);
 
         // Invalidate GPU data block region
-        invalid_regions_xf_[last_invalid_region_xf_].offset = addr << 2;
+        invalid_regions_xf_[last_invalid_region_xf_].offset = (addr << 2);
         invalid_regions_xf_[last_invalid_region_xf_].length = bytelen;
 
         last_invalid_region_xf_++;
     }
 }
 
-/** 
- * Updates any staged data to be written in the next uniform data upload
- * @param stage Stage to update data for
- */
-void UniformManager::UpdateStagedData(int stage) {
-    if (stage < kGXNumTevStages) {
+/// Updates any staged data to be written in the next uniform data upload
+void UniformManager::UpdateStagedData() {
+
+    // Vertex shader uniforms
+    // ----------------------
+
+    const int tex_matrix_offsets[8] = {
+        gp::g_cp_regs.matrix_index_a.tex0_midx, gp::g_cp_regs.matrix_index_a.tex1_midx,
+        gp::g_cp_regs.matrix_index_a.tex2_midx, gp::g_cp_regs.matrix_index_a.tex3_midx,
+        gp::g_cp_regs.matrix_index_b.tex4_midx, gp::g_cp_regs.matrix_index_b.tex5_midx,
+        gp::g_cp_regs.matrix_index_b.tex6_midx, gp::g_cp_regs.matrix_index_b.tex7_midx
+    };
+	const f32 tex_dqf[8] = {
+		gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_tex0_dqf(),
+		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex1_dqf(),
+		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex2_dqf(),
+		gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex3_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex4_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex5_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6_dqf(),
+		gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7_dqf() 
+	};
+    memcpy(staged_uniform_data_.vs_ubo.state.projection_matrix, gp::g_projection_matrix, 64);
+
+    staged_uniform_data_.vs_ubo.state.cp_pos_matrix_offset = 
+        gp::g_cp_regs.matrix_index_a.pos_normal_midx;
+
+    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format != GX_F32) {
+        staged_uniform_data_.vs_ubo.state.cp_pos_dqf = 
+            gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf();
+    }
+    memcpy(staged_uniform_data_.vs_ubo.state.cp_tex_matrix_offset, tex_matrix_offsets, 
+        sizeof(tex_matrix_offsets));
+    memcpy(staged_uniform_data_.vs_ubo.state.cp_tex_dqf, tex_dqf, sizeof(tex_dqf));
+
+    // Fragment shader uniforms
+    // ------------------------
+
+    for (int stage = 0; stage < kGXNumTevStages; stage++) {
         int reg_index = stage >> 1;
 
         // Konst color
@@ -241,18 +274,28 @@ void UniformManager::UpdateStagedData(int stage) {
 #define _COMBINE_BP_UBO_WRITES
 /// Apply any uniform changes to the shader
 void UniformManager::ApplyChanges() {
-    // Update invalid regions in XF UBO
+
+    this->UpdateStagedData(); // Grabs latest data to update
+
+    // Update invalid regions vertex shader UBO
+    // ----------------------------------------
+
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_vs_handle_);
+    if (!(__uniform_data_.vs_ubo.state == staged_uniform_data_.vs_ubo.state)) {
+        __uniform_data_.vs_ubo.state = staged_uniform_data_.vs_ubo.state;
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UniformStruct_VertexState), 
+            &__uniform_data_.vs_ubo.state);
+    }
     for (int i = 0; i < last_invalid_region_xf_; i++) {
         glBufferSubData(GL_UNIFORM_BUFFER, 
-            invalid_regions_xf_[i].offset, 
+            invalid_regions_xf_[i].offset + sizeof(UniformStruct_VertexState), 
             invalid_regions_xf_[i].length, 
             &__uniform_data_.vs_ubo.xf_mem[invalid_regions_xf_[i].offset >> 2]);
     }
     last_invalid_region_xf_ = 0;
 
-    // Update invalid regions in BP UBO(s)
-    // -----------------------------------
+    // Update invalid regions fragment shader UBO
+    // ------------------------------------------
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_fs_handle_);
 
@@ -264,9 +307,6 @@ void UniformManager::ApplyChanges() {
 #else
     int num_stage_iterations = kGXNumTevStages;
 #endif
-
-    this->UpdateStagedData(0);
-
     if (!(__uniform_data_.fs_ubo.tev_state == 
         staged_uniform_data_.fs_ubo.tev_state) || 
         !(__uniform_data_.fs_ubo.tev_stages[0] == 
@@ -285,8 +325,6 @@ void UniformManager::ApplyChanges() {
     // otherwise ignore. If _COMBINE_BP_UBO_WRITES is defined, sequentially changes will be combined
     // when uploaded. Otherwise, they will be uploaed individually.
     for (int stage = 1; stage < num_stage_iterations; stage++) {
-
-        this->UpdateStagedData(stage);
 
         // No change found
         // ---------------
@@ -359,6 +397,6 @@ void UniformManager::Init(GLuint default_shader) {
     ubo_vs_block_index_ = glGetUniformBlockIndex(default_shader, "_VS_UBO");
     glGenBuffers(1, &ubo_vs_handle_);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_vs_handle_);
-    glBufferData(GL_UNIFORM_BUFFER, 0x400, NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(__uniform_data_.vs_ubo), NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubo_vs_handle_);
 }
