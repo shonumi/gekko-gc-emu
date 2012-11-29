@@ -494,7 +494,8 @@ union BPMemory {
         u32             pad3[0x5];              // 0x44
         BPEFBCoords10   efb_top_left;           // 0x49
         BPEFBCoords10   efb_height_width;       // 0x4a
-        u32             pad4[0x2];              // 0x4b
+        u32             efb_copy_addr;          // 0x4b
+        u32             pad4;                   // 0x4c
         u32             disp_stride;            // 0x4d
         u32             disp_copy_y_scale;      // 0x4e
         u32             clear_ar;               // 0x4f
