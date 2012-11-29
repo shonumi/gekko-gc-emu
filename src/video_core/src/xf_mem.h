@@ -256,7 +256,8 @@ union XFPostMtxInfo {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // XF constants
 
-static const int kXFMemEntriesNum   = 64;   ///< Number of entries used in each block of XF memory
+static const int kXFMemSize         = 0x800;    ///< Size of XF memory (in 32-bit words)
+static const int kXFMemEntriesNum   = 0x40;     ///< Number of entries used in each block of XF mem
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // XF Registers
