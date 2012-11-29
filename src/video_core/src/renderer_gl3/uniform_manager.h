@@ -28,6 +28,7 @@
 #include <GL/glew.h>
 
 #include "common.h"
+#include "xf_mem.h"
 #include "gx_types.h"
 
 /// Struct to represent a Vec4 GLSL color in a UBO
@@ -169,7 +170,7 @@ public:
         /// Vertex shader UBO
         struct _VS_UBO {
             UniformStruct_VertexState state;
-            u32 xf_mem[0x100];
+            u32 xf_mem[gp::kXFMemSize];
         } vs_ubo;
 
         /// Fragment shader UBO
@@ -221,8 +222,6 @@ public:
 
     GLuint  ubo_fs_block_index_;    ///< Fragment shader UBO block index
     GLuint  ubo_vs_block_index_;    ///< Vertex shader UBO block index
-
-    int invalid_xf_region_[0x40];
 
 private:
 

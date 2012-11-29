@@ -218,6 +218,13 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
         invalid_regions_xf_[last_invalid_region_xf_].offset = (addr << 2);
         invalid_regions_xf_[last_invalid_region_xf_].length = bytelen;
 
+        _ASSERT_MSG(TGP, (last_invalid_region_xf_ < kMaxUniformRegions), 
+            "XF uniform region (0x%08X) is outside bounds!", last_invalid_region_xf_);
+        _ASSERT_MSG(TGP, (addr < gp::kXFMemSize), 
+            "XF memory update adrress (0x%04X) is outside bounds!", addr);
+        _ASSERT_MSG(TGP, ((addr + (bytelen >> 2)) < gp::kXFMemSize), 
+            "XF memory update size (0x%04X) is outside bounds!", bytelen);
+
         last_invalid_region_xf_++;
     }
 }
