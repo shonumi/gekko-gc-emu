@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    log.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-02-11
- * \brief   Common logging routines used throughout the project
+ * @file    log.h
+ * @author  ShizZy <shizzy@6bit.net>
+ * @date    2012-02-11
+ * @brief   Common logging routines used throughout the project
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
