@@ -165,6 +165,7 @@
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\crc.h" />
+    <ClInclude Include="src\hash_container.h" />
     <ClInclude Include="src\log.h" />
     <ClInclude Include="src\misc_utils.h" />
     <ClInclude Include="src\platform.h" />
