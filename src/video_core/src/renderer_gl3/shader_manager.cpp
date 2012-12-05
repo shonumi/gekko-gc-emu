@@ -46,8 +46,6 @@ static const char __default_shader_header[] = {
 };
 
 ShaderManager::ShaderManager() {
-    memset(&cache_, 0, sizeof(cache_));
-
     // Load vertex shader source
     strcpy(vertex_shader_path_, common::g_config->program_dir());
     strcat(vertex_shader_path_, "sys/shaders/default.vs");
@@ -71,6 +69,8 @@ ShaderManager::ShaderManager() {
         std::istreambuf_iterator<char>());
 
     uniform_manager_ = NULL;
+
+    cache_ = new ShaderCache();
 
     // Build and assign default shader
     default_shader_ = LoadShader();
@@ -283,15 +283,18 @@ GLuint ShaderManager::LoadShader() {
 }
 
 /// Sets the current shader program based on a set of GP parameters
-void ShaderManager::SetShader() {    
-    u32 hash = this->GetCurrentHash();
-    GLuint program = cache_.GetProgram(hash);
+void ShaderManager::SetShader() {
+    GLuint program = 0;
+    u32 hash = this->GetCurrentHash(); // Compute current shader hash
+    int res = cache_->Fetch(hash, program); // Fetch the shader program from the cache
 
-    if (current_shader_ != program) {
-        // Generate shader if it does not already exist
-        if (0 == program) {
+    // Apply the shader program if it is not the current shader...
+    if ((current_shader_ != program) || (E_ERR == res)) {
+
+        // Generate shader if it does not already exist...
+        if (E_ERR == res) {
             program = LoadShader();
-            cache_.AddProgram(hash, program);
+            cache_->Update(hash, program);
             uniform_manager_->AttachShader(program);
         }
         current_shader_ = program;

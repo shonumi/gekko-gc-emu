@@ -28,11 +28,13 @@
 #include <GL/glew.h>
 
 #include "common.h"
+#include "hash_container.h"
 #include "gx_types.h"
 #include "uniform_manager.h"
 
 #define MAX_SHADERS         0x100
-#define MAX_CACHE_SIZE      0x1000
+
+typedef HashContainer_STLHashMap<u32, GLuint> ShaderCache;
 
 class ShaderManager {
 
@@ -61,45 +63,6 @@ public:
 
 private:
 
-    /// Shader cache entry
-    struct CacheEntry {
-        u32 hash;
-        GLuint program;
-    };
-
-    /// Simple shader cache
-    struct Cache {
-        CacheEntry _cache[MAX_CACHE_SIZE][MAX_SHADERS];
-        int _cache_count[MAX_CACHE_SIZE];
-
-        /// Create a partial hash to reduce the chance that we have to "search" for our shader
-        inline u16 _partial_hash(u32 hash) {
-            return (u16) ((hash >> 24) ^ (hash >> 12) ^ hash) & 0xFFF;
-        }
-
-        /// Gets a shader program from the cache, returns 0 if it does not exist
-        inline GLuint GetProgram(u32 hash) {
-            u16 hash16 = _partial_hash(hash);
-
-            for (int i = 0; i < _cache_count[hash16]; i++) {
-                if (_cache[hash16][i].hash == hash) {
-                    return _cache[hash16][i].program;
-                }
-            }
-            return 0;
-        }
-
-        /// Adds a new shader program to the cache
-        inline void AddProgram(u32 hash, GLuint program) {
-            u16 hash16 = _partial_hash(hash);
-            _cache[hash16][_cache_count[hash16]].hash = hash;
-            _cache[hash16][_cache_count[hash16]].program = program;
-            _cache_count[hash16]++;
-            _ASSERT_MSG(TGP, _cache_count[hash16] < MAX_SHADERS, 
-                "Exceeded maximum shader limit %d! Should this number be larger?", MAX_SHADERS);
-        }
-    };
-
     /**
      * Compiles a shader program
      * @param vs_def Preprocessor string to include before vertex shader program
@@ -120,7 +83,7 @@ private:
     GLuint current_shader_;             ///< Handle to current shader program
     GLuint default_shader_;             ///< Handle to default shader program
 
-    Cache cache_;                       ///< Simple shader cache
+    ShaderCache* cache_;                 ///< Simple shader cache
 
     std::string vertex_shader_src_;
     std::string fragment_shader_src_;
