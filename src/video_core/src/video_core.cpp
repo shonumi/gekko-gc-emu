@@ -36,6 +36,7 @@
 
 #include "video_core.h"
 #include "renderer_base.h"
+#include "texture_manager.h"
 #include "vertex_manager.h"
 #include "vertex_loader.h"
 #include "fifo.h"
@@ -82,7 +83,7 @@ void Start() {
 /// Initialize the video core
 void Init(EmuWindow* emu_window) {
     gp::FifoInit();
-    
+    gp::TextureManagerInit();
     vertex_manager::Init();
     vertex_loader::Init();
     gp::BPInit();

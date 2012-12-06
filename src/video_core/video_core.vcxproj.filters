@@ -22,6 +22,10 @@
     <ClCompile Include="src\renderer_gl3\shader_manager.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
+    <ClCompile Include="src\texture_manager.cpp" />
+    <ClCompile Include="src\renderer_gl3\texture_cache.cpp">
+      <Filter>renderer_gl3</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
@@ -45,6 +49,10 @@
     <ClInclude Include="src\texture_decoder.h" />
     <ClInclude Include="src\vertex_manager.h" />
     <ClInclude Include="src\renderer_gl3\uniform_manager.h">
+      <Filter>renderer_gl3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\texture_manager.h" />
+    <ClInclude Include="src\renderer_gl3\texture_cache.h">
       <Filter>renderer_gl3</Filter>
     </ClInclude>
   </ItemGroup>
