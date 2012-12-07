@@ -7,6 +7,7 @@
     <ClCompile Include="src\xml.cpp" />
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\misc_utils.cpp" />
+    <ClCompile Include="src\hash.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crc.h" />
@@ -26,5 +27,6 @@
     <ClInclude Include="src\std_mutex.h" />
     <ClInclude Include="src\std_thread.h" />
     <ClInclude Include="src\hash_container.h" />
+    <ClInclude Include="src\hash.h" />
   </ItemGroup>
 </Project>
