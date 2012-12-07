@@ -33,6 +33,21 @@
 
 namespace gp {
 
+/// GameCube/GX texture formats
+enum TextureFormat {
+    kTextureFormat_Intensity4       = 0x0,
+    kTextureFormat_Intensity8       = 0x1,
+    kTextureFormat_IntensityAlpha4  = 0x2,
+    kTextureFormat_IntensityAlpha8  = 0x3,
+    kTextureFormat_RGB565           = 0x4,
+    kTextureFormat_RGB5A3           = 0x5,
+    kTextureFormat_RGBA8            = 0x6,
+    kTextureFormat_C4               = 0x8,
+    kTextureFormat_C8               = 0x9,
+    kTextureFormat_C14X2            = 0xA,
+    kTextureFormat_CMPR             = 0xE,
+};
+
 extern u8 tmem[TMEM_SIZE];
 extern u32 texcache[TMEM_SIZE];
 

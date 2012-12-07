@@ -242,7 +242,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
     u16	*pal16 = ((u16*)&gp::tmem[pallette_addr & TMEM_MASK]);
 
     switch(format) {
-    case 0: // i4
+    case kTextureFormat_Intensity4:
         //multiple of 8 for width
 
         width = (original_width + 7) & ~7;
@@ -268,7 +268,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
-    case 1: // i8
+    case kTextureFormat_Intensity8:
         //multiple of 8 for width
         width = (original_width + 7) & ~7;
 
@@ -292,7 +292,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
-    case 2: // ia4
+    case kTextureFormat_IntensityAlpha4:
         //multiple of 8 for width
         width = (original_width + 7) & ~7;
 
@@ -315,7 +315,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
 		video_core::g_renderer->AddTexture(original_width, height, hash, tmp);
 		break;
 
-    case 3: // ia8
+    case kTextureFormat_IntensityAlpha8:
         //multiple of 4 for width
         width = (original_width + 3) & ~3;
 
@@ -338,7 +338,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         video_core::g_renderer->AddTexture(w, h, hash, tmp);
 		break;
 
-    case 4: // rgb565
+    case kTextureFormat_RGB565:
 		j=0;
 		width = (original_width + 3) & ~3;
 
@@ -364,7 +364,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
-    case 5: // rgb5a3
+    case kTextureFormat_RGB5A3:
 		j=0;
 		width = (original_width + 3) & ~3;
 
@@ -390,7 +390,7 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
 		video_core::g_renderer->AddTexture(w, h, hash, tmp);
 		break;
 
-    case 6: // rgba8
+    case kTextureFormat_RGBA8: // rgba8
 		j=0;
 		width = (original_width + 3) & ~3;
 
@@ -431,70 +431,63 @@ void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
         video_core::g_renderer->AddTexture(original_width, height, hash, tmp);
 		break;
 
-    case 8: // c4
-    case 9: // c8
-        {
-            int _width = width;
-            switch(format) {
-            case 8:
-                width = (_width + 7) & ~7;
-                //#pragma omp for ordered schedule(dynamic)
-                for (y = 0; y < height; y += 8) {
-                    for (x = 0; x < width; x += 8) {
-                        //#pragma omp parallel for
-                        for (dy = 0; dy < 8; dy++) {
-                            //#pragma omp ordered
-                            dst8[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                            dst8[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                            src8++;
+    case kTextureFormat_C4:
+        width = (original_width + 7) & ~7;
+        //#pragma omp for ordered schedule(dynamic)
+        for (y = 0; y < height; y += 8) {
+            for (x = 0; x < width; x += 8) {
+                //#pragma omp parallel for
+                for (dy = 0; dy < 8; dy++) {
+                    //#pragma omp ordered
+                    dst8[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    src8++;
 
-                            dst8[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                            dst8[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                            src8++;
+                    dst8[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    src8++;
 
-                            dst8[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                            dst8[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                            src8++;
+                    dst8[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    src8++;
 
-                            dst8[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                            dst8[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                            src8++;
-                        }
-                    }
+                    dst8[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    src8++;
                 }
-                break;
-
-            case 9:
-                width = (_width + 7) & ~7;
-                //#pragma omp for ordered schedule(dynamic)
-                for (y = 0; y < height; y += 4) {
-                    //#pragma omp parallel for
-                    for (x = 0; x < width; x += 8) {
-
-                        //#pragma omp ordered
-                        *(u32 *)&dst8[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
-                        *(u32 *)&dst8[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
-
-                        *(u32 *)&dst8[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
-                        *(u32 *)&dst8[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
-
-                        *(u32 *)&dst8[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
-                        *(u32 *)&dst8[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
-
-                        *(u32 *)&dst8[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
-                        *(u32 *)&dst8[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
-                        src8+=32;
-                    }
-                }
-                break;
             }
-            unpack8(tmp, dst8, width, height, pal16, pallette_fmt, _width);
-
-            video_core::g_renderer->AddTexture(w, h, hash, tmp);
         }
+        unpack8(tmp, dst8, width, height, pal16, pallette_fmt, original_width);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
-    case 14:
+    case kTextureFormat_C8:
+        width = (original_width + 7) & ~7;
+        //#pragma omp for ordered schedule(dynamic)
+        for (y = 0; y < height; y += 4) {
+            //#pragma omp parallel for
+            for (x = 0; x < width; x += 8) {
+
+                //#pragma omp ordered
+                *(u32 *)&dst8[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
+                *(u32 *)&dst8[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
+
+                *(u32 *)&dst8[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
+                *(u32 *)&dst8[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
+
+                *(u32 *)&dst8[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
+                *(u32 *)&dst8[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
+
+                *(u32 *)&dst8[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
+                *(u32 *)&dst8[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
+                src8+=32;
+            }
+        }
+        unpack8(tmp, dst8, width, height, pal16, pallette_fmt, original_width);
+        video_core::g_renderer->AddTexture(w, h, hash, tmp);
+        break;
+
+    case kTextureFormat_CMPR:
         width = (width + 7) & ~7;
         DecompressDxt1(dst32, src8, width, height);
 
