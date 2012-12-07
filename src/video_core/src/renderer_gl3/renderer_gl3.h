@@ -277,6 +277,10 @@ private:
 
     u32         last_mode_;                         ///< Last render mode
 
+    char        cpu_str_[32];
+    char        renderer_str_[32];
+    char        window_title_[255];
+
     // BP stuff
     // --------
 

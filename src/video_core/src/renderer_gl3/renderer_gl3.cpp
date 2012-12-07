@@ -596,21 +596,9 @@ void RendererGL3::PrintDebugStats() {
         fps = 1000.0f * swaps / (t - last);
         swaps = 0;
         last = t;
+        sprintf(str, "%s (FPS: %02.02f)", window_title_, fps);
+        render_window_->SetTitle(str);
     }
-    /*
-    f32 read_pos    = 100.0f * ((f32)(gp::g_fifo_read_ptr - gp::g_fifo_buffer)) / FIFO_SIZE;
-    f32 write_pos   = 100.0f * ((f32)gp::g_fifo_write_ptr) / FIFO_SIZE;
-
-
-    sprintf(str, 
-    "Framerate    : %02.02f\n"
-    "Vertex count : %d\n"
-    "FIFO in pos  : %02.01f%%\n"
-    "FIFO out pos : %02.01f%%", 
-    fps, 0, write_pos, read_pos);
-    */
-    sprintf(str, "%02.02f", fps);
-    g_raster_font->printMultilineText(str, -0.98, 0.93, 0, 200, 400);
 }
 
 /// Swap buffers (render frame)
@@ -724,9 +712,10 @@ void RendererGL3::RenderFramebuffer() {
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
-    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_,
-        0, 0, resolution_width_, resolution_height_,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    GLint window_width, window_height;
+    render_window_->GetWindowSize(window_width, window_height);
+    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_, 0, 0, window_width, 
+        window_height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     // FPS stuff
     PrintDebugStats();
@@ -825,6 +814,11 @@ void RendererGL3::Init() {
     uniform_manager_->Init(shader_manager_->GetDefaultShader());
 
     g_raster_font = new RasterFont();
+
+    // Information used for the window title
+    common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str_, 32);
+    common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str_, 32);
+    sprintf(window_title_, "gekko-git [%s|%s|glfw] - %s", cpu_str_, renderer_str_, __DATE__);
 
     LOG_NOTICE(TGP, "GL_VERSION: %s\n", glGetString(GL_VERSION));
 }
