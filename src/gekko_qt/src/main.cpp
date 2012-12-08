@@ -99,6 +99,7 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
 
 	// Load controller settings, TODO: Move these settings to the main XML configuration and support joystick configuration
     memset(controller_ports, 0, sizeof(controller_ports));
+    controller_ports[0].enable = true;
     controller_ports[0].keys.enable = true;
     controller_ports[0].keys.key_code[common::Config::BUTTON_A] = Qt::Key_X;
     controller_ports[0].keys.key_code[common::Config::BUTTON_B] = Qt::Key_Y; // QWERTZ ftw
