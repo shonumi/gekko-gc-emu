@@ -166,7 +166,7 @@ public:
         // TODO: Breaks linux though because we aren't calling doneCurrent() ... -.-
 //        makeCurrent();
     }
-    void resizeEvent(QResizeEvent*) {}
+    void resizeEvent(QResizeEvent* ev) {}
 };
 
 
@@ -177,16 +177,16 @@ EmuThread& GRenderWindow::GetEmuThread()
 
 GRenderWindow::GRenderWindow(QWidget* parent) : QWidget(parent), emu_thread(this)
 {
-    // TODO: Enable layout code once core supports a different EmuWindow size than 640x480
-    child = new GGLWidgetInternal(this);
     // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground, WA_DontShowOnScreen, WA_DeleteOnClose
-//    QBoxLayout* layout = new QHBoxLayout(this);
-    resize(640, 480);
-    child->resize(640, 480);
-    child->show();
-//    layout->addWidget(child);
-//    layout->setMargin(0);
-//    setLayout(layout);
+
+    child = new GGLWidgetInternal(this);
+
+    QBoxLayout* layout = new QHBoxLayout(this);
+    resize(640, 480); // TODO: Load size from config instead
+    layout->addWidget(child);
+    layout->setMargin(0);
+    setLayout(layout);
+
     BackupGeometry();
 }
 
@@ -221,6 +221,12 @@ void GRenderWindow::MakeCurrent()
 void GRenderWindow::DoneCurrent()
 {
     child->doneCurrent();
+}
+
+void GRenderWindow::GetWindowSize(int &width, int &height)
+{
+    width = child->size().width();
+    height = child->size().height();
 }
 
 void GRenderWindow::BackupGeometry()
