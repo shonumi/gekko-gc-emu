@@ -140,15 +140,19 @@ public:
 
     int Fetch(HashType hash, ValueType& value) {
         typename hash_map<HashType, ValueType>::const_iterator res = hash_map_.find(hash);
-        if (res->first != hash) {
+
+        if (res == hash_map_.end())
             return E_ERR;
-        }
+
+        if (res->first != hash)
+            return E_ERR;
+
         value = hash_map_.find(hash)->second;
         return E_OK;
     }
 
 private:
-    typename hash_map<HashType, ValueType> hash_map_;
+    hash_map<HashType, ValueType> hash_map_;
 
     DISALLOW_COPY_AND_ASSIGN(HashContainer_STLHashMap);
 };
