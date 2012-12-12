@@ -818,7 +818,7 @@ void RendererGL3::Init() {
     // Information used for the window title
     common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str_, 32);
     common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str_, 32);
-    sprintf(window_title_, "gekko-git [%s|%s|glfw] - %s", cpu_str_, renderer_str_, __DATE__);
+    sprintf(window_title_, "gekko-git [%s|%s] - %s", cpu_str_, renderer_str_, __DATE__);
 
     LOG_NOTICE(TGP, "GL_VERSION: %s\n", glGetString(GL_VERSION));
 }
