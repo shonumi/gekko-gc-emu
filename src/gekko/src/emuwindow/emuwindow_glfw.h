@@ -58,7 +58,7 @@ public:
      * @param width Window width in pixels
      * @param height Window height in pixels
      */
-    void GetWindowSize(int& width, int& height);
+    void GetClientAreaSize(int& width, int& height);
 
     /**
      * @brief Sets the window configuration

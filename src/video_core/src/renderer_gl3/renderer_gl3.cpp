@@ -713,7 +713,7 @@ void RendererGL3::RenderFramebuffer() {
 
     // Blit
     GLint window_width, window_height;
-    render_window_->GetWindowSize(window_width, window_height);
+    render_window_->GetClientAreaSize(window_width, window_height);
     glBlitFramebuffer(0, 0, resolution_width_, resolution_height_, 0, 0, window_width, 
         window_height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 

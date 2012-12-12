@@ -45,7 +45,7 @@ public:
      * @param width Window width in pixels
      * @param height Window height in pixels
      */
-    virtual void GetWindowSize(int &width, int &height) = 0;
+    virtual void GetClientAreaSize(int &width, int &height) = 0;
 
     /**
      * @brief Sets the window configuration

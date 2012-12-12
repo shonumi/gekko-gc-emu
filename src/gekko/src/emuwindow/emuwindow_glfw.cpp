@@ -98,8 +98,8 @@ void EmuWindow_GLFW::DoneCurrent() {
  * @param width Window width in pixels
  * @param height Window height in pixels
  */
-void EmuWindow_GLFW::GetWindowSize(int& width, int& height) {
-    glfwGetWindowSize(render_window_, &width, &height);
+void EmuWindow_GLFW::GetClientAreaSize(int& width, int& height) {
+    glfwGetClientAreaSize(render_window_, &width, &height);
 }
 
 /**

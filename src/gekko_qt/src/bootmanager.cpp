@@ -223,7 +223,7 @@ void GRenderWindow::DoneCurrent()
     child->doneCurrent();
 }
 
-void GRenderWindow::GetWindowSize(int &width, int &height)
+void GRenderWindow::GetClientAreaSize(int &width, int &height)
 {
     width = child->size().width();
     height = child->size().height();
