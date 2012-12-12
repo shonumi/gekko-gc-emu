@@ -1,6 +1,6 @@
 #include <QThread>
 #include <QGLWidget>
-#include "platform.h"
+#include "common.h"
 #include "video/emuwindow.h"
 
 class GRenderWindow;
@@ -81,12 +81,10 @@ public:
 
     // EmuWindow implementation
     void SwapBuffers();
-    void SetTitle(const char* title);
     void MakeCurrent();
     void DoneCurrent();
-    void GetClientAreaSize(int &width, int &height);
     void SetConfig(EmuWindow::Config config) {}
-    void PollEvents() {}
+    void PollEvents();
 
     void BackupGeometry();
     void RestoreGeometry();

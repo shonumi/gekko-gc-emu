@@ -71,16 +71,13 @@ void EmuWindow_GLFW::SwapBuffers() {
 
 /// Polls window events
 void EmuWindow_GLFW::PollEvents() {
+    static std::string last_window_title = window_title_;
+    if (last_window_title != window_title_) {
+        last_window_title = window_title_;
+        glfwSetWindowTitle(render_window_, last_window_title.c_str());
+    }
+    glfwGetWindowSize(render_window_, &client_area_width_, &client_area_height_);
 	glfwPollEvents();
-}
-
-/**
- * @brief Sets the window title
- * @param title Title to set the window to
- * @todo Disabled for now until it's used thread-savely
- */
-void EmuWindow_GLFW::SetTitle(const char* title) {
-    glfwSetWindowTitle(render_window_, title);
 }
 
 /// Makes the GLFW OpenGL context current for the caller thread
@@ -91,15 +88,6 @@ void EmuWindow_GLFW::MakeCurrent() {
 /// Releases (dunno if this is the "right" word) the GLFW context from the caller thread
 void EmuWindow_GLFW::DoneCurrent() {
     glfwMakeContextCurrent(NULL);
-}
-
-/**
- * @brief gets the window size, used by the renderer to properly scale video output
- * @param width Window width in pixels
- * @param height Window height in pixels
- */
-void EmuWindow_GLFW::GetClientAreaSize(int& width, int& height) {
-    glfwGetWindowSize(render_window_, &width, &height);
 }
 
 /**

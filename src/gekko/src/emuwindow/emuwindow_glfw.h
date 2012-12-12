@@ -41,12 +41,6 @@ public:
 	/// Polls window events
 	void PollEvents();
 
-    /**
-     * @brief Sets the window title
-     * @param title Title to set the window to
-     */
-    void SetTitle(const char* title);
-
     /// Makes the graphics context current for the caller thread
     void MakeCurrent();
     

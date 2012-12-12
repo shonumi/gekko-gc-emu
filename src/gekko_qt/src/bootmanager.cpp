@@ -195,12 +195,6 @@ GRenderWindow::~GRenderWindow()
     emu_thread.Stop();
 }
 
-void GRenderWindow::SetTitle(const char* title)
-{
-	// TODO: Currently called from GPU thread but we should call this from the GUI thread (setWindowTitle is not thread-safe)
-//    setWindowTitle(title);
-}
-
 void GRenderWindow::SwapBuffers()
 {
     child->makeCurrent(); // TODO: Not necessary?
@@ -223,10 +217,14 @@ void GRenderWindow::DoneCurrent()
     child->doneCurrent();
 }
 
-void GRenderWindow::GetClientAreaSize(int &width, int &height)
-{
-    width = child->size().width();
-    height = child->size().height();
+void GRenderWindow::PollEvents() {
+    static std::string last_window_title = window_title_;
+    if (last_window_title != window_title_) {
+        last_window_title = window_title_;
+        setWindowTitle(window_title_.c_str());
+    }
+    client_area_width_ = child->size().width();
+    client_area_height_ = child->size().height();
 }
 
 void GRenderWindow::BackupGeometry()
