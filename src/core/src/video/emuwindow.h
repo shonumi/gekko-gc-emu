@@ -85,12 +85,17 @@ public:
     /**
      * @brief Called from KeyboardInput constructor to notify EmuWindow about its presence
      * @param controller_interface Pointer to a running KeyboardInput interface
-     * @todo Should
      */
-    void SetControllerInterface(input_common::KeyboardInput* controller_interface) { 
+    void set_controller_interface(input_common::KeyboardInput* controller_interface) { 
         controller_interface_ = controller_interface;
     }
-    input_common::KeyboardInput* GetControllerInterface() { return controller_interface_; }
+    input_common::KeyboardInput* controller_interface() { return controller_interface_; }
+    
+    int client_area_width() { return client_area_width_; }
+    void set_client_area_width(int val) { client_area_width_ = val; }
+
+    int client_area_height() { return client_area_height_; }
+    void set_client_area_height(int val) { client_area_height_ = val; }
 
 protected:
     EmuWindow() : controller_interface_(NULL), client_area_width_(640), client_area_height_(480) { }

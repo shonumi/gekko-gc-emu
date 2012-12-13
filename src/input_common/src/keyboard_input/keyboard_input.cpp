@@ -78,12 +78,12 @@ bool KeyboardInput::Init() {
 
 KeyboardInput::KeyboardInput(EmuWindow* emu_window) : emuwindow_(emu_window)
 {
-    emuwindow_->SetControllerInterface(this);
+    emuwindow_->set_controller_interface(this);
 }
 
 KeyboardInput::~KeyboardInput()
 {
-    emuwindow_->SetControllerInterface(NULL);
+    emuwindow_->set_controller_interface(NULL);
 }
 
 

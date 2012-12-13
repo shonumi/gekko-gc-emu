@@ -36,9 +36,15 @@ static void OnKeyEvent(GLFWwindow win, int key, int action) {
 	} else {
 		state = input_common::GCController::RELEASED;
 	}
-    for (int channel = 0; channel < 4 && emuwin->GetControllerInterface(); ++channel) {
-		emuwin->GetControllerInterface()->SetControllerStatus(channel, key, state);
+    for (int channel = 0; channel < 4 && emuwin->controller_interface(); ++channel) {
+		emuwin->controller_interface()->SetControllerStatus(channel, key, state);
     }
+}
+
+static void OnWindowSizeEvent(GLFWwindow win, int width, int height) {
+    EmuWindow_GLFW* emuwin = (EmuWindow_GLFW*)glfwGetWindowUserPointer(win);
+    emuwin->set_client_area_width(width);
+    emuwin->set_client_area_height(height);
 }
 
 /// EmuWindow_GLFW constructor
@@ -47,7 +53,6 @@ EmuWindow_GLFW::EmuWindow_GLFW() {
         LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
         exit(E_ERR);
     }
-
     glfwWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
 
@@ -55,6 +60,7 @@ EmuWindow_GLFW::EmuWindow_GLFW() {
 
 	glfwSetWindowUserPointer(render_window_, this);
     glfwSetKeyCallback(OnKeyEvent);
+    glfwSetWindowSizeCallback(OnWindowSizeEvent);
 
     DoneCurrent();
 }
@@ -76,7 +82,7 @@ void EmuWindow_GLFW::PollEvents() {
         last_window_title = window_title_;
         glfwSetWindowTitle(render_window_, last_window_title.c_str());
     }
-    glfwGetWindowSize(render_window_, &client_area_width_, &client_area_height_);
+    
 	glfwPollEvents();
 }
 

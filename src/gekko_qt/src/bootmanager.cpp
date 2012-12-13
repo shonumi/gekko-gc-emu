@@ -258,8 +258,8 @@ QByteArray GRenderWindow::saveGeometry()
 void GRenderWindow::keyPressEvent(QKeyEvent* event)
 {
     bool key_processed = false;
-    for (unsigned int channel = 0; channel < 4 && GetControllerInterface(); ++channel)
-        if (GetControllerInterface()->SetControllerStatus(channel, event->key(), input_common::GCController::PRESSED))
+    for (unsigned int channel = 0; channel < 4 && controller_interface(); ++channel)
+        if (controller_interface()->SetControllerStatus(channel, event->key(), input_common::GCController::PRESSED))
             key_processed = true;
 
     if (!key_processed)
@@ -269,8 +269,8 @@ void GRenderWindow::keyPressEvent(QKeyEvent* event)
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event)
 {
     bool key_processed = false;
-    for (unsigned int channel = 0; channel < 4 && GetControllerInterface(); ++channel)
-        if (GetControllerInterface()->SetControllerStatus(channel, event->key(), input_common::GCController::RELEASED))
+    for (unsigned int channel = 0; channel < 4 && controller_interface(); ++channel)
+        if (controller_interface()->SetControllerStatus(channel, event->key(), input_common::GCController::RELEASED))
             key_processed = true;
 
     if (!key_processed)
