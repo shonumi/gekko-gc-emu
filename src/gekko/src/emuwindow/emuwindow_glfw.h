@@ -47,23 +47,10 @@ public:
     /// Releases (dunno if this is the "right" word) the GLFW context from the caller thread
     void DoneCurrent();
 
-    /**
-     * @brief gets the window size, used by the renderer to properly scale video output
-     * @param width Window width in pixels
-     * @param height Window height in pixels
-     */
-    void GetClientAreaSize(int& width, int& height);
-
-    /**
-     * @brief Sets the window configuration
-     * @param config Configuration to set the window to, includes fullscreen, size, etc
-     */
-    void SetConfig(Config config);
-
 	GLFWwindow render_window_;      ///< Internal GLFW render window
 
 private:
-    
+
 };
 
 #endif // VIDEO_CORE_EMUWINDOW_GLFW_

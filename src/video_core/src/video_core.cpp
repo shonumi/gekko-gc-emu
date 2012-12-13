@@ -29,7 +29,7 @@
 
 #include "core.h"
 
-#include "emuwindow/emuwindow_glfw.h"
+#include "video/emuwindow.h"
 
 #include "renderer_gl3/renderer_gl3.h"
 #include "renderer_gl2/renderer_gl2.h"
@@ -49,39 +49,38 @@
 
 namespace video_core {
 
-RendererBase*   g_renderer;         ///< Renderer plugin
-SDL_Thread      *g_video_thread;
+EmuWindow*      g_emu_window = NULL;    ///< Frontend emulator window
+RendererBase*   g_renderer = NULL;      ///< Renderer plugin
+SDL_Thread*     g_video_thread = NULL;
 
-int VideoEntry(void* emu_window) {
-
-    g_renderer = new RendererGL3();
-    g_renderer->SetWindow((EmuWindow*)emu_window);
-    g_renderer->Init();
-
-    if (common::g_config->enable_multicore()) {
-        while (core::SYS_RUNNING == core::g_state) {
-            gp::DecodeCommand();
-        }
+int VideoEntry(void*) {
+    if (g_emu_window == NULL) {
+        LOG_ERROR(TGP, "video_core::VideoEntry called without calling Init()!");
+    }
+    g_emu_window->MakeCurrent();
+    while (core::SYS_RUNNING == core::g_state) {
+        gp::DecodeCommand();
     }
     return E_OK;
 }
 
 /// Start the video core
-void Start(EmuWindow* emu_window) {
-
+void Start() {
+    if (g_emu_window == NULL) {
+        LOG_ERROR(TGP, "video_core::Start called without calling Init()!");
+    }
     if (common::g_config->enable_multicore()) {
-        g_video_thread = SDL_CreateThread(VideoEntry, NULL, emu_window);
+        g_emu_window->DoneCurrent();
+        g_video_thread = SDL_CreateThread(VideoEntry, NULL, NULL);
         if (g_video_thread == NULL) {
             LOG_ERROR(TVIDEO, "Unable to create thread: %s... Exiting\n", SDL_GetError());
             exit(1);
         }
-    } else {
-        VideoEntry(emu_window);
     }
 }
 
 /// Initialize the video core
-void Init() {
+void Init(EmuWindow* emu_window) {
     gp::FifoInit();
     
     vertex_manager::Init();
@@ -89,6 +88,11 @@ void Init() {
     gp::BPInit();
     gp::CPInit();
     gp::XFInit();
+
+    g_emu_window = emu_window;
+    g_renderer = new RendererGL3();
+    g_renderer->SetWindow(g_emu_window);
+    g_renderer->Init();
 
     LOG_NOTICE(TVIDEO, "initialized ok");
 }

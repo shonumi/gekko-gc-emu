@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "video_core.h"
 #include "emuwindow_glfw.h"
 #include "gc_controller.h"
 #include "keyboard_input/keyboard_input.h"
@@ -49,15 +50,16 @@ static void OnWindowSizeEvent(GLFWwindow win, int width, int height) {
 
 /// EmuWindow_GLFW constructor
 EmuWindow_GLFW::EmuWindow_GLFW() {
+    // Initialize the window
     if(glfwInit() != GL_TRUE) {
         LOG_ERROR(TVIDEO, "Failed to initialize GLFW! Exiting...");
         exit(E_ERR);
     }
     glfwWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
-
     render_window_ = glfwCreateWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
 
+    // Setup callbacks
 	glfwSetWindowUserPointer(render_window_, this);
     glfwSetKeyCallback(OnKeyEvent);
     glfwSetWindowSizeCallback(OnWindowSizeEvent);
@@ -77,13 +79,14 @@ void EmuWindow_GLFW::SwapBuffers() {
 
 /// Polls window events
 void EmuWindow_GLFW::PollEvents() {
-    static std::string last_window_title = window_title_;
-    if (last_window_title != window_title_) {
-        last_window_title = window_title_;
-        glfwSetWindowTitle(render_window_, last_window_title.c_str());
-    }
-    
-	glfwPollEvents();
+    // TODO(ShizZy): Does this belong here? This is a reasonable place to update the window title
+    //  from the main thread, but this should probably be in an event handler...
+    static char title[128];
+    sprintf(title, "%s (FPS: %02.02f)", window_title_.c_str(), 
+        video_core::g_renderer->current_fps());
+    glfwSetWindowTitle(render_window_, title);
+
+    glfwPollEvents();
 }
 
 /// Makes the GLFW OpenGL context current for the caller thread
@@ -94,11 +97,4 @@ void EmuWindow_GLFW::MakeCurrent() {
 /// Releases (dunno if this is the "right" word) the GLFW context from the caller thread
 void EmuWindow_GLFW::DoneCurrent() {
     glfwMakeContextCurrent(NULL);
-}
-
-/**
- * @brief Sets the window configuration
- * @param config Configuration to set the window to, includes fullscreen, size, etc
- */
-void EmuWindow_GLFW::SetConfig(EmuWindow::Config config) {
 }

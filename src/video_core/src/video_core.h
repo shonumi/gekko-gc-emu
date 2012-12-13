@@ -41,10 +41,10 @@ namespace video_core {
 extern RendererBase*   g_renderer;  ///< Renderer plugin 
 
 /// Start the video core
-void Start(EmuWindow* emu_window);
+void Start();
 
 /// Initialize the video core
-void Init();
+void Init(EmuWindow* emu_window);
 
 /// Shutdown the video core
 void ShutDown();

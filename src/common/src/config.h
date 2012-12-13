@@ -229,36 +229,26 @@ public:
     /**
      * @brief Gets the renderer string from the type
      * @param renderer Renderer to get string for
-     * @param renderer_str String result
-     * @param size Max size to write to string
+     * @return Renderer string name
      */
-    static inline void RenderTypeToString(RendererType renderer, char* renderer_str, size_t size) {
+    static std::string RenderTypeToString(RendererType renderer) {
         switch (renderer) {
         case RENDERER_OPENGL_2:
-            strcpy(renderer_str, "opengl2");
-            break;
+            return "opengl2";
         case RENDERER_OPENGL_3:
-            strcpy(renderer_str, "opengl3");
-            break;
+            return "opengl3";
         case RENDERER_DIRECTX9:
-            strcpy(renderer_str, "directx9");
-            break;
+            return "directx9";
         case RENDERER_DIRECTX10:
-            strcpy(renderer_str, "directx10");
-            break;
+            return "directx10";
         case RENDERER_DIRECTX11:
-            strcpy(renderer_str, "directx11");
-            break;
+            return "directx11";
         case RENDERER_SOFTWARE:
-            strcpy(renderer_str, "software");
-            break;
+            return "software";
         case RENDERER_HARDWARE:
-            strcpy(renderer_str, "hardware");
-            break;
-        default:
-            strcpy(renderer_str, "null");
-            break;
+            return "hardware";
         }
+        return "null";
     }
 
     /**
@@ -267,18 +257,14 @@ public:
      * @param cpu_str String result
      * @param size Max size to write to string
      */
-    static inline void CPUCoreTypeToString(CPUCoreType cpu, char* cpu_str, size_t size) {
+    static std::string CPUCoreTypeToString(CPUCoreType cpu) {
         switch (cpu) {
         case CPU_INTERPRETER:
-            strcpy(cpu_str, "interpreter");
-            break;
+            return "interpreter";
         case CPU_DYNAREC:
-            strcpy(cpu_str, "dynarec");
-            break;
-        default:
-            strcpy(cpu_str, "null");
-            break;
+            return "dynarec";
         }
+        return "null";
     }
 
 private:

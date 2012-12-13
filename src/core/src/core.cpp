@@ -66,12 +66,9 @@ void SetConfigManager(common::ConfigManager* config_manager) {
 }
 
 /// Start the core
-void Start(EmuWindow* emu_window) {
+void Start() {
+    video_core::Start();
     SetState(SYS_RUNNING);
-#ifdef USE_NEW_VIDEO_CORE
-    video_core::Start(emu_window);
-    // TODO: Wait until video core initialization is finished!
-#endif // USE_NEW_VIDEO_CORE
 }
 
 /// Kill the core
@@ -101,6 +98,7 @@ int Init(EmuWindow* emu_window) {
     Memory_Open();          // Init main memory
     Init_CRC32_Table();     // Init CRC table
     input_common::Init(emu_window);   // Init user input plugin
+    video_core::Init(emu_window);
 
     if (common::g_config->powerpc_core() == common::Config::CPU_INTERPRETER) {
         delete cpu; // TODO: STUPID!
@@ -125,9 +123,6 @@ int Init(EmuWindow* emu_window) {
     }
 	SetState(SYS_IDLE);
     g_started = false;
-#ifndef USE_NEW_VIDEO_CORE
-    OPENGL_Create();
-#endif // !USE_NEW_VIDEO_CORE
 
     return E_OK;
 }

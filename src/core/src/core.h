@@ -62,7 +62,7 @@ void EMU_FASTCALL SetState(SystemState state);
 void SetConfigManager(common::ConfigManager* config_manager);
 
 /// Start the core
-void Start(EmuWindow* emu_window);
+void Start();
 
 /// Kill the core
 void Kill();

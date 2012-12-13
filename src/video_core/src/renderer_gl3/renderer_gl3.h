@@ -217,14 +217,14 @@ public:
 
 private:
 
-    /// Prints some useful debug information to the screen
-    void PrintDebugStats();
-
     /// Initialize the FBO
     void InitFramebuffer();
 
     // Blit the FBO to the OpenGL default framebuffer
     void RenderFramebuffer();
+
+    /// Updates the framerate
+    void UpdateFramerate();
 
     int resolution_width_;
     int resolution_height_;
@@ -276,10 +276,6 @@ private:
     GLuint      generic_shader_id_;
 
     u32         last_mode_;                         ///< Last render mode
-
-    char        cpu_str_[32];
-    char        renderer_str_[32];
-    char        window_title_[255];
 
     // BP stuff
     // --------

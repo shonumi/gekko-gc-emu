@@ -343,10 +343,6 @@ void GMainWindow::closeEvent(QCloseEvent* event)
 
 int __cdecl main(int argc, char* argv[])
 {
-    QApplication::setAttribute(Qt::AA_X11InitThreads);
-    QApplication app(argc, argv);
-    GMainWindow main_window;
-
     char program_dir[MAX_PATH];
     _getcwd(program_dir, MAX_PATH-1);
     size_t cwd_len = strlen(program_dir);
@@ -357,6 +353,10 @@ int __cdecl main(int argc, char* argv[])
     config_manager.set_program_dir(program_dir, MAX_PATH);
     config_manager.ReloadConfig(NULL);
     core::SetConfigManager(&config_manager);
+
+    QApplication::setAttribute(Qt::AA_X11InitThreads);
+    QApplication app(argc, argv);
+    GMainWindow main_window;
 
     main_window.show();
     return app.exec();

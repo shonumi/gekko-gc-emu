@@ -83,7 +83,6 @@ public:
     void SwapBuffers();
     void MakeCurrent();
     void DoneCurrent();
-    void SetConfig(EmuWindow::Config config) {}
     void PollEvents();
 
     void BackupGeometry();

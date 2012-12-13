@@ -47,7 +47,7 @@ public:
         kRenderMode_UseDstAlpha = 4
     };
 
-    RendererBase() {
+    RendererBase() : current_fps_(0) {
     }
 
     ~RendererBase() {
@@ -226,6 +226,11 @@ public:
 
     /// Shutdown the renderer
     virtual void ShutDown() = 0;
+
+    f32 current_fps() { return current_fps_; }
+
+protected:
+    f32 current_fps_;   ///< Current framerate, should be set by the renderer
 
 private:
 

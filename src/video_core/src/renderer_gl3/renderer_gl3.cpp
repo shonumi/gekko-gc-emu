@@ -37,9 +37,6 @@
 
 #include "renderer_gl3.h"
 #include "shader_manager.h"
-#include "raster_font.h"
-
-RasterFont* g_raster_font;
 
 /// OpenGL color source factors
 static const GLenum g_src_factors[8] =
@@ -583,21 +580,15 @@ void RendererGL3::RestoreRenderState() {
     }
 }
 
-/// Prints some useful debug information to the screen
-void RendererGL3::PrintDebugStats() {
+/// Updates FPS
+void RendererGL3::UpdateFramerate() {
     static u32 swaps = 0, last = 0;
-    static f32 fps = 0;
-    static char str[255];
-
     u32 t = SDL_GetTicks();
     swaps++;
-
     if(t - last > 500) {
-        fps = 1000.0f * swaps / (t - last);
+        current_fps_ = 1000.0f * swaps / (t - last);
         swaps = 0;
         last = t;
-        sprintf(str, "%s (FPS: %02.02f)", window_title_, fps);
-        render_window_->SetTitle(str);
     }
 }
 
@@ -712,13 +703,12 @@ void RendererGL3::RenderFramebuffer() {
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
-    GLint window_width, window_height;
-    render_window_->GetClientAreaSize(window_width, window_height);
-    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_, 0, 0, window_width, 
-        window_height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(0, 0, resolution_width_, resolution_height_, 0, 0, 
+        render_window_->client_area_width(), render_window_->client_area_height(), 
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-    // FPS stuff
-    PrintDebugStats();
+    // Update the FPS count
+    UpdateFramerate();
 
     // Rebind EFB
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
@@ -812,13 +802,6 @@ void RendererGL3::Init() {
 
     shader_manager_->Init(uniform_manager_);
     uniform_manager_->Init(shader_manager_->GetDefaultShader());
-
-    g_raster_font = new RasterFont();
-
-    // Information used for the window title
-    common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str_, 32);
-    common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str_, 32);
-    sprintf(window_title_, "gekko-git [%s|%s] - %s", cpu_str_, renderer_str_, __DATE__);
 
     LOG_NOTICE(TGP, "GL_VERSION: %s\n", glGetString(GL_VERSION));
 }

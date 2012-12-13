@@ -15,6 +15,7 @@
 #include "powerpc/cpu_core.h"
 #include "hw/hw.h"
 #include "debugger/debugger.h"
+#include "video_core.h"
 
 #include "keyboard_input/keyboard_input.h"
 
@@ -37,6 +38,7 @@ void EmuThread::SetFilename(const char* filename)
 void EmuThread::run()
 {
     u32 tight_loop;
+
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
     if (E_OK != core::Init(render_window)) {
@@ -61,7 +63,7 @@ void EmuThread::run()
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(filename)) {
         if (common::g_config->enable_auto_boot()) {
-            core::Start(render_window);
+            core::Start();
         } else {
             LOG_ERROR(TMASTER, "Autoboot required in no-GUI mode... Exiting!\n");
         }
@@ -158,6 +160,7 @@ public:
     {
         setAutoBufferSwap(false);
         doneCurrent();
+        parent_ = parent;
     }
 
     void paintEvent(QPaintEvent* ev)
@@ -166,7 +169,12 @@ public:
         // TODO: Breaks linux though because we aren't calling doneCurrent() ... -.-
 //        makeCurrent();
     }
-    void resizeEvent(QResizeEvent* ev) {}
+    void resizeEvent(QResizeEvent* ev) {
+        parent_->set_client_area_width(size().width());
+        parent_->set_client_area_height(size().height());
+    }
+private:
+    GRenderWindow* parent_;
 };
 
 
@@ -218,13 +226,12 @@ void GRenderWindow::DoneCurrent()
 }
 
 void GRenderWindow::PollEvents() {
-    static std::string last_window_title = window_title_;
-    if (last_window_title != window_title_) {
-        last_window_title = window_title_;
-        setWindowTitle(window_title_.c_str());
-    }
-    client_area_width_ = child->size().width();
-    client_area_height_ = child->size().height();
+    // TODO(ShizZy): Does this belong here? This is a reasonable place to update the window title
+    //  from the main thread, but this should probably be in an event handler...
+    static char title[128];
+    sprintf(title, "%s (FPS: %02.02f)", window_title_.c_str(), 
+        video_core::g_renderer->current_fps());
+    setWindowTitle(title);
 }
 
 void GRenderWindow::BackupGeometry()

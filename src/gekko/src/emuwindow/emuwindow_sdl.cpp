@@ -47,14 +47,6 @@ void EmuWindow_SDL::SetTitle(const char* title) {
     SDL_SetWindowTitle(main_window_, title);
 }
 
-void EmuWindow_SDL::GetClientAreaSize(int &width, int &height) {
-    width = 640;
-    height = 480;
-}
-
-void EmuWindow_SDL::SetConfig(Config config) {
-}
-
 void EmuWindow_SDL::PollEvents() {
     SDL_Event keyevent;
     SDL_PollEvent(&keyevent);

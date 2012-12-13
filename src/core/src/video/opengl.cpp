@@ -195,7 +195,7 @@ void OPENGL_SetTitle()
 		sprintf(str1, "%s (%s) - %03.02f fps - %03.02f mips (%03.02f%%) - %s", 
             g_window_title, str2, fps, mips, opsspeed*10, dvd::g_current_game_name);
 
-        s_render_window->SetTitle(str1);
+        s_render_window->set_window_title(str1);
 	}
 }
 

@@ -328,8 +328,7 @@ u32 EMU_FASTCALL GX_Fifo_Read32(u32 addr)
 // Desc: Open GX Hardware
 //
 
-void GX_Open(void)
-{
+void GX_Open() {
 	LOG_NOTICE(TGP, "initialized ok");
 
 	// initialize GX
@@ -337,16 +336,9 @@ void GX_Open(void)
 	gx_vertex::initialize();
 	gx_states::initialize();
 
-#ifdef USE_NEW_VIDEO_CORE
-    video_core::Init();
-#endif
-
 #ifdef USE_FIFO_RECORDING
     fifo_player::StartRecording("fifo_recording.gfp");
 #endif
-
-	// initialize OpenGL
-	//OPENGL_Create(NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -59,30 +59,6 @@ public:
     virtual void DoneCurrent() = 0;
 
     /**
-     * @brief Sets the window configuration
-     * @param config Configuration to set the window to, includes fullscreen, size, etc
-     */
-    virtual void SetConfig(Config config) = 0;
-
-    /**
-     * @brief Sets the window title
-     * @param title Title to set the window to
-     */
-    void SetTitle(std::string title) {
-        window_title_ = title;
-    }
-
-    /**
-     * @brief Gets the client area size, used by the renderer to properly scale video output
-     * @param width Client area width in pixels
-     * @param height Client area height in pixels
-     */
-    void GetClientAreaSize(int &width, int &height) {
-        width = client_area_width_;
-        height = client_area_height_;
-    }
-
-    /**
      * @brief Called from KeyboardInput constructor to notify EmuWindow about its presence
      * @param controller_interface Pointer to a running KeyboardInput interface
      */
@@ -90,6 +66,9 @@ public:
         controller_interface_ = controller_interface;
     }
     input_common::KeyboardInput* controller_interface() { return controller_interface_; }
+
+    Config config() { return config_; }
+    void set_config(Config val) { config_ = val; }
     
     int client_area_width() { return client_area_width_; }
     void set_client_area_width(int val) { client_area_width_ = val; }
@@ -97,8 +76,18 @@ public:
     int client_area_height() { return client_area_height_; }
     void set_client_area_height(int val) { client_area_height_ = val; }
 
+    std::string window_title() { return window_title_; }
+    void set_window_title(std::string val) { window_title_ = val; }
+
 protected:
-    EmuWindow() : controller_interface_(NULL), client_area_width_(640), client_area_height_(480) { }
+    EmuWindow() : controller_interface_(NULL), client_area_width_(640), client_area_height_(480) {
+        char window_title[255];
+        sprintf(window_title, "gekko [%s|%s] - %s", 
+            common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core()).c_str(), 
+            common::g_config->RenderTypeToString(common::g_config->current_renderer()).c_str(), 
+            __DATE__);
+        window_title_ = window_title;
+    }
     virtual ~EmuWindow() {}
 
     std::string window_title_;          ///< Current window title, should be used by window impl.

@@ -56,12 +56,8 @@
 //#define PLAY_FIFO_RECORDING
 
 /// Application entry point
-int __cdecl main(int argc, char **argv)
-{
+int __cdecl main(int argc, char **argv) {
     u32 tight_loop;
-    char cpu_str[32];
-    char renderer_str[32];
-    char window_title[255];
 
     LOG_NOTICE(TMASTER, APP_NAME " starting...\n");
 
@@ -78,13 +74,6 @@ int __cdecl main(int argc, char **argv)
 
     EmuWindow_GLFW* emu_window = new EmuWindow_GLFW;
 
-    common::g_config->RenderTypeToString(common::g_config->current_renderer(), renderer_str, 32);
-    common::g_config->CPUCoreTypeToString(common::g_config->powerpc_core(), cpu_str, 32);
-
-    sprintf(window_title, "gekko-git [%s|%s|glfw] - %s", cpu_str, renderer_str, __DATE__);
-
-    emu_window->SetTitle(window_title);
-
     if (E_OK != core::Init(emu_window)) {
         LOG_ERROR(TMASTER, "core initialization failed, exiting...");
         core::Kill();
@@ -95,7 +84,7 @@ int __cdecl main(int argc, char **argv)
     // Load a game or die...
     if (E_OK == dvd::LoadBootableFile(common::g_config->default_boot_file())) {
         if (common::g_config->enable_auto_boot()) {
-            core::Start(emu_window);
+            core::Start();
         } else {
             LOG_ERROR(TMASTER, "Autoboot required in no-GUI mode... Exiting!\n");
         }
@@ -103,7 +92,6 @@ int __cdecl main(int argc, char **argv)
         LOG_ERROR(TMASTER, "Failed to load a bootable file... Exiting!\n");
         exit(E_ERR);
     }
-
     // run the game
     while(core::SYS_DIE != core::g_state) {
         if (core::SYS_RUNNING == core::g_state) {
