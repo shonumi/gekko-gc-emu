@@ -242,6 +242,7 @@ void BPRegisterWrite(u8 addr, u32 data) {
 }
 
 void LoadTexture(u8 num) {
+    static u8 decoded_texture_buff[kGameCubeMaxTextureWidth * kGameCubeMaxTextureHeight * 4];
     int index = num & 7;
     int set = (num & 4) >> 2;
     // TODO(ShizZy): Make this a real hash without slowing the emu down terribly. Right now, this 
@@ -252,14 +253,16 @@ void LoadTexture(u8 num) {
     if(!video_core::g_renderer->BindTexture(hash, num)) {
         int width = g_bp_regs.tex[set].image_0[index].get_width();
         int height = g_bp_regs.tex[set].image_0[index].get_height();
-        u8* data = new u8[width * height * 4];
+        u8* src = &Mem_RAM[g_bp_regs.tex[set].image_3[index].get_addr() & RAM_MASK];
 
-        TextureDecoder_Load((TextureFormat)g_bp_regs.tex[set].image_0[0].format, 
-            g_bp_regs.tex[set].image_3[index].get_addr(), width, height, data);
+        _ASSERT_MSG(TGP, width <= kGameCubeMaxTextureWidth, "Texture width exceeded (%d > %d)!",
+            width, kGameCubeMaxTextureWidth);
+        _ASSERT_MSG(TGP, height <= kGameCubeMaxTextureHeight, "Texture height exceeded (%d > %d)!",
+            width, kGameCubeMaxTextureHeight);
 
-        video_core::g_renderer->AddTexture(width, height, hash, data);
-
-        delete data;
+        TextureDecoder_Decode((TextureFormat)g_bp_regs.tex[set].image_0[0].format, 
+            width, height, src, decoded_texture_buff);
+        video_core::g_renderer->AddTexture(width, height, hash, decoded_texture_buff);
     }
     video_core::g_renderer->SetTextureParameters(num);
 }

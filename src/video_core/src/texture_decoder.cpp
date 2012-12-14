@@ -250,32 +250,30 @@ size_t TextureDecoder_GetSize(TextureFormat format, int width, int height) {
 }
 
 /**
- * Load a texture to RGBA8 format
- * @param format Format of the texture
- * @param addr Address of the texture source data in RAM
+ * Decode a texture to RGBA8 format
+ * @param format Format of the source texture
  * @param width Width in pixels of the texture
  * @param height Height in pixels of the texture
- * @param data Data buffer to load RGBA8 texture to
+ * @param src Source data buffer of texture to decode
+ * @param dst Destination data buffer for decoded RGBA8 texture
  */
-void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, u8* data) {
+void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src, u8* dst) {
+    static int texture_num = 0;
     int	x = 0, y = 0, dx = 0, dy = 0, i = 0, j = 0;
     u32 val = 0;
-
-    if (addr == 0) {
-        return;
-    }
     int _8_width = (width + 7) & ~7;
     int _4_width = (width + 3) & ~3;
 
     u8	*dst8 = new u8[width * height * 32];
     u32 *dst32 = (u32*)dst8;
 
-    u8	*src8 = &Mem_RAM[addr & RAM_MASK];
+    u8	*src8 = src;
     u16	*src16 = (u16*)src8;
 
-    if (fifo_player::IsRecording()) {
-        fifo_player::MemUpdate(addr, src8, width * height * 4); // TODO: Use proper size!
-    }
+    // TODO(Neobrain): Do something with me...
+    //if (fifo_player::IsRecording()) {
+    //    fifo_player::MemUpdate(addr, src8, width * height * 4); // TODO: Use proper size!
+    //}
 
     u8 pallette_fmt = (gp::g_bp_regs.mem[0x98] >> 10) & 3;
     u32 pallette_addr = ((gp::g_bp_regs.mem[0x98] & 0x3ff) << 5);
@@ -297,7 +295,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
             }
         }
         for (y = 0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_8_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_8_width*4], width*4);
         }
         break;
 
@@ -315,7 +313,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_8_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_8_width*4], width*4);
         }
         break;
 
@@ -332,7 +330,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_8_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_8_width*4], width*4);
         }
 		break;
 
@@ -349,7 +347,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_4_width*4], width*4);
         }
 		break;
 
@@ -369,7 +367,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_4_width*4], width*4);
         }
         break;
 
@@ -389,7 +387,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
             }
         }
 		for (y=0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_4_width*4], width*4);
         }
 		break;
 
@@ -411,11 +409,11 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
 						// fetch color data
-						u32 data = dst32[_4_width * (y + dy) + x + dx] | ((*((u16*)(src16 + j))));
+						val = dst32[_4_width * (y + dy) + x + dx] | ((*((u16*)(src16 + j))));
 						// decode color data
-						dst32[_4_width * (y + dy) + x + dx] = (data & 0xff00ff00) | 
-										((data & 0xff0000) >> 16) | 
-										((data & 0xff) << 16);
+						dst32[_4_width * (y + dy) + x + dx] = (val & 0xff00ff00) | 
+										((val & 0xff0000) >> 16) | 
+										((val & 0xff) << 16);
 						// only increment every other time otherwise you get address doubles
 						if (!j) src16 += 2;
 					}
@@ -423,7 +421,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
 			}
         }
 		for (y=0; y < height; y++) {
-            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
+            memcpy(&dst[y*width*4], &dst8[y*_4_width*4], width*4);
         }
 		break;
 
@@ -449,7 +447,7 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
                 }
             }
         }
-        unpack8(data, dst8, _8_width, height, pal16, pallette_fmt, width);
+        unpack8(dst, dst8, _8_width, height, pal16, pallette_fmt, width);
         break;
 
     case kTextureFormat_C8:
@@ -469,13 +467,13 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
                 src8+=32;
             }
         }
-        unpack8(data, dst8, _8_width, height, pal16, pallette_fmt, width);
+        unpack8(dst, dst8, _8_width, height, pal16, pallette_fmt, width);
         break;
 
     case kTextureFormat_CMPR:
         DecompressDxt1(dst32, src8, _8_width, height);
         for (y=0; y < height; y++) {
-            memcpy(&data[y*_8_width*4], &dst8[y*_8_width*4], _8_width*4);
+            memcpy(&dst[y*_8_width*4], &dst8[y*_8_width*4], _8_width*4);
         }
         break;
 
@@ -490,10 +488,11 @@ void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, 
         mkdir(filepath);
         strcat(filepath, "/textures");
         mkdir(filepath);
-        sprintf(filename, "/%d.tga", addr);
+        sprintf(filename, "/%d.tga", texture_num);
         strcat(filepath, filename);
-        DumpTextureTGA(filepath, width, height, data);
+        DumpTextureTGA(filepath, width, height, dst);
     }
+    texture_num++;
     delete dst8;
 }
 

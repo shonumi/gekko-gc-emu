@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    gx_types.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-29
- * \brief   Types and structs used in the GX graphics API for GameCube/Wii
+ * @file    gx_types.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-29
+ * @brief   Types and structs used in the GX graphics API for GameCube/Wii
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -24,6 +24,9 @@
 
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
+
+static const int kGameCubeMaxTextureWidth   = 1024;
+static const int kGameCubeMaxTextureHeight  = 1024;
 
 static const int kGXNumTextures = 8;      ///< Number of textures supported
 static const int kGXNumTevStages = 16;    ///< Number of TEV stages supported

@@ -60,14 +60,14 @@ enum TextureFormat {
 size_t TextureDecoder_GetSize(TextureFormat format, int width, int height);
 
 /**
- * Load a texture to RGBA8 format
- * @param format Format of the texture
- * @param addr Address of the texture source data in RAM
+ * Decode a texture to RGBA8 format
+ * @param format Format of the source texture
  * @param width Width in pixels of the texture
  * @param height Height in pixels of the texture
- * @param data Data buffer to load RGBA8 texture to
+ * @param src Source data buffer of texture to decode
+ * @param dst Destination data buffer for decoded RGBA8 texture
  */
-void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, u8* dst);
+void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src, u8* dst);
 
 } // namespace
 
