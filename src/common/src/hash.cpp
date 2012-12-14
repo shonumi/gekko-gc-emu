@@ -66,7 +66,7 @@ u64 __compute_murmur_hash_3(const u8 *src, int len, u32 samples) {
     const int nblocks = len / 16;
     u32 step = (len / 8);
     if(samples == 0) {
-        samples = max(step, 1u);
+        samples = std::max(step, 1u);
     }
     step = step / samples;
     if(step < 1) {
@@ -132,7 +132,7 @@ u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
     const u32 *data = (const u32*)src;
     const u32 *end = data + step;
     if (samples == 0) {
-        samples = max(step, 1u);
+        samples = std::max(step, 1u);
     }
     step  = step / samples;
     if(step < 1) { 
