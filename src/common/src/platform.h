@@ -25,6 +25,8 @@
 #ifndef COMMON_PLATFORM_H_
 #define COMMON_PLATFORM_H_
 
+#include "types.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform definitions
 
@@ -69,6 +71,7 @@ extern char *kGekkoOS;
 
 #if EMU_PLATFORM == PLATFORM_WINDOWS
 
+#define NOMINMAX
 #define EMU_FASTCALL __fastcall
 
 #else
@@ -97,11 +100,38 @@ extern char *kGekkoOS;
 #define _tzset tzset
 #define mkdir(str) mkdir(str, 0755)
 
-// TODO: EXCEPTION_POINTERS wasn't defined anywhere...
 typedef void EXCEPTION_POINTERS;
+
+inline u32 _rotl(u32 x, int shift) {
+    shift &= 31;
+    if (0 == shift) {
+        return x;
+    }
+    return (x << shift) | (x >> (32 - shift));
+}
+
+inline u64 _rotl64(u64 x, u32 shift){
+    u32 n = shift % 64;
+    return (x << n) | (x >> (64 - n));
+}
+
+inline u32 _rotr(u32 x, int shift) {
+    shift &= 31;
+    if (0 == shift) {
+        return x;
+    }
+    return (x >> shift) | (x << (32 - shift));
+}
+
+inline u64 _rotr64(u64 x, u32 shift){
+    u32 n = shift % 64;
+    return (x >> n) | (x << (64 - n));
+}
 
 //#define EMU_IGNORE_RECOMPILER
 
 #endif
+
+
 
 #endif // COMMON_PLATFORM_H_
