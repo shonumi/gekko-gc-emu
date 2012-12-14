@@ -52,11 +52,11 @@ struct TGAHeader {
 
 namespace gp {
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 u8 tmem[TMEM_SIZE];
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // TEXTURE FORMAT DECODING
 
 static inline u32 __decode_col_rgb5a3(u16 _data) {
@@ -250,33 +250,31 @@ size_t TextureDecoder_GetSize(TextureFormat format, int width, int height) {
 }
 
 /**
- * Load a texture
+ * Load a texture to RGBA8 format
  * @param format Format of the texture
- * @param hash Hash of the texture
  * @param addr Address of the texture source data in RAM
  * @param width Width in pixels of the texture
  * @param height Height in pixels of the texture
+ * @param data Data buffer to load RGBA8 texture to
  */
-void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u16 width) {
-    int	x, y, dx, dy, i = 0, w = width, h = height, j = 0, original_width = width;
-    u32 val;
+void TextureDecoder_Load(TextureFormat format, u32 addr, int width, int height, u8* data) {
+    int	x = 0, y = 0, dx = 0, dy = 0, i = 0, j = 0;
+    u32 val = 0;
 
-    if (!addr) return;
+    if (addr == 0) {
+        return;
+    }
+    int _8_width = (width + 7) & ~7;
+    int _4_width = (width + 3) & ~3;
 
-    u8	*dst8 = (u8*)malloc(w * h * 32);
-    u8	*tmp = (u8*)malloc(w * h * 32);
-    u8	*tmpptr = tmp;
-    u8	*dst = (u8*)malloc(w * h * 32); //final texture (power of two)
-    u16 *dst16 = (u16*)dst8;
+    u8	*dst8 = new u8[width * height * 32];
     u32 *dst32 = (u32*)dst8;
-    int temp1=0, temp2=0;
 
-    u8	*src8 = ((u8*)(&Mem_RAM[addr & RAM_MASK]));
-    u16	*src16 = ((u16*)(&Mem_RAM[addr & RAM_MASK]));
-    u32	*src32 = ((u32*)(&Mem_RAM[addr & RAM_MASK]));
+    u8	*src8 = &Mem_RAM[addr & RAM_MASK];
+    u16	*src16 = (u16*)src8;
 
     if (fifo_player::IsRecording()) {
-        fifo_player::MemUpdate(addr, src8, w * h * 4); // TODO: Use proper size!
+        fifo_player::MemUpdate(addr, src8, width * height * 4); // TODO: Use proper size!
     }
 
     u8 pallette_fmt = (gp::g_bp_regs.mem[0x98] >> 10) & 3;
@@ -285,115 +283,85 @@ void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u
 
     switch(format) {
     case kTextureFormat_Intensity4:
-        //multiple of 8 for width
-
-        width = (original_width + 7) & ~7;
-
-        //#pragma omp for ordered schedule(dynamic)
         for (y = 0; y < height; y += 8) {
-            for (x = 0; x < width; x += 8) {
+            for (x = 0; x < _8_width; x += 8) {
                 for (dy = 0; dy < 8; dy++) {
                     for (dx = 0; dx < 8; dx+=2, src8++) {
-                        //#pragma omp ordered
-                        // This is correct - Converts 2 4-bit instensity pixels to 32-bit RGBA
+                        // Convert 2 4-bit instensity pixels to 32-bit RGBA
 						val = ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x11111111;
-						dst32[(width * (y + dy) + x + dx + 1)] = val;
+						dst32[(_8_width * (y + dy) + x + dx + 1)] = val;
 						val = ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x11111111;
-						dst32[(width * (y + dy) + x + dx)] = val;
+						dst32[(_8_width * (y + dy) + x + dx)] = val;
  					}
                 }
             }
         }
         for (y = 0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_8_width*4], width*4);
         }
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     case kTextureFormat_Intensity8:
-        //multiple of 8 for width
-        width = (original_width + 7) & ~7;
-
-        //#pragma omp for ordered schedule(dynamic)
         for (y = 0; y < height; y += 4) {
-            for (x = 0; x < original_width; x += 8) {
+            for (x = 0; x < width; x += 8) {
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 8; dx++) {
-                        //#pragma omp ordered
-                        // This is correct - Converts one 8-bit instensity pixel to 32-bit RGBA
+                        // Converts one 8-bit instensity pixel to 32-bit RGBA
 						val = (*(u8 *)((uintptr_t)src8 ^ 3)) * 0x1010101;
-						dst32[(width * (y + dy) + x + dx)] = val;
+						dst32[(_8_width * (y + dy) + x + dx)] = val;
                         src8++;
 					}
                 }
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_8_width*4], width*4);
         }
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     case kTextureFormat_IntensityAlpha4:
-        //multiple of 8 for width
-        width = (original_width + 7) & ~7;
-
-        //#pragma omp for ordered schedule(dynamic)
         for (y = 0; y < height; y += 4) {
-            for (x = 0; x < width; x += 8) {
+            for (x = 0; x < _8_width; x += 8) {
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 8; dx++, src8++) {
-                        //#pragma omp ordered
 		 				val = (((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x111111) | 
                             ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
-		 				dst32[(width * (y + dy) + x + dx)] = val;
+		 				dst32[(_8_width * (y + dy) + x + dx)] = val;
  		 			}
                 }
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_8_width*4], width*4);
         }
-		video_core::g_renderer->AddTexture(original_width, height, hash, tmp);
 		break;
 
     case kTextureFormat_IntensityAlpha8:
-        //multiple of 4 for width
-        width = (original_width + 3) & ~3;
-
-        //#pragma omp for ordered schedule(dynamic)
         for (y = 0; y < height; y += 4) {
-            for (x = 0; x < width; x += 4) {
+            for (x = 0; x < _4_width; x += 4) {
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 4; dx++, src8+=2) {
-                        //#pragma omp ordered
 						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | 
                             ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
-						dst32[(width * (y + dy) + x + dx)] = val;
+						dst32[(_4_width * (y + dy) + x + dx)] = val;
 					}
                 }
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
         }
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
 		break;
 
     case kTextureFormat_RGB565:
-		j=0;
-		width = (original_width + 3) & ~3;
-
-        //#pragma omp for ordered schedule(dynamic)
 		for (y = 0; y < height; y += 4) {
-			for (x = 0; x < width; x += 4) {
+			for (x = 0; x < _4_width; x += 4) {
 				for (dy = 0; dy < 4; dy++) {
 					for (dx = 0; dx < 4; dx++) {
-                        //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1; 
 						// decode color
-						dst32[width * (y + dy) + x + dx] = __decode_col_rgb565((*((u16*)(src16 + j))));
+						dst32[_4_width * (y + dy) + x + dx] = __decode_col_rgb565((*((u16*)(src16 + j))));
 						// only increment every other time otherwise you get address doubles
 						if (!j) src16 += 2; 
 					}
@@ -401,25 +369,19 @@ void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u
             }
         }
         for (y=0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
         }
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     case kTextureFormat_RGB5A3:
-		j=0;
-		width = (original_width + 3) & ~3;
-
-        //#pragma omp for ordered schedule(dynamic)
 		for (y = 0; y < height; y += 4) {
-			for (x = 0; x < width; x += 4) {
+			for (x = 0; x < _4_width; x += 4) {
 				for (dy = 0; dy < 4; dy++) {
 					for (dx = 0; dx < 4; dx++) {
-                        //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
 						// decode color
-						dst32[width * (y + dy) + x + dx] = __decode_col_rgb5a3((*((u16*)(src16 + j))));
+						dst32[_4_width * (y + dy) + x + dx] = __decode_col_rgb5a3((*((u16*)(src16 + j))));
 						// only increment every other time otherwise you get address doubles
 						if (!j) src16 += 2;
 					}
@@ -427,38 +389,31 @@ void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u
             }
         }
 		for (y=0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
         }
-		video_core::g_renderer->AddTexture(w, h, hash, tmp);
 		break;
 
     case kTextureFormat_RGBA8: // rgba8
-		j=0;
-		width = (original_width + 3) & ~3;
-
-        //#pragma omp for ordered schedule(dynamic)
 		for (y = 0; y < height; y += 4) {
-			for (x = 0; x < width; x += 4) {
+			for (x = 0; x < _4_width; x += 4) {
 				for (dy = 0; dy < 4; dy++) {
 					for (dx = 0; dx < 4; dx++) {
-                        //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
 						// fetch data
-						dst32[width * (y + dy) + x + dx] = ((*((u16*)(src16 + j))) << 16);
+						dst32[_4_width * (y + dy) + x + dx] = ((*((u16*)(src16 + j))) << 16);
 						// only increment every other time otherwise you get address doubles
 						if (!j) src16 += 2;
 					}
                 }
 				for (dy = 0; dy < 4; dy++) {
 					for (dx = 0; dx < 4; dx++) {
-                        //#pragma omp ordered
 						// memory is not already swapped.. use this to grab high word first
 						j ^= 1;
 						// fetch color data
-						u32 data = dst32[width * (y + dy) + x + dx] | ((*((u16*)(src16 + j))));
+						u32 data = dst32[_4_width * (y + dy) + x + dx] | ((*((u16*)(src16 + j))));
 						// decode color data
-						dst32[width * (y + dy) + x + dx] = (data & 0xff00ff00) | 
+						dst32[_4_width * (y + dy) + x + dx] = (data & 0xff00ff00) | 
 										((data & 0xff0000) >> 16) | 
 										((data & 0xff) << 16);
 						// only increment every other time otherwise you get address doubles
@@ -468,82 +423,66 @@ void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u
 			}
         }
 		for (y=0; y < height; y++) {
-            memcpy(&tmp[y*original_width*4], &dst8[y*width*4], original_width*4);
+            memcpy(&data[y*width*4], &dst8[y*_4_width*4], width*4);
         }
-        video_core::g_renderer->AddTexture(original_width, height, hash, tmp);
 		break;
 
     case kTextureFormat_C4:
-        width = (original_width + 7) & ~7;
-        //#pragma omp for ordered schedule(dynamic)
         for (y = 0; y < height; y += 8) {
-            for (x = 0; x < width; x += 8) {
-                //#pragma omp parallel for
+            for (x = 0; x < _8_width; x += 8) {
                 for (dy = 0; dy < 8; dy++) {
-                    //#pragma omp ordered
-                    dst8[width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    dst8[_8_width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
                     src8++;
 
-                    dst8[width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    dst8[_8_width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
                     src8++;
 
-                    dst8[width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    dst8[_8_width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
                     src8++;
 
-                    dst8[width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
+                    dst8[_8_width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
                     src8++;
                 }
             }
         }
-        unpack8(tmp, dst8, width, height, pal16, pallette_fmt, original_width);
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
+        unpack8(data, dst8, _8_width, height, pal16, pallette_fmt, width);
         break;
 
     case kTextureFormat_C8:
-        width = (original_width + 7) & ~7;
-        //#pragma omp for ordered schedule(dynamic)
         for (y = 0; y < height; y += 4) {
-            //#pragma omp parallel for
-            for (x = 0; x < width; x += 8) {
+            for (x = 0; x < _8_width; x += 8) {
+                *(u32 *)&dst8[_8_width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
+                *(u32 *)&dst8[_8_width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
 
-                //#pragma omp ordered
-                *(u32 *)&dst8[width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
-                *(u32 *)&dst8[width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
+                *(u32 *)&dst8[_8_width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
+                *(u32 *)&dst8[_8_width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
 
-                *(u32 *)&dst8[width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
-                *(u32 *)&dst8[width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
+                *(u32 *)&dst8[_8_width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
+                *(u32 *)&dst8[_8_width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
 
-                *(u32 *)&dst8[width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
-                *(u32 *)&dst8[width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
-
-                *(u32 *)&dst8[width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
-                *(u32 *)&dst8[width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
+                *(u32 *)&dst8[_8_width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
+                *(u32 *)&dst8[_8_width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
                 src8+=32;
             }
         }
-        unpack8(tmp, dst8, width, height, pal16, pallette_fmt, original_width);
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
+        unpack8(data, dst8, _8_width, height, pal16, pallette_fmt, width);
         break;
 
     case kTextureFormat_CMPR:
-        width = (width + 7) & ~7;
-        DecompressDxt1(dst32, src8, width, height);
-
+        DecompressDxt1(dst32, src8, _8_width, height);
         for (y=0; y < height; y++) {
-            memcpy(&tmp[y*width*4], &dst8[y*width*4], width*4);
+            memcpy(&data[y*_8_width*4], &dst8[y*_8_width*4], _8_width*4);
         }
-        video_core::g_renderer->AddTexture(w, h, hash, tmp);
         break;
 
     default:
         LOG_ERROR(TGP, "Unsupported texture format %d!", format);
         break;
     }
-
     if (common::g_config->current_renderer_config().enable_texture_dumping) {
         char filepath[MAX_PATH], filename[MAX_PATH];
         strcpy(filepath, common::g_config->program_dir());
@@ -553,13 +492,9 @@ void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u
         mkdir(filepath);
         sprintf(filename, "/%d.tga", addr);
         strcat(filepath, filename);
-        DumpTextureTGA(filepath, w, h, tmp);
+        DumpTextureTGA(filepath, width, height, data);
     }
-
-    // free manually allocated memory
-    free(dst8);
-    free(tmp);
-    free(dst);
+    delete dst8;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

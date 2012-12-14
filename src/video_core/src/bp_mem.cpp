@@ -250,11 +250,16 @@ void LoadTexture(u8 num) {
         *(u32*)&Mem_RAM[g_bp_regs.tex[set].image_3[index].get_addr() & RAM_MASK]);
 
     if(!video_core::g_renderer->BindTexture(hash, num)) {
+        int width = g_bp_regs.tex[set].image_0[index].get_width();
+        int height = g_bp_regs.tex[set].image_0[index].get_height();
+        u8* data = new u8[width * height * 4];
+
         TextureDecoder_Load((TextureFormat)g_bp_regs.tex[set].image_0[0].format, 
-            hash, 
-            g_bp_regs.tex[set].image_3[index].get_addr(), 
-            g_bp_regs.tex[set].image_0[index].get_height(), 
-            g_bp_regs.tex[set].image_0[index].get_width());
+            g_bp_regs.tex[set].image_3[index].get_addr(), width, height, data);
+
+        video_core::g_renderer->AddTexture(width, height, hash, data);
+
+        delete data;
     }
     video_core::g_renderer->SetTextureParameters(num);
 }
