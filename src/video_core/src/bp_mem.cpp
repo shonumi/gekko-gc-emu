@@ -250,7 +250,7 @@ void LoadTexture(u8 num) {
         *(u32*)&Mem_RAM[g_bp_regs.tex[set].image_3[index].get_addr() & RAM_MASK]);
 
     if(!video_core::g_renderer->BindTexture(hash, num)) {
-        DecodeTexture(g_bp_regs.tex[set].image_0[0].format, 
+        TextureDecoder_Load((TextureFormat)g_bp_regs.tex[set].image_0[0].format, 
             hash, 
             g_bp_regs.tex[set].image_3[index].get_addr(), 
             g_bp_regs.tex[set].image_0[index].get_height(), 

@@ -33,6 +33,9 @@
 
 namespace gp {
 
+extern u8 tmem[TMEM_SIZE];
+extern u32 texcache[TMEM_SIZE];
+
 /// GameCube/GX texture formats
 enum TextureFormat {
     kTextureFormat_Intensity4       = 0x0,
@@ -48,10 +51,23 @@ enum TextureFormat {
     kTextureFormat_CMPR             = 0xE,
 };
 
-extern u8 tmem[TMEM_SIZE];
-extern u32 texcache[TMEM_SIZE];
+/**
+ * Get the size of a texture
+ * @param format Format of the texture
+ * @param width Width in pixels of the texture
+ * @param height Height in pixels of the texture
+ */
+size_t TextureDecoder_GetSize(TextureFormat format, int width, int height);
 
-void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width);
+/**
+ * Load a texture
+ * @param format Format of the texture
+ * @param hash Hash of the texture
+ * @param addr Address of the texture source data in RAM
+ * @param width Width in pixels of the texture
+ * @param height Height in pixels of the texture
+ */
+void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u16 width);
 
 } // namespace
 

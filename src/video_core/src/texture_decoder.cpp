@@ -214,8 +214,50 @@ void unpack8(u8* dst, u8* src, int w, int h, u16* palette, u8 paletteFormat, int
             unpackPixel(src[y*w + x], runner, palette, paletteFormat);
 }
 
+/**
+ * Get the size of a texture
+ * @param format Format of the texture
+ * @param width Width in pixels of the texture
+ * @param height Height in pixels of the texture
+ */
+size_t TextureDecoder_GetSize(TextureFormat format, int width, int height) {
+    switch (format) {
+    case kTextureFormat_Intensity4:
+        return (width * height) / 2;
+    case kTextureFormat_Intensity8:
+        return (width * height);
+    case kTextureFormat_IntensityAlpha4:
+        return (width * height);
+    case kTextureFormat_IntensityAlpha8:
+        return (width * height) * 2;
+    case kTextureFormat_RGB565:
+        return (width * height) * 2;
+    case kTextureFormat_RGB5A3:
+        return (width * height) * 2;
+    case kTextureFormat_RGBA8:
+        return (width * height) * 4;
+    case kTextureFormat_C4:
+        return (width * height) / 2;
+    case kTextureFormat_C8:
+        return (width * height);
+    case kTextureFormat_C14X2:
+        return (width * height) * 2;
+    case kTextureFormat_CMPR:
+        return (width * height);
+    }
+    _ASSERT_MSG(TGP, 0, "Unknown texture format for TextureDecoder_GetSize %d!", format);
+    return 0;
+}
 
-void DecodeTexture(u8 format, u32 hash, u32 addr, u16 height, u16 width) {
+/**
+ * Load a texture
+ * @param format Format of the texture
+ * @param hash Hash of the texture
+ * @param addr Address of the texture source data in RAM
+ * @param width Width in pixels of the texture
+ * @param height Height in pixels of the texture
+ */
+void TextureDecoder_Load(TextureFormat format, u32 hash, u32 addr, u16 height, u16 width) {
     int	x, y, dx, dy, i = 0, w = width, h = height, j = 0, original_width = width;
     u32 val;
 
