@@ -25,6 +25,8 @@
 #ifndef VIDEO_CORE_TEXTURE_DECODER_H_
 #define VIDEO_CORE_TEXTURE_DECODER_H_
 
+#include "types.h"
+
 #define TMEM_SIZE						0x100000
 #define TMEM_MASK						0x0fffff
 #define TEX_CACHE_LOCATION(n)       ((n & 0xffff) ^ (n >> 16))

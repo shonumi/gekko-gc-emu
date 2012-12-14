@@ -1,6 +1,8 @@
 #include <QDockWidget>
 #include "ui_gfx_texture_preview.h"
 
+#include "../../video_core/src/texture_decoder.h"
+
 class TexturePreviewWidget : public QDockWidget
 {
     Q_OBJECT
@@ -8,8 +10,10 @@ class TexturePreviewWidget : public QDockWidget
 public:
     TexturePreviewWidget(QWidget* parent = NULL);
 
-public slots:
+private slots:
     void OnAvailableSourcesListChanged();
+
+    void OnSelectedPreviewSourceChanged(int index);
 
 private:
     Ui::TexturePreview ui;
@@ -24,14 +28,18 @@ public:
      * @param name Name to be shown in texture preview source selectors
      * @todo Might need some feature to tell apart different widgets that use the same class
      */
-    TexturePreviewSource(const QString& name);
+    TexturePreviewSource(const QString& name, QObject* parent);
 
     virtual ~TexturePreviewSource();
 
     virtual const char* GetData() = 0;
-    virtual unsigned int GetFormat() = 0; // TODO: Change to gp::TextureFormat
+    virtual gp::TextureFormat GetFormat() = 0;
     virtual unsigned int GetWidth() = 0;
     virtual unsigned int GetHeight() = 0;
+
+    const QString& GetName() const { return name; }
+
+    bool operator < (const TexturePreviewSource& other) { return name < other.GetName(); }
 
 signals:
     /**
@@ -46,7 +54,27 @@ signals:
      * @note This should also be emitted when the texture changed (handlers should react correspondingly)
      * @note In particular, this makes this TexturePreviewSource disappear from texture preview source selectors
      */
-    void TextureUnvailable();
+    void TextureUnavailable();
+
+private:
+    const QString name;
+};
+
+class TexturePreviewSourceFromRam : public TexturePreviewSource
+{
+public:
+    TexturePreviewSourceFromRam(void* data, unsigned int width, unsigned int height, gp::TextureFormat format, const QString& name, QObject* parent);
+
+    const char* GetData() { return (const char*)data; }
+    gp::TextureFormat GetFormat() { return format; }
+    unsigned int GetWidth() { return width; }
+    unsigned int GetHeight() { return height; }
+
+private:
+    void* data;
+    unsigned int width;
+    unsigned int height;
+    gp::TextureFormat format;
 };
 
 class TexturePreviewManager : public QObject
@@ -67,7 +95,13 @@ public:
     /**
      * Returns a list of human-readable texture preview source names.
      */
-    const QStringList GetAvailableSourcesList();
+    const QStringList& GetSourcesNames() const;
+
+    /**
+     * Returns the preview source at the specified index
+     */
+    /*const */TexturePreviewSource* GetSource(unsigned int index) const;
+
 
 signals:
     /**
@@ -79,9 +113,14 @@ private slots:
     void OnSourceAvailable();
     void OnSourceUnavailable();
 
+    void RebuildSourceNamesList();
+
 private:
+    TexturePreviewManager(QObject* parent);
     ~TexturePreviewManager();
-    TexturePreviewManager(QObject* parent) : QObject(parent) {}
 
     static TexturePreviewManager* instance;
+
+    QList<TexturePreviewSource*> sources;
+    QStringList sourcesNames;
 };
