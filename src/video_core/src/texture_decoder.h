@@ -67,7 +67,7 @@ size_t TextureDecoder_GetSize(TextureFormat format, int width, int height);
  * @param src Source data buffer of texture to decode
  * @param dst Destination data buffer for decoded RGBA8 texture
  */
-void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src, u8* dst);
+void TextureDecoder_Decode(TextureFormat format, int width, int height, const u8* src, u8* dst);
 
 } // namespace
 

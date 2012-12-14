@@ -257,18 +257,15 @@ size_t TextureDecoder_GetSize(TextureFormat format, int width, int height) {
  * @param src Source data buffer of texture to decode
  * @param dst Destination data buffer for decoded RGBA8 texture
  */
-void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src, u8* dst) {
+void TextureDecoder_Decode(TextureFormat format, int width, int height, const u8* src, u8* dst) {
     static int texture_num = 0;
     int	x = 0, y = 0, dx = 0, dy = 0, i = 0, j = 0;
     u32 val = 0;
     int _8_width = (width + 7) & ~7;
     int _4_width = (width + 3) & ~3;
-
-    u8	*dst8 = new u8[width * height * 32];
+    u8 *dst8 = new u8[width * height * 32];
     u32 *dst32 = (u32*)dst8;
-
-    u8	*src8 = src;
-    u16	*src16 = (u16*)src8;
+    const u16 *src16 = (const u16*)src;
 
     // TODO(Neobrain): Do something with me...
     //if (fifo_player::IsRecording()) {
@@ -284,11 +281,11 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src,
         for (y = 0; y < height; y += 8) {
             for (x = 0; x < _8_width; x += 8) {
                 for (dy = 0; dy < 8; dy++) {
-                    for (dx = 0; dx < 8; dx+=2, src8++) {
+                    for (dx = 0; dx < 8; dx+=2, src++) {
                         // Convert 2 4-bit instensity pixels to 32-bit RGBA
-						val = ((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x11111111;
+						val = ((*(u8 *)((uintptr_t)src ^ 3) & 0x0f)) * 0x11111111;
 						dst32[(_8_width * (y + dy) + x + dx + 1)] = val;
-						val = ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4) * 0x11111111;
+						val = ((*(u8 *)((uintptr_t)src ^ 3) & 0xf0) >> 4) * 0x11111111;
 						dst32[(_8_width * (y + dy) + x + dx)] = val;
  					}
                 }
@@ -305,9 +302,9 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src,
                 for (dy = 0; dy < 4; dy++) {
                     for (dx = 0; dx < 8; dx++) {
                         // Converts one 8-bit instensity pixel to 32-bit RGBA
-						val = (*(u8 *)((uintptr_t)src8 ^ 3)) * 0x1010101;
+						val = (*(u8 *)((uintptr_t)src ^ 3)) * 0x1010101;
 						dst32[(_8_width * (y + dy) + x + dx)] = val;
-                        src8++;
+                        src++;
 					}
                 }
             }
@@ -321,9 +318,9 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src,
         for (y = 0; y < height; y += 4) {
             for (x = 0; x < _8_width; x += 8) {
                 for (dy = 0; dy < 4; dy++) {
-                    for (dx = 0; dx < 8; dx++, src8++) {
-		 				val = (((*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f)) * 0x111111) | 
-                            ((17 * ((*(u8 *)((uintptr_t)src8 ^ 3) & 0xf0) >> 4)) << 24);
+                    for (dx = 0; dx < 8; dx++, src++) {
+		 				val = (((*(u8 *)((uintptr_t)src ^ 3) & 0x0f)) * 0x111111) | 
+                            ((17 * ((*(u8 *)((uintptr_t)src ^ 3) & 0xf0) >> 4)) << 24);
 		 				dst32[(_8_width * (y + dy) + x + dx)] = val;
  		 			}
                 }
@@ -338,9 +335,9 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src,
         for (y = 0; y < height; y += 4) {
             for (x = 0; x < _4_width; x += 4) {
                 for (dy = 0; dy < 4; dy++) {
-                    for (dx = 0; dx < 4; dx++, src8+=2) {
-						val = (((u32)*(u8 *)(((uintptr_t)src8 + 1) ^ 3)) * 0x00010101) | 
-                            ((u32)*(u8 *)((uintptr_t)src8 ^ 3) << 24);
+                    for (dx = 0; dx < 4; dx++, src+=2) {
+						val = (((u32)*(u8 *)(((uintptr_t)src + 1) ^ 3)) * 0x00010101) | 
+                            ((u32)*(u8 *)((uintptr_t)src ^ 3) << 24);
 						dst32[(_4_width * (y + dy) + x + dx)] = val;
 					}
                 }
@@ -429,21 +426,21 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src,
         for (y = 0; y < height; y += 8) {
             for (x = 0; x < _8_width; x += 8) {
                 for (dy = 0; dy < 8; dy++) {
-                    dst8[_8_width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[_8_width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                    src8++;
+                    dst8[_8_width * (y + dy) + x + 0] = (*(u8 *)((uintptr_t)src ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 1] = (*(u8 *)((uintptr_t)src ^ 3) & 0x0f);
+                    src++;
 
-                    dst8[_8_width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[_8_width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                    src8++;
+                    dst8[_8_width * (y + dy) + x + 2] = (*(u8 *)((uintptr_t)src ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 3] = (*(u8 *)((uintptr_t)src ^ 3) & 0x0f);
+                    src++;
 
-                    dst8[_8_width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[_8_width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                    src8++;
+                    dst8[_8_width * (y + dy) + x + 4] = (*(u8 *)((uintptr_t)src ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 5] = (*(u8 *)((uintptr_t)src ^ 3) & 0x0f);
+                    src++;
 
-                    dst8[_8_width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src8 ^ 3) >> 4);
-                    dst8[_8_width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src8 ^ 3) & 0x0f);
-                    src8++;
+                    dst8[_8_width * (y + dy) + x + 6] = (*(u8 *)((uintptr_t)src ^ 3) >> 4);
+                    dst8[_8_width * (y + dy) + x + 7] = (*(u8 *)((uintptr_t)src ^ 3) & 0x0f);
+                    src++;
                 }
             }
         }
@@ -453,25 +450,25 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, u8* src,
     case kTextureFormat_C8:
         for (y = 0; y < height; y += 4) {
             for (x = 0; x < _8_width; x += 8) {
-                *(u32 *)&dst8[_8_width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src8));
-                *(u32 *)&dst8[_8_width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 4));
+                *(u32 *)&dst8[_8_width * (y + 0) + x] = BSWAP32(*(u32 *)((uintptr_t)src));
+                *(u32 *)&dst8[_8_width * (y + 0) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src + 4));
 
-                *(u32 *)&dst8[_8_width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 8));
-                *(u32 *)&dst8[_8_width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 12));
+                *(u32 *)&dst8[_8_width * (y + 1) + x] = BSWAP32(*(u32 *)((uintptr_t)src + 8));
+                *(u32 *)&dst8[_8_width * (y + 1) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src + 12));
 
-                *(u32 *)&dst8[_8_width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 16));
-                *(u32 *)&dst8[_8_width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 20));
+                *(u32 *)&dst8[_8_width * (y + 2) + x] = BSWAP32(*(u32 *)((uintptr_t)src + 16));
+                *(u32 *)&dst8[_8_width * (y + 2) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src + 20));
 
-                *(u32 *)&dst8[_8_width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src8 + 24));
-                *(u32 *)&dst8[_8_width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src8 + 28));
-                src8+=32;
+                *(u32 *)&dst8[_8_width * (y + 3) + x] = BSWAP32(*(u32 *)((uintptr_t)src + 24));
+                *(u32 *)&dst8[_8_width * (y + 3) + x + 4] = BSWAP32(*(u32 *)((uintptr_t)src + 28));
+                src+=32;
             }
         }
         unpack8(dst, dst8, _8_width, height, pal16, pallette_fmt, width);
         break;
 
     case kTextureFormat_CMPR:
-        DecompressDxt1(dst32, src8, _8_width, height);
+        DecompressDxt1(dst32, src, _8_width, height);
         for (y=0; y < height; y++) {
             memcpy(&dst[y*_8_width*4], &dst8[y*_8_width*4], _8_width*4);
         }
