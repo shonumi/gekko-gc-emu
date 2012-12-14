@@ -20,6 +20,8 @@
 #include "hotkeys.hxx"
 #include "welcome_wizard.hxx"
 
+#include "debugger/gfx_texture_preview.hxx"
+
 #include "config/controller_config.hxx"
 
 #include "core.h"
@@ -31,6 +33,8 @@ common::Config::ControllerPort controller_ports[4];
 
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
+    TexturePreviewManager::Init(this);
+
     ui.setupUi(this);
     statusBar()->hide();
 
