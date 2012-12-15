@@ -63,7 +63,7 @@ public:
 
     bool GetTexture(common::Hash64 hash, CacheEntry& texture);
 
-    void TextureCache::Purge();
+    void Purge();
 
 private:
 
