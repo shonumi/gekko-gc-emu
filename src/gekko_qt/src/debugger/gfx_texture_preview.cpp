@@ -53,9 +53,17 @@ TexturePreviewSource::~TexturePreviewSource()
 TexturePreviewSourceFromRam::TexturePreviewSourceFromRam(void* data, unsigned int width, unsigned int height, gp::TextureFormat format, const QString& name, QObject* parent)
                             : TexturePreviewSource(name, parent), data(data), width(width), height(height), format(format)
 {
+}
+
+void TexturePreviewSourceFromRam::SetAvailableOrChanged()
+{
     emit TextureAvailable();
 }
 
+void TexturePreviewSourceFromRam::SetUnavailable()
+{
+    emit TextureUnavailable();
+}
 
 void TexturePreviewManager::Init(QObject* parent)
 {

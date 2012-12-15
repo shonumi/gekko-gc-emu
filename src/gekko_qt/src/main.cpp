@@ -87,7 +87,8 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
 
     connect(disasm, SIGNAL(Paused()), dock_texcache, SIGNAL(Update()));
 
-    TexturePreviewSourceFromRam* src = new TexturePreviewSourceFromRam((void*)stuff, 2, 2, gp::kTextureFormat_RGBA8, tr("My super cool source"), this);
+    TexturePreviewSourceFromRam* src = new TexturePreviewSourceFromRam((void*)stuff, 2, 2, gp::kTextureFormat_RGBA8, tr("Testing source"), this);
+    src->SetAvailableOrChanged();
 
     // menu items
     QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));

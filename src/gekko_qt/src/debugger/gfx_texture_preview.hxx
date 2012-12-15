@@ -70,6 +70,9 @@ public:
     unsigned int GetWidth() { return width; }
     unsigned int GetHeight() { return height; }
 
+    void SetAvailableOrChanged();
+    void SetUnavailable();
+
 private:
     void* data;
     unsigned int width;
