@@ -45,37 +45,14 @@ static const char __default_shader_header[] = {
     "#extension GL_ARB_uniform_buffer_object : enable\n"
 };
 
+/// ShaderManager constructor
 ShaderManager::ShaderManager() {
-    // Load vertex shader source
-    strcpy(vertex_shader_path_, common::g_config->program_dir());
-    strcat(vertex_shader_path_, "sys/shaders/default.vs");
-    std::ifstream vs_ifs(vertex_shader_path_);
-    if (vs_ifs.fail()) {
-        LOG_ERROR(TVIDEO, "Failed to open shader %s", vertex_shader_path_);
-        return;
-    }
-    vertex_shader_src_ = std::string((std::istreambuf_iterator<char>(vs_ifs)), 
-        std::istreambuf_iterator<char>());
-
-    // Load fragment shader source
-    strcpy(fragment_shader_path_, common::g_config->program_dir());
-    strcat(fragment_shader_path_, "sys/shaders/default.fs");
-    std::ifstream fs_ifs(fragment_shader_path_);
-    if (fs_ifs.fail()) {
-        LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fragment_shader_path_);
-        return;
-    }
-    fragment_shader_src_ = std::string((std::istreambuf_iterator<char>(fs_ifs)), 
-        std::istreambuf_iterator<char>());
-
-    uniform_manager_ = NULL;
-
     cache_ = new ShaderCache();
+}
 
-    // Build and assign default shader
-    default_shader_ = LoadShader();
-    current_shader_ = default_shader_;
-    glUseProgram(current_shader_);
+/// ShaderManager destructor
+ShaderManager::~ShaderManager() {
+    delete cache_;
 }
 
 /// Updates the uniform values for the current shader
@@ -316,6 +293,34 @@ GLuint ShaderManager::GetDefaultShader() {
  * @param uniform_manager Handle to the UniformManager instance that handles uniform data
  */
 void ShaderManager::Init(UniformManager* uniform_manager) {
+    // Load vertex shader source
+    strcpy(vertex_shader_path_, common::g_config->program_dir());
+    strcat(vertex_shader_path_, "sys/shaders/default.vs");
+    std::ifstream vs_ifs(vertex_shader_path_);
+    if (vs_ifs.fail()) {
+        LOG_ERROR(TVIDEO, "Failed to open shader %s", vertex_shader_path_);
+        return;
+    }
+    vertex_shader_src_ = std::string((std::istreambuf_iterator<char>(vs_ifs)), 
+        std::istreambuf_iterator<char>());
+
+    // Load fragment shader source
+    strcpy(fragment_shader_path_, common::g_config->program_dir());
+    strcat(fragment_shader_path_, "sys/shaders/default.fs");
+    std::ifstream fs_ifs(fragment_shader_path_);
+    if (fs_ifs.fail()) {
+        LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fragment_shader_path_);
+        return;
+    }
+    fragment_shader_src_ = std::string((std::istreambuf_iterator<char>(fs_ifs)), 
+        std::istreambuf_iterator<char>());
+
+    // Build and assign default shader
+    default_shader_ = LoadShader();
+    current_shader_ = default_shader_;
+    glUseProgram(current_shader_);
+
     uniform_manager_ = uniform_manager;
-    LOG_NOTICE(TGP, "shader_manager initialized ok");
+
+    LOG_NOTICE(TGP, "shader manager initialized ok");
 }

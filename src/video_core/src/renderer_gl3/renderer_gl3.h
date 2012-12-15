@@ -32,6 +32,7 @@
 #include "renderer_base.h"
 #include "shader_manager.h"
 #include "uniform_manager.h"
+#include "texture_cache.h"
 
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
 #define MAX_FRAMEBUFFERS            2
@@ -43,7 +44,7 @@
 class RendererGL3 : virtual public RendererBase {
 public:
     RendererGL3();
-    ~RendererGL3() {};
+    ~RendererGL3();
 
     /**
      * Write data to BP for renderer internal use (e.g. direct to shader)
@@ -270,8 +271,9 @@ private:
 
     EmuWindow*  render_window_;
 
-    UniformManager* uniform_manager_;
     ShaderManager*  shader_manager_;
+    UniformManager* uniform_manager_;
+    TextureCache*   texture_cache__;
 
     GLuint      generic_shader_id_;
 

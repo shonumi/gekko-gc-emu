@@ -41,7 +41,7 @@ class ShaderManager {
 public:
 
     ShaderManager();
-    ~ShaderManager() {};
+    ~ShaderManager();
 
     /// Updates the uniform values for the current shader
     void UpdateUniforms();

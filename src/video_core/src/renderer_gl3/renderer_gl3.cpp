@@ -125,6 +125,16 @@ RendererGL3::RendererGL3() {
     generic_shader_id_ = 0;
     prim_type_ = (GXPrimitive)0;
     gl_prim_type_ = 0;
+    shader_manager_ = new ShaderManager();
+    uniform_manager_ = new UniformManager();
+    texture_cache__ = new TextureCache();
+}
+
+/// RendererGL3 destructor
+RendererGL3::~RendererGL3() {
+    delete shader_manager_;
+    delete uniform_manager_;
+    delete texture_cache__;
 }
 
 /**
@@ -796,9 +806,6 @@ void RendererGL3::Init() {
     // --------------------------
 
     InitFramebuffer();
-
-    shader_manager_ = new ShaderManager();
-    uniform_manager_ = new UniformManager();
 
     shader_manager_->Init(uniform_manager_);
     uniform_manager_->Init(shader_manager_->GetDefaultShader());
