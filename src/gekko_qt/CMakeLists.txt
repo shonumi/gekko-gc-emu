@@ -13,6 +13,7 @@ set(SRCS
             src/welcome_wizard.cpp
             src/config/controller_config.cpp
             src/config/controller_config_util.cpp
+            src/debugger/gfx_texcache.cpp
             src/debugger/gfx_texture_preview.cpp)
 
 qt4_wrap_ui(UI_HDRS
@@ -25,6 +26,7 @@ qt4_wrap_ui(UI_HDRS
                     src/main.ui
                     src/welcome_wizard.ui
                     src/config/controller_config.ui
+                    src/debugger/gfx_texcache.ui
                     src/debugger/gfx_texture_preview.ui)
 
 qt4_wrap_cpp(MOC_SRCS
@@ -42,6 +44,7 @@ qt4_wrap_cpp(MOC_SRCS
                         src/welcome_wizard.hxx
                         src/config/controller_config.hxx
                         src/config/controller_config_util.hxx
+                        src/debugger/gfx_texcache.hxx
                         src/debugger/gfx_texture_preview.hxx)
 
 # add uic results to include directories

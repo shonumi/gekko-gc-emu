@@ -22,6 +22,9 @@ public slots:
 
     void OnCPUStepped();
 
+signals:
+    void Paused();
+
 private:
     // returns -1 if no row is selected
     int SelectedRow();

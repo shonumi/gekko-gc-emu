@@ -83,8 +83,10 @@ private:
     GLuint current_shader_;             ///< Handle to current shader program
     GLuint default_shader_;             ///< Handle to default shader program
 
+public:
     ShaderCache* cache_;                 ///< Simple shader cache
 
+private:
     std::string vertex_shader_src_;
     std::string fragment_shader_src_;
 

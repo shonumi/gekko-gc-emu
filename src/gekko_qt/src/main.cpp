@@ -20,6 +20,7 @@
 #include "hotkeys.hxx"
 #include "welcome_wizard.hxx"
 
+#include "debugger/gfx_texcache.hxx"
 #include "debugger/gfx_texture_preview.hxx"
 
 #include "config/controller_config.hxx"
@@ -30,6 +31,13 @@
 #include "version.h"
 
 common::Config::ControllerPort controller_ports[4];
+
+const char stuff[] = {
+    0xFF, 0xFF, 0xFF, 0xFF,
+    0x88, 0x88, 0x88, 0x88,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+};
 
 GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(NULL)
 {
@@ -68,6 +76,18 @@ GMainWindow::GMainWindow() : gbs_style(GGameBrowser::Style_None), game_browser(N
     dock_ramedit->setWindowTitle(tr("Memory viewer"));
     addDockWidget(Qt::TopDockWidgetArea, dock_ramedit);
     dock_ramedit->hide();
+
+    QDockWidget* dock_texpreview = new TexturePreviewWidget(this);
+    dock_texpreview->setObjectName("TexPreview");
+    addDockWidget(Qt::RightDockWidgetArea, dock_texpreview);
+
+    QDockWidget* dock_texcache = new GTexcacheWidget(this);
+    dock_texcache->setObjectName("TexCache");
+    addDockWidget(Qt::RightDockWidgetArea, dock_texcache);
+
+    connect(disasm, SIGNAL(Paused()), dock_texcache, SIGNAL(Update()));
+
+    TexturePreviewSourceFromRam* src = new TexturePreviewSourceFromRam((void*)stuff, 2, 2, gp::kTextureFormat_RGBA8, tr("My super cool source"), this);
 
     // menu items
     QMenu* filebrowser_menu = ui.menu_View->addMenu(tr("File browser layout"));

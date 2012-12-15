@@ -30,6 +30,7 @@ GDisAsmView::GDisAsmView(QWidget* parent, EmuThread& emu_thread) : QDockWidget(p
     connect(disasm_ui.button_breakpoint, SIGNAL(clicked()), this, SLOT(OnSetBreakpoint()));
     connect(disasm_ui.button_step, SIGNAL(clicked()), this, SLOT(OnStep()));
     connect(disasm_ui.button_pause, SIGNAL(clicked()), this, SLOT(OnPause()));
+    connect(disasm_ui.button_pause, SIGNAL(clicked()), this, SIGNAL(Paused()));
     connect(disasm_ui.button_continue, SIGNAL(clicked()), this, SLOT(OnContinue()));
     connect(GetHotkey("Disassembler", "Step", this), SIGNAL(activated()), this, SLOT(OnStep()));
 //    connect(GetHotkey("Disassembler", "Step into", this), SIGNAL(activated()), this, SLOT(OnStepInto()));

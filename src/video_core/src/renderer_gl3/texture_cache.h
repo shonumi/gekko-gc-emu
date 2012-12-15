@@ -25,7 +25,8 @@
 #ifndef VIDEO_CORE_TEXTURE_CACHE_H_
 #define VIDEO_CORE_TEXTURE_CACHE_H_
 
-#include <GL/glew.h>
+//#include <GL/glew.h>
+typedef unsigned int GLuint;
 
 #include "common.h"
 #include "hash.h"
@@ -51,7 +52,7 @@ public:
         int                 last_frame_used;    ///< Last frame that the texture was used in
         gp::TextureType     type;               ///< Texture type (raw RAM data or result of EFB-copy)
         gp::TextureFormat   format;             ///< Source texture format  (dest is always RGBA8)
-        GLuint              gl_handle;          ///< Decoded OpenGL VRAM texture object
+        GLuint              gl_handle;          ///< Decoded OpenGL VRAM texture object and hidden  and hidden somewhere within somewhere within 
     };
 
     typedef HashContainer_STLHashMap<common::Hash64, CacheEntry> TextureContainer;
@@ -66,6 +67,7 @@ public:
     void Purge();
 
 private:
+public:
 
     TextureContainer* cache_;
 

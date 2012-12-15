@@ -147,7 +147,7 @@ void GGameBrowserModel::SetNumColumns(int columns)
     emit dataChanged(index(0, 0), index(0, isolist.GetEntries().size()-1));
 }
 
-QModelIndex GGameBrowserModel::index( int row, int column, const QModelIndex& parent) const
+QModelIndex GGameBrowserModel::index(int row, int column, const QModelIndex& parent) const
 {
 	return createIndex(row, column, (void*)NULL);
 }
@@ -159,6 +159,7 @@ QModelIndex GGameBrowserModel::parent(const QModelIndex& index) const
 
 int GGameBrowserModel::rowCount(const QModelIndex& parent) const
 {
+    // TODO: Shouldn't this return a different value for game list?
     return (isolist.GetEntries().size() - 1) / columns + 1;
 }
 

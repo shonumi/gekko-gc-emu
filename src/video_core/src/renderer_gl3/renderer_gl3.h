@@ -41,7 +41,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // OpenGL 3.x Renderer
 
-class RendererGL3 : virtual public RendererBase {
+class RendererGL3 : /*virtual */public RendererBase {
 public:
     RendererGL3();
     ~RendererGL3();
@@ -269,8 +269,11 @@ private:
 
     ShaderManager*  shader_manager_;
     UniformManager* uniform_manager_;
+
+public:
     TextureCache*   texture_cache_;
 
+private:
     GLuint      generic_shader_id_;
 
     u32         last_mode_;                         ///< Last render mode

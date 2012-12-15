@@ -146,6 +146,7 @@ public:
     }
 
 private:
+public:
     std::unordered_map<HashType, ValueType> hash_map_;
 
     DISALLOW_COPY_AND_ASSIGN(HashContainer_STLHashMap);
