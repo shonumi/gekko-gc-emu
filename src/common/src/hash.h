@@ -25,9 +25,11 @@
 #ifndef COMMON_HASH_H_
 #define COMMON_HASH_H_
 
-#include "common.h"
+#include "types.h"
 
 namespace common {
+
+typedef u64 Hash64;
 
 /**
  * Compute an efficient 64-bit hash (optimized for Intel hardware)
@@ -36,7 +38,7 @@ namespace common {
  * @param samples Number of samples to compute hash for
  * @remark Borrowed from Dolphin Emulator
  */
-u64 GetHash64(const u8 *src, int len, u32 samples);
+Hash64 GetHash64(const u8 *src, int len, u32 samples);
 
 } // namespace
 

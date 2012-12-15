@@ -168,7 +168,7 @@ void RendererGL3::VertexPosition_UseIndexXF(u8 index) {
 * @param hash A unique hash of the texture, to be used as an ID
 * @param data Buffer of raw texture data stored in correct format
 */
-void RendererGL3::AddTexture(u16 width, u16 height, u32 hash, u8* data) {
+void RendererGL3::AddTexture(int width, int height, common::Hash64 hash, u8* data) {
     int id = hash & (MAX_CACHED_TEXTURES - 1);
     glGenTextures(1, &texture_cache_[id]);
     glBindTexture(GL_TEXTURE_2D, texture_cache_[id]);
@@ -232,7 +232,7 @@ void RendererGL3::SetTextureParameters(int num) {
 * @param num Number of texture to bind to (0-7)
 * @return True if bind succeeded, false if failed
 */
-bool RendererGL3::BindTexture(u32 hash, int num) {
+bool RendererGL3::BindTexture(common::Hash64 hash, int num) {
     int id = hash & (MAX_CACHED_TEXTURES - 1);
 
     glActiveTexture(GL_TEXTURE0 + num);

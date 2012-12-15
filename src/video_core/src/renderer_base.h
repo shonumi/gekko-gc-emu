@@ -26,6 +26,7 @@
 #define VIDEO_CORE_RENDER_BASE_H_
 
 #include "common.h"
+#include "hash.h"
 #include "fifo.h"
 #include "gx_types.h"
 #include "video/emuwindow.h"
@@ -123,7 +124,7 @@ public:
      * @param hash A unique hash of the texture, to be used as an ID
      * @param data Buffer of raw texture data stored in correct format
      */
-    virtual void AddTexture(u16 width, u16 height, u32 hash, u8* data) = 0;
+    virtual void AddTexture(int width, int height, common::Hash64 hash, u8* data) = 0;
 
     /**
      * Sets texture parameters for the selected texture (filtering, LOD, etc.)
@@ -137,7 +138,7 @@ public:
      * @param num Number of texture to bind to (0-7)
      * @return True if bind succeeded, false if failed
      */
-    virtual bool BindTexture(u32 hash, int num) = 0;
+    virtual bool BindTexture(common::Hash64 hash, int num) = 0;
    
     /// Sets the render viewport location, width, and height
     virtual void SetViewport(int x, int y, int width, int height) = 0;

@@ -115,7 +115,7 @@ public:
      * @param hash A unique hash of the texture, to be used as an ID
      * @param data Buffer of raw texture data stored in correct format
      */
-    void AddTexture(u16 width, u16 height, u32 hash, u8* data);
+    void AddTexture(int width, int height, common::Hash64 hash, u8* data);
 
     /**
      * Sets texture parameters for the selected texture (filtering, LOD, etc.)
@@ -129,7 +129,7 @@ public:
      * @param num Number of texture to bind to (0-7)
      * @return True if bind succeeded, false if failed
      */
-    bool BindTexture(u32 hash, int num);
+    bool BindTexture(common::Hash64 hash, int num);
 
     /// Sets the renderer viewport location, width, and height
     void SetViewport(int x, int y, int width, int height);

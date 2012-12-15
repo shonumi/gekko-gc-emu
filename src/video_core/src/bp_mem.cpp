@@ -261,7 +261,7 @@ void BP_LoadTexture(u8 num) {
     TextureFormat format = (TextureFormat)g_bp_regs.tex[set].image_0[0].format;
     size_t buffer_len = TextureDecoder_GetSize(format, width, height);
     
-    u64 hash = common::GetHash64(src, buffer_len, 256);
+    common::Hash64 hash = common::GetHash64(src, buffer_len, 256);
 
     if(!video_core::g_renderer->BindTexture(hash, num)) {
         TextureDecoder_Decode(format, width, height, src, decoded_texture_buff);

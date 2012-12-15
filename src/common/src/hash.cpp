@@ -24,6 +24,7 @@
  */
 
 #include "hash.h"
+#include "common.h"
 
 namespace common {
 
@@ -156,7 +157,7 @@ u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
  * @param samples Number of samples to compute hash for
  * @remark Borrowed from Dolphin Emulator
  */
-u64 GetHash64(const u8 *src, int len, u32 samples) {
+Hash64 GetHash64(const u8 *src, int len, u32 samples) {
 #if _M_SSE >= 0x402
     return __compute_crc32_sse4(src, len, samples);
 #else

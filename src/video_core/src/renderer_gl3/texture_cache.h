@@ -28,18 +28,24 @@
 #include <GL/glew.h>
 
 #include "common.h"
+#include "hash.h"
 #include "hash_container.h"
 #include "texture_decoder.h"
 #include "texture_manager.h"
 
 struct TextureCacheEntry {
-    u32 src_address;            ///< Source address of texture
-    u32 src_size;               ///< Source size of texture in bytes
-    gp::TextureType type;       ///< Texture type
-    gp::TextureFormat format;   ///< Texture format
+    common::Hash64      hash;               ///< Hash of source texture raw data
+    u32                 address;            ///< Source address of texture
+    size_t              size;               ///< Source size of texture in bytes
+    int                 width;              ///< Source texture width in pixels
+    int                 height;             ///< Source texture height in pixels
+    int                 last_valid_frame;   ///< Frame that texture expires at
+    gp::TextureType     type;               ///< Texture type (raw RAM data or result of EFB-copy)
+    gp::TextureFormat   format;             ///< Source texture format  (dest is always RGBA8)
+    GLuint              gl_tex;             ///< Decoded OpenGL VRAM texture object
 };
 
-typedef HashContainer_STLHashMap<u32, TextureCacheEntry> TextureContainer;
+typedef HashContainer_STLHashMap<common::Hash64, TextureCacheEntry> TextureContainer;
 
 /// Storage container for cached textures in the GL3 renderer
 class TextureCache {
