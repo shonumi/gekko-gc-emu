@@ -6,6 +6,12 @@ project(gekko)
 add_definitions(-Wno-attributes)
 add_definitions(-DSINGLETHREADED)
 
+# other build flags
+if(CMAKE_COMPILER_IS_GNUCXX)
+    # TODO: Check for required c++11 support
+    add_definitions(-std=c++11)
+endif()
+
 # dependency checking
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 include(FindSDL2 REQUIRED)

@@ -28,13 +28,7 @@
 #include "common.h"
 #include "log.h"
 
-#if EMU_PLATFORM == PLATFORM_WINDOWS
-#include <hash_map>
-using namespace std;
-#elif EMU_PLATFORM == PLATFORM_MAXOSX || EMU_PLATFORM == PLATFORM_LINUX
-#include <ext/hash_map>
-using namespace __gnu_cxx;
-#endif
+#include <unordered_map>
 
 /// Hash container generic interface - Don't use directly, use a derived class
 template <class HashType, class ValueType> class HashContainer {
@@ -139,7 +133,7 @@ public:
     }
 
     int Fetch(HashType hash, ValueType& value) {
-        typename hash_map<HashType, ValueType>::const_iterator res = hash_map_.find(hash);
+        typename std::unordered_map<HashType, ValueType>::const_iterator res = hash_map_.find(hash);
 
         if (res == hash_map_.end())
             return E_ERR;
@@ -152,7 +146,7 @@ public:
     }
 
 private:
-    hash_map<HashType, ValueType> hash_map_;
+    std::unordered_map<HashType, ValueType> hash_map_;
 
     DISALLOW_COPY_AND_ASSIGN(HashContainer_STLHashMap);
 };
