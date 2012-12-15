@@ -119,12 +119,13 @@ public:
 
     /**
      * Adds a new texturer to the renderer (must be 32-bit RGBA)
+     * @param num Texture number (0-7)
      * @param width Width of texture in pixels
      * @param height Height of texture in pixels
      * @param hash A unique hash of the texture, to be used as an ID
-     * @param data Buffer of raw texture data stored in correct format
+     * @param data Buffer of raw texture data stored as RGBA8
      */
-    virtual void AddTexture(int width, int height, common::Hash64 hash, u8* data) = 0;
+    virtual void AddTexture(int num, int width, int height, common::Hash64 hash, u8* data) = 0;
 
     /**
      * Sets texture parameters for the selected texture (filtering, LOD, etc.)

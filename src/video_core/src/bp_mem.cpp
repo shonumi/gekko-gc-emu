@@ -246,26 +246,31 @@ void BP_RegisterWrite(u8 addr, u32 data) {
  * @param num Texture number to load, must be 0-7
  */
 void BP_LoadTexture(u8 num) {
-    static u8 decoded_texture_buff[kGameCubeMaxTextureWidth * kGameCubeMaxTextureHeight * 4];
+    static u8 dst_buff[kGameCubeMaxTextureWidth * kGameCubeMaxTextureHeight * 4];
 
     int set = (num & 4) >> 2;
-    int width = g_bp_regs.tex[set].image_0[num].get_width();
-    int height = g_bp_regs.tex[set].image_0[num].get_height();
+    int index = num & 7;
+
+    BPTexImage0 tex_image_0 = g_bp_regs.tex[set].image_0[index];
+    BPTexImage3 tex_image_3 = g_bp_regs.tex[set].image_3[index];
+
+    int width = tex_image_0.get_width();
+    int height = tex_image_0.get_height();
 
     _ASSERT_MSG(TGP, width <= kGameCubeMaxTextureWidth, "Texture max width exceeded (%d > %d)!",
         width, kGameCubeMaxTextureWidth);
     _ASSERT_MSG(TGP, height <= kGameCubeMaxTextureHeight, "Texture max height exceeded (%d > %d)!",
         width, kGameCubeMaxTextureHeight);
 
-    u8* src = &Mem_RAM[g_bp_regs.tex[set].image_3[num].get_addr() & RAM_MASK];
-    TextureFormat format = (TextureFormat)g_bp_regs.tex[set].image_0[0].format;
+    u8* src = &Mem_RAM[tex_image_3.get_addr() & RAM_MASK];
+    TextureFormat format = (TextureFormat)tex_image_0.format;
     size_t buffer_len = TextureDecoder_GetSize(format, width, height);
     
-    common::Hash64 hash = common::GetHash64(src, buffer_len, 256);
+    common::Hash64 hash = common::GetHash64(src, buffer_len, 512);
 
     if(!video_core::g_renderer->BindTexture(hash, num)) {
-        TextureDecoder_Decode(format, width, height, src, decoded_texture_buff);
-        video_core::g_renderer->AddTexture(width, height, hash, decoded_texture_buff);
+        TextureDecoder_Decode(format, width, height, src, dst_buff);
+        video_core::g_renderer->AddTexture(num, width, height, hash, dst_buff);
     }
     video_core::g_renderer->SetTextureParameters(num);
 }

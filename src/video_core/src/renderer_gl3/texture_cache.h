@@ -33,30 +33,41 @@
 #include "texture_decoder.h"
 #include "texture_manager.h"
 
-struct TextureCacheEntry {
-    common::Hash64      hash;               ///< Hash of source texture raw data
-    u32                 address;            ///< Source address of texture
-    size_t              size;               ///< Source size of texture in bytes
-    int                 width;              ///< Source texture width in pixels
-    int                 height;             ///< Source texture height in pixels
-    int                 last_valid_frame;   ///< Frame that texture expires at
-    gp::TextureType     type;               ///< Texture type (raw RAM data or result of EFB-copy)
-    gp::TextureFormat   format;             ///< Source texture format  (dest is always RGBA8)
-    GLuint              gl_tex;             ///< Decoded OpenGL VRAM texture object
-};
-
-typedef HashContainer_STLHashMap<common::Hash64, TextureCacheEntry> TextureContainer;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Texture Cache
 
 /// Storage container for cached textures in the GL3 renderer
 class TextureCache {
 
 public:
+
+    /// Texture cache entry
+    struct CacheEntry {
+        common::Hash64      hash;               ///< Hash of source texture raw data
+        u32                 address;            ///< Source address of texture
+        size_t              size;               ///< Source size of texture in bytes
+        int                 width;              ///< Source texture width in pixels
+        int                 height;             ///< Source texture height in pixels
+        int                 last_frame_used;    ///< Last frame that the texture was used in
+        gp::TextureType     type;               ///< Texture type (raw RAM data or result of EFB-copy)
+        gp::TextureFormat   format;             ///< Source texture format  (dest is always RGBA8)
+        GLuint              gl_handle;          ///< Decoded OpenGL VRAM texture object
+    };
+
+    typedef HashContainer_STLHashMap<common::Hash64, CacheEntry> TextureContainer;
+
     TextureCache();
     ~TextureCache();
 
+    void AddTexture(CacheEntry texture);
+
+    bool GetTexture(common::Hash64 hash, CacheEntry& texture);
+
+    void TextureCache::Purge();
+
 private:
 
-
+    TextureContainer* cache_;
 
 };
 

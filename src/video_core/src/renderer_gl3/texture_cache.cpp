@@ -21,3 +21,29 @@
  * Official project repository can be found at:
  * http://code.google.com/p/gekko-gc-emu/
  */
+
+#include "texture_cache.h"
+
+TextureCache::TextureCache() {
+    cache_ = new TextureContainer;
+}
+
+TextureCache::~TextureCache() {
+    delete cache_;
+}
+
+void TextureCache::AddTexture(CacheEntry texture) {
+    cache_->Update(texture.hash, texture);
+}
+
+bool TextureCache::GetTexture(common::Hash64 hash, CacheEntry& texture) {
+    if (E_ERR != cache_->Fetch(hash, texture)) {
+        texture.last_frame_used = 0xDEADBEEF; // TODO(ShizZy): Set this to be valid here
+        cache_->Update(hash, texture);
+        return true;
+    }
+    return false;
+}
+
+void TextureCache::Purge() {
+}
