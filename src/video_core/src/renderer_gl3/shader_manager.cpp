@@ -168,7 +168,7 @@ GLuint ShaderManager::LoadShader() {
 
     static const char* vertex_color[] = { "RGB565", "RGB8", "RGBX8", "RGBA4", "RGBA6", "RGBA8" };
     static const char* clamp[] = { "val", "clamp(val, 0.0, 1.0)" };
-    static const char* alpha_logic[] = { "&&", "||", "|=", "==" };
+    static const char* alpha_logic[] = { "&&", "||", "!=", "==" };
     static const char* alpha_compare_0[] = { "(false)", "(val < ref0)", "(val == ref0)", 
         "(val <= ref0)", "(val > ref0)", "(val != ref0)", "(val >= ref0)", "(true)" };
     static const char* alpha_compare_1[] = { "(false)", "(val < ref1)", "(val == ref1)", 
@@ -211,7 +211,7 @@ GLuint ShaderManager::LoadShader() {
     // ------------------------------
 
     _SHADER_FSDEF("#define __FSDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages);
-    _SHADER_FSDEF("#define __FSDEF_ALPHA_COMPARE(val, ref0, ref1) (false == bool(%s %s %s))\n",
+    _SHADER_FSDEF("#define __FSDEF_ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))\n",
         alpha_compare_0[gp::g_bp_regs.alpha_func.comp0],
         alpha_logic[gp::g_bp_regs.alpha_func.logic],
         alpha_compare_1[gp::g_bp_regs.alpha_func.comp1]);
