@@ -92,43 +92,43 @@ extern SDL_mutex*  g_fifo_write_ptr_mutex;  ///< Mutex for accessing g_fifo_writ
 
 extern u8 g_fifo_buffer[FIFO_SIZE];         ///< Primary FIFO buffer storage - Don't use directly
 
-extern u8 (*FifoPop8)();                    ///< Pointer to FIFO 8-bit pop method (DL or FIFO) 
-extern u16 (*FifoPop16)();                  ///< Pointer to FIFO 16-bit pop method (DL or FIFO)
-extern u32 (*FifoPop24)();                  ///< Pointer to FIFO 24-bit pop method (DL or FIFO)
-extern u32 (*FifoPop32)();                  ///< Pointer to FIFO 32-bit pop method (DL or FIFO)
+extern u8 (*Fifo_Pop8)();                   ///< Pointer to FIFO 8-bit pop method (DL or FIFO) 
+extern u16 (*Fifo_Pop16)();                 ///< Pointer to FIFO 16-bit pop method (DL or FIFO)
+extern u32 (*Fifo_Pop24)();                 ///< Pointer to FIFO 24-bit pop method (DL or FIFO)
+extern u32 (*Fifo_Pop32)();                 ///< Pointer to FIFO 32-bit pop method (DL or FIFO)
 
 /// Push 8-bit byte into the FIFO
-static inline void FifoPush8(u8 data) {
+static inline void Fifo_Push8(u8 data) {
     g_fifo_buffer[g_fifo_write_ptr] = data;
     g_fifo_write_ptr++;
 }
 
 /// Push 16-bit halfword into the FIFO
-static inline void FifoPush16(u16 data) {
+static inline void Fifo_Push16(u16 data) {
     *(u16*)(g_fifo_buffer + g_fifo_write_ptr) = BSWAP16(data);
     g_fifo_write_ptr += 2;
 }
 
 /// Push 32-bit word into the FIFO
-static inline void FifoPush32(u32 data) {
+static inline void Fifo_Push32(u32 data) {
     *(u32*)(g_fifo_buffer + g_fifo_write_ptr) = BSWAP32(data);
     g_fifo_write_ptr += 4;
 }
 
 /// Called by CPU core to catch up
-void FifoSynchronize();
+void Fifo_Synchronize();
 
 /// Decodes current FIFO command
-void DecodeCommand();
+void Fifo_DecodeCommand();
 
 /// Called at end of frame to reset FIFO
-void FifoReset();
+void Fifo_Reset();
 
 /// Initialize GP FIFO
-void FifoInit();
+void Fifo_Init();
 
 /// Shutdown GP FIFO
-void FifoShutdown();
+void Fifo_Shutdown();
 
 } // namespace
 

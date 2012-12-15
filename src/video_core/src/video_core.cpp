@@ -60,7 +60,7 @@ int VideoEntry(void*) {
     }
     g_emu_window->MakeCurrent();
     while (core::SYS_RUNNING == core::g_state) {
-        gp::DecodeCommand();
+        gp::Fifo_DecodeCommand();
     }
     return E_OK;
 }
@@ -82,13 +82,13 @@ void Start() {
 
 /// Initialize the video core
 void Init(EmuWindow* emu_window) {
-    gp::FifoInit();
-    gp::TextureManagerInit();
-    vertex_manager::Init();
-    vertex_loader::Init();
-    gp::BPInit();
-    gp::CPInit();
-    gp::XFInit();
+    gp::Fifo_Init();
+    gp::TextureManager_Init();
+    gp::VertexManager_Init();
+    gp::VertexLoader_Init();
+    gp::BP_Init();
+    gp::CP_Init();
+    gp::XF_Init();
 
     g_emu_window = emu_window;
     g_renderer = new RendererGL3();
@@ -100,8 +100,9 @@ void Init(EmuWindow* emu_window) {
 
 /// Shutdown the video core
 void Shutdown() {
-    gp::FifoShutdown();
-    vertex_loader::Shutdown();
+    gp::Fifo_Shutdown();
+    gp::VertexManager_Shutdown();
+    gp::VertexLoader_Shutdown();
 }
 
 } // namespace

@@ -31,27 +31,32 @@
 
 #define VBO_SIZE                    (1024 * 1024 * 32)
 
-namespace vertex_manager {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Vertex Manager
+
+namespace gp {
 
 extern GXVertex*   g_vbo;               ///< Pointer to VBO data (when mapped, in GPU mem)
 extern u32         g_vertex_num;        ///< Current vertex number
 
 /// Used for specifying next GX vertex is being sent to the renderer
-void NextVertex();
+void VertexManager_NextVertex();
 
 /// Begin a primitive
-void BeginPrimitive(GXPrimitive prim, int count);
+void VertexManager_BeginPrimitive(GXPrimitive prim, int count);
 
 /// End a primitive
-void EndPrimitive();
+void VertexManager_EndPrimitive();
 
 /// Flush the vertex manager
-void Flush();
+void VertexManager_Flush();
 
 /// Initialize the vertex manager
-void Init();
+void VertexManager_Init();
+
+/// Shutdown the vertex manager
+void VertexManager_Shutdown();
 
 } // namespace
-
 
 #endif // VIDEO_CORE_VERTEX_MANAGER_H_

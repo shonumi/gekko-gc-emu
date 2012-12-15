@@ -1,26 +1,26 @@
-/*!
-* Copyright (C) 2005-2012 Gekko Emulator
-*
-* \file    xf_mem.h
-* \author  ShizZy <shizzy247@gmail.com>
-* \date    2012-03-12
-* \brief   Implementation of CXF for the graphics processor
-*
-* \section LICENSE
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details at
-* http://www.gnu.org/copyleft/gpl.html
-*
-* Official project repository can be found at:
-* http://code.google.com/p/gekko-gc-emu/
-*/
+/**
+ * Copyright (C) 2005-2012 Gekko Emulator
+ *
+ * @file    xf_mem.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-12
+ * @brief   Implementation of CXF for the graphics processor
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Official project repository can be found at:
+ * http://code.google.com/p/gekko-gc-emu/
+ */
 
 #include <GL/glew.h>
 
@@ -48,7 +48,7 @@ u32         g_xf_mem[0x800];            ///< Transformation memory
 XFMemory    g_xf_regs;                  ///< XF registers
 f32         g_projection_matrix[16];    ///< Decoded projection matrix
 
-void XFUpdateViewport() {
+void XF_UpdateViewport() {
     int scissorXOff = g_bp_regs.scissor_offset.x * 2;
     int scissorYOff = g_bp_regs.scissor_offset.y * 2;
 
@@ -73,7 +73,7 @@ void XFUpdateViewport() {
     video_core::g_renderer->SetDepthRange(znear, zfar);
 }
 
-void XFUpdateProjection() {
+void XF_UpdateProjection() {
 	t32 mtx[16] = {0};
 
 	// is it orthographic mode...
@@ -99,7 +99,7 @@ void XFUpdateProjection() {
     memcpy(g_projection_matrix, mtx, 16*4);
 }
 
-void XFLoad(u32 length, u32 base_addr, u32* data) {
+void XF_Load(u32 length, u32 base_addr, u32* data) {
 
     // Register write
     if (base_addr & 0x1000) {
@@ -108,10 +108,10 @@ void XFLoad(u32 length, u32 base_addr, u32* data) {
 
         // Viewport register range
         if (addr >= 0x1A && addr <= 0x1F) {
-            XFUpdateViewport();
+            XF_UpdateViewport();
         // Projection matrix register range
         } else if (addr >= 0x20 && addr <= 0x26) {
-            XFUpdateProjection();
+            XF_UpdateProjection();
         }
 
     // Transformation memory
@@ -122,14 +122,14 @@ void XFLoad(u32 length, u32 base_addr, u32* data) {
 }
 
 /// Write data into a XF register indexed-form
-void XFLoadIndexed(u8 n, u16 index, u8 length, u16 addr) {
+void XF_LoadIndexed(u8 n, u16 index, u8 length, u16 addr) {
     u32* data = (u32*)&Mem_RAM[CP_IDX_ADDR(index, n) & RAM_MASK];
     memcpy(&g_xf_mem[addr], data, length << 2);
     video_core::g_renderer->WriteXF(addr, length, data);
 }
 
 /// Initialize XF
-void XFInit() {
+void XF_Init() {
     memset(g_xf_mem, 0, sizeof(g_xf_mem));
     memset(&g_xf_regs, 0, sizeof(g_xf_regs));
 }

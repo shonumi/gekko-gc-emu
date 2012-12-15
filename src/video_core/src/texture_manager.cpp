@@ -27,7 +27,7 @@
 namespace gp {
 
 
-void TextureManagerInit() {
+void TextureManager_Init() {
     LOG_NOTICE(TGP, "texture_manager initialized ok");
     return;
 }

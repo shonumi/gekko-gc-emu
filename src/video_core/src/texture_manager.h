@@ -27,6 +27,9 @@
 
 #include "common.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Texture Manager
+
 namespace gp {
 
 enum TextureType {
@@ -36,7 +39,7 @@ enum TextureType {
 };
 
 /// Initialize the texture manager
-void TextureManagerInit();
+void TextureManager_Init();
 
 } // namespace
 

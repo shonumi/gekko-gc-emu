@@ -279,7 +279,7 @@ void EMU_FASTCALL GX_Fifo_Write8(u32 addr, u32 data)
 {
     gp::g_fifo_buffer[gp::g_fifo_write_ptr++] = data;
     if (!common::g_config->enable_multicore()) {
-        gp::DecodeCommand();
+        gp::Fifo_DecodeCommand();
     }
 }
 
@@ -288,7 +288,7 @@ void EMU_FASTCALL GX_Fifo_Write16(u32 addr, u32 data)
     *(u16*)(gp::g_fifo_buffer + gp::g_fifo_write_ptr) = BSWAP16(data);
     gp::g_fifo_write_ptr += 2;
     if (!common::g_config->enable_multicore()) {
-        gp::DecodeCommand();
+        gp::Fifo_DecodeCommand();
     }
 }
 
@@ -308,7 +308,7 @@ void EMU_FASTCALL GX_Fifo_Write32(u32 addr, u32 data) {
         PE_Update();
     }*/
     if (!common::g_config->enable_multicore()) {
-        gp::DecodeCommand();
+        gp::Fifo_DecodeCommand();
     }
 }
 

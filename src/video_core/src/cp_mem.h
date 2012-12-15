@@ -1,26 +1,26 @@
-/*!
-* Copyright (C) 2005-2012 Gekko Emulator
-*
-* \file    cp_mem.h
-* \author  ShizZy <shizzy247@gmail.com>
-* \date    2012-03-08
-* \brief   Implementation of CP for the graphics processor
-*
-* \section LICENSE
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details at
-* http://www.gnu.org/copyleft/gpl.html
-*
-* Official project repository can be found at:
-* http://code.google.com/p/gekko-gc-emu/
-*/
+/**
+ * Copyright (C) 2005-2012 Gekko Emulator
+ *
+ * @file    cp_mem.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-08
+ * @brief   Implementation of CP for the graphics processor
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Official project repository can be found at:
+ * http://code.google.com/p/gekko-gc-emu/
+ */
 
 #ifndef VIDEO_CORE_CP_MEM_
 #define VIDEO_CORE_CP_MEM_
@@ -389,15 +389,15 @@ union CPMemory {
 
 extern CPMemory g_cp_regs; ///< CP memory/registers
 
-/*!
- * \brief Write a CP register
- * \param addr Address (8-bit) of register
- * \param data Data (32-bit) to write to register
+/**
+ * Write a CP register
+ * @param addr Address (8-bit) of register
+ * @param data Data (32-bit) to write to register
  */
-void CPRegisterWrite(u8 addr, u32 data);
+void CP_RegisterWrite(u8 addr, u32 data);
 
 /// Initialize CP
-void CPInit();
+void CP_Init();
 
 } // namespace
 
