@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    x86_utils.h
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-02-11
- * \brief   Utilities for the x86 architecture
+ * @file    x86_utils.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-02-11
+ * @brief   Utilities for the x86 architecture
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -41,10 +41,9 @@
 namespace common {
 
 static inline int IsSSE2Supported() {
+#ifdef USE_INLINE_ASM
     u32	sse2_res;
 	u32	res;
-
-#ifdef USE_INLINE_ASM
     _asm {
         //lets see if we can execute CPUID by seeing if we can flip the 21st bit
         //of the flags register
@@ -99,6 +98,6 @@ static inline int IsSSE2Supported() {
 #endif
 }
 
-}
+} // namespace
 
 #endif
