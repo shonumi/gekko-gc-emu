@@ -29,11 +29,11 @@
     <ClCompile Include="src\renderer_gl3\texture_interface.cpp" />
     <ClCompile Include="src\renderer_gl3\uniform_manager.cpp" />
     <ClCompile Include="src\texture_decoder.cpp" />
+    <ClCompile Include="src\texture_manager.cpp" />
     <ClCompile Include="src\vertex_loader.cpp" />
     <ClCompile Include="src\vertex_manager.cpp" />
     <ClCompile Include="src\video_core.cpp" />
     <ClCompile Include="src\xf_mem.cpp" />
-    <ClCompile Include="texture_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bp_mem.h" />
