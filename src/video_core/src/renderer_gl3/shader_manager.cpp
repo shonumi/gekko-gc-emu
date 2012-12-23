@@ -263,7 +263,7 @@ GLuint ShaderManager::LoadShader() {
 void ShaderManager::SetShader() {
     GLuint program = 0;
     u32 hash = this->GetCurrentHash(); // Compute current shader hash
-    int res = cache_->Fetch(hash, program); // Fetch the shader program from the cache
+    int res = cache_->FetchFromHash(hash, program); // Fetch the shader program from the cache
 
     // Apply the shader program if it is not the current shader...
     if ((current_shader_ != program) || (E_ERR == res)) {

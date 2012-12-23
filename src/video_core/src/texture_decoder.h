@@ -49,6 +49,7 @@ enum TextureFormat {
     kTextureFormat_C8               = 0x9,
     kTextureFormat_C14X2            = 0xA,
     kTextureFormat_CMPR             = 0xE,
+    kTextureFormat_None
 };
 
 /**

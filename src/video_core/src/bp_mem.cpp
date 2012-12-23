@@ -136,6 +136,8 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                 fifo_player::FrameFinished();
             Fifo_Reset();
             GX_PE_FINISH = 1;
+            video_core::g_current_frame++;
+            video_core::g_texture_manager->Purge();
         }
         break;
 
@@ -246,33 +248,35 @@ void BP_RegisterWrite(u8 addr, u32 data) {
  * @param num Texture number to load, must be 0-7
  */
 void BP_LoadTexture(u8 num) {
-    static u8 dst_buff[kGameCubeMaxTextureWidth * kGameCubeMaxTextureHeight * 4];
-
     int set = (num & 4) >> 2;
     int index = num & 7;
 
-    BPTexImage0 tex_image_0 = g_bp_regs.tex[set].image_0[index];
-    BPTexImage3 tex_image_3 = g_bp_regs.tex[set].image_3[index];
-
-    int width = tex_image_0.get_width();
+    /*int width = tex_image_0.get_width();
     int height = tex_image_0.get_height();
 
-    _ASSERT_MSG(TGP, width <= kGameCubeMaxTextureWidth, "Texture max width exceeded (%d > %d)!",
-        width, kGameCubeMaxTextureWidth);
-    _ASSERT_MSG(TGP, height <= kGameCubeMaxTextureHeight, "Texture max height exceeded (%d > %d)!",
-        width, kGameCubeMaxTextureHeight);
+    _ASSERT_MSG(TGP, width <= kGCMaxTextureWidth, "Texture max width exceeded (%d > %d)!",
+        width, kGCMaxTextureWidth);
+    _ASSERT_MSG(TGP, height <= kGCMaxTextureHeight, "Texture max height exceeded (%d > %d)!",
+        width, kGCMaxTextureHeight);
 
     u8* src = &Mem_RAM[tex_image_3.get_addr() & RAM_MASK];
     TextureFormat format = (TextureFormat)tex_image_0.format;
     size_t buffer_len = TextureDecoder_GetSize(format, width, height);
     
-    common::Hash64 hash = common::GetHash64(src, buffer_len, 512);
+    common::Hash64 hash = common::GetHash64(src, buffer_len, 256);
 
-    if(!video_core::g_renderer->BindTexture(hash, num)) {
+    if(!video_core::g_renderer->texture_manager()->BindTexture(num, hash)) {
         TextureDecoder_Decode(format, width, height, src, dst_buff);
-        video_core::g_renderer->AddTexture(num, width, height, hash, dst_buff);
+        video_core::g_renderer->texture_manager()->AddTexture(num, width, height, hash, dst_buff);
     }
-    video_core::g_renderer->SetTextureParameters(num);
+    video_core::g_renderer->texture_manager()->SetTextureParameters(num);*/
+
+
+    video_core::g_texture_manager->UpdateData(num, g_bp_regs.tex[set].image_0[index], 
+        g_bp_regs.tex[set].image_3[index]);
+    video_core::g_texture_manager->Bind(num);
+    video_core::g_texture_manager->UpdateParameters(num, g_bp_regs.tex[set].mode_0[index], 
+        g_bp_regs.tex[set].mode_1[index]);
 }
 
 /// Initialize BP

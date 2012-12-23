@@ -22,8 +22,8 @@
     <ClCompile Include="src\renderer_gl3\shader_manager.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
-    <ClCompile Include="src\texture_manager.cpp" />
-    <ClCompile Include="src\renderer_gl3\texture_cache.cpp">
+    <ClCompile Include="texture_manager.cpp" />
+    <ClCompile Include="src\renderer_gl3\texture_interface.cpp">
       <Filter>renderer_gl3</Filter>
     </ClCompile>
   </ItemGroup>
@@ -52,7 +52,7 @@
       <Filter>renderer_gl3</Filter>
     </ClInclude>
     <ClInclude Include="src\texture_manager.h" />
-    <ClInclude Include="src\renderer_gl3\texture_cache.h">
+    <ClInclude Include="src\renderer_gl3\texture_interface.h">
       <Filter>renderer_gl3</Filter>
     </ClInclude>
   </ItemGroup>

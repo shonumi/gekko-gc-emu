@@ -34,7 +34,7 @@
 
 #define MAX_SHADERS         0x100
 
-typedef HashContainer_STLHashMap<u32, GLuint> ShaderCache;
+typedef HashContainer_STLMap<u32, GLuint> ShaderCache;
 
 class ShaderManager {
 

@@ -32,7 +32,6 @@
 #include "renderer_base.h"
 #include "shader_manager.h"
 #include "uniform_manager.h"
-#include "texture_cache.h"
 
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
 #define MAX_FRAMEBUFFERS            2
@@ -108,30 +107,6 @@ public:
 
     /// End a primitive (signal renderer to draw it)
     void EndPrimitive(u32 vbo_offset, u32 vertex_num);
-
-    /**
-     * Adds a new texturer to the renderer (must be 32-bit RGBA)
-     * @param num Texture number (0-7)
-     * @param width Width of texture in pixels
-     * @param height Height of texture in pixels
-     * @param hash A unique hash of the texture, to be used as an ID
-     * @param data Buffer of raw texture data stored as RGBA8
-     */
-    void AddTexture(int num, int width, int height, common::Hash64 hash, u8* data);
-
-    /**
-     * Sets texture parameters for the selected texture (filtering, LOD, etc.)
-     * @param num Texture number to set parameters for (0-7)
-     */
-    void SetTextureParameters(int num);
-
-    /**
-     * Binds a texture that was previously added to the renderer via AddTexture
-     * @param hash The unique hash of the texture to bind
-     * @param num Number of texture to bind to (0-7)
-     * @return True if bind succeeded, false if failed
-     */
-    bool BindTexture(common::Hash64 hash, int num);
 
     /// Sets the renderer viewport location, width, and height
     void SetViewport(int x, int y, int width, int height);
@@ -269,7 +244,6 @@ private:
 
     ShaderManager*  shader_manager_;
     UniformManager* uniform_manager_;
-    TextureCache*   texture_cache_;
 
     GLuint      generic_shader_id_;
 
