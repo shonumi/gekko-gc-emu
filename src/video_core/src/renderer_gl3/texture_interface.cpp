@@ -53,8 +53,8 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
  * @param backend_data Renderer-specific texture data used by renderer to remove it
  */
 void TextureInterface::Delete(TextureManager::CacheEntry::BackendData* backend_data) {
-  //  glDeleteTextures(1, &(static_cast<BackendData*>(backend_data)->handle_));
-    //delete backend_data;
+    glDeleteTextures(1, &(static_cast<BackendData*>(backend_data)->handle_));
+    delete backend_data;
 }
 
 /**
