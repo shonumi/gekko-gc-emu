@@ -81,7 +81,7 @@ public:
 
     public:
         void set_hash() {
-            hash_ = address_;//common::GetHash64(&Mem_RAM[address_ & RAM_MASK], size_, kHashSamples);
+            hash_ = common::GetHash64(&Mem_RAM[address_ & RAM_MASK], size_, kHashSamples);
         }
         const common::Hash64& hash() { return hash_; };
 
