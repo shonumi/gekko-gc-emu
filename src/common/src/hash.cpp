@@ -127,7 +127,6 @@ u64 __compute_murmur_hash_3(const u8 *src, int len, u32 samples) {
 
 /// CRC32 hash using the SSE4.2 instruction
 u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
-#if _M_SSE >= 0x402
     u32 h = len;
     u32 step = (len >> 2);
     const u32 *data = (const u32*)src;
@@ -145,9 +144,6 @@ u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
     }
     const u8 *data2 = (const u8*)end;
     return (u64)_mm_crc32_u32(h, u32(data2[0]));
-#else
-    return 0;
-#endif
 }
 
 /**
@@ -158,11 +154,13 @@ u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
  * @remark Borrowed from Dolphin Emulator
  */
 Hash64 GetHash64(const u8 *src, int len, u32 samples) {
-#if _M_SSE >= 0x402
-    return __compute_crc32_sse4(src, len, samples);
-#else
-    return __compute_murmur_hash_3(src, len, samples);
-#endif
+    // TODO(ShizZy): Move somewhere common so we dont need to instantiate this more than once
+    static X86Utils x86_utils; 
+    if (x86_utils.IsExtensionSupported(X86Utils::kExtensionX86_SSE4_2)) {
+        return __compute_crc32_sse4(src, len, samples);
+    } else {
+        return __compute_murmur_hash_3(src, len, samples);
+    }
 }
 
 } // namespace
