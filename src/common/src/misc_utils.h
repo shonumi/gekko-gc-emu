@@ -38,6 +38,9 @@ void LowerStr(char* str);
  */
 void UpperStr(char* str);
 
+/// Format a std::string using C-style sprintf formatting
+std::string FormatStr(const char* format, ...);
+
 /**
  * @brief Check if a file exists on the users computer
  * @param filename Filename of file to check for

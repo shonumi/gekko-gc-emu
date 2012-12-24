@@ -1,12 +1,12 @@
-/*!
+/**
  * Copyright (C) 2005-2012 Gekko Emulator
  *
- * \file    misc_utils.cpp
- * \author  ShizZy <shizzy247@gmail.com>
- * \date    2012-03-06
- * \brief   Miscellaneous functions/utilities that are used everywhere
+ * @file    misc_utils.cpp
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-06
+ * @brief   Miscellaneous functions/utilities that are used everywhere
  *
- * \section LICENSE
+ * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -22,7 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
-#include "common.h"
+#include "misc_utils.h"
 
 namespace common {
 
@@ -40,6 +40,33 @@ void UpperStr(char* str) {
             str[i] &= 0xDF;
         }
     }
+}
+
+/// Format a std::string using C-style sprintf formatting
+std::string FormatStr(const char* format, ...) {
+    va_list args;
+    char *buf = NULL;
+#if EMU_PLATFORM == PLATFORM_WINDOWS
+    int required = 0;
+
+    va_start(args, format);
+    required = _vscprintf(format, args);
+    buf = new char[required + 1];
+    vsnprintf(buf, required, format, args);
+    va_end(args);
+
+    buf[required] = '\0';
+    std::string temp = buf;
+    delete[] buf;
+#else
+    va_start(args, format);
+    vasprintf(&buf, format, args);
+    va_end(args);
+
+    std::string temp = buf;
+    free(buf);
+#endif
+    return temp;
 }
 
 /// Check if a file exists
