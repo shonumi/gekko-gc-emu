@@ -25,6 +25,7 @@
 #ifndef COMMON_X86_UTILS_
 #define COMMON_X86_UTILS_
 
+#include <string>
 #include "types.h"
 
 #if defined __APPLE__ && defined __i386__
@@ -34,69 +35,69 @@
 #elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
 #define _M_SSE 0x301
 #elif (_MSC_VER >= 1500) || __INTEL_COMPILER // Visual Studio 2008
-#define _M_SSE 0x402
+#define _M_SSE 0x401
 #endif
 
 // Common namespace
 namespace common {
 
-static inline int IsSSE2Supported() {
-#ifdef USE_INLINE_ASM
-    u32	sse2_res;
-	u32	res;
-    _asm {
-        //lets see if we can execute CPUID by seeing if we can flip the 21st bit
-        //of the flags register
-        pushfd
-        pop eax
-
-        //save the original
-        mov ecx, eax
-
-        //swap the 21st bit
-        xor eax, 200000h
-
-        //push it back on the stack, set the flags
-        push eax
-        popfd
-
-        //now get the flags
-        pushfd
-        pop eax
-
-        //see if the values are the same
-        xor eax, ecx
-        jz NoCPUIDSupport
-
-        //CPUID supported, go ahead and grab some info
-        mov eax, 1
-        CPUID
-
-        and edx, 04000000h
-        mov sse2_res, edx
-        mov res, 1
-
-    NoCPUIDSupport:
+class X86Utils {
+public:
+    /// Enumeration of X86 vendors
+    enum VendorX86 {
+        kVendorX86_None = 0,
+        kVendorX86_Intel = 1,
+        kVendorX86_AMD = 2
     };
 
-    if(!res)
-    {
-        LOG_ERROR(TCOMMON, "Aborting Execution\n");
-        LOG_ERROR(TCOMMON, "CPU does not support the CPUID instruction\n");
-        return E_ERR;
-    }
+    /// Enumeration of X86 extensions
+    enum ExtensionX86 {
+        kExtensionX86_None = 0,
+        kExtensionX86_SSE,
+        kExtensionX86_SSE2,
+        kExtensionX86_SSE3,
+        kExtensionX86_SSSE3,
+        kExtensionX86_SSE4_1,
+        kExtensionX86_SSE4_2
+    };
 
-    if(!sse2_res)
-    {
-        LOG_ERROR(TCOMMON, "Aborting Execution\n");
-        LOG_ERROR(TCOMMON, "SSE2 is required by application but not found on the chip\n");
-        return E_ERR;
-    }
-    return E_OK;
-#else
-    return E_ERR;
-#endif
-}
+    X86Utils();
+    ~X86Utils();
+
+    /**
+     * Check if an X86 extension is supported by the current architecture
+     * @param extension ExtensionX86 extension support to check for
+     * @return True if the extension is supported, otherwise false
+     */
+    bool IsExtensionSupported(ExtensionX86 extension);
+    
+    /**
+     * Gets a string summary of the X86 CPU information, suitable for printing
+     * @return String summary
+     */
+    std::string Summary();
+
+private:
+
+    std::string cpu_name_;
+    std::string brand_name_;
+
+    bool support_x64_os_;
+    bool support_x64_cpu_;
+    bool support_hyper_threading_;
+    
+    int num_cores_;
+    int logical_cpu_count_;
+
+    bool support_sse_;
+    bool support_sse2_;
+    bool support_sse3_;
+    bool support_ssse3_;
+    bool support_sse4_1_;
+    bool support_sse4_2_;
+
+    VendorX86 cpu_vendor_;
+};
 
 } // namespace
 

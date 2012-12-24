@@ -4,6 +4,7 @@ set(SRCS    src/config.cpp
             src/log.cpp
             src/misc_utils.cpp
             src/timer.cpp
+            src/x86_utils.cpp
             src/xml.cpp)
 
 add_library(common STATIC ${SRCS})
