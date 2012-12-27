@@ -209,11 +209,11 @@ public:
     // Getter/setter functions:
     // ------------------------
 
-    f32 current_fps() { return current_fps_; }
+    f32 current_fps() const { return current_fps_; }
 
-    int current_frame() { return current_frame_; }
+    int current_frame() const { return current_frame_; }
 
-    TextureManager::BackendInterface* texture_interface() { return texture_interface_; }
+    TextureManager::BackendInterface* texture_interface() const { return texture_interface_; }
 
 protected:
     f32 current_fps_;                       ///< Current framerate, should be set by the renderer
