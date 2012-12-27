@@ -193,25 +193,25 @@ GLuint ShaderManager::LoadShader() {
     // ----------------------------
 
     if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled()) 
-        _SHADER_VSDEF("#define __VSDEF_POS_DQF\n");
-    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) _SHADER_VSDEF("#define __VSDEF_POS_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_0_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex1_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_1_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex2_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_2_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_3_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_4_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex5_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_5_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex6_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_6_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) _SHADER_VSDEF("#define __VSDEF_TEX_7_MIDX\n");
+        _SHADER_VSDEF("#define _VSDEF_POS_DQF\n");
+    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) _SHADER_VSDEF("#define _VSDEF_POS_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_0_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex1_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_1_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex2_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_2_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_3_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_4_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex5_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_5_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex6_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_6_MIDX\n");
+    if (gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) _SHADER_VSDEF("#define _VSDEF_TEX_7_MIDX\n");
 
-    _SHADER_VSDEF("#define __VSDEF_COLOR0_%s\n", 
+    _SHADER_VSDEF("#define _VSDEF_COLOR0_%s\n", 
         vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format]);
 
     // Generate fragment preprocessor
     // ------------------------------
 
-    _SHADER_FSDEF("#define __FSDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages);
-    _SHADER_FSDEF("#define __FSDEF_ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))\n",
+    _SHADER_FSDEF("#define _FSDEF_NUM_STAGES %d\n", gp::g_bp_regs.genmode.num_tevstages);
+    _SHADER_FSDEF("#define _FSDEF_ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))\n",
         alpha_compare_0[gp::g_bp_regs.alpha_func.comp0],
         alpha_logic[gp::g_bp_regs.alpha_func.logic],
         alpha_compare_1[gp::g_bp_regs.alpha_func.comp1]);
@@ -219,14 +219,14 @@ GLuint ShaderManager::LoadShader() {
     for (int stage = 0; stage <= gp::g_bp_regs.genmode.num_tevstages; stage++) {
         int reg_index = stage >> 1;
 
-        _SHADER_FSDEF("#define __FSDEF_CLAMP_COLOR_%d(val) %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_CLAMP_COLOR_%d(val) %s\n", stage, 
             clamp[gp::g_bp_regs.combiner[stage].color.clamp]);
-        _SHADER_FSDEF("#define __FSDEF_CLAMP_ALPHA_%d(val) %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_CLAMP_ALPHA_%d(val) %s\n", stage, 
             clamp[gp::g_bp_regs.combiner[stage].alpha.clamp]);
-        _SHADER_FSDEF("#define __FSDEF_STAGE_DEST vec4(%s.rgb, %s.a)\n", 
+        _SHADER_FSDEF("#define _FSDEF_STAGE_DEST vec4(%s.rgb, %s.a)\n", 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].color.dest], 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].alpha.dest]);
-        sprintf(temp, "#define __FSDEF_TEXTURE_%d %s\n", stage, 
+        sprintf(temp, "#define _FSDEF_TEXTURE_%d %s\n", stage, 
             texture[gp::g_bp_regs.tevorder[reg_index].get_enable(stage)]);
         if (gp::g_bp_regs.tevorder[reg_index].get_enable(stage)) {
             _SHADER_FSDEF(temp, gp::g_bp_regs.tevorder[reg_index].get_texmap(stage), 
@@ -234,26 +234,26 @@ GLuint ShaderManager::LoadShader() {
         } else {
             _SHADER_FSDEF(temp);
         }
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_COLOR_A_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_A_%d %s\n", stage, 
             tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_a]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_COLOR_B_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_B_%d %s\n", stage, 
             tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_b]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_COLOR_C_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_C_%d %s\n", stage, 
             tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_c]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_COLOR_D_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_D_%d %s\n", stage, 
             tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_d]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_COLOR_DEST_%d %s.rgb\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_DEST_%d %s.rgb\n", stage, 
             tev_dest[gp::g_bp_regs.combiner[stage].color.dest]);
 
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_ALPHA_A_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_ALPHA_A_%d %s\n", stage, 
             tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_a]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_ALPHA_B_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_ALPHA_B_%d %s\n", stage, 
             tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_b]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_ALPHA_C_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_ALPHA_C_%d %s\n", stage, 
             tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_c]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_ALPHA_D_%d %s\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_ALPHA_D_%d %s\n", stage, 
             tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_d]);
-        _SHADER_FSDEF("#define __FSDEF_COMBINER_ALPHA_DEST_%d %s.a\n", stage, 
+        _SHADER_FSDEF("#define _FSDEF_COMBINER_ALPHA_DEST_%d %s.a\n", stage, 
             tev_dest[gp::g_bp_regs.combiner[stage].alpha.dest]);
     }
     return this->CompileShaderProgram(_vs_def, _fs_def);
