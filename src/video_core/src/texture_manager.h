@@ -73,24 +73,13 @@ public:
         gp::TextureFormat   format_;        ///< Source texture format  (dest is always RGBA8)
         size_t              size_;          ///< Source size of texture in bytes
         BackendData*        backend_data_;  ///< Pointer to backend renderer data
-
-    private:
-        static const int    kHashSamples = 256; ///< Number of texture samples to use for hash
-        common::Hash64      hash_;              ///< Hash of source texture raw data
-        int                 frame_used_;        ///< Last frame that the texture was used
-
-    public:
-        void set_hash() {
-            hash_ = common::GetHash64(&Mem_RAM[address_ & RAM_MASK], size_, kHashSamples);
-        }
-        const common::Hash64& hash() { return hash_; };
-
-        void set_frame_used() {
-            frame_used_ = video_core::g_current_frame;
-        }
-        int frame_used() { return frame_used_; }
+        common::Hash64      hash_;          ///< Hash of source texture raw data
+        int                 frame_used_;    ///< Last frame that the texture was used
     };
+
     typedef HashContainer_STLMap<common::Hash64, CacheEntry> CacheContainer;
+
+    static const int kHashSamples = 256; ///< Number of texture samples to use for hash
 
     /// Renderer interface for controlling textures
     class BackendInterface{

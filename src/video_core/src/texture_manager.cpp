@@ -53,10 +53,11 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     cache_entry.size_       = gp::TextureDecoder_GetSize(cache_entry.format_, 
                                                          cache_entry.width_, 
                                                          cache_entry.height_);
-    cache_entry.set_hash();
-
+    cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
+                                                cache_entry.size_, 
+                                                kHashSamples);
     // Query cache for texture existance...
-    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash());
+    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
 
     // Create and add to cache if texture does not exists...
     if (NULL == active_textures_[active_texture_unit]) {
@@ -71,9 +72,9 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
                                                                cache_entry,
                                                                raw_data);
         // Update cache with new information...
-        active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash(), cache_entry);
+        active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
     }
-    active_textures_[active_texture_unit]->set_frame_used();
+    active_textures_[active_texture_unit]->frame_used_ = video_core::g_current_frame;
 }
 
 /**
@@ -122,9 +123,9 @@ void TextureManager::Purge(int age_limit) {
     CacheEntry* cache_entry = NULL;
     for (int i = 0; i < this->Size(); i++) {
         cache_entry = cache_->FetchFromIndex(i);
-        if ((cache_entry->frame_used() + age_limit) < video_core::g_current_frame) {
+        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame) {
             backend_interface_->Delete(cache_entry->backend_data_);
-            cache_->Remove(cache_entry->hash());
+            cache_->Remove(cache_entry->hash_);
         }
     }
 }
