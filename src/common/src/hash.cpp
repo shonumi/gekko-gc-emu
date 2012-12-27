@@ -23,6 +23,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include "crc.h"
 #include "hash.h"
 #include "common.h"
 
@@ -139,11 +140,11 @@ u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
         step = 1;
     }
     while (data < end) {
-        h = _mm_crc32_u32(h, data[0]);
+        h = InlineCrc32_U32(h, data[0]);
         data += step;
     }
     const u8 *data2 = (const u8*)end;
-    return (u64)_mm_crc32_u32(h, u32(data2[0]));
+    return (u64)InlineCrc32_U32(h, u32(data2[0]));
 }
 
 /**
@@ -154,6 +155,7 @@ u64 __compute_crc32_sse4(const u8 *src, int len, u32 samples) {
  * @remark Borrowed from Dolphin Emulator
  */
 Hash64 GetHash64(const u8 *src, int len, u32 samples) {
+#if defined(EMU_ARCHITECTURE_X86) || defined(EMU_ARCHITECTURE_X64)
     // TODO(ShizZy): Move somewhere common so we dont need to instantiate this more than once
     static X86Utils x86_utils; 
     if (x86_utils.IsExtensionSupported(X86Utils::kExtensionX86_SSE4_2)) {
@@ -161,6 +163,9 @@ Hash64 GetHash64(const u8 *src, int len, u32 samples) {
     } else {
         return __compute_murmur_hash_3(src, len, samples);
     }
+#else
+    return __compute_murmur_hash_3(src, len, samples);
+#endif
 }
 
 } // namespace

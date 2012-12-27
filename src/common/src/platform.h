@@ -128,10 +128,9 @@ inline u64 _rotr64(u64 x, u32 shift){
     return (x >> n) | (x << (64 - n));
 }
 
-//#define EMU_IGNORE_RECOMPILER
-
 #endif
 
-
+#define GCC_VERSION_AVAILABLE(major, minor) (defined(__GNUC__) &&  (__GNUC__ > (major) || \
+    (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor))))
 
 #endif // COMMON_PLATFORM_H_
