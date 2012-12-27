@@ -84,7 +84,7 @@ public:
     }
 
     ValueType* FetchFromHash(HashType hash) {
-        std::map<HashType, ValueType>::iterator itr = map_.find(hash);
+        typename std::map<HashType, ValueType>::iterator itr = map_.find(hash);
         if (itr == map_.end()) {
             return NULL;
         }
@@ -92,7 +92,7 @@ public:
     }
 
     ValueType* FetchFromIndex(int index) {
-	    std::map<HashType, ValueType>::iterator itr = map_.begin();
+	    typename std::map<HashType, ValueType>::iterator itr = map_.begin();
         int i = 0;
  	    for (; i < index; ++i) {
  	        ++itr;
