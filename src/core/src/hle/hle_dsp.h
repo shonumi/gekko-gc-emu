@@ -6,10 +6,10 @@ enum {
 
 extern int DSPucode;
 
-int is_msg_queue_empty(void);
-u32 peek_msg_queue(void);
-void pop_msg_queue(void);
-void write_msg_queue(u32 msg);
+//int is_msg_queue_empty(void);
+//u32 peek_msg_queue(void);
+//void pop_msg_queue(void);
+//void write_msg_queue(u32 msg);
 
 void dsphle_init(void);
 void ucode_loader_parse(u32 message);

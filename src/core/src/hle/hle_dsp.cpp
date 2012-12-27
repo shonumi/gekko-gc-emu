@@ -5,13 +5,9 @@
 #include "hw/hw_pi.h"
 #include "hw/hw_ai.h"
 #include "hle_dsp.h"
+#include "dsp/mail_manager.h"
 
 int	DSPucode;
-
-#define MESSAGEQUEUESIZE 256
-u32 messagequeue[MESSAGEQUEUESIZE];
-int messagequeue_readloc;
-int messagequeue_writeloc;
 
 struct ucode_loader {
 	u32 command;
@@ -29,8 +25,6 @@ struct ucode_loader {
 void dsphle_init(void) {
 	DSPucode = DSPUCODE_LOADER;
 	ucode_loader.paramsleft=0; /* no parameters expected */
-	messagequeue_readloc=0;
-	messagequeue_writeloc=1;
 }
 
 void ucode_loader_parse(u32 message) {
@@ -91,37 +85,6 @@ void ucode_loader_parse(u32 message) {
 	}
 }
 
-void write_msg_queue(u32 msg) {
-	if (messagequeue_writeloc==messagequeue_readloc) {
-		printf("msg queue overflow\n");
-		return;
-	}
-	messagequeue[messagequeue_writeloc]=msg;
-	messagequeue_writeloc++;
-	if (messagequeue_writeloc >= MESSAGEQUEUESIZE) messagequeue_writeloc=0;
-}
-
-u32 peek_msg_queue(void) {
-	int nextread=messagequeue_readloc+1;
-	if (nextread>=MESSAGEQUEUESIZE) nextread=0;
-	if (nextread==messagequeue_writeloc) return 0;
-	//messagequeue_readloc=nextread;
-	return messagequeue[nextread];
-}
-
-void pop_msg_queue(void) {
-	int nextread=messagequeue_readloc+1;
-	if (nextread>=MESSAGEQUEUESIZE) nextread=0;
-	if (nextread==messagequeue_writeloc) return;
-	messagequeue_readloc=nextread;
-}
-
-int is_msg_queue_empty(void) {
-	int nextread=messagequeue_readloc+1;
-	if (nextread>=MESSAGEQUEUESIZE) nextread=0;
-	return (nextread==messagequeue_writeloc);
-}
-
 struct ucode_zww {
 	int bufaddr;
 	u32 databuf[256];
@@ -137,7 +100,7 @@ void ucode_zww_sendmsg(u32 msg, int irq) {
 		dspCSRDSPInt = DSP_CSR_DSPINT;
 		//PI_RequestInterrupt(PI_MASK_DSP);
 	}
-	write_msg_queue(msg);
+	m_mails.PushMail(msg);
 }
 
 //uint32 read_msg(

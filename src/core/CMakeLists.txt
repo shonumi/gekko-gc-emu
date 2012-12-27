@@ -9,6 +9,7 @@ set(SRCS	src/core.cpp
 #			src/dvd/gcm_dump.cpp # TODO: Needs build fixing
 			src/dvd/loader.cpp
 			src/dvd/realdvd.cpp
+			src/hle/dsp/mail_manager.cpp
 			src/hle/hle_audio.cpp
 			src/hle/hle.cpp
 			src/hle/hle_dsp.cpp

@@ -9,6 +9,7 @@
 #include "hw_ai.h"
 #include "hle/hle_dsp.h"
 #include "powerpc/cpu_core_regs.h"
+#include "hle/dsp/mail_manager.h"
 
 //
 
@@ -154,23 +155,23 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 		return REGDSP16(addr);
 
 	case DSP_CPU_MAILBOX:
-		//printf("CPU (%08x) checks mbox, ",ireg_PC());
-		if (!is_msg_queue_empty()) {
-			mbox_dsp_cpu = REGDSP32(DSP_CPU_MAILBOX) = peek_msg_queue();
-			//printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX));
-			REGDSP16(DSP_CPU_MAILBOX) |= 0x8000;
-		} else {
-			//printf("but msq_queue is empty\n");
-			REGDSP16(DSP_CPU_MAILBOX) |= 0x8000;
-		}
-		
-		return REGDSP16(DSP_CPU_MAILBOX);
+                //printf("CPU (%08x) checks mbox, ",ireg_PC());
+                if (!m_mails.Empty()) {
+                        mbox_dsp_cpu = REGDSP32(DSP_CPU_MAILBOX) = m_mails.ReadNextMail();
+                        //printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX));
+                        REGDSP16(DSP_CPU_MAILBOX) |= 0x8000;
+                } else {
+                        //printf("but msq_queue is empty\n");
+                        REGDSP16(DSP_CPU_MAILBOX) |= 0x8000;
+                }
+                
+                return REGDSP16(DSP_CPU_MAILBOX);
 
 	case DSP_CPU_MAILBOX + 2:
-		//printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX+2));
-		REGDSP16(DSP_CPU_MAILBOX) &= 0x7fff;
-		pop_msg_queue();
-		return REGDSP16(DSP_CPU_MAILBOX+2);
+                //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX+2));
+                REGDSP16(DSP_CPU_MAILBOX) &= 0x7fff;
+                m_mails.ReadMailboxLo();
+                return REGDSP16(DSP_CPU_MAILBOX+2);
 
 	case DSP_CSR:
 		//printf("reading DSP_CSR=%04x\n",REGDSP16(DSP_CSR));
@@ -213,7 +214,6 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 	}
 }
 
-//TODO: Shouldn't data be u16? 
 void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 {
 	switch(addr)
