@@ -148,7 +148,7 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 	{
 	case CPU_DSP_MAILBOX_HI:
 		//printf("CPU checks DSP mbox PC=%08x (%04x)\n",ireg_PC(),REGDSP16(CPU_DSP_MAILBOX_HI));
-		return REGDSP16(CPU_DSP_MAILBOX_HI);
+		return REGDSP16(addr);
 
 	case CPU_DSP_MAILBOX_LO:
 		//printf("CPU checks DSP mbox+2 PC=%08x\n",ireg_PC());
@@ -157,7 +157,7 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 	case DSP_CPU_MAILBOX_HI:
                 //printf("CPU (%08x) checks mbox, ",ireg_PC());
                 if (!m_mails.Empty()) {
-                        mbox_dsp_cpu = REGDSP32(DSP_CPU_MAILBOX_HI) = m_mails.ReadNextMail();
+			REGDSP16(DSP_CPU_MAILBOX_HI) = m_mails.ReadMailboxHi();
                         //printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
                         REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
                 } else {
@@ -168,9 +168,9 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
                 return REGDSP16(DSP_CPU_MAILBOX_HI);
 
 	case DSP_CPU_MAILBOX_LO:
-                //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX+2));
-                REGDSP16(DSP_CPU_MAILBOX_HI) &= 0x7fff;
-                m_mails.ReadMailboxLo();
+                //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX_LO));
+		REGDSP16(DSP_CPU_MAILBOX_LO) = m_mails.ReadMailboxLo();
+		mbox_cpu_dsp = REGDSP32(DSP_CPU_MAILBOX_HI);
                 return REGDSP16(DSP_CPU_MAILBOX_LO);
 
 	case DSP_CSR:
