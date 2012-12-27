@@ -261,22 +261,20 @@ GLuint ShaderManager::LoadShader() {
 
 /// Sets the current shader program based on a set of GP parameters
 void ShaderManager::SetShader() {
-    GLuint program = 0;
     u32 hash = this->GetCurrentHash(); // Compute current shader hash
-    int res = cache_->FetchFromHash(hash, program); // Fetch the shader program from the cache
+    const GLuint* res = cache_->FetchFromHash(hash); // Fetch the shader program from the cache
 
-    // Apply the shader program if it is not the current shader...
-    if ((current_shader_ != program) || (E_ERR == res)) {
+    // Generate shader if it does not already exist...
+    if (NULL == res) {
+        current_shader_ = LoadShader();
+        cache_->Update(hash, current_shader_);
+        uniform_manager_->AttachShader(current_shader_);
 
-        // Generate shader if it does not already exist...
-        if (E_ERR == res) {
-            program = LoadShader();
-            cache_->Update(hash, program);
-            uniform_manager_->AttachShader(program);
-        }
-        current_shader_ = program;
-        glUseProgram(current_shader_);
+    // Set the shader program if it is not the current shader...
+    } else {
+        current_shader_ = *res;
     }
+    glUseProgram(current_shader_);
     this->UpdateUniforms();
 }
 

@@ -57,7 +57,7 @@ public:
         class BackendData {
         public:
             BackendData() { }
-            virtual ~BackendData() { }
+            virtual ~BackendData() { } // Virtual destructor allows for polymorphism
         };
 
         CacheEntry() : address_(0), size_(0), width_(-1), height_(-1), type_(kTextureType_None),
@@ -182,7 +182,7 @@ private:
 
     CacheContainer*     cache_;                                 ///< Texture cache
     BackendInterface*   backend_interface_;                     ///< Backend renderer interface
-    CacheEntry          active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
+    CacheEntry*         active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
 
     DISALLOW_COPY_AND_ASSIGN(TextureManager);
 };

@@ -25,8 +25,9 @@
 #include "texture_manager.h"
 
 TextureManager::TextureManager(const BackendInterface* backend_interface) {
-    backend_interface_ = const_cast<BackendInterface*>(backend_interface);
-    cache_ = new CacheContainer();
+    backend_interface_  = const_cast<BackendInterface*>(backend_interface);
+    cache_              = new CacheContainer();
+    memset(active_textures_, 0, sizeof(active_textures_));
 }
 
 TextureManager::~TextureManager() {
@@ -41,22 +42,38 @@ TextureManager::~TextureManager() {
  */
 void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& tex_image_0, 
     const gp::BPTexImage3& tex_image_3) {
-    CacheEntry* tex = &active_textures_[active_texture_unit];
-    static u8 raw_data[kGCMaxTextureWidth * kGCMaxTextureHeight * 4];
+    static CacheEntry   cache_entry;
+    static u8           raw_data[kGCMaxTextureWidth * kGCMaxTextureHeight * 4];
 
-    tex->address_   = tex_image_3.image_base << 5;
-    tex->width_     = tex_image_0.width + 1;
-    tex->height_    = tex_image_0.height + 1;
-    tex->type_      = kTextureType_Normal;
-    tex->format_    = (gp::TextureFormat)tex_image_0.format;
-    tex->size_      = gp::TextureDecoder_GetSize(tex->format_, tex->width_, tex->height_);
-    tex->set_hash();
+    cache_entry.address_    = tex_image_3.image_base << 5;
+    cache_entry.width_      = tex_image_0.width + 1;
+    cache_entry.height_     = tex_image_0.height + 1;
+    cache_entry.type_       = kTextureType_Normal;
+    cache_entry.format_     = (gp::TextureFormat)tex_image_0.format;
+    cache_entry.size_       = gp::TextureDecoder_GetSize(cache_entry.format_, 
+                                                         cache_entry.width_, 
+                                                         cache_entry.height_);
+    cache_entry.set_hash();
 
-    if (E_ERR == cache_->FetchFromHash(tex->hash(), *tex)) {
-        gp::TextureDecoder_Decode(tex->format_, tex->width_, tex->height_, 
-            &Mem_RAM[tex->address_ & RAM_MASK], raw_data);
-        tex->backend_data_ = backend_interface_->Create(active_texture_unit, *tex, raw_data);
+    // Query cache for texture existance...
+    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash());
+
+    // Create and add to cache if texture does not exists...
+    if (NULL == active_textures_[active_texture_unit]) {
+        // Decode texture from source data to RGBA8 raw data...
+        gp::TextureDecoder_Decode(cache_entry.format_, 
+                                  cache_entry.width_,
+                                  cache_entry.height_,
+                                  &Mem_RAM[cache_entry.address_ & RAM_MASK],
+                                  raw_data);
+        // Create a texture in VRAM from raw data...
+        cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
+                                                               cache_entry,
+                                                               raw_data);
+        // Update cache with new information...
+        active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash(), cache_entry);
     }
+    active_textures_[active_texture_unit]->set_frame_used();
 }
 
 /**
@@ -75,10 +92,8 @@ void TextureManager::UpdateParameters(int active_texture_unit, const gp::BPTexMo
  * @param active_texture_unit Texture unit to bind (0-7)
  */
 void TextureManager::Bind(int active_texture_unit) {
-    CacheEntry* tex = &active_textures_[active_texture_unit];
-    backend_interface_->Bind(active_texture_unit, tex->backend_data_);
-    tex->set_frame_used();
-    cache_->Update(tex->hash(), *tex);
+    backend_interface_->Bind(active_texture_unit, 
+        active_textures_[active_texture_unit]->backend_data_);
 }
 
 /**
@@ -88,9 +103,7 @@ void TextureManager::Bind(int active_texture_unit) {
  * @return True if lookup succeeded, false if failed
  */
 const TextureManager::CacheEntry& TextureManager::Fetch(int index) {
-    TextureManager::CacheEntry texture;
-    cache_->FetchFromIndex(index, texture);
-    return texture;
+    return *cache_->FetchFromIndex(index);
 }
 
 /**
@@ -106,12 +119,12 @@ int TextureManager::Size() {
  * @param age_limit Acceptable age limit (in frames) for textures to still be considered fresh
  */
 void TextureManager::Purge(int age_limit) {
-    CacheEntry cache_entry;
+    CacheEntry* cache_entry = NULL;
     for (int i = 0; i < this->Size(); i++) {
-        cache_->FetchFromIndex(i, cache_entry);
-        if ((cache_entry.frame_used() + age_limit) < video_core::g_current_frame) {
-            backend_interface_->Delete(cache_entry.backend_data_);
-            cache_->Remove(cache_entry.hash());
+        cache_entry = cache_->FetchFromIndex(i);
+        if ((cache_entry->frame_used() + age_limit) < video_core::g_current_frame) {
+            backend_interface_->Delete(cache_entry->backend_data_);
+            cache_->Remove(cache_entry->hash());
         }
     }
 }

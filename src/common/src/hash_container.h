@@ -35,7 +35,7 @@ template <class HashType, class ValueType> class HashContainer {
      * @param hash Hash to use
      * @param value Value to update at given hash in the container
      */
-    void Update(HashType hash, ValueType value);
+    ValueType* Update(HashType hash, ValueType value);
 
     /**
      * Remove a hash entry in the hash container
@@ -46,18 +46,16 @@ template <class HashType, class ValueType> class HashContainer {
     /**
      * Fetch the value at at the given hash from the hash container
      * @param hash Hash value of entry to fetch
-     * @param value Value stored at hash location. Only set if the hash is in the container.
-     * @return E_OK on success (hash was found), otherwise E_ERR
+     * @return Pointer to value stored at hash location on success (index was found), otherwise NULL
      */
-    int FetchFromHash(HashType hash, ValueType& value);
+    ValueType* FetchFromHash(HashType hash);
 
     /**
      * Fetch the value at at the given integer index from the hash container
      * @param hash Hash value of entry to fetch
-     * @param value Value stored at hash location. Only set if the hash is in the container.
-     * @return E_OK on success (hash was found), otherwise E_ERR
+     * @return Pointer to value stored at hash location on success (index was found), otherwise NULL
      */
-    int FetchFromIndex(int index, ValueType& value);
+    ValueType* FetchFromIndex(int index);
 
     /**
      * Get the size of the hash container
@@ -67,8 +65,9 @@ template <class HashType, class ValueType> class HashContainer {
 };
 
 /// A hash container that's about as simple as it gets
-template <class HashType, class ValueType> class HashContainer_Simple :
+template <class HashType, class ValueType> class HashContainer_Simple : 
     public HashContainer<HashType, ValueType> {
+
 public:
     HashContainer_Simple(int container_size=65536) {
         num_entries_ = 0;
@@ -80,68 +79,67 @@ public:
         delete[] container_;
     }
 
-    void Update(HashType hash, ValueType value) {
-        for (int i = 0; i < num_entries_; i++) {
+    ValueType* Update(HashType hash, ValueType value) {
+        int i = 0;
+        for (; i < num_entries_; i++) {
             if (container_[i].hash == hash) {
                 container_[i].value = value;
-                return;
+                return &container_[i].value;
             }
         }
-        container_[num_entries_].hash = hash;
-        container_[num_entries_].value = value;
+        container_[i].hash = hash;
+        container_[i].value = value;
         num_entries_++;
 
         _ASSERT_MSG(TCOMMON, num_entries_ < container_size_, 
             "Exceeded maximum hash container size!");
-        return;
+        return &container_[i].value;
     }
 
     void Remove(HashType hash) {
+        /* TODO(ShizZy): FixMe
         for (int i = 0; i < num_entries_; i++) {
             if (container_[i].hash == hash) {
                 memset(&container_[i], 0, sizeof(HashEntry));
                 num_entries_--;
                 return;
             }
-        }
+        }*/
     }
 
-    int FetchFromHash(HashType hash, ValueType& value) {
+    ValueType* FetchFromHash(HashType hash) {
         for (int i = 0; i < num_entries_; i++) {
             if (container_[i].hash == hash) {
-                value = container_[i].value;
-                return E_OK;
+                return &container_[i].value;
             }
         }
-        return E_ERR;
+        return NULL;
     }
 
-    int FetchFromIndex(int index, ValueType& value) {
+    ValueType* FetchFromIndex(int index) {
         int index_count = 0;
         for (int i = 0; i < num_entries_; i++) {
             if (container_[i].hash != 0) {
                 if (index_count == index) {
-                    value = container_[i].value;
-                    return E_OK;
+                    return &container_[i].value;
                 }
                 index_count++;
             }
         }
- 	    return E_ERR;
+ 	    return NULL;
     }
 
     int Size() {
         return num_entries_;
     }
 
-private:
     struct HashEntry {
         HashType hash;
         ValueType value;
     };
-
+    
+private:
     HashEntry* container_;
-
     int num_entries_;
     int container_size_;
 };
@@ -149,44 +147,44 @@ private:
 /// Hash container implemented using STL map
 template <class HashType, class ValueType> class HashContainer_STLMap : 
     public HashContainer<HashType, ValueType> {
+
 public:
     HashContainer_STLMap() {
     }
     ~HashContainer_STLMap() {
     }
 
-    void Update(HashType hash, ValueType value) {
+    ValueType* Update(HashType hash, ValueType value) {
         map_[hash] = value;
+        return &map_[hash];
     }
 
     void Remove(HashType hash) {
         map_.erase(hash);
     }
 
-    int FetchFromHash(HashType hash, ValueType& value) {
+    ValueType* FetchFromHash(HashType hash) {
         auto itr = map_.find(hash);
         if (itr == map_.end()) {
-            return E_ERR;
+            return NULL;
         }
-        value = itr->second;
-        return E_OK;
+        return &itr->second;
     }
 
-    int FetchFromIndex(int index, ValueType& value) {
-        int i = 0;
+    ValueType* FetchFromIndex(int index) {
 	    auto itr = map_.begin();
+        int i = 0;
  	    for (; i < index; ++i) {
  	        ++itr;
         }
         if (i < index) {
-            return E_ERR;
+            return NULL;
         }
-        value = itr->second;
- 	    return E_OK;
+        return &itr->second;
     }
 
     int Size() {
-        return (int)map_.size();
+        return static_cast<int>(map_.size());
     }
 
 private:
