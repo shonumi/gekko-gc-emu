@@ -35,8 +35,6 @@
 #include "renderer_gl2/renderer_gl2.h"
 
 #include "video_core.h"
-#include "renderer_base.h"
-#include "texture_manager.h"
 #include "vertex_manager.h"
 #include "vertex_loader.h"
 #include "fifo.h"
@@ -53,14 +51,16 @@ namespace video_core {
 EmuWindow*      g_emu_window = NULL;    ///< Frontend emulator window
 RendererBase*   g_renderer = NULL;      ///< Renderer plugin
 SDL_Thread*     g_video_thread = NULL;
+TextureManager* g_texture_manager = NULL;
+int             g_current_frame = 0;
 
 int VideoEntry(void*) {
     if (g_emu_window == NULL) {
         LOG_ERROR(TGP, "video_core::VideoEntry called without calling Init()!");
     }
     g_emu_window->MakeCurrent();
-    while (core::SYS_RUNNING == core::g_state) {
-        gp::DecodeCommand();
+    for(;;) {
+        gp::Fifo_DecodeCommand();
     }
     return E_OK;
 }
@@ -82,26 +82,33 @@ void Start() {
 
 /// Initialize the video core
 void Init(EmuWindow* emu_window) {
-    gp::FifoInit();
-    gp::TextureManagerInit();
-    vertex_manager::Init();
-    vertex_loader::Init();
-    gp::BPInit();
-    gp::CPInit();
-    gp::XFInit();
+    gp::Fifo_Init();
+    gp::VertexManager_Init();
+    gp::VertexLoader_Init();
+    gp::BP_Init();
+    gp::CP_Init();
+    gp::XF_Init();
 
     g_emu_window = emu_window;
     g_renderer = new RendererGL3();
     g_renderer->SetWindow(g_emu_window);
     g_renderer->Init();
 
+    g_texture_manager = new TextureManager(g_renderer->texture_interface());
+
+    g_current_frame = 0;
+
     LOG_NOTICE(TVIDEO, "initialized ok");
 }
 
 /// Shutdown the video core
 void Shutdown() {
-    gp::FifoShutdown();
-    vertex_loader::Shutdown();
+    gp::Fifo_Shutdown();
+    gp::VertexManager_Shutdown();
+    gp::VertexLoader_Shutdown();
+
+    delete g_renderer;
+    delete g_texture_manager;
 }
 
 } // namespace

@@ -208,17 +208,17 @@ void PlayFile(FPFile& in)
     for (unsigned int i = 0; i < sizeof(gp::BPMemory) / sizeof(u32); ++i)
     {
         // TODO: This is dangerous since it e.g. triggers EFB copy requests!
-        gp::FifoPush8(GP_LOAD_BP_REG);
-        gp::FifoPush32((i << 24) | (bpmem->mem[i] & 0x00FFFFFF));
+        gp::Fifo_Push8(GP_LOAD_BP_REG);
+        gp::Fifo_Push32((i << 24) | (bpmem->mem[i] & 0x00FFFFFF));
     }
 
 
     gp::CPMemory* cpmem = (gp::CPMemory*)&(*(in.raw_data.begin() + in.file_header.initial_cpmem_data_offset));
     for (unsigned int i = 0; i < sizeof(gp::CPMemory) / sizeof(u32); ++i)
     {
-        gp::FifoPush8(GP_LOAD_CP_REG);
-        gp::FifoPush8(i << 24);
-        gp::FifoPush32(cpmem->mem[i]);
+        gp::Fifo_Push8(GP_LOAD_CP_REG);
+        gp::Fifo_Push8(i << 24);
+        gp::Fifo_Push32(cpmem->mem[i]);
     }
 
     gp::XFMemory* xfmem = (gp::XFMemory*)&(*(in.raw_data.begin() + in.file_header.initial_xfmem_data_offset));
@@ -237,7 +237,7 @@ void PlayFile(FPFile& in)
                 {
                     std::vector<u8>::iterator byte;
                     for (byte = in.raw_data.begin() + element->offset; byte != in.raw_data.begin() + element->offset + element->size; ++byte)
-                        gp::FifoPush8(*byte);
+                        gp::Fifo_Push8(*byte);
 
                     break;
                 }

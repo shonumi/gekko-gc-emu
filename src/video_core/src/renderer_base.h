@@ -26,9 +26,11 @@
 #define VIDEO_CORE_RENDER_BASE_H_
 
 #include "common.h"
+#include "hash.h"
 #include "fifo.h"
 #include "gx_types.h"
 #include "video/emuwindow.h"
+#include "texture_manager.h"
 
 class RendererBase {
 public:
@@ -47,7 +49,7 @@ public:
         kRenderMode_UseDstAlpha = 4
     };
 
-    RendererBase() : current_fps_(0) {
+    RendererBase() : current_fps_(0), current_frame_(0), texture_interface_(NULL) {
     }
 
     ~RendererBase() {
@@ -115,29 +117,6 @@ public:
 
     /// End a primitive (signal renderer to draw it)
     virtual void EndPrimitive(u32 vbo_offset, u32 vertex_num) = 0;
-
-    /**
-     * Adds a new texturer to the renderer (must be 32-bit RGBA)
-     * @param width Width of texture in pixels
-     * @param height Height of texture in pixels
-     * @param hash A unique hash of the texture, to be used as an ID
-     * @param data Buffer of raw texture data stored in correct format
-     */
-    virtual void AddTexture(u16 width, u16 height, u32 hash, u8* data) = 0;
-
-    /**
-     * Sets texture parameters for the selected texture (filtering, LOD, etc.)
-     * @param num Texture number to set parameters for (0-7)
-     */
-    virtual void SetTextureParameters(int num) = 0;
-
-    /**
-     * Binds a texture that was previously added to the renderer via AddTexture
-     * @param hash The unique hash of the texture to bind
-     * @param num Number of texture to bind to (0-7)
-     * @return True if bind succeeded, false if failed
-     */
-    virtual bool BindTexture(u32 hash, int num) = 0;
    
     /// Sets the render viewport location, width, and height
     virtual void SetViewport(int x, int y, int width, int height) = 0;
@@ -227,10 +206,20 @@ public:
     /// Shutdown the renderer
     virtual void ShutDown() = 0;
 
-    f32 current_fps() { return current_fps_; }
+    // Getter/setter functions:
+    // ------------------------
+
+    f32 current_fps() const { return current_fps_; }
+
+    int current_frame() const { return current_frame_; }
+
+    TextureManager::BackendInterface* texture_interface() const { return texture_interface_; }
 
 protected:
-    f32 current_fps_;   ///< Current framerate, should be set by the renderer
+    f32 current_fps_;                       ///< Current framerate, should be set by the renderer
+    int current_frame_;                     ///< Current frame, should be set by the renderer
+
+    TextureManager::BackendInterface* texture_interface_;
 
 private:
 

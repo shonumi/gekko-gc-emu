@@ -43,7 +43,7 @@
 class RendererGL3 : virtual public RendererBase {
 public:
     RendererGL3();
-    ~RendererGL3() {};
+    ~RendererGL3();
 
     /**
      * Write data to BP for renderer internal use (e.g. direct to shader)
@@ -107,29 +107,6 @@ public:
 
     /// End a primitive (signal renderer to draw it)
     void EndPrimitive(u32 vbo_offset, u32 vertex_num);
-
-    /**
-     * Adds a new texturer to the renderer (must be 32-bit RGBA)
-     * @param width Width of texture in pixels
-     * @param height Height of texture in pixels
-     * @param hash A unique hash of the texture, to be used as an ID
-     * @param data Buffer of raw texture data stored in correct format
-     */
-    void AddTexture(u16 width, u16 height, u32 hash, u8* data);
-
-    /**
-     * Sets texture parameters for the selected texture (filtering, LOD, etc.)
-     * @param num Texture number to set parameters for (0-7)
-     */
-    void SetTextureParameters(int num);
-
-    /**
-     * Binds a texture that was previously added to the renderer via AddTexture
-     * @param hash The unique hash of the texture to bind
-     * @param num Number of texture to bind to (0-7)
-     * @return True if bind succeeded, false if failed
-     */
-    bool BindTexture(u32 hash, int num);
 
     /// Sets the renderer viewport location, width, and height
     void SetViewport(int x, int y, int width, int height);
@@ -236,11 +213,6 @@ private:
     GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
     GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
 
-    // Texture stuff
-    // -------------
-
-    GLuint      texture_cache_[MAX_CACHED_TEXTURES];    ///< Cache of textures loaded to renderer
-
     // Vertex buffer stuff
     // -------------------
 
@@ -270,8 +242,8 @@ private:
 
     EmuWindow*  render_window_;
 
-    UniformManager* uniform_manager_;
     ShaderManager*  shader_manager_;
+    UniformManager* uniform_manager_;
 
     GLuint      generic_shader_id_;
 

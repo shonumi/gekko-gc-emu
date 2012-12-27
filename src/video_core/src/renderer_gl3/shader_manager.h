@@ -34,14 +34,12 @@
 
 #define MAX_SHADERS         0x100
 
-typedef HashContainer_STLHashMap<u32, GLuint> ShaderCache;
-
 class ShaderManager {
 
 public:
 
     ShaderManager();
-    ~ShaderManager() {};
+    ~ShaderManager();
 
     /// Updates the uniform values for the current shader
     void UpdateUniforms();
@@ -62,6 +60,8 @@ public:
     void Init(UniformManager* uniform_manager);
 
 private:
+
+    typedef HashContainer_STLMap<u32, GLuint> ShaderCache;
 
     /**
      * Compiles a shader program

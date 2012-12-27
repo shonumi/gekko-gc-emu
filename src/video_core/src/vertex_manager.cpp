@@ -26,7 +26,7 @@
 #include "vertex_manager.h"
 #include "video_core.h"
 
-namespace vertex_manager {
+namespace gp {
 
 GXVertex*   g_hardware_vbo = NULL;  ///< Pointer to hardware VBO (always GPU mem)
 GXVertex*   g_vbo = NULL;           ///< Pointer to VBO data (can be GPU or sys mem)
@@ -36,7 +36,7 @@ u32         g_vertex_num = 0;       ///< Current vertex number
 int         g_convert_quads_to_triangles = 0;
 int g_quad_counter = 0;
 
-void NextVertex() {
+void VertexManager_NextVertex() {
     // Mark the vertex position XF index as "used" to renderer
     video_core::g_renderer->VertexPosition_UseIndexXF(g_vbo->pm_idx);
 
@@ -65,7 +65,7 @@ void NextVertex() {
 }
 
 /// Begin a primitive
-void BeginPrimitive(GXPrimitive prim, int count) {
+void VertexManager_BeginPrimitive(GXPrimitive prim, int count) {
     g_vertex_num = 0;
     g_quad_counter = 0;
     
@@ -81,25 +81,29 @@ void BeginPrimitive(GXPrimitive prim, int count) {
 }
 
 /// End a primitive
-void EndPrimitive() {
+void VertexManager_EndPrimitive() {
     video_core::g_renderer->EndPrimitive(g_vbo_offset, g_vertex_num);
     g_vbo_offset += g_vertex_num;
     g_convert_quads_to_triangles = 0;
 }
 
 /// Flush the vertex manager
-void Flush() {
+void VertexManager_Flush() {
     g_vbo_offset = 0;
     g_vertex_num = 0;
 }
 
 /// Initialize the vertex manager
-void Init() { 
+void VertexManager_Init() { 
     g_vbo = NULL;
     g_vbo_offset = 0;
     g_vertex_num = 0;
-    LOG_NOTICE(TGP, "vertex_manager initialized ok");
+    LOG_NOTICE(TGP, "vertex manager initialized ok");
     return;
+}
+
+/// Shutdown the vertex manager
+void VertexManager_Shutdown() {
 }
 
 } // namespace

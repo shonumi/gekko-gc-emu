@@ -176,7 +176,7 @@ public:
         /// Fragment shader UBO
         struct _FS_UBO {
             UniformStruct_TevState tev_state;
-            UniformStruct_TevStageParams tev_stages[kGXNumTevStages];
+            UniformStruct_TevStageParams tev_stages[kGCMaxTevStages];
         } fs_ubo;
     };
 

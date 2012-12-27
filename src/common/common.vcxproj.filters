@@ -8,6 +8,7 @@
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\misc_utils.cpp" />
     <ClCompile Include="src\hash.cpp" />
+    <ClCompile Include="src\x86_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crc.h" />

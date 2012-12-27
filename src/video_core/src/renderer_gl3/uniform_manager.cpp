@@ -267,7 +267,7 @@ void UniformManager::UpdateStagedData() {
     // Fragment shader uniforms
     // ------------------------
 
-    for (int stage = 0; stage < kGXNumTevStages; stage++) {
+    for (int stage = 0; stage < kGCMaxTevStages; stage++) {
         int reg_index = stage >> 1;
 
         // Konst color
@@ -310,9 +310,9 @@ void UniformManager::ApplyChanges() {
 #ifdef _COMBINE_BP_UBO_WRITES
     int changeset_start = -1;
     int changeset_length = 0;
-    int num_stage_iterations = kGXNumTevStages + 1;
+    int num_stage_iterations = kGCMaxTevStages + 1;
 #else
-    int num_stage_iterations = kGXNumTevStages;
+    int num_stage_iterations = kGCMaxTevStages;
 #endif
     if (!(__uniform_data_.fs_ubo.tev_state == 
         staged_uniform_data_.fs_ubo.tev_state) || 
@@ -337,7 +337,7 @@ void UniformManager::ApplyChanges() {
         // ---------------
 
         if ((staged_uniform_data_.fs_ubo.tev_stages[stage] == 
-            __uniform_data_.fs_ubo.tev_stages[stage]) || (stage >= kGXNumTevStages)) {
+            __uniform_data_.fs_ubo.tev_stages[stage]) || (stage >= kGCMaxTevStages)) {
 
             // Upload last changeset
 #ifdef _COMBINE_BP_UBO_WRITES               

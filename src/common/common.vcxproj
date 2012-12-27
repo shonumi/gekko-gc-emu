@@ -157,6 +157,7 @@
     <ClCompile Include="src\log.cpp" />
     <ClCompile Include="src\misc_utils.cpp" />
     <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\x86_utils.cpp" />
     <ClCompile Include="src\xml.cpp" />
   </ItemGroup>
   <ItemGroup>

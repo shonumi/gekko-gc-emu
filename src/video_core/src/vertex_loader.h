@@ -28,29 +28,28 @@
 #include "gx_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Vertex Loader namespace
+// Vertex Loader
 
-namespace vertex_loader {
+namespace gp {
 
 /**
  * @brief Decode a primitive type
  * @param type Type of primitive (e.g. points, lines, triangles, etc.)
  * @param count Number of vertices
- * @param vat Vertex attribute table
  */
-void DecodePrimitive(GXPrimitive type, int count); 
+void VertexLoader_DecodePrimitive(GXPrimitive type, int count); 
 
 /**
  * @brief Gets the size of the next vertex to be decoded
  * @return Size of the next vertex to be decoded
  */
-int GetVertexSize();
+int VertexLoader_GetVertexSize();
 
 /// Initialize the Vertex Loader
-void Init();
+void VertexLoader_Init();
 
 /// Shutdown the Vertex Loader
-void Shutdown();
+void VertexLoader_Shutdown();
 
 } // namespace
 

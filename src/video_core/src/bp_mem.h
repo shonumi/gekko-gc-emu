@@ -1,26 +1,26 @@
-/*!
-* Copyright (C) 2005-2012 Gekko Emulator
-*
-* \file    bp_mem.h
-* \author  ShizZy <shizzy247@gmail.com>
-* \date    2012-03-10
-* \brief   Implementation of BP for the graphics processor
-*
-* \section LICENSE
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details at
-* http://www.gnu.org/copyleft/gpl.html
-*
-* Official project repository can be found at:
-* http://code.google.com/p/gekko-gc-emu/
-*/
+/**
+ * Copyright (C) 2005-2012 Gekko Emulator
+ *
+ * @file    bp_mem.h
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-10
+ * @brief   Implementation of BP for the graphics processor
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Official project repository can be found at:
+ * http://code.google.com/p/gekko-gc-emu/
+ */
 
 #ifndef VIDEO_CORE_BP_MEM_H_
 #define VIDEO_CORE_BP_MEM_H_
@@ -527,17 +527,21 @@ union BPMemory {
 
 extern BPMemory g_bp_regs; ///< BP memory/registers
 
-/*!
- * \brief Write a BP register
- * \param addr Address (8-bit) of register
- * \param data Data (32-bit) to write to register
+/**
+ * Write a BP register
+ * @param addr Address (8-bit) of register
+ * @param data Data (32-bit) to write to register
  */
-void BPRegisterWrite(u8 addr, u32 data);
+void BP_RegisterWrite(u8 addr, u32 data);
 
-void LoadTexture(u8 index);
+/**
+ * Load a texture
+ * @param num Texture number to load, must be 0-7
+ */
+void BP_LoadTexture(u8 index);
 
 /// Initialize BP
-void BPInit();
+void BP_Init();
 
 } // namespace
 

@@ -6,7 +6,7 @@
 
     <!-- General system setting-->
     <General>
-        <EnableMultiCore>false</EnableMultiCore> <!-- Not implemented -->
+        <EnableMultiCore>true</EnableMultiCore> <!-- Not implemented -->
         <EnableIdleSkipping>false</EnableIdleSkipping> <!-- Not implemented -->
         <EnableHLE>true</EnableHLE>
         <EnableAutoBoot>true</EnableAutoBoot>
@@ -135,6 +135,11 @@
                     <DPadRightKey>209</DPadRightKey>
                 </JoypadController>
             </ControllerPort>
+            
+            <!-- Note: Enable all controllers by default. This makes SSBM boot and does no harm -->
+            <ControllerPort port="1" device="controller" enable="true"/>
+            <ControllerPort port="2" device="controller" enable="true"/>
+            <ControllerPort port="3" device="controller" enable="true"/>
         </GameCube>
     </Devices>
 </SysConfig>

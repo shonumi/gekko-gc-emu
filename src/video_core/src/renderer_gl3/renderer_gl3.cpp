@@ -1,26 +1,26 @@
 /**
-* Copyright (C) 2005-2012 Gekko Emulator
-*
-* @file    renderer_gl3.cpp
-* @author  ShizZy <shizzy247@gmail.com>
-* @date    2012-03-10
-*   Implementation of a OpenGL 3.2 renderer
-*
-* @section LICENSE
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details at
-* http://www.gnu.org/copyleft/gpl.html
-*
-* Official project repository can be found at:
-* http://code.google.com/p/gekko-gc-emu/
-*/
+ * Copyright (C) 2005-2012 Gekko Emulator
+ *
+ * @file    renderer_gl3.cpp
+ * @author  ShizZy <shizzy247@gmail.com>
+ * @date    2012-03-10
+ *   Implementation of a OpenGL 3.2 renderer
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Official project repository can be found at:
+ * http://code.google.com/p/gekko-gc-emu/
+ */
 
 #include "common.h"
 #include "config.h"
@@ -37,6 +37,7 @@
 
 #include "renderer_gl3.h"
 #include "shader_manager.h"
+#include "texture_interface.h"
 
 /// OpenGL color source factors
 static const GLenum g_src_factors[8] =
@@ -100,7 +101,6 @@ RendererGL3::RendererGL3() {
     memset(fbo_, 0, sizeof(fbo_));  
     memset(fbo_rbo_, 0, sizeof(fbo_rbo_));  
     memset(fbo_depth_buffers_, 0, sizeof(fbo_depth_buffers_));
-    memset(texture_cache_, 0, sizeof(texture_cache_));
     resolution_width_ = 640;
     resolution_height_ = 480;
     vbo_handle_ = 0;
@@ -112,7 +112,7 @@ RendererGL3::RendererGL3() {
     vertex_color_cur_count_[0] = vertex_color_cur_count_[1] = GX_CLR_RGBA;
     vertex_texcoord_cur_ = 0;
     last_mode_ = 0;
-    for (int i = 0; i < kGXNumTextures; i++) {
+    for (int i = 0; i < kGCMaxTextureMaps; i++) {
         vertex_texcoord_format_[i] = 0;
         vertex_texcoord_enable_[i] = 0;
         vertex_texcoord_format_size_[i] = 0;
@@ -125,31 +125,41 @@ RendererGL3::RendererGL3() {
     generic_shader_id_ = 0;
     prim_type_ = (GXPrimitive)0;
     gl_prim_type_ = 0;
+    shader_manager_ = new ShaderManager();
+    uniform_manager_ = new UniformManager();
+    texture_interface_ = new TextureInterface();
+}
+
+/// RendererGL3 destructor
+RendererGL3::~RendererGL3() {
+    delete shader_manager_;
+    delete uniform_manager_;
+    delete texture_interface_;
 }
 
 /**
-* Write data to BP for renderer internal use (e.g. direct to shader)
-* @param addr BP register address
-* @param data Value to write to BP register
-*/
+ * Write data to BP for renderer internal use (e.g. direct to shader)
+ * @param addr BP register address
+ * @param data Value to write to BP register
+ */
 void RendererGL3::WriteBP(u8 addr, u32 data) {
     uniform_manager_->WriteBP(addr, data);
 }
 
 /**
-* Write data to CP for renderer internal use (e.g. direct to shader)
-* @param addr CP register address
-* @param data Value to write to CP register
-*/
+ * Write data to CP for renderer internal use (e.g. direct to shader)
+ * @param addr CP register address
+ * @param data Value to write to CP register
+ */
 void RendererGL3::WriteCP(u8 addr, u32 data) {
 }
 
 /**
-* Write data to XF for renderer internal use (e.g. direct to shader)
-* @param addr XF address
-* @param length Length (in 32-bit words) to write to XF
-* @param data Data buffer to write to XF
-*/
+ * Write data to XF for renderer internal use (e.g. direct to shader)
+ * @param addr XF address
+ * @param length Length (in 32-bit words) to write to XF
+ * @param data Data buffer to write to XF
+ */
 void RendererGL3::WriteXF(u16 addr, int length, u32* data) {
     uniform_manager_->WriteXF(addr, length, data);
 }
@@ -162,95 +172,12 @@ void RendererGL3::VertexPosition_UseIndexXF(u8 index) {
 }
 
 /**
-* Adds a new texturer to the renderer (must be 32-bit RGBA)
-* @param width Width of texture in pixels
-* @param height Height of texture in pixels
-* @param hash A unique hash of the texture, to be used as an ID
-* @param data Buffer of raw texture data stored in correct format
-*/
-void RendererGL3::AddTexture(u16 width, u16 height, u32 hash, u8* data) {
-    int id = hash & (MAX_CACHED_TEXTURES - 1);
-    glGenTextures(1, &texture_cache_[id]);
-    glBindTexture(GL_TEXTURE_2D, texture_cache_[id]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-}
-
-/**
-* Sets texture parameters for the selected texture (filtering, LOD, etc.)
-* @param num Texture number to set parameters for (0-7)
-*/
-void RendererGL3::SetTextureParameters(int num) {
-    int set = (num & 4) >> 2;
-    int index = num & 7; 
-    gp::BPTexMode0 tex_mode_0 = gp::g_bp_regs.tex[set].mode_0[index];
-    gp::BPTexMode1 tex_mode_1 = gp::g_bp_regs.tex[set].mode_1[index];
-
-    static const GLint gl_tex_wrap[4] = {
-        GL_CLAMP_TO_EDGE,
-        GL_REPEAT,
-        GL_MIRRORED_REPEAT,
-        GL_REPEAT
-    };
-    static const GLint gl_mag_filter[2] = {
-        GL_NEAREST,
-        GL_LINEAR
-    };
-    static const GLint gl_min_filter[8] = {
-        GL_NEAREST,
-        GL_NEAREST_MIPMAP_NEAREST,
-        GL_NEAREST_MIPMAP_LINEAR,
-        GL_NEAREST,
-        GL_LINEAR,
-        GL_LINEAR_MIPMAP_NEAREST,
-        GL_LINEAR_MIPMAP_LINEAR,
-        GL_LINEAR
-    };
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag_filter[tex_mode_0.mag_filter]);
-    /* TODO(ShizZy): Replace this code. Works sortof for autogenerated mip maps, but it's deprecated
-            OpenGL. Currently, forward compatability is enabled, so anything deprecated will not work.
-    if (tex_mode_0.use_mipmaps()) {
-        glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-            gl_min_filter[tex_mode_0.min_filter & 7]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, tex_mode_1.min_lod >> 4);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tex_mode_1.max_lod >> 4);
-        glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (tex_mode_0.lod_bias / 31.0f));
-    } else {*/
-        glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-            (tex_mode_0.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
-    //}
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_tex_wrap[tex_mode_0.wrap_s]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_tex_wrap[tex_mode_0.wrap_t]);
-
-    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2);
-}
-
-/**
-* Binds a texture that was previously added to the renderer via AddTexture
-* @param hash The unique hash of the texture to bind
-* @param num Number of texture to bind to (0-7)
-* @return True if bind succeeded, false if failed
-*/
-bool RendererGL3::BindTexture(u32 hash, int num) {
-    int id = hash & (MAX_CACHED_TEXTURES - 1);
-
-    glActiveTexture(GL_TEXTURE0 + num);
-
-    if (texture_cache_[id]) {
-        glBindTexture(GL_TEXTURE_2D, texture_cache_[id]);
-        return true;
-    }
-    return false;
-}
-
-/**
-* Begin renderering of a primitive
-* @param prim Primitive type (e.g. GX_TRIANGLES)
-* @param count Number of vertices to be drawn (used for appropriate memory management, only)
-* @param vbo Pointer to VBO, which will be set by API in this function
-* @param vbo_offset Offset into VBO to use (in bytes)
-*/
+ * Begin renderering of a primitive
+ * @param prim Primitive type (e.g. GX_TRIANGLES)
+ * @param count Number of vertices to be drawn (used for appropriate memory management, only)
+ * @param vbo Pointer to VBO, which will be set by API in this function
+ * @param vbo_offset Offset into VBO to use (in bytes)
+ */
 void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset) {
     // GL_QUADS is only suppported in compatibility mode. This is emulated in software by
     // converting to triangles (therefore, it should never be used). Alternatively, it works 
@@ -287,10 +214,10 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
 }
 
 /**
-* Set the type of postion vertex data
-* @param type Position data type (e.g. GX_F32)
-* @param count Position data count (e.g. GX_POS_XYZ)
-*/
+ * Set the type of postion vertex data
+ * @param type Position data type (e.g. GX_F32)
+ * @param count Position data count (e.g. GX_POS_XYZ)
+ */
 void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
     static GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
     static GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
@@ -300,11 +227,11 @@ void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
 }
 
 /**
-* Set the type of color vertex data - type is always RGB8/RGBA8, just set count
-* @param color Which color to configure (0 or 1)
-* @param type GXCompType color format type
-* @param count Color data count (e.g. GX_CLR_RGBA)
-*/
+ * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
+ * @param color Which color to configure (0 or 1)
+ * @param type GXCompType color format type
+ * @param count Color data count (e.g. GX_CLR_RGBA)
+ */
 void RendererGL3::VertexColor_SetType(int color, GXCompType type, GXCompCnt count) {
     vertex_color_cur_ = color;
     vertex_color_cur_type_[color] = type;
@@ -312,12 +239,11 @@ void RendererGL3::VertexColor_SetType(int color, GXCompType type, GXCompCnt coun
 }
 
 /**
-* Set the type of texture coordinate vertex data
-* @param texcoord 0-7 texcoord to set type of
-* @param type Texcoord data type (e.g. GX_F32)
-* @param count Texcoord data count (e.g. GX_TEX_ST)
-*/
-
+ * Set the type of texture coordinate vertex data
+ * @param texcoord 0-7 texcoord to set type of
+ * @param type Texcoord data type (e.g. GX_F32)
+ * @param count Texcoord data count (e.g. GX_TEX_ST)
+ */
 void RendererGL3::VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count) {
     const GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
     const GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
@@ -389,7 +315,6 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
 	}
 }
 
-
 /// Sets the renderer viewport location, width, and height
 void RendererGL3::SetViewport(int x, int y, int width, int height) {
     glViewport(x, ((480 - (y + height))), width, height);
@@ -425,9 +350,9 @@ void RendererGL3::SetGenerationMode() {
 }
 
 /** 
-* Sets the renderer blend mode
-* @param blend_mode_ Forces blend mode to update
-*/
+ * Sets the renderer blend mode
+ * @param blend_mode_ Forces blend mode to update
+ */
 void RendererGL3::SetBlendMode(bool force_update) {
     u32 temp = gp::g_bp_regs.cmode0.subtract << 2;
 
@@ -509,17 +434,17 @@ void RendererGL3::SetScissorBox() {
 }
 
 /**
-* Sets the line and point size
-* @param line_width Line width to use
-* @param point_size Point size to use
-*/
+ * Sets the line and point size
+ * @param line_width Line width to use
+ * @param point_size Point size to use
+ */
 void RendererGL3::SetLinePointSize(f32 line_width, f32 point_size) {
 }
 
 /**
-* Set a specific render mode
-* @param flag Render flag mode to set
-*/
+ * Set a specific render mode
+ * @param flag Render flag mode to set
+ */
 void RendererGL3::SetMode(kRenderMode flags) {
     if(flags & kRenderMode_ZComp) {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -615,12 +540,12 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 }
 
 /** 
-* Blits the EFB to the specified destination buffer
-* @param dest Destination framebuffer
-* @param rect EFB rectangle to copy
-* @param dest_width Destination width in pixels 
-* @param dest_height Destination height in pixels
-*/
+ * Blits the EFB to the specified destination buffer
+ * @param dest Destination framebuffer
+ * @param rect EFB rectangle to copy
+ * @param dest_width Destination width in pixels 
+ * @param dest_height Destination height in pixels
+ */
 void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) {
 
     ResetRenderState();
@@ -645,14 +570,14 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
 }
 
 /**
-* Clear the screen
-* @param rect Screen rectangle to clear
-* @param enable_color Enable color clearing
-* @param enable_alpha Enable alpha clearing
-* @param enable_z Enable depth clearing
-* @param color Clear color
-* @param z Clear depth
-*/
+ * Clear the screen
+ * @param rect Screen rectangle to clear
+ * @param enable_color Enable color clearing
+ * @param enable_alpha Enable alpha clearing
+ * @param enable_z Enable depth clearing
+ * @param color Clear color
+ * @param z Clear depth
+ */
 void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
     u32 z) {
 
@@ -679,7 +604,6 @@ void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool en
 
         RestoreRenderState();
 }
-
 
 /// Shutdown the renderer
 void RendererGL3::ShutDown() {
@@ -712,6 +636,8 @@ void RendererGL3::RenderFramebuffer() {
 
     // Rebind EFB
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+
+    current_frame_++;
 }
 
 /// Initialize the primary framebuffer used for drawing
@@ -796,9 +722,6 @@ void RendererGL3::Init() {
     // --------------------------
 
     InitFramebuffer();
-
-    shader_manager_ = new ShaderManager();
-    uniform_manager_ = new UniformManager();
 
     shader_manager_->Init(uniform_manager_);
     uniform_manager_->Init(shader_manager_->GetDefaultShader());
