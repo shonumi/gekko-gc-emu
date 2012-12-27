@@ -146,32 +146,32 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 {
 	switch(addr)
 	{
-	case DSP_MAILBOX:
-		//printf("CPU checks DSP mbox PC=%08x (%04x)\n",ireg_PC(),REGDSP16(DSP_MAILBOX));
-		return REGDSP16(DSP_MAILBOX);
+	case CPU_DSP_MAILBOX_HI:
+		//printf("CPU checks DSP mbox PC=%08x (%04x)\n",ireg_PC(),REGDSP16(CPU_DSP_MAILBOX_HI));
+		return REGDSP16(CPU_DSP_MAILBOX_HI);
 
-	case DSP_MAILBOX + 2:
+	case CPU_DSP_MAILBOX_LO:
 		//printf("CPU checks DSP mbox+2 PC=%08x\n",ireg_PC());
 		return REGDSP16(addr);
 
-	case DSP_CPU_MAILBOX:
+	case DSP_CPU_MAILBOX_HI:
                 //printf("CPU (%08x) checks mbox, ",ireg_PC());
                 if (!m_mails.Empty()) {
-                        mbox_dsp_cpu = REGDSP32(DSP_CPU_MAILBOX) = m_mails.ReadNextMail();
-                        //printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX));
-                        REGDSP16(DSP_CPU_MAILBOX) |= 0x8000;
+                        mbox_dsp_cpu = REGDSP32(DSP_CPU_MAILBOX_HI) = m_mails.ReadNextMail();
+                        //printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
+                        REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
                 } else {
                         //printf("but msq_queue is empty\n");
-                        REGDSP16(DSP_CPU_MAILBOX) |= 0x8000;
+                        REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
                 }
                 
-                return REGDSP16(DSP_CPU_MAILBOX);
+                return REGDSP16(DSP_CPU_MAILBOX_HI);
 
-	case DSP_CPU_MAILBOX + 2:
+	case DSP_CPU_MAILBOX_LO:
                 //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX+2));
-                REGDSP16(DSP_CPU_MAILBOX) &= 0x7fff;
+                REGDSP16(DSP_CPU_MAILBOX_HI) &= 0x7fff;
                 m_mails.ReadMailboxLo();
-                return REGDSP16(DSP_CPU_MAILBOX+2);
+                return REGDSP16(DSP_CPU_MAILBOX_LO);
 
 	case DSP_CSR:
 		//printf("reading DSP_CSR=%04x\n",REGDSP16(DSP_CSR));
@@ -218,16 +218,16 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 {
 	switch(addr)
 	{
-	case DSP_MAILBOX:
-		REGDSP16(DSP_MAILBOX)=data;
-		//printf("CPU writes DSP_MAILBOX %04x\n",data&0xffff);
+	case CPU_DSP_MAILBOX_HI:
+		REGDSP16(CPU_DSP_MAILBOX_HI)=data;
+		//printf("CPU writes CPU_DSP_MAILBOX_HI %04x\n",data&0xffff);
 		return;
-	case DSP_MAILBOX + 2:
-		REGDSP16(DSP_MAILBOX+2)=data;
-		mbox_cpu_dsp = REGDSP32(DSP_MAILBOX);
+	case CPU_DSP_MAILBOX_LO:
+		REGDSP16(CPU_DSP_MAILBOX_LO)=data;
+		mbox_cpu_dsp = REGDSP32(CPU_DSP_MAILBOX_HI);
 
-		REGDSP16(DSP_MAILBOX) &= 0x7fff;
-		//printf("CPU writes DSP_MAILBOX+2 %04x\n",data&0xffff);
+		REGDSP16(CPU_DSP_MAILBOX_HI) &= 0x7fff;
+		//printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
 
 		switch (DSPucode) {
 			case DSPUCODE_LOADER:
@@ -241,8 +241,8 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 				printf("CPU->DSP message %08x\n",mbox_cpu_dsp);
 		}
 		return;
-	case DSP_CPU_MAILBOX:
-	case DSP_CPU_MAILBOX + 2:
+	case DSP_CPU_MAILBOX_HI:
+	case DSP_CPU_MAILBOX_LO:
 		return;
 	case DSP_DMA_CNT:
 		return;

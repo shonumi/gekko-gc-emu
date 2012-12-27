@@ -19,20 +19,22 @@ extern u8 DSPRegisters[REG_SIZE];
 
 ////////////////////////////////////////////////////////////
 
-#define DSP_MAILBOX				0xCC005000
-#define DSP_CPU_MAILBOX			0xCC005004
+#define CPU_DSP_MAILBOX_HI		0xCC005000
+#define CPU_DSP_MAILBOX_LO	0xCC005002
+#define DSP_CPU_MAILBOX_HI		0xCC005004
+#define DSP_CPU_MAILBOX_LO	0xCC005006
 #define DSP_CSR					0xCC00500A
 
 #define DSP_AR_INFO				0xCC005012
-#define DSP_AR_MODE				0xCC005016
+#define DSP_AR_MODE			0xCC005016
 #define DSP_AR_REFRESH			0xCC00501A
-#define DSP_AR_DMA_MMADDR		0xCC005020
+#define DSP_AR_DMA_MMADDR	0xCC005020
 #define DSP_AR_DMA_ARADDR		0xCC005024
 #define DSP_AR_DMA_CNT			0xCC005028
 
 #define DSP_DMA_ADDR			0xCC005030
 #define DSP_DMA_LEN				0xCC005036
-#define DSP_DMA_CNT				0xCC00503A
+#define DSP_DMA_CNT			0xCC00503A
 
 ////////////////////////////////////////////////////////////
 
