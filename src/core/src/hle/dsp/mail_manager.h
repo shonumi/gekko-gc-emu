@@ -35,34 +35,33 @@ public:
     MailManager() {};
     ~MailManager() {};
 
-    /*!
-     * \brief Puts message into queue
-     * \param message Mail sent to DSP
+    /**
+     * Puts message into queue
+     * @param message Mail sent to DSP
      */
     void PushMail(u32 message);
 
-    /*!
-     * \brief Checks if message queue is empty
-     * \returns True if message queue is empty, false if not
+    /**
+     * Checks if message queue is empty
+     * @returns True if message queue is empty, false if not
      */
     bool Empty();    
 
-    /*!
-     * \brief Reads upper word of a 32-bit mail message
-     * \returns Unsigned word of mail message
+    /**
+     * Reads upper word of a 32-bit mail message
+     * @returns Unsigned word of mail message
      */
     u16 ReadMailboxHi();
 
-    /*!
-     * \brief Reads lower word of a 32-bit mail message
-     * \returns Unsigned word of mail message
+    /**
+     * Reads lower word of a 32-bit mail message
+     * @returns Unsigned word of mail message
      */
     u16 ReadMailboxLo();
 
-
-    /*!
-     * \brief Reads next mail message in queue
-     * \returns Unsigned 32-bit mail message from queue
+    /**
+     * Reads next mail message in queue
+     * @returns Unsigned 32-bit mail message from queue
      */
     u32 ReadNextMail();
 

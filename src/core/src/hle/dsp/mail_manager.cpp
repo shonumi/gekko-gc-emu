@@ -24,10 +24,18 @@
 
 #include "mail_manager.h"
 
+/**
+* Puts message into queue
+* @param message Mail sent to DSP
+*/
 void MailManager::PushMail(u32 message) {
     message_queue.push(message);
 }
 
+/**
+ * Reads upper word of a 32-bit mail message
+ * @returns Unsigned word of mail message
+ */
 u16 MailManager::ReadMailboxHi() {
     // Make sure mail exists... 
     if(!message_queue.empty())
@@ -40,6 +48,10 @@ u16 MailManager::ReadMailboxHi() {
     return 0;
 }
 
+/**
+ * Reads lower word of a 32-bit mail message
+ * @returns Unsigned word of mail message
+ */
 u16 MailManager::ReadMailboxLo() {
     // Make sure mail exists...
     if(!message_queue.empty())
@@ -53,10 +65,18 @@ u16 MailManager::ReadMailboxLo() {
     return 0;
 }
 
+/**
+ * Reads next mail message in queue
+ * @returns Unsigned 32-bit mail message from queue
+ */
 u32 MailManager::ReadNextMail() {
     return message_queue.front();
 }
 
+/**
+* Checks if message queue is empty
+* @returns True if message queue is empty, false if not
+*/
 bool MailManager::Empty() {
     return message_queue.empty();
 }
