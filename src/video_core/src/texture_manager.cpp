@@ -23,6 +23,8 @@
  */
 
 #include "texture_manager.h"
+#include "utils.h"
+#include "config.h"
 
 TextureManager::TextureManager(const BackendInterface* backend_interface) {
     backend_interface_  = const_cast<BackendInterface*>(backend_interface);
@@ -67,6 +69,17 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
                                   cache_entry.height_,
                                   &Mem_RAM[cache_entry.address_ & RAM_MASK],
                                   raw_data);
+
+        // Optionally dump texture to TGA...
+        if (common::g_config->current_renderer_config().enable_texture_dumping) {
+            std::string filepath = common::g_config->program_dir() + std::string("/dump");
+            mkdir(filepath.c_str());
+            filepath = filepath + std::string("/textures");
+            mkdir(filepath.c_str());
+            filepath = common::FormatStr("%s/%08X.TGA", filepath.c_str(), cache_entry.hash_);
+            video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
+        }
+
         // Create a texture in VRAM from raw data...
         cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
                                                                cache_entry,
