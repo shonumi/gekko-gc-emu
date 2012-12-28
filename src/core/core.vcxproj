@@ -266,13 +266,6 @@
     <ClCompile Include="src\powerpc\recompiler\cpu_rec_regcache.cpp">
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
     </ClCompile>
-    <ClCompile Include="src\video\gx_fifo.cpp" />
-    <ClCompile Include="src\video\gx_states.cpp" />
-    <ClCompile Include="src\video\gx_tev.cpp" />
-    <ClCompile Include="src\video\gx_texture.cpp" />
-    <ClCompile Include="src\video\gx_transform.cpp" />
-    <ClCompile Include="src\video\gx_vertex.cpp" />
-    <ClCompile Include="src\video\opengl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\boot\apploader.h" />
@@ -315,13 +308,6 @@
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_memory.h" />
     <ClInclude Include="src\powerpc\recompiler\cpu_rec_opsgroup.h" />
     <ClInclude Include="src\video\emuwindow.h" />
-    <ClInclude Include="src\video\gx_fifo.h" />
-    <ClInclude Include="src\video\gx_states.h" />
-    <ClInclude Include="src\video\gx_tev.h" />
-    <ClInclude Include="src\video\gx_texture.h" />
-    <ClInclude Include="src\video\gx_transform.h" />
-    <ClInclude Include="src\video\gx_vertex.h" />
-    <ClInclude Include="src\video\opengl.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">

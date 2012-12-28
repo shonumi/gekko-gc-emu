@@ -4,8 +4,6 @@
 #ifndef _HW_VI_H_
 #define _HW_VI_H_
 
-#include "video/opengl.h"
-
 ////////////////////////////////////////////////////////////////////////////////
 
 #define REGVI16(X)			(*((u16 *) &VIRegisters[REG_SIZE - (X & REG_MASK) - 2]))
@@ -77,7 +75,6 @@ typedef struct t_sVI
 
 	u8*		xfbbuf;			// Pointer to XFB
 	u8		fb_data[(480 * 640 * 4)];
-	GLuint	fb_texture;
 }sVI;
 
 extern sVI vi;

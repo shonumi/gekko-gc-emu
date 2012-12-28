@@ -51,12 +51,6 @@ set(SRCS	src/core.cpp
 #			src/powerpc/recompiler/cpu_rec_opcodes_math_fpu.cpp
 #			src/powerpc/recompiler/cpu_rec_opcodes_ps.cpp
 #			src/powerpc/recompiler/cpu_rec_regcache.cpp
-	    src/video/gx_fifo.cpp
-			src/video/gx_states.cpp
-			src/video/gx_tev.cpp
-			src/video/gx_texture.cpp
-			src/video/gx_transform.cpp
-			src/video/gx_vertex.cpp
-			src/video/opengl.cpp)
+	    )
 
 add_library(core STATIC ${SRCS})

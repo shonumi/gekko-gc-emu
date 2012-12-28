@@ -8,7 +8,6 @@
 #include "hw_si.h"
 #include "powerpc/cpu_core.h"
 #include "powerpc/cpu_core_regs.h"
-#include "video/opengl.h"
 
 //
 
