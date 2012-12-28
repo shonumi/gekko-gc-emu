@@ -35,21 +35,6 @@
 #include <vector>
 using namespace std;
 
-/// Structure for the TGA texture format (for dumping)
-struct TGAHeader {
-    char  idlength;
-    char  colourmaptype;
-    char  datatypecode;
-    short int colourmaporigin;
-    short int colourmaplength;
-    short int x_origin;
-    short int y_origin;
-    short width;
-    short height;
-    char  bitsperpixel;
-    char  imagedescriptor;
-};
-
 namespace gp {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,34 +72,6 @@ static inline u32 __decode_col_rgb565(u16 _data) {
     b = (_data & 0x1f)<< 3;
 
     return 0xff000000 | (b << 16) | (g << 8) | (r);
-}
-
-void DumpTextureTGA(char filename[], u16 width, u16 height, u8* data) {
-    TGAHeader hdr;
-    FILE* fout;
-    u8 r, g, b;
-
-    memset(&hdr, 0, sizeof(hdr));
-    hdr.datatypecode = 2; // uncompressed RGB
-    hdr.bitsperpixel = 24; // 24 bpp
-    hdr.width = width;
-    hdr.height = height;
-
-    fout = fopen(filename, "wb");
-
-    fwrite(&hdr, sizeof(TGAHeader), 1, fout);
-
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            r = data[(4 * (i * width)) + (4 * j) + 0];
-            g = data[(4 * (i * width)) + (4 * j) + 1];
-            b = data[(4 * (i * width)) + (4 * j) + 2];
-            putc(b, fout);
-            putc(g, fout);
-            putc(r, fout);
-        }
-    }
-    fclose(fout);
 }
 
 static inline void DecodeDtxBlock(const u8 *_src, u32 *_dst, u32 _width) {
@@ -258,7 +215,6 @@ size_t TextureDecoder_GetSize(TextureFormat format, int width, int height) {
  * @param dst Destination data buffer for decoded RGBA8 texture
  */
 void TextureDecoder_Decode(TextureFormat format, int width, int height, const u8* src, u8* dst) {
-    static int texture_num = 0;
     int	x = 0, y = 0, dx = 0, dy = 0, i = 0, j = 0;
     u32 val = 0;
     int _8_width = (width + 7) & ~7;
@@ -478,18 +434,6 @@ void TextureDecoder_Decode(TextureFormat format, int width, int height, const u8
         LOG_ERROR(TGP, "Unsupported texture format %d!", format);
         break;
     }
-    if (common::g_config->current_renderer_config().enable_texture_dumping) {
-        char filepath[MAX_PATH], filename[MAX_PATH];
-        strcpy(filepath, common::g_config->program_dir());
-        strcat(filepath, "dump");
-        mkdir(filepath);
-        strcat(filepath, "/textures");
-        mkdir(filepath);
-        sprintf(filename, "/%d.tga", texture_num);
-        strcat(filepath, filename);
-        DumpTextureTGA(filepath, width, height, dst);
-    }
-    texture_num++;
     delete dst8;
 }
 
