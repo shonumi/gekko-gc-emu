@@ -56,8 +56,5 @@
     <Filter Include="renderer_gl3">
       <UniqueIdentifier>{ea80baad-745c-44e4-af78-4ca3788962d0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderer_gl2">
-      <UniqueIdentifier>{7b36e2a9-1a80-40e7-b7c3-e664109b3daa}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

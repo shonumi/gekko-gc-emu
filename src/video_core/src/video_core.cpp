@@ -32,7 +32,6 @@
 #include "video/emuwindow.h"
 
 #include "renderer_gl3/renderer_gl3.h"
-#include "renderer_gl2/renderer_gl2.h"
 
 #include "video_core.h"
 #include "vertex_manager.h"
