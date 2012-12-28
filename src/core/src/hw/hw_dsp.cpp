@@ -156,14 +156,9 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 
 	case DSP_CPU_MAILBOX_HI:
                 //printf("CPU (%08x) checks mbox, ",ireg_PC());
-                if (!m_mails.Empty()) {
-			REGDSP16(DSP_CPU_MAILBOX_HI) = m_mails.ReadMailboxHi();
-                        //printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
-                        REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
-                } else {
-                        //printf("but msq_queue is empty\n");
-                        REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
-                }
+		REGDSP16(DSP_CPU_MAILBOX_HI) = m_mails.ReadMailboxHi();
+		//printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
+		REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
                 
                 return REGDSP16(DSP_CPU_MAILBOX_HI);
 
