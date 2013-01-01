@@ -79,7 +79,7 @@ public:
 
     typedef HashContainer_STLMap<common::Hash64, CacheEntry> CacheContainer;
 
-    static const int kHashSamples = 256; ///< Number of texture samples to use for hash
+    static const int kHashSamples = 128;    ///< Number of texture samples to use for hash
 
     /// Renderer interface for controlling textures
     class BackendInterface{
