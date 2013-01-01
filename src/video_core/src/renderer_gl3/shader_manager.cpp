@@ -264,17 +264,20 @@ void ShaderManager::SetShader() {
     u32 hash = this->GetCurrentHash(); // Compute current shader hash
     const GLuint* res = cache_->FetchFromHash(hash); // Fetch the shader program from the cache
 
-    // Generate shader if it does not already exist...
+    // Generate next shader if it does not already exist...
     if (NULL == res) {
         current_shader_ = LoadShader();
         cache_->Update(hash, current_shader_);
         uniform_manager_->AttachShader(current_shader_);
+        glUseProgram(current_shader_);
 
     // Set the shader program if it is not the current shader...
     } else {
-        current_shader_ = *res;
+        if (current_shader_ != *res) {
+            current_shader_ = *res;
+            glUseProgram(current_shader_);
+        }
     }
-    glUseProgram(current_shader_);
     this->UpdateUniforms();
 }
 
