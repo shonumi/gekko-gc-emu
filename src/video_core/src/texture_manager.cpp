@@ -50,46 +50,88 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     static u8           raw_data[kGCMaxTextureWidth * kGCMaxTextureHeight * 4];
 
     cache_entry.address_    = tex_image_3.image_base << 5;
+    cache_entry.format_     = (gp::TextureFormat)tex_image_0.format;
     cache_entry.width_      = tex_image_0.width + 1;
     cache_entry.height_     = tex_image_0.height + 1;
     cache_entry.type_       = kTextureType_Normal;
-    cache_entry.format_     = (gp::TextureFormat)tex_image_0.format;
     cache_entry.size_       = gp::TextureDecoder_GetSize(cache_entry.format_, 
                                                          cache_entry.width_, 
                                                          cache_entry.height_);
-    cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
-                                                cache_entry.size_, 
-                                                kHashSamples);
+    // Try to find an EFB copy
+    EFBCopyData* efb_copy_data = efb_copy_cache_->FetchFromHash(cache_entry.address_);
 
-    // Query cache for texture existance...
-    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
+    if (efb_copy_data == NULL) {
+        // Not exact address, but maybe in bounds of one of our previous copies...
+        for (int i = 0; i < efb_copy_cache_->Size(); i++) {
+            EFBCopyData* res = efb_copy_cache_->FetchFromIndex(i);
 
-    // Create and add to cache if texture does not exists...
-    if (NULL == active_textures_[active_texture_unit]) {
-        // Decode texture from source data to RGBA8 raw data...
-        gp::TextureDecoder_Decode(cache_entry.format_, 
-                                  cache_entry.width_,
-                                  cache_entry.height_,
-                                  &Mem_RAM[cache_entry.address_ & RAM_MASK],
-                                  raw_data);
+            // Check if in bounds of the EFB copy
+            if ((cache_entry.address_ >= res->efb_copy_addr) && (cache_entry.address_ < (res->efb_copy_addr + cache_entry.size_))) {
+                efb_copy_data = res;
+                break;
+            }
+        }
+    }
 
-        // Optionally dump texture to TGA...
-        if (common::g_config->current_renderer_config().enable_texture_dumping) {
-            std::string filepath = common::g_config->program_dir() + std::string("/dump");
-            mkdir(filepath.c_str());
-            filepath = filepath + std::string("/textures");
-            mkdir(filepath.c_str());
-            filepath = common::FormatStr("%s/%08x.tga", filepath.c_str(), cache_entry.hash_);
-            video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
+    // Found result of an EFB copy
+    if (efb_copy_data != NULL) {
+        cache_entry.width_      = efb_copy_data->width;
+        cache_entry.height_     = efb_copy_data->height;
+        cache_entry.type_       = kTextureType_EFBCopy;
+        cache_entry.hash_       = efb_copy_data->efb_copy_addr;
+
+        active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
+
+        // If we previously made the copy, delete it... (ugly)
+        if (active_textures_[active_texture_unit] != NULL) {
+            backend_interface_->Delete(active_textures_[active_texture_unit]->backend_data_);
+            cache_->Remove(active_textures_[active_texture_unit]->hash_);
         }
 
         // Create a texture in VRAM from raw data...
         cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
                                                                cache_entry,
-                                                               raw_data);
+                                                               efb_copy_data->raw_data);
         // Update cache with new information...
         active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
+
+
+    // Otherwise, normal texture...
+    } else {
+
+        cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
+                                                    cache_entry.size_, 
+                                                    kHashSamples);
+        active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
+
+
+        if (NULL == active_textures_[active_texture_unit]) {
+            // Decode texture from source data to RGBA8 raw data...
+            gp::TextureDecoder_Decode(cache_entry.format_, 
+                                      cache_entry.width_,
+                                      cache_entry.height_,
+                                      &Mem_RAM[cache_entry.address_ & RAM_MASK],
+                                      raw_data);
+
+            // Create a texture in VRAM from raw data...
+            cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
+                                                                   cache_entry,
+                                                                   raw_data);
+            // Optionally dump texture to TGA...
+            if (common::g_config->current_renderer_config().enable_texture_dumping) {
+                std::string filepath = common::g_config->program_dir() + std::string("/dump");
+                mkdir(filepath.c_str());
+                filepath = filepath + std::string("/textures");
+                mkdir(filepath.c_str());
+                filepath = common::FormatStr("%s/%08x.tga", filepath.c_str(), cache_entry.hash_);
+                video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
+            }
+
+            // Update cache with new information...
+            active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
+        }
     }
+
     active_textures_[active_texture_unit]->frame_used_ = video_core::g_current_frame;
 }
 
