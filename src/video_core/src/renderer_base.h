@@ -38,7 +38,8 @@ public:
     /// Used to reference a framebuffer
     enum kFramebuffer {
         kFramebuffer_VirtualXFB = 0,
-        kFramebuffer_EFB
+        kFramebuffer_EFB,
+        kFramebuffer_Texture
     };
 
     /// Used for referencing the render modes
