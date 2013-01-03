@@ -166,7 +166,7 @@ void BP_RegisterWrite(u8 addr, u32 data) {
         LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_X");
         break;
 
-    case BP_REG_PE_COPY_EXECUTE:  // pe copy execute
+    case BP_REG_EFB_COPY:  // pe copy execute
         {
             Rect rect;
             rect.x = gp::g_bp_regs.efb_top_left.x;
@@ -174,7 +174,7 @@ void BP_RegisterWrite(u8 addr, u32 data) {
             rect.width = gp::g_bp_regs.efb_height_width.x + 1;
             rect.height = gp::g_bp_regs.efb_height_width.y + 1;
 
-            BPPECopyExecute pe_copy;
+            BPEFBCopy pe_copy;
             pe_copy._u32 = data;
 
             if (pe_copy.copy_to_xfb) {

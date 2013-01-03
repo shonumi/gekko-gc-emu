@@ -65,7 +65,7 @@
 #define BP_REG_PE_CLEAR_AR      0x4F
 #define BP_REG_PE_CLEAR_GB      0x50
 #define BP_REG_PE_CLEAR_Z       0x51
-#define BP_REG_PE_COPY_EXECUTE  0x52
+#define BP_REG_EFB_COPY         0x52
 #define BP_REG_COPYFILTER0      0x53
 #define BP_REG_COPYFILTER1      0x54
 #define BP_REG_CLEARBBOX1       0x55
@@ -209,7 +209,7 @@ struct BPPEControl {
 };
 
 /// PE Copy Execute
-struct BPPECopyExecute {
+struct BPEFBCopy {
     union {
         struct {
             u32 clamp0              : 1; // if set clamp top
@@ -501,7 +501,8 @@ union BPMemory {
         u32             clear_ar;               // 0x4f
         u32             clear_gb;               // 0x50
         u32             clear_z;                // 0x51
-        u32             pad5[0x7];              // 0x52
+        BPEFBCopy       efb_copy;               // 0x52
+        u32             pad5[0x6];              // 0x53
         BPEFBCoords10   scissor_offset;         // 0x59
         u32             pad6[0x26];             // 0x5a
 
