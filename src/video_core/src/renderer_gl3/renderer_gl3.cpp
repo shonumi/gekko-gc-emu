@@ -38,6 +38,7 @@
 #include "renderer_gl3.h"
 #include "shader_manager.h"
 #include "texture_interface.h"
+#include "utils.h"
 
 /// OpenGL color source factors
 static const GLenum g_src_factors[8] =
@@ -550,21 +551,51 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
 
     ResetRenderState();
 
-    // Render target is destination framebuffer
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
-    glViewport(0, 0, resolution_width_, resolution_height_);
+    if (dest == kFramebuffer_VirtualXFB) {
 
-    // Render source is our EFB
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
+        // Render target is destination framebuffer
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
+        glViewport(0, 0, resolution_width_, resolution_height_);
 
-    // Blit
-    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height,
-        0, 0, dest_width, dest_height,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        // Render source is our EFB
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    // Rebind EFB
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+        // Blit
+        glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height,
+            0, 0, dest_width, dest_height,
+            GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+        // Rebind EFB
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+
+    } else if (dest == kFramebuffer_Texture) {
+        static u8 raw_data[1024 * 1024 * 4];
+        
+        // TODO(ShizZy): Right now, we are just grabbing whats in the EFB and getting the pixels as 
+        // raw data - this is simpler to work with, but in the future we'll want to go right to 
+        // texture
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT); 
+        glReadPixels(rect.x, rect.y, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, raw_data);
+
+        // Optionally dump texture to TGA...
+        if (common::g_config->current_renderer_config().enable_texture_dumping) {
+            std::string filepath = common::g_config->program_dir() + std::string("/dump");
+            mkdir(filepath.c_str());
+            filepath = filepath + std::string("/efb-copies");
+            mkdir(filepath.c_str());
+            filepath = common::FormatStr("%s/%08x.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5);
+            video_core::DumpTGA(filepath, rect.width, rect.height, raw_data);
+        }
+
+        
+        video_core::g_texture_manager->UpdateData_EFBCopy(gp::g_bp_regs.efb_copy_addr << 5, rect.width, rect.height, raw_data);
+        
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+        
+    }
 
     RestoreRenderState();
 }
