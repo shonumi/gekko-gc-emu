@@ -77,7 +77,16 @@ public:
         int                 frame_used_;    ///< Last frame that the texture was used
     };
 
+
+    struct EFBCopyData {
+        u32 efb_copy_addr;
+        int width;
+        int height;
+        u8* raw_data;
+    };
+
     typedef HashContainer_STLMap<common::Hash64, CacheEntry> CacheContainer;
+    typedef HashContainer_STLMap<u32, EFBCopyData> EFBCopyContainer;
 
     static const int kHashSamples = 128;    ///< Number of texture samples to use for hash
 
@@ -132,6 +141,10 @@ public:
     void UpdateData(int active_texture_unit, const gp::BPTexImage0& tex_image_0, 
         const gp::BPTexImage3& tex_image_3);
 
+
+    void UpdateData_EFBCopy(u32 efb_copy_addr, int width, int height, u8* raw_data);
+
+
     /**
      * Updates the texture parameters
      * @param active_texture_unit Active texture unit to update the parameters for
@@ -170,6 +183,7 @@ public:
 private:
 
     CacheContainer*     cache_;                                 ///< Texture cache
+    EFBCopyContainer*   efb_copy_cache_;                        ///< EFB copy container cache         
     BackendInterface*   backend_interface_;                     ///< Backend renderer interface
     CacheEntry*         active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
 

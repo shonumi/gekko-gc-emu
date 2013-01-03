@@ -29,11 +29,13 @@
 TextureManager::TextureManager(const BackendInterface* backend_interface) {
     backend_interface_  = const_cast<BackendInterface*>(backend_interface);
     cache_              = new CacheContainer();
+    efb_copy_cache_     = new EFBCopyContainer();
     memset(active_textures_, 0, sizeof(active_textures_));
 }
 
 TextureManager::~TextureManager() {
     delete cache_;
+    delete efb_copy_cache_;
 }
 
 /**
@@ -58,6 +60,7 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
                                                 cache_entry.size_, 
                                                 kHashSamples);
+
     // Query cache for texture existance...
     active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
 
@@ -88,6 +91,26 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
         active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
     }
     active_textures_[active_texture_unit]->frame_used_ = video_core::g_current_frame;
+}
+
+void TextureManager::UpdateData_EFBCopy(u32 efb_copy_addr, int width, int height, u8* raw_data) {
+    static EFBCopyData efb_copy_data;
+    static int i = 0;
+    efb_copy_data.efb_copy_addr = efb_copy_addr;
+    efb_copy_data.width = width;
+    efb_copy_data.height = height;
+
+    EFBCopyData* res = efb_copy_cache_->FetchFromHash(efb_copy_addr);
+    if (res == NULL) {
+        efb_copy_data.raw_data = new u8[width * height * 4];
+        
+    } else {
+        efb_copy_data.raw_data = res->raw_data;
+    }
+
+    memcpy(efb_copy_data.raw_data, raw_data, width * height * 4);
+
+    efb_copy_cache_->Update(efb_copy_addr, efb_copy_data);
 }
 
 /**
