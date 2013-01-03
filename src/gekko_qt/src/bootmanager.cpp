@@ -2,7 +2,6 @@
 #include <QKeyEvent>
 
 #include "common.h"
-#include "video/opengl.h"
 #include "bootmanager.hxx"
 
 #include "config.h"
