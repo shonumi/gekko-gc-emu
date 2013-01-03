@@ -79,7 +79,7 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
             mkdir(filepath.c_str());
             filepath = filepath + std::string("/textures");
             mkdir(filepath.c_str());
-            filepath = common::FormatStr("%s/%08X.TGA", filepath.c_str(), cache_entry.hash_);
+            filepath = common::FormatStr("%s/%08x.tga", filepath.c_str(), cache_entry.hash_);
             video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
         }
 
