@@ -40,6 +40,9 @@ enum {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // CP register decoding
 
+#define CP_REG_VCD_LO   0x50 // 0x50 + 7
+#define CP_REG_VCD_HI   0x60 // 0x60 + 7
+
 /// Vertex descripter (VCD) low
 union CPVertDescLo {
     struct {
