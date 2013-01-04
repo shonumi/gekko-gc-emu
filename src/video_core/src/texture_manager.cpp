@@ -29,7 +29,9 @@
 TextureManager::TextureManager(const BackendInterface* backend_interface) {
     backend_interface_  = const_cast<BackendInterface*>(backend_interface);
     cache_              = new CacheContainer();
-    memset(active_textures_, 0, sizeof(active_textures_));
+    for (int i = 0; i < kGCMaxActiveTextures; i++) {
+        active_textures_[i] = NULL;
+    }
 }
 
 TextureManager::~TextureManager() {
@@ -47,6 +49,9 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     static CacheEntry   cache_entry;
     static u8           raw_data[kGCMaxTextureWidth * kGCMaxTextureHeight * 4];
 
+    if (tex_image_3.image_base == 0) {
+        return;
+    }
     cache_entry.address_    = tex_image_3.image_base << 5;
     cache_entry.width_      = tex_image_0.width + 1;
     cache_entry.height_     = tex_image_0.height + 1;
@@ -106,8 +111,10 @@ void TextureManager::UpdateParameters(int active_texture_unit, const gp::BPTexMo
  * @param active_texture_unit Texture unit to bind (0-7)
  */
 void TextureManager::Bind(int active_texture_unit) {
-    backend_interface_->Bind(active_texture_unit, 
-        active_textures_[active_texture_unit]->backend_data_);
+    if (NULL != active_textures_[active_texture_unit]) {
+        backend_interface_->Bind(active_texture_unit, 
+            active_textures_[active_texture_unit]->backend_data_);
+    }
 }
 
 /**
