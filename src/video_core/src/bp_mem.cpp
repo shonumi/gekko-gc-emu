@@ -243,40 +243,22 @@ void BP_RegisterWrite(u8 addr, u32 data) {
     }
 }
 
-/**
- * Load a texture
- * @param num Texture number to load, must be 0-7
- */
-void BP_LoadTexture(u8 num) {
-    int set = (num & 4) >> 2;
-    int index = num & 7;
-
-    /*int width = tex_image_0.get_width();
-    int height = tex_image_0.get_height();
-
-    _ASSERT_MSG(TGP, width <= kGCMaxTextureWidth, "Texture max width exceeded (%d > %d)!",
-        width, kGCMaxTextureWidth);
-    _ASSERT_MSG(TGP, height <= kGCMaxTextureHeight, "Texture max height exceeded (%d > %d)!",
-        width, kGCMaxTextureHeight);
-
-    u8* src = &Mem_RAM[tex_image_3.get_addr() & RAM_MASK];
-    TextureFormat format = (TextureFormat)tex_image_0.format;
-    size_t buffer_len = TextureDecoder_GetSize(format, width, height);
-    
-    common::Hash64 hash = common::GetHash64(src, buffer_len, 256);
-
-    if(!video_core::g_renderer->texture_manager()->BindTexture(num, hash)) {
-        TextureDecoder_Decode(format, width, height, src, dst_buff);
-        video_core::g_renderer->texture_manager()->AddTexture(num, width, height, hash, dst_buff);
+/// Load a texture
+void BP_LoadTexture() {
+    for (int num = 0; num < kGCMaxActiveTextures; num++) {
+        int set = (num & 4) >> 2;
+        int index = num & 7;
+        for (int stage = 0; stage < kGCMaxTevStages; stage++) {
+            if (gp::g_bp_regs.tevorder[stage >> 1].get_texmap(stage) == num) {
+                video_core::g_texture_manager->UpdateData(num, g_bp_regs.tex[set].image_0[index],
+                    g_bp_regs.tex[set].image_3[index]);
+                video_core::g_texture_manager->Bind(num);
+                video_core::g_texture_manager->UpdateParameters(num, 
+                    g_bp_regs.tex[set].mode_0[index], g_bp_regs.tex[set].mode_1[index]);
+                break;
+            }
+        }
     }
-    video_core::g_renderer->texture_manager()->SetTextureParameters(num);*/
-
-
-    video_core::g_texture_manager->UpdateData(num, g_bp_regs.tex[set].image_0[index], 
-        g_bp_regs.tex[set].image_3[index]);
-    video_core::g_texture_manager->Bind(num);
-    video_core::g_texture_manager->UpdateParameters(num, g_bp_regs.tex[set].mode_0[index], 
-        g_bp_regs.tex[set].mode_1[index]);
 }
 
 /// Initialize BP

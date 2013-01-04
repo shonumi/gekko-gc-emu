@@ -534,11 +534,8 @@ extern BPMemory g_bp_regs; ///< BP memory/registers
  */
 void BP_RegisterWrite(u8 addr, u32 data);
 
-/**
- * Load a texture
- * @param num Texture number to load, must be 0-7
- */
-void BP_LoadTexture(u8 index);
+/// Load a texture
+void BP_LoadTexture();
 
 /// Initialize BP
 void BP_Init();
