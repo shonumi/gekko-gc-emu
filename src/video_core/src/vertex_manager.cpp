@@ -25,6 +25,7 @@
 #include "renderer_gl3/renderer_gl3.h"
 #include "vertex_manager.h"
 #include "video_core.h"
+#include "bp_mem.h"
 
 namespace gp {
 
@@ -78,6 +79,7 @@ void VertexManager_BeginPrimitive(GXPrimitive prim, int count) {
     } else {
         video_core::g_renderer->BeginPrimitive(prim, count, &g_vbo, g_vbo_offset);
     }
+    BP_LoadTexture();
 }
 
 /// End a primitive
