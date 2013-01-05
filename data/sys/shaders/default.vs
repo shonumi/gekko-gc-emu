@@ -3,14 +3,18 @@ layout(location = 1) in vec4 color0;
 layout(location = 2) in vec4 color1;
 layout(location = 3) in vec4 normal;
 
-layout(location = 4) in vec4 texcoord01;
-layout(location = 5) in vec4 texcoord23;
-layout(location = 6) in vec4 texcoord45;
-layout(location = 7) in vec4 texcoord67;
+layout(location = 4)  in vec4 texcoord0;
+layout(location = 5)  in vec4 texcoord1;
+layout(location = 6)  in vec4 texcoord2;
+layout(location = 7)  in vec4 texcoord3;
+layout(location = 8)  in vec4 texcoord4;
+layout(location = 9)  in vec4 texcoord5;
+layout(location = 10) in vec4 texcoord6;
+layout(location = 11) in vec4 texcoord7;
 
-layout(location = 8) in vec4 matrix_idx_pos;
-layout(location = 9) in vec4 matrix_idx_tex03;
-layout(location = 10) in vec4 matrix_idx_tex47;
+layout(location = 12) in vec4 matrix_idx_pos;
+layout(location = 13) in vec4 matrix_idx_tex03;
+layout(location = 14) in vec4 matrix_idx_tex47;
 
 struct VertexState {
     float cp_pos_dqf; 
@@ -54,59 +58,59 @@ void main() {
 
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[0])) * 
-        vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
+        vec4(texcoord0.st * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][0]) * 
-        vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
+        vec4(texcoord0.st * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_1_MIDX // Texture coord 1
     vtx_texcoord[1] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[1])) * 
-        vec4(texcoord01.zw * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
+        vec4(texcoord1.st * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[1] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][1]) * 
-        vec4(texcoord01.zw * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
+        vec4(texcoord1.st * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_2_MIDX // Texture coord 2
     vtx_texcoord[2] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[2])) * 
-        vec4(texcoord23.xy * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
+        vec4(texcoord2.st * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[2] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][2]) * 
-        vec4(texcoord23.xy * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
+        vec4(texcoord2.st * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_3_MIDX // Texture coord 3
     vtx_texcoord[3] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[3])) * 
-        vec4(texcoord23.zw * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
+        vec4(texcoord3.st * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[3] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][3]) * 
-        vec4(texcoord23.zw * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
+        vec4(texcoord3.st * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_4_MIDX // Texture coord 4
     vtx_texcoord[4] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[0])) * 
-        vec4(texcoord45.xy * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
+        vec4(texcoord4.st * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[4] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][0]) * 
-        vec4(texcoord45.xy * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
+        vec4(texcoord4.st * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_5_MIDX // Texture coord 5
     vtx_texcoord[5] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[1])) * 
-        vec4(texcoord45.zw * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
+        vec4(texcoord5.st * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[5] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][1]) * 
-        vec4(texcoord45.zw * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
+        vec4(texcoord5.st * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_6_MIDX // Texture coord 6
     vtx_texcoord[6] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[2])) * 
-        vec4(texcoord67.xy * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
+        vec4(texcoord6.st * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[6] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][2]) * 
-        vec4(texcoord67.xy * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
+        vec4(texcoord6.st * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_7_MIDX // Texture coord 7
     vtx_texcoord[7] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[3])) * 
-        vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
+        vec4(texcoord7.st * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[7] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][3]) * 
-        vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
+        vec4(texcoord7.st * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #endif
     
     // Vertex color 0
