@@ -165,7 +165,7 @@ public:
      * Purges expired textures (textures that are older than current_frame + age_limit)
      * @param age_limit Acceptable age limit (in frames) for textures to still be considered fresh
      */
-    void Purge(int age_limit=500);
+    void Purge(int age_limit=100);
 
 private:
 
