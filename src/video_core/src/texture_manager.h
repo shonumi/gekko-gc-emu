@@ -104,7 +104,7 @@ public:
          * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
          */
         virtual CacheEntry::BackendData* Create(int active_texture_unit, 
-            const CacheEntry& cache_entry, u8* raw_data) = 0;
+            const CacheEntry& cache_entry, u8* raw_data, bool efb_copy, u32 efb_copy_addr) = 0;
 
         /**
          * Delete a texture from the backend renderer

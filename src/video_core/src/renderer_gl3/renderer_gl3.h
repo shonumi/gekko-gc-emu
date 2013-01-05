@@ -28,6 +28,7 @@
 #include <GL/glew.h>
 
 #include "common.h"
+#include "hash_container.h"
 #include "gx_types.h"
 #include "renderer_base.h"
 #include "shader_manager.h"
@@ -192,6 +193,16 @@ public:
     void Init();
     void ShutDown();
 
+    struct GLFramebufferObject {
+        GLuint framebuffer;
+        GLuint texture;
+        GLuint depthbuffer;
+    };
+    typedef HashContainer_STLMap<u32, GLFramebufferObject> EFBCopyCache;
+
+
+    EFBCopyCache* efb_copy_cache_;
+    GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
 private:
 
     /// Initialize the FBO
@@ -209,7 +220,7 @@ private:
     // Framebuffer object
     // ------------------
 
-    GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
+    
     GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
     GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
 

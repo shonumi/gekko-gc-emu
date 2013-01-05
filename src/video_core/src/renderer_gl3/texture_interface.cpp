@@ -23,8 +23,10 @@
  */
 
 #include "texture_interface.h"
+#include "utils.h"
 
-TextureInterface::TextureInterface() {
+TextureInterface::TextureInterface(const RendererGL3* parent) {
+    parent_ = parent;
 }
 
 TextureInterface::~TextureInterface() {
@@ -38,13 +40,29 @@ TextureInterface::~TextureInterface() {
  * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
  */
 TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_texture_unit, 
-    const TextureManager::CacheEntry& cache_entry, u8* raw_data) {
+    const TextureManager::CacheEntry& cache_entry, u8* raw_data, bool efb_copy, u32 efb_copy_addr) {
+
     BackendData* backend_data = new BackendData();
-    glGenTextures(1, &backend_data->handle_);
+
     glActiveTexture(GL_TEXTURE0 + active_texture_unit);
-    glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cache_entry.width_, cache_entry.height_, 0, GL_RGBA, 
-        GL_UNSIGNED_BYTE, raw_data);
+
+    if (!efb_copy) {
+        glGenTextures(1, &backend_data->handle_);
+        
+        glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cache_entry.width_, cache_entry.height_, 0, GL_RGBA,
+            GL_UNSIGNED_BYTE, raw_data);
+    } else {
+        RendererGL3::GLFramebufferObject* efb_copy_fbo = 
+            parent_->efb_copy_cache_->FetchFromHash(efb_copy_addr);
+
+        _ASSERT_MSG(TGP, efb_copy_fbo != NULL, "EFB copy FBO never was initialized!");
+
+        backend_data->handle_ = efb_copy_fbo->texture;
+
+        glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
+    }
     return backend_data;
 }
 

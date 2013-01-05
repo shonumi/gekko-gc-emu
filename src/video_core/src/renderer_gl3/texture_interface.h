@@ -39,7 +39,7 @@
 class TextureInterface : virtual public TextureManager::BackendInterface {
 public:
 
-    TextureInterface();
+    TextureInterface(const RendererGL3* parent);
     ~TextureInterface();
 
     /**
@@ -50,7 +50,7 @@ public:
      * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
      */
     TextureManager::CacheEntry::BackendData* Create(int active_texture_unit, 
-        const TextureManager::CacheEntry& cache_entry, u8* raw_data);
+        const TextureManager::CacheEntry& cache_entry, u8* raw_data, bool efb_copy, u32 efb_copy_addr);
 
     /**
      * Delete a texture from the backend renderer
@@ -75,6 +75,8 @@ public:
         const gp::BPTexMode1& tex_mode_1);
 
 private:
+
+    const RendererGL3* parent_;
 
     class BackendData : public TextureManager::CacheEntry::BackendData {
     public:

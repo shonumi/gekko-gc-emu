@@ -65,7 +65,7 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     // Try to find an EFB copy
     EFBCopyData* efb_copy_data = efb_copy_cache_->FetchFromHash(cache_entry.address_);
 
-    if (efb_copy_data == NULL) {
+    /*if (efb_copy_data == NULL) {
         // Not exact address, but maybe in bounds of one of our previous copies...
         for (int i = 0; i < efb_copy_cache_->Size(); i++) {
             EFBCopyData* res = efb_copy_cache_->FetchFromIndex(i);
@@ -76,10 +76,10 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
                 break;
             }
         }
-    }
-
+    }*/
     // Found result of an EFB copy
     if (efb_copy_data != NULL) {
+        
         cache_entry.width_      = efb_copy_data->width;
         cache_entry.height_     = efb_copy_data->height;
         cache_entry.type_       = kTextureType_EFBCopy;
@@ -87,19 +87,18 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
 
         active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
 
-        // If we previously made the copy, delete it... (ugly)
-        if (active_textures_[active_texture_unit] != NULL) {
-            backend_interface_->Delete(active_textures_[active_texture_unit]->backend_data_);
-            cache_->Remove(active_textures_[active_texture_unit]->hash_);
+        if (NULL == active_textures_[active_texture_unit]) {
+
+            // Create a texture in VRAM from raw data...
+            cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
+                                                                   cache_entry,
+                                                                   NULL,
+                                                                   true,
+                                                                   efb_copy_data->efb_copy_addr);
         }
 
-        // Create a texture in VRAM from raw data...
-        cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
-                                                               cache_entry,
-                                                               efb_copy_data->raw_data);
         // Update cache with new information...
         active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
-
 
     // Otherwise, normal texture...
     } else {
@@ -121,7 +120,9 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
             // Create a texture in VRAM from raw data...
             cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
                                                                    cache_entry,
-                                                                   raw_data);
+                                                                   raw_data,
+                                                                   false,
+                                                                   0);
             // Optionally dump texture to TGA...
             if (common::g_config->current_renderer_config().enable_texture_dumping) {
                 std::string filepath = common::g_config->program_dir() + std::string("/dump");
@@ -148,15 +149,13 @@ void TextureManager::UpdateData_EFBCopy(u32 efb_copy_addr, int width, int height
     efb_copy_data.height = height;
 
     EFBCopyData* res = efb_copy_cache_->FetchFromHash(efb_copy_addr);
-    if (res == NULL) {
+    /*if (res == NULL) {
         efb_copy_data.raw_data = new u8[width * height * 4];
-        
     } else {
         efb_copy_data.raw_data = res->raw_data;
     }
-
     memcpy(efb_copy_data.raw_data, raw_data, width * height * 4);
-
+    */
     efb_copy_cache_->Update(efb_copy_addr, efb_copy_data);
 }
 
@@ -166,6 +165,8 @@ void TextureManager::UpdateData_EFBCopy(u32 efb_copy_addr, int width, int height
  * @param tex_mode_0 BP TexMode0 register to use for the update
  * @param tex_mode_1 BP TexMode1 register to use for the update
  */
+
+#include "renderer_gl3\renderer_gl3.h"
 void TextureManager::UpdateParameters(int active_texture_unit, const gp::BPTexMode0& tex_mode_0,
     const gp::BPTexMode1& tex_mode_1) {
     backend_interface_->UpdateParameters(active_texture_unit, tex_mode_0, tex_mode_1);
@@ -208,7 +209,7 @@ void TextureManager::Purge(int age_limit) {
     CacheEntry* cache_entry = NULL;
     for (int i = 0; i < this->Size(); i++) {
         cache_entry = cache_->FetchFromIndex(i);
-        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame) {
+        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame && cache_entry->type_ != kTextureType_EFBCopy) {
             backend_interface_->Delete(cache_entry->backend_data_);
             cache_->Remove(cache_entry->hash_);
         }
