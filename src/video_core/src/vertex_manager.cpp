@@ -70,6 +70,7 @@ void VertexManager_BeginPrimitive(GXPrimitive prim, int count) {
     g_vertex_num = 0;
     g_quad_counter = 0;
     
+    BP_LoadTexture();
     if (GX_QUADS == prim) {
         prim = GX_TRIANGLES;    // Most hardware doesn't support quads, so convert to triangles
         count += count >> 1;    // Every 4 verts (quad) will be converted to 6 verts (triangle)
@@ -79,7 +80,6 @@ void VertexManager_BeginPrimitive(GXPrimitive prim, int count) {
     } else {
         video_core::g_renderer->BeginPrimitive(prim, count, &g_vbo, g_vbo_offset);
     }
-    BP_LoadTexture();
 }
 
 /// End a primitive

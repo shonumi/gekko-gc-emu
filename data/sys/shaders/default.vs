@@ -3,14 +3,18 @@ layout(location = 1) in vec4 color0;
 layout(location = 2) in vec4 color1;
 layout(location = 3) in vec4 normal;
 
-layout(location = 4) in vec4 texcoord01;
-layout(location = 5) in vec4 texcoord23;
-layout(location = 6) in vec4 texcoord45;
-layout(location = 7) in vec4 texcoord67;
+layout(location = 4)  in vec4 texcoord0;
+layout(location = 5)  in vec4 texcoord1;
+layout(location = 6)  in vec4 texcoord2;
+layout(location = 7)  in vec4 texcoord3;
+layout(location = 8)  in vec4 texcoord4;
+layout(location = 9)  in vec4 texcoord5;
+layout(location = 10) in vec4 texcoord6;
+layout(location = 11) in vec4 texcoord7;
 
-layout(location = 8) in vec4 matrix_idx_pos;
-layout(location = 9) in vec4 matrix_idx_tex03;
-layout(location = 10) in vec4 matrix_idx_tex47;
+layout(location = 12) in vec4 matrix_idx_pos;
+layout(location = 13) in vec4 matrix_idx_tex03;
+layout(location = 14) in vec4 matrix_idx_tex47;
 
 struct VertexState {
     float cp_pos_dqf; 
@@ -29,7 +33,7 @@ layout(std140) uniform _VS_UBO {
 } vs_ubo;
 
 // Vertex shader outputs
-out vec4 vtx_color_0;
+out vec4 vtx_color[2];
 out vec2 vtx_texcoord[8];
 
 #define XF_MEM_MTX44(addr) mat4( \
@@ -51,85 +55,112 @@ void main() {
 #else
     gl_Position = vs_ubo.state.projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
 #endif
+
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[0])) * 
-        vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
+        vec4(texcoord0.st * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][0]) * 
-        vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
+        vec4(texcoord0.st * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_1_MIDX // Texture coord 1
     vtx_texcoord[1] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[1])) * 
-        vec4(texcoord01.zw * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
+        vec4(texcoord1.st * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[1] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][1]) * 
-        vec4(texcoord01.zw * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
+        vec4(texcoord1.st * vs_ubo.state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_2_MIDX // Texture coord 2
     vtx_texcoord[2] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[2])) * 
-        vec4(texcoord23.xy * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
+        vec4(texcoord2.st * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[2] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][2]) * 
-        vec4(texcoord23.xy * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
+        vec4(texcoord2.st * vs_ubo.state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_3_MIDX // Texture coord 3
     vtx_texcoord[3] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[3])) * 
-        vec4(texcoord23.zw * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
+        vec4(texcoord3.st * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[3] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[0][3]) * 
-        vec4(texcoord23.zw * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
+        vec4(texcoord3.st * vs_ubo.state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_4_MIDX // Texture coord 4
     vtx_texcoord[4] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[0])) * 
-        vec4(texcoord45.xy * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
+        vec4(texcoord4.st * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[4] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][0]) * 
-        vec4(texcoord45.xy * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
+        vec4(texcoord4.st * vs_ubo.state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_5_MIDX // Texture coord 5
     vtx_texcoord[5] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[1])) * 
-        vec4(texcoord45.zw * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
+        vec4(texcoord5.st * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[5] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][1]) * 
-        vec4(texcoord45.zw * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
+        vec4(texcoord5.st * vs_ubo.state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_6_MIDX // Texture coord 6
     vtx_texcoord[6] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[2])) * 
-        vec4(texcoord67.xy * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
+        vec4(texcoord6.st * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[6] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][2]) * 
-        vec4(texcoord67.xy * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
+        vec4(texcoord6.st * vs_ubo.state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_7_MIDX // Texture coord 7
     vtx_texcoord[7] = vec4(XF_MEM_MTX44(int(matrix_idx_tex47[3])) * 
-        vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
+        vec4(texcoord7.st * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[7] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][3]) * 
-        vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
+        vec4(texcoord7.st * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #endif
+    
     // Vertex color 0
 #ifdef _VSDEF_COLOR0_RGB565
-    vtx_color_0.r = float(int(color0[1]) >> 3) / 31.0f;
-    vtx_color_0.g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
-    vtx_color_0.b = float(int(color0[0]) & 0x1F) / 31.0f;
-    vtx_color_0.a = 1.0f;
+    vtx_color[0].r = float(int(color0[1]) >> 3) / 31.0f;
+    vtx_color[0].g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
+    vtx_color[0].b = float(int(color0[0]) & 0x1F) / 31.0f;
+    vtx_color[0].a = 1.0f;
 #elif defined(_VSDEF_COLOR0_RGB8)
-    vtx_color_0 = vec4(clamp((color0.rgb / 255.0f), 0.0, 1.0), 1.0);
+    vtx_color[0] = vec4(clamp((color0.rgb / 255.0f), 0.0, 1.0), 1.0);
 #elif defined(_VSDEF_COLOR0__RGBX8)
-    vtx_color_0 = vec4(clamp((color0.abg / 255.0f), 0.0, 1.0), 1.0);
+    vtx_color[0] = vec4(clamp((color0.abg / 255.0f), 0.0, 1.0), 1.0);
 #elif defined(_VSDEF_COLOR0_RGBA4)
-    vtx_color_0.r = float(int(color0[1]) >> 4) / 15.0f;
-    vtx_color_0.g = float(int(color0[1]) & 0xF) / 15.0f;
-    vtx_color_0.b = float(int(color0[0]) >> 4) / 15.0f;
-    vtx_color_0.a = float(int(color0[0]) & 0xF) / 15.0f;
+    vtx_color[0].r = float(int(color0[1]) >> 4) / 15.0f;
+    vtx_color[0].g = float(int(color0[1]) & 0xF) / 15.0f;
+    vtx_color[0].b = float(int(color0[0]) >> 4) / 15.0f;
+    vtx_color[0].a = float(int(color0[0]) & 0xF) / 15.0f;
 #elif defined(_VSDEF_COLOR0_RGBA6)
-    vtx_color_0.r = float(int(color0[0]) >> 2) / 63.0f;
-    vtx_color_0.g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 63.0f;
-    vtx_color_0.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 63.0f;
-    vtx_color_0.a = float(int(color0[2]) & 0x3F) / 63.0f;
+    vtx_color[0].r = float(int(color0[0]) >> 2) / 63.0f;
+    vtx_color[0].g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 63.0f;
+    vtx_color[0].b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 63.0f;
+    vtx_color[0].a = float(int(color0[2]) & 0x3F) / 63.0f;
 #elif defined(_VSDEF_COLOR0_RGBA8)
-    vtx_color_0 = clamp((color0.abgr / 255.0f), 0.0, 1.0);
+    vtx_color[0] = clamp((color0.abgr / 255.0f), 0.0, 1.0);
 #else
-    vtx_color_0 = vec4(1.0, 1.0, 1.0, 1.0);
+    vtx_color[0] = vec4(1.0, 1.0, 1.0, 1.0);
+#endif
+    // Vertex color 1
+#ifdef _VSDEF_COLOR1_RGB565
+    vtx_color[1].r = float(int(color1[1]) >> 3) / 31.0f;
+    vtx_color[1].g = float(((int(color1[1]) & 0x7) << 3) | (int(color1[0]) >> 5)) / 63.0f;
+    vtx_color[1].b = float(int(color1[0]) & 0x1F) / 31.0f;
+    vtx_color[1].a = 1.0f;
+#elif defined(_VSDEF_COLOR1_RGB8)
+    vtx_color[1] = vec4(clamp((color1.rgb / 255.0f), 0.0, 1.0), 1.0);
+#elif defined(_VSDEF_COLOR1__RGBX8)
+    vtx_color[1] = vec4(clamp((color1.abg / 255.0f), 0.0, 1.0), 1.0);
+#elif defined(_VSDEF_COLOR1_RGBA4)
+    vtx_color[1].r = float(int(color1[1]) >> 4) / 15.0f;
+    vtx_color[1].g = float(int(color1[1]) & 0xF) / 15.0f;
+    vtx_color[1].b = float(int(color1[0]) >> 4) / 15.0f;
+    vtx_color[1].a = float(int(color1[0]) & 0xF) / 15.0f;
+#elif defined(_VSDEF_COLOR1_RGBA6)
+    vtx_color[1].r = float(int(color1[0]) >> 2) / 63.0f;
+    vtx_color[1].g = float(((int(color1[0]) & 0x3) << 4) | (int(color1[1]) >> 4)) / 63.0f;
+    vtx_color[1].b = float(((int(color1[1]) & 0xF) << 2) | (int(color1[2]) >> 6)) / 63.0f;
+    vtx_color[1].a = float(int(color1[2]) & 0x3F) / 63.0f;
+#elif defined(_VSDEF_COLOR1_RGBA8)
+    vtx_color[1] = clamp((color1.abgr / 255.0f), 0.0, 1.0);
+#else
+    vtx_color[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 }

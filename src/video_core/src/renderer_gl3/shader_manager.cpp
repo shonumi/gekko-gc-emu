@@ -141,10 +141,23 @@ u32 ShaderManager::GetCurrentHash() {
         (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format << 12) | (cur_alpha_func << 4) | 
         gp::g_bp_regs.genmode.num_tevstages);
 	crc = CRC_ROTL(crc);
+    
+    crc ^= ((gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format << 3) | 
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
+    crc = CRC_ROTL(crc);
 
     for (int stage = 0; stage < (gp::g_bp_regs.genmode.num_tevstages + 1); stage++) {
         int reg_index = stage >> 1;
 
+        crc ^= gp::g_bp_regs.combiner[stage].color._u32; // TODO: only use the fields we care about
+        crc = CRC_ROTL(crc);
+
+        crc ^= gp::g_bp_regs.combiner[stage].alpha._u32; // TODO: only use the fields we care about
+        crc = CRC_ROTL(crc);
+
+        crc ^= gp::g_bp_regs.tevorder[reg_index]._u32; // TODO: only use the fields we care about
+        crc = CRC_ROTL(crc);
+        /*
         crc ^= ((gp::g_bp_regs.combiner[stage].color._u32 & 0xFFFF) << 16) | 
             (gp::g_bp_regs.combiner[stage].alpha._u32 & 0xFFF0) | 
             (gp::g_bp_regs.combiner[stage].color.clamp << 3) | 
@@ -156,7 +169,7 @@ u32 ShaderManager::GetCurrentHash() {
             (gp::g_bp_regs.combiner[stage].color.dest << 28) | 
             (gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage) << 25) | 
             (gp::g_bp_regs.tevorder[reg_index].get_texmap(stage) << 22);
-	    crc = CRC_ROTL(crc);
+	    crc = CRC_ROTL(crc);*/
     }
 	return crc;
 }
@@ -182,6 +195,10 @@ GLuint ShaderManager::LoadShader() {
     static const char* tev_alpha_input[] = { "prev.a", "color0.a", "color1.a", "color2.a", "tex.a",
         "ras.a", "konst.a", "0.0f" };
     static const char* tev_dest[] = { "prev", "color0", "color1", "color2" };
+    static const char* tev_ras[] = { "vtx_color[0]", "vtx_color[1]", "vec4(0.0f, 0.0f, 0.0f, 0.0f)",
+        "vec4(0.0f, 0.0f, 0.0f, 0.0f)", "vec4(0.0f, 0.0f, 0.0f, 0.0f)", 
+        "vec4(1.0f, 1.0f, 1.0f, 1.0f)", "vec4(1.0f, 1.0f, 1.0f, 1.0f)",
+        "vec4(0.0f, 0.0f, 0.0f, 0.0f)" };
 
     int _vs_offset = 0;
     int _fs_offset = 0;
@@ -206,6 +223,8 @@ GLuint ShaderManager::LoadShader() {
 
     _SHADER_VSDEF("#define _VSDEF_COLOR0_%s\n", 
         vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format]);
+    _SHADER_VSDEF("#define _VSDEF_COLOR1_%s\n", 
+        vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format]);
 
     // Generate fragment preprocessor
     // ------------------------------
@@ -226,11 +245,17 @@ GLuint ShaderManager::LoadShader() {
         _SHADER_FSDEF("#define _FSDEF_STAGE_DEST vec4(%s.rgb, %s.a)\n", 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].color.dest], 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].alpha.dest]);
+
         sprintf(temp, "#define _FSDEF_TEXTURE_%d %s\n", stage, 
             texture[gp::g_bp_regs.tevorder[reg_index].get_enable(stage)]);
+        
+        // Texture enabled for stage?
         if (gp::g_bp_regs.tevorder[reg_index].get_enable(stage)) {
+
             _SHADER_FSDEF(temp, gp::g_bp_regs.tevorder[reg_index].get_texmap(stage), 
                 gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage));
+        
+        // This will use white color for texture
         } else {
             _SHADER_FSDEF(temp);
         }
@@ -255,6 +280,9 @@ GLuint ShaderManager::LoadShader() {
             tev_alpha_input[gp::g_bp_regs.combiner[stage].alpha.sel_d]);
         _SHADER_FSDEF("#define _FSDEF_COMBINER_ALPHA_DEST_%d %s.a\n", stage, 
             tev_dest[gp::g_bp_regs.combiner[stage].alpha.dest]);
+        _SHADER_FSDEF("#define _FSDEF_RASCOLOR_%d %s\n", stage, 
+            tev_ras[gp::g_bp_regs.tevorder[reg_index].get_colorchan(stage)]);
+        
     }
     return this->CompileShaderProgram(_vs_def, _fs_def);
 }

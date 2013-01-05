@@ -4,6 +4,7 @@
  \
     stage = fs_ubo.tev_stages[s]; \
     konst = stage.konst; \
+    ras = _FSDEF_RASCOLOR_##s; \
  \
     stage_result = (vec4(_FSDEF_COMBINER_COLOR_D_##s, _FSDEF_COMBINER_ALPHA_D_##s) + \
         (vec4(stage.color_sub, stage.color_sub, stage.color_sub, stage.alpha_sub) * \
@@ -52,7 +53,7 @@ layout(std140) uniform _FS_UBO {
 
 // Textures
 uniform sampler2D texture[8];
-in vec4 vtx_color_0;
+in vec4 vtx_color[2];
 in vec2 vtx_texcoord[8];
 
 out vec4 frag_dest;
@@ -68,7 +69,7 @@ void main() {
     vec4 color2 = fs_ubo.tev_state.color[3];
     vec4 tex;
     vec4 konst;
-    vec4 ras = vtx_color_0;
+    vec4 ras;
     
     STAGE_RESULT(0);
 #if _FSDEF_NUM_STAGES > 0

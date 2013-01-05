@@ -113,7 +113,7 @@ RendererGL3::RendererGL3() {
     vertex_color_cur_count_[0] = vertex_color_cur_count_[1] = GX_CLR_RGBA;
     vertex_texcoord_cur_ = 0;
     last_mode_ = 0;
-    for (int i = 0; i < kGCMaxTextureMaps; i++) {
+    for (int i = 0; i < kGCMaxActiveTextures; i++) {
         vertex_texcoord_format_[i] = 0;
         vertex_texcoord_enable_[i] = 0;
         vertex_texcoord_format_size_[i] = 0;
@@ -257,7 +257,6 @@ void RendererGL3::VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCn
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
-
     // Do nothing if no data sent
     if (vertex_num == 0) {
         return;
@@ -273,37 +272,30 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(12));
-
+    // Color 1
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+        reinterpret_cast<void*>(16));
     // TexCoords
-	for (int i = 0; i < 4; i++) {
-		u32 texture_index = i << 1;
-		if (vertex_texcoord_enable_[texture_index] || vertex_texcoord_enable_[texture_index + 1]) {
-			GLuint layout_index = i + 4;
-			glEnableVertexAttribArray(layout_index);
-			glVertexAttribPointer(layout_index, 4, vertex_texcoord_format_[i], GL_FALSE, sizeof(GXVertex), 
-            reinterpret_cast<void*>(56 + (i * 16)));
+	for (int i = 0; i < kGCMaxActiveTextures; i++) {
+		if (vertex_texcoord_enable_[i]) {
+			glEnableVertexAttribArray(i + 4);
+			glVertexAttribPointer(i + 4, 4, vertex_texcoord_format_[i], GL_FALSE, sizeof(GXVertex), 
+            reinterpret_cast<void*>(56 + (i * 8)));
 		}
 	}
     // Position matrix index
-    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) {
-        glEnableVertexAttribArray(8);
-        glVertexAttribPointer(8, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
-            reinterpret_cast<void*>(120));
-    }
+    glEnableVertexAttribArray(12);
+    glVertexAttribPointer(12, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+        reinterpret_cast<void*>(120));
     // Texture coord 0-3 matrix index
-    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable || gp::g_cp_regs.vcd_lo[0].tex1_midx_enable || 
-        gp::g_cp_regs.vcd_lo[0].tex2_midx_enable || gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) {
-        glEnableVertexAttribArray(9);
-        glVertexAttribPointer(9, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
-            reinterpret_cast<void*>(124));
-    }
+    glEnableVertexAttribArray(13);
+    glVertexAttribPointer(13, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+        reinterpret_cast<void*>(124));
     // Texture coord 4-7 matrix index
-    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable || gp::g_cp_regs.vcd_lo[0].tex5_midx_enable || 
-        gp::g_cp_regs.vcd_lo[0].tex6_midx_enable || gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) {
-        glEnableVertexAttribArray(10);
-        glVertexAttribPointer(10, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
-            reinterpret_cast<void*>(128));
-    }
+    glEnableVertexAttribArray(14);
+    glVertexAttribPointer(14, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
+        reinterpret_cast<void*>(128));
 
     glDrawArrays(gl_prim_type_, vbo_offset, vertex_num);
 
@@ -311,7 +303,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
         "VBO is full! There is either a bug or it must be > %dMB!", 
         (VBO_SIZE / 1048576));
 
-	for (int i = 0; i < 11; i++) { 
+	for (int i = 0; i < 15; i++) { 
 		glDisableVertexAttribArray(i);
 	}
 }
