@@ -29,7 +29,7 @@ layout(std140) uniform _VS_UBO {
 } vs_ubo;
 
 // Vertex shader outputs
-out vec4 vtx_color_0;
+out vec4 vtx_color[2];
 out vec2 vtx_texcoord[8];
 
 #define XF_MEM_MTX44(addr) mat4( \
@@ -51,6 +51,7 @@ void main() {
 #else
     gl_Position = vs_ubo.state.projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
 #endif
+
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[0])) * 
         vec4(texcoord01.xy * vs_ubo.state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
@@ -107,29 +108,55 @@ void main() {
     vtx_texcoord[7] = vec4(XF_MEM_MTX44(vs_ubo.state.cp_tex_matrix_offset[1][3]) * 
         vec4(texcoord67.zw * vs_ubo.state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #endif
+    
     // Vertex color 0
 #ifdef _VSDEF_COLOR0_RGB565
-    vtx_color_0.r = float(int(color0[1]) >> 3) / 31.0f;
-    vtx_color_0.g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
-    vtx_color_0.b = float(int(color0[0]) & 0x1F) / 31.0f;
-    vtx_color_0.a = 1.0f;
+    vtx_color[0].r = float(int(color0[1]) >> 3) / 31.0f;
+    vtx_color[0].g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
+    vtx_color[0].b = float(int(color0[0]) & 0x1F) / 31.0f;
+    vtx_color[0].a = 1.0f;
 #elif defined(_VSDEF_COLOR0_RGB8)
-    vtx_color_0 = vec4(clamp((color0.rgb / 255.0f), 0.0, 1.0), 1.0);
+    vtx_color[0] = vec4(clamp((color0.rgb / 255.0f), 0.0, 1.0), 1.0);
 #elif defined(_VSDEF_COLOR0__RGBX8)
-    vtx_color_0 = vec4(clamp((color0.abg / 255.0f), 0.0, 1.0), 1.0);
+    vtx_color[0] = vec4(clamp((color0.abg / 255.0f), 0.0, 1.0), 1.0);
 #elif defined(_VSDEF_COLOR0_RGBA4)
-    vtx_color_0.r = float(int(color0[1]) >> 4) / 15.0f;
-    vtx_color_0.g = float(int(color0[1]) & 0xF) / 15.0f;
-    vtx_color_0.b = float(int(color0[0]) >> 4) / 15.0f;
-    vtx_color_0.a = float(int(color0[0]) & 0xF) / 15.0f;
+    vtx_color[0].r = float(int(color0[1]) >> 4) / 15.0f;
+    vtx_color[0].g = float(int(color0[1]) & 0xF) / 15.0f;
+    vtx_color[0].b = float(int(color0[0]) >> 4) / 15.0f;
+    vtx_color[0].a = float(int(color0[0]) & 0xF) / 15.0f;
 #elif defined(_VSDEF_COLOR0_RGBA6)
-    vtx_color_0.r = float(int(color0[0]) >> 2) / 63.0f;
-    vtx_color_0.g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 63.0f;
-    vtx_color_0.b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 63.0f;
-    vtx_color_0.a = float(int(color0[2]) & 0x3F) / 63.0f;
+    vtx_color[0].r = float(int(color0[0]) >> 2) / 63.0f;
+    vtx_color[0].g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 63.0f;
+    vtx_color[0].b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 63.0f;
+    vtx_color[0].a = float(int(color0[2]) & 0x3F) / 63.0f;
 #elif defined(_VSDEF_COLOR0_RGBA8)
-    vtx_color_0 = clamp((color0.abgr / 255.0f), 0.0, 1.0);
+    vtx_color[0] = clamp((color0.abgr / 255.0f), 0.0, 1.0);
 #else
-    vtx_color_0 = vec4(1.0, 1.0, 1.0, 1.0);
+    vtx_color[0] = vec4(1.0, 1.0, 1.0, 1.0);
+#endif
+    // Vertex color 1
+#ifdef _VSDEF_COLOR1_RGB565
+    vtx_color[1].r = float(int(color1[1]) >> 3) / 31.0f;
+    vtx_color[1].g = float(((int(color1[1]) & 0x7) << 3) | (int(color1[0]) >> 5)) / 63.0f;
+    vtx_color[1].b = float(int(color1[0]) & 0x1F) / 31.0f;
+    vtx_color[1].a = 1.0f;
+#elif defined(_VSDEF_COLOR1_RGB8)
+    vtx_color[1] = vec4(clamp((color1.rgb / 255.0f), 0.0, 1.0), 1.0);
+#elif defined(_VSDEF_COLOR1__RGBX8)
+    vtx_color[1] = vec4(clamp((color1.abg / 255.0f), 0.0, 1.0), 1.0);
+#elif defined(_VSDEF_COLOR1_RGBA4)
+    vtx_color[1].r = float(int(color1[1]) >> 4) / 15.0f;
+    vtx_color[1].g = float(int(color1[1]) & 0xF) / 15.0f;
+    vtx_color[1].b = float(int(color1[0]) >> 4) / 15.0f;
+    vtx_color[1].a = float(int(color1[0]) & 0xF) / 15.0f;
+#elif defined(_VSDEF_COLOR1_RGBA6)
+    vtx_color[1].r = float(int(color1[0]) >> 2) / 63.0f;
+    vtx_color[1].g = float(((int(color1[0]) & 0x3) << 4) | (int(color1[1]) >> 4)) / 63.0f;
+    vtx_color[1].b = float(((int(color1[1]) & 0xF) << 2) | (int(color1[2]) >> 6)) / 63.0f;
+    vtx_color[1].a = float(int(color1[2]) & 0x3F) / 63.0f;
+#elif defined(_VSDEF_COLOR1_RGBA8)
+    vtx_color[1] = clamp((color1.abgr / 255.0f), 0.0, 1.0);
+#else
+    vtx_color[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 }
