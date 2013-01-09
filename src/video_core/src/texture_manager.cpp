@@ -136,8 +136,19 @@ void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec,
     // Do we have a cache entry for the EFB copy texture?
     cache_ptr = cache_->FetchFromHash(cache_entry.hash_);
 
-    // If cache lookup failed, create a texture in VRAM for storing the EFB copy...
+    // If cache lookup did not fail...
+    if (NULL != cache_ptr) {
+        // Invalidate previous EFB copy at this address if width/height changed
+        if ((cache_ptr->width_ != cache_entry.width_) || 
+            (cache_ptr->height_ != cache_entry.height_)) {
+            backend_interface_->Delete(cache_ptr->backend_data_);
+            cache_->Remove(cache_ptr->hash_);
+            cache_ptr = NULL;
+        }
+    }
+    // If cache lookup failed...
     if (NULL == cache_ptr) {
+        // create a texture in VRAM for storing the EFB copy...
         cache_entry.backend_data_ = backend_interface_->Create(0, cache_entry, NULL);
         cache_ptr = cache_->Update(cache_entry.hash_, cache_entry);   
     }
