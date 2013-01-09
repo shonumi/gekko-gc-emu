@@ -142,8 +142,6 @@ void TextureManager::CopyEFB(u32 efb_copy_addr, Rect rect) {
  * @param tex_mode_0 BP TexMode0 register to use for the update
  * @param tex_mode_1 BP TexMode1 register to use for the update
  */
-
-#include "renderer_gl3\renderer_gl3.h"
 void TextureManager::UpdateParameters(int active_texture_unit, const gp::BPTexMode0& tex_mode_0,
     const gp::BPTexMode1& tex_mode_1) {
     backend_interface_->UpdateParameters(active_texture_unit, tex_mode_0, tex_mode_1);
