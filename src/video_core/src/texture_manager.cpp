@@ -104,10 +104,11 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
 
 /** 
  * Copy the EFB to a texture
- * @param efb_copy_addr Address in RAM EFB copy is supposed to go
+ * @param addr Address in RAM EFB copy is supposed to go
+ * @param efb_copy BP efb copy register
  * @param rect EFB rectangle to copy
  */
-void TextureManager::CopyEFB(u32 efb_copy_addr, Rect rect) {
+void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopy& efb_copy, Rect rect) {
     static CacheEntry   cache_entry;
     CacheEntry*         cache_ptr;
 
@@ -120,8 +121,8 @@ void TextureManager::CopyEFB(u32 efb_copy_addr, Rect rect) {
     //cache_entry.size_           = gp::TextureDecoder_GetSize(cache_entry.format_, 
     //                                                     cache_entry.width_, 
     //                                                     cache_entry.height_);
-    cache_entry.hash_           = efb_copy_addr;
-    cache_entry.efb_copy_addr_  = efb_copy_addr;
+    cache_entry.hash_           = addr;
+    cache_entry.efb_copy_addr_  = addr;
 
     cache_ptr = cache_->FetchFromHash(cache_entry.hash_);
 
