@@ -157,10 +157,10 @@ public:
     /** 
      * Copy the EFB to a texture
      * @param addr Address in RAM EFB copy is supposed to go
-     * @param efb_copy BP efb copy register
+     * @param efb_copy_exec BP efb copy register
      * @param rect EFB rectangle to copy
      */
-    void CopyEFB(u32 addr, const gp::BPEFBCopy& efb_copy, Rect rect);
+    void CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, Rect rect);
 
     /**
      * Updates the texture parameters

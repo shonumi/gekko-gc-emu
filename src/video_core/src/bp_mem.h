@@ -208,8 +208,8 @@ struct BPPEControl {
     };
 };
 
-/// PE Copy Execute
-struct BPEFBCopy {
+/// PE EFB Copy Execute
+struct BPEFBCopyExec {
     union {
         struct {
             u32 clamp0              : 1; // if set clamp top
@@ -501,7 +501,7 @@ union BPMemory {
         u32             clear_ar;               // 0x4f
         u32             clear_gb;               // 0x50
         u32             clear_z;                // 0x51
-        BPEFBCopy       efb_copy;               // 0x52
+        BPEFBCopyExec   efb_copy_exec;          // 0x52
         u32             pad5[0x6];              // 0x53
         BPEFBCoords10   scissor_offset;         // 0x59
         u32             pad6[0x26];             // 0x5a
