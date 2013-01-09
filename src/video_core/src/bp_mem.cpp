@@ -195,7 +195,7 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                     xfb_height);
             } else {
                 video_core::g_texture_manager->CopyEFB(gp::g_bp_regs.efb_copy_addr << 5, 
-                    gp::g_bp_regs.efb_copy_exec, rect);
+                    efb_copy_exec, rect);
             }
 
             if (efb_copy_exec.clear) {
