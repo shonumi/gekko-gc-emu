@@ -160,7 +160,7 @@ public:
      * @param efb_copy_exec BP efb copy register
      * @param rect EFB rectangle to copy
      */
-    void CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, Rect rect);
+    void CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, const Rect& rect);
 
     /**
      * Updates the texture parameters

@@ -108,7 +108,7 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
  * @param efb_copy BP efb copy register
  * @param rect EFB rectangle to copy
  */
-void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, Rect rect) {
+void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, const Rect& rect) {
     static CacheEntry   cache_entry;
     CacheEntry*         cache_ptr;
 
