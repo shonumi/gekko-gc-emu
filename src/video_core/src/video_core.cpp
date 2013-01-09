@@ -81,17 +81,17 @@ void Start() {
 
 /// Initialize the video core
 void Init(EmuWindow* emu_window) {
+    g_emu_window = emu_window;
+    g_renderer = new RendererGL3();
+    g_renderer->SetWindow(g_emu_window);
+    g_renderer->Init();
+
     gp::Fifo_Init();
     gp::VertexManager_Init();
     gp::VertexLoader_Init();
     gp::BP_Init();
     gp::CP_Init();
     gp::XF_Init();
-
-    g_emu_window = emu_window;
-    g_renderer = new RendererGL3();
-    g_renderer->SetWindow(g_emu_window);
-    g_renderer->Init();
 
     g_texture_manager = new TextureManager(g_renderer->texture_interface());
 

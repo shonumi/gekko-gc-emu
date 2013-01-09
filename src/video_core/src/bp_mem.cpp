@@ -262,6 +262,17 @@ void BP_LoadTexture() {
 /// Initialize BP
 void BP_Init() {
     memset(&g_bp_regs, 0, sizeof(g_bp_regs));
+
+    // Clear EFB on startup with alpha of 1.0f
+    // TODO(ShizZy): Remove hard coded EFB rect size (still need a video_core or renderer interface
+    // for this, actually)
+    video_core::g_renderer->Clear(
+        Rect(0, 0, 640, 480),   // Clear rectangle
+        true,                   // Enable color clearing
+        true,                   // Enable alpha clearing
+        true,                   // Enable depth clearing
+        0xFF000000,             // Clear color - ARGB color black with alpha set to 1.0f!
+        0);                     // Clear depth
 }
 
 } // namespace
