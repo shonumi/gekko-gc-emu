@@ -106,17 +106,26 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
  * Copy the EFB to a texture
  * @param addr Address in RAM EFB copy is supposed to go
  * @param efb_copy BP efb copy register
- * @param rect EFB rectangle to copy
+ * @param src_rect EFB rectangle to copy
  */
-void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, const Rect& rect) {
+void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, 
+    const Rect& src_rect) {
+    static Rect         dst_rect;
     static CacheEntry   cache_entry;
     CacheEntry*         cache_ptr;
 
-    //cache_entry.address_        = efb_copy_addr;
-    //cache_entry.format_         = (gp::TextureFormat)tex_image_0.format;
-    cache_entry.width_          = rect.width;
-    cache_entry.height_         = rect.height;
-    cache_entry.efb_copy_rect_  = rect;
+    //cache_entry.address_  = efb_copy_addr;
+    //cache_entry.format_   = (gp::TextureFormat)tex_image_0.format;
+
+    cache_entry.width_  = src_rect.width();
+    cache_entry.height_ = src_rect.height();
+
+    // Size the texture in half if half_scale ("mipmap") mode is enabled
+    if (efb_copy_exec.half_scale) {
+        cache_entry.width_  /= 2;
+        cache_entry.height_ /= 2;
+    }
+    cache_entry.efb_copy_rect_  = src_rect;
     cache_entry.type_           = kSourceType_EFBCopy;
     //cache_entry.size_           = gp::TextureDecoder_GetSize(cache_entry.format_, 
     //                                                     cache_entry.width_, 
@@ -124,17 +133,20 @@ void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, c
     cache_entry.hash_           = addr;
     cache_entry.efb_copy_addr_  = addr;
 
+    // Do we have a cache entry for the EFB copy texture?
     cache_ptr = cache_->FetchFromHash(cache_entry.hash_);
 
+    // If cache lookup failed, create a texture in VRAM for storing the EFB copy...
     if (NULL == cache_ptr) {
-        // Create a texture in VRAM from raw data...
-        cache_entry.backend_data_ = backend_interface_->Create(0, 
-                                                               cache_entry,
-                                                               NULL);
+        cache_entry.backend_data_ = backend_interface_->Create(0, cache_entry, NULL);
         cache_ptr = cache_->Update(cache_entry.hash_, cache_entry);   
     }
-    // Update texture with EFB region
-    backend_interface_->CopyEFB(rect, cache_ptr->backend_data_);
+
+    dst_rect.x1_ = cache_entry.width_;
+    dst_rect.y1_ = cache_entry.height_;
+
+    // Update texture with EFB copy region...
+    backend_interface_->CopyEFB(src_rect, dst_rect, cache_ptr->backend_data_);
 }
 
 /**

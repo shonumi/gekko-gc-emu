@@ -168,11 +168,11 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_EFB_COPY:  // pe copy execute
         {
-            Rect rect;
-            rect.x = gp::g_bp_regs.efb_top_left.x;
-            rect.y = gp::g_bp_regs.efb_top_left.y;
-            rect.width = gp::g_bp_regs.efb_height_width.x + 1;
-            rect.height = gp::g_bp_regs.efb_height_width.y + 1;
+            Rect efb_rect;
+            efb_rect.x0_ = gp::g_bp_regs.efb_top_left.x;
+            efb_rect.y0_ = gp::g_bp_regs.efb_top_left.y;
+            efb_rect.x1_ = efb_rect.x0_ + gp::g_bp_regs.efb_height_width.x + 1;
+            efb_rect.y1_ = efb_rect.y0_ + gp::g_bp_regs.efb_height_width.y + 1;
 
             BPEFBCopyExec efb_copy_exec;
             efb_copy_exec._u32 = data;
@@ -187,15 +187,12 @@ void BP_RegisterWrite(u8 addr, u32 data) {
             
                 u32 xfb_height = (u32)(((f32)gp::g_bp_regs.efb_height_width.y + 1.0f) * scale_y);
                 u32 xfb_width = gp::g_bp_regs.disp_stride << 4;
+                Rect xfb_rect(0, 0, xfb_width, xfb_height);
 
-                video_core::g_renderer->CopyEFB(
-                    RendererBase::kFramebuffer_VirtualXFB,
-                    rect,
-                    xfb_width,
-                    xfb_height);
+                video_core::g_renderer->CopyToXFB(efb_rect, xfb_rect);
             } else {
                 video_core::g_texture_manager->CopyEFB(gp::g_bp_regs.efb_copy_addr << 5, 
-                    efb_copy_exec, rect);
+                    efb_copy_exec, efb_rect);
             }
 
             if (efb_copy_exec.clear) {
@@ -217,12 +214,12 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                     u32 z = gp::g_bp_regs.clear_z & 0xffffff;
 
                     video_core::g_renderer->Clear(
-                        rect,                               // Clear rectangle
-                        enable_color,                       // Enable color clearing
-                        enable_alpha,                       // Enable alpha clearing
-                        enable_z,                           // Enable depth clearing
-                        color,                              // Clear color
-                        z);                                 // Clear depth
+                        efb_rect,                   // Clear rectangle
+                        enable_color,               // Enable color clearing
+                        enable_alpha,               // Enable alpha clearing
+                        enable_z,                   // Enable depth clearing
+                        color,                      // Clear color
+                        z);                         // Clear depth
                 }
         
             }

@@ -62,15 +62,15 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
     case TextureManager::kSourceType_EFBCopy:
 
         // Create the texture
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, cache_entry.efb_copy_rect_.width, 
-            cache_entry.efb_copy_rect_.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, cache_entry.width_, 
+            cache_entry.height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
         //glBindTexture(GL_TEXTURE_2D, 0);
         
         // Generate depth buffer storage
         glGenRenderbuffers(1, &backend_data->efb_depthbuffer_); // Generate depth buffer
         glBindRenderbuffer(GL_RENDERBUFFER, backend_data->efb_depthbuffer_);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, cache_entry.efb_copy_rect_.width,
-            cache_entry.efb_copy_rect_.height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, cache_entry.width_,
+            cache_entry.height_);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
         
         // Create the FBO and attach texture/depth buffer
@@ -137,10 +137,11 @@ void TextureInterface::Delete(TextureManager::CacheEntry::BackendData* backend_d
 
 /** 
  * Call to update a texture with a new EFB copy of the region specified by rect
- * @param rect EFB rectangle to copy
+ * @param src_rect Source rectangle to copy from EFB
+ * @param dst_rect Destination rectange to copy to
  * @param backend_data Pointer to renderer-specific data used for the EFB copy
  */
-void TextureInterface::CopyEFB(Rect rect, 
+void TextureInterface::CopyEFB(const Rect& src_rect, const Rect& dst_rect,
     const TextureManager::CacheEntry::BackendData* backend_data) {
     const BackendData* data = static_cast<const BackendData*>(backend_data);
 
@@ -155,8 +156,9 @@ void TextureInterface::CopyEFB(Rect rect,
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
-    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(src_rect.x0_, src_rect.y0_, src_rect.x1_, src_rect.y1_, 
+                      dst_rect.x0_, dst_rect.y0_, dst_rect.x1_, dst_rect.y1_,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 

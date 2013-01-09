@@ -147,13 +147,12 @@ public:
     void SetLinePointSize(f32 line_width, f32 point_size);
 
     /** 
-     * Blits the EFB to the specified destination buffer
-     * @param dest Destination framebuffer
-     * @param rect EFB rectangle to copy
-     * @param dest_width Destination width in pixels 
+     * Blits the EFB to the external framebuffer (XFB)
+     * @param src_rect Source rectangle in EFB to copy
+     * @param dst_rect Destination rectangle in EFB to copy to
      * @param dest_height Destination height in pixels
      */
-    void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height);
+    void CopyToXFB(const Rect& src_rect, const Rect& dst_rect);
 
     /**
      * Clear the screen
@@ -164,7 +163,8 @@ public:
      * @param color Clear color
      * @param z Clear depth
      */
-    void Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, u32 z);
+    void Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
+        u32 z);
 
     /**
      * Set a specific render mode

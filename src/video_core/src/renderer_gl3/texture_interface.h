@@ -60,10 +60,12 @@ public:
 
     /** 
      * Call to update a texture with a new EFB copy of the region specified by rect
-     * @param rect EFB rectangle to copy
+     * @param src_rect Source rectangle to copy from EFB
+     * @param dst_rect Destination rectange to copy to
      * @param backend_data Pointer to renderer-specific data used for the EFB copy
      */
-    void CopyEFB(Rect rect, const TextureManager::CacheEntry::BackendData* backend_data);
+    void CopyEFB(const Rect& src_rect, const Rect& dst_rect,
+        const TextureManager::CacheEntry::BackendData* backend_data);
 
     /**
      * Binds a texture to the backend renderer

@@ -513,7 +513,6 @@ void RendererGL3::UpdateFramerate() {
 
 /// Swap buffers (render frame)
 void RendererGL3::SwapBuffers() {
-
     ResetRenderState();
 
     // FBO->Window copy
@@ -534,21 +533,16 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 }
 
 /** 
- * Blits the EFB to the specified destination buffer
- * @param dest Destination framebuffer
- * @param rect EFB rectangle to copy
- * @param dest_width Destination width in pixels 
+ * Blits the EFB to the external framebuffer (XFB)
+ * @param src_rect Source rectangle in EFB to copy
+ * @param dst_rect Destination rectangle in EFB to copy to
  * @param dest_height Destination height in pixels
  */
-void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) {
-
+void RendererGL3::CopyToXFB(const Rect& src_rect, const Rect& dst_rect) {
     ResetRenderState();
-    
-    _ASSERT_MSG(TGP, (dest == kFramebuffer_VirtualXFB), 
-        "Bad code path for EFB copy, use TextureManager!");
 
     // Render target is destination framebuffer
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_VirtualXFB]);
     glViewport(0, 0, resolution_width_, resolution_height_);
 
     // Render source is our EFB
@@ -556,8 +550,9 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
-    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height, 0, 0, dest_width, dest_height,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(src_rect.x0_, src_rect.y0_, src_rect.x1_, src_rect.y1_, 
+                      dst_rect.x0_, dst_rect.y0_, dst_rect.x1_, dst_rect.y1_,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
@@ -573,7 +568,7 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
  * @param color Clear color
  * @param z Clear depth
  */
-void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
+void RendererGL3::Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
     u32 z) {
 
         GLboolean const color_mask = enable_color ? GL_TRUE : GL_FALSE;
@@ -592,7 +587,7 @@ void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool en
 
         // Specify the rectangle of the EFB to clear
         glEnable(GL_SCISSOR_TEST);
-        glScissor(rect.x, rect.y, rect.width, rect.height);
+        glScissor(rect.x0_, rect.y0_, rect.width(), rect.height());
 
         // Clear it!
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

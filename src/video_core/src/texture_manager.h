@@ -61,20 +61,16 @@ public:
         };
 
         CacheEntry() {
-            address_                = 0;
-            size_                   = 0;
-            width_                  = -1;
-            height_                 = -1;
-            type_                   = kSourceType_None;
-            format_                 = gp::kTextureFormat_None; 
-            backend_data_           = NULL; 
-            hash_                   = 0;
-            frame_used_             = -1; 
-            efb_copy_addr_          = 0; 
-            efb_copy_rect_.width    = 0;
-            efb_copy_rect_.height   = 0;
-            efb_copy_rect_.x        = 0;
-            efb_copy_rect_.y        = 0;
+            address_            = 0;
+            size_               = 0;
+            width_              = -1;
+            height_             = -1;
+            type_               = kSourceType_None;
+            format_             = gp::kTextureFormat_None; 
+            backend_data_       = NULL; 
+            hash_               = 0;
+            frame_used_         = -1; 
+            efb_copy_addr_      = 0; 
         }
         ~CacheEntry() { 
         }
@@ -120,10 +116,12 @@ public:
 
         /** 
          * Call to update a texture with a new EFB copy of the region specified by rect
-         * @param rect EFB rectangle to copy
+         * @param src_rect Source rectangle to copy from EFB
+         * @param dst_rect Destination rectange to copy to
          * @param backend_data Pointer to renderer-specific data used for the EFB copy
          */
-        virtual void CopyEFB(Rect rect, const CacheEntry::BackendData* backend_data) = 0;
+        virtual void CopyEFB(const Rect& src_rect, const Rect& dst_rect,
+            const TextureManager::CacheEntry::BackendData* backend_data) = 0;
 
         /**
          * Binds a texture to the backend renderer
@@ -158,9 +156,9 @@ public:
      * Copy the EFB to a texture
      * @param addr Address in RAM EFB copy is supposed to go
      * @param efb_copy_exec BP efb copy register
-     * @param rect EFB rectangle to copy
+     * @param src_rect EFB rectangle to copy
      */
-    void CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, const Rect& rect);
+    void CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, const Rect& src_rect);
 
     /**
      * Updates the texture parameters
