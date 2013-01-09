@@ -314,6 +314,10 @@ void XF_Load(u32 length, u32 base_addr, u32* data);
  */
 void XF_LoadIndexed(u8 n, u16 index, u8 length, u16 addr);
 
+/// Updates the viewport
+void XF_UpdateViewport();   // TODO(ShizZy): The reason for putting this here is to be able to call
+                            // from the renderer, which is _bad_ - clean this up for renderer state
+                            // management!
 /// Initialize XF
 void XF_Init();
 

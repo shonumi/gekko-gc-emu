@@ -193,16 +193,11 @@ public:
     void Init();
     void ShutDown();
 
-    struct GLFramebufferObject {
-        GLuint framebuffer;
-        GLuint texture;
-        GLuint depthbuffer;
-    };
-    typedef HashContainer_STLMap<u32, GLFramebufferObject> EFBCopyCache;
+    // Framebuffer object(s)
+    // ---------------------
 
-
-    EFBCopyCache* efb_copy_cache_;
     GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
+
 private:
 
     /// Initialize the FBO
@@ -217,10 +212,9 @@ private:
     int resolution_width_;
     int resolution_height_;
 
-    // Framebuffer object
-    // ------------------
+    // Framebuffer object(s)
+    // ---------------------
 
-    
     GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
     GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
 

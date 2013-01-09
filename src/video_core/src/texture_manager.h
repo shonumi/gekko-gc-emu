@@ -45,9 +45,9 @@ public:
 
     /// Source of texture data
     enum SourceType {
-        kTextureType_None = 0,  
-        kTextureType_Normal,                    ///< Texture is raw RAM data
-        kTextureType_EFBCopy,                   ///< Texture is result of an EFB copy
+        kSourceType_None = 0,  
+        kSourceType_Normal,     ///< Texture is raw RAM data
+        kSourceType_EFBCopy,    ///< Texture is result of an EFB copy
     };
 
     /// Texture cache entry
@@ -60,8 +60,21 @@ public:
             virtual ~BackendData() { } // Virtual destructor allows for polymorphism
         };
 
-        CacheEntry() : address_(0), size_(0), width_(-1), height_(-1), type_(kTextureType_None),
-            format_(gp::kTextureFormat_None), backend_data_(NULL), hash_(0), frame_used_(-1) {
+        CacheEntry() {
+            address_                = 0;
+            size_                   = 0;
+            width_                  = -1;
+            height_                 = -1;
+            type_                   = kSourceType_None;
+            format_                 = gp::kTextureFormat_None; 
+            backend_data_           = NULL; 
+            hash_                   = 0;
+            frame_used_             = -1; 
+            efb_copy_addr_          = 0; 
+            efb_copy_rect_.width    = 0;
+            efb_copy_rect_.height   = 0;
+            efb_copy_rect_.x        = 0;
+            efb_copy_rect_.y        = 0;
         }
         ~CacheEntry() { 
         }
@@ -75,18 +88,11 @@ public:
         BackendData*        backend_data_;  ///< Pointer to backend renderer data
         common::Hash64      hash_;          ///< Hash of source texture raw data
         int                 frame_used_;    ///< Last frame that the texture was used
-    };
-
-
-    struct EFBCopyData {
-        u32 efb_copy_addr;
-        int width;
-        int height;
-        u8* raw_data;
+        u32                 efb_copy_addr_; ///< EFB copy address (only if texture is from EFB copy)
+        Rect                efb_copy_rect_; ///< EFB copy region (only if texture is from EFB copy)
     };
 
     typedef HashContainer_STLMap<common::Hash64, CacheEntry> CacheContainer;
-    typedef HashContainer_STLMap<u32, EFBCopyData> EFBCopyContainer;
 
     static const int kHashSamples = 128;    ///< Number of texture samples to use for hash
 
@@ -104,13 +110,20 @@ public:
          * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
          */
         virtual CacheEntry::BackendData* Create(int active_texture_unit, 
-            const CacheEntry& cache_entry, u8* raw_data, bool efb_copy, u32 efb_copy_addr) = 0;
+            const CacheEntry& cache_entry, u8* raw_data) = 0;
 
         /**
          * Delete a texture from the backend renderer
          * @param backend_data Renderer-specific texture data used by renderer to remove it
          */
         virtual void Delete(CacheEntry::BackendData* backend_data) = 0;
+
+        /** 
+         * Call to update a texture with a new EFB copy of the region specified by rect
+         * @param rect EFB rectangle to copy
+         * @param backend_data Pointer to renderer-specific data used for the EFB copy
+         */
+        virtual void CopyEFB(Rect rect, const CacheEntry::BackendData* backend_data) = 0;
 
         /**
          * Binds a texture to the backend renderer
@@ -141,9 +154,12 @@ public:
     void UpdateData(int active_texture_unit, const gp::BPTexImage0& tex_image_0, 
         const gp::BPTexImage3& tex_image_3);
 
-
-    void UpdateData_EFBCopy(u32 efb_copy_addr, int width, int height, u8* raw_data);
-
+    /** 
+     * Copy the EFB to a texture
+     * @param efb_copy_addr Address in RAM EFB copy is supposed to go
+     * @param rect EFB rectangle to copy
+     */
+    void CopyEFB(u32 efb_copy_addr, Rect rect);
 
     /**
      * Updates the texture parameters
@@ -183,7 +199,6 @@ public:
 private:
 
     CacheContainer*     cache_;                                 ///< Texture cache
-    EFBCopyContainer*   efb_copy_cache_;                        ///< EFB copy container cache         
     BackendInterface*   backend_interface_;                     ///< Backend renderer interface
     CacheEntry*         active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
 

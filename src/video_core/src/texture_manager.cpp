@@ -29,7 +29,6 @@
 TextureManager::TextureManager(const BackendInterface* backend_interface) {
     backend_interface_  = const_cast<BackendInterface*>(backend_interface);
     cache_              = new CacheContainer();
-    efb_copy_cache_     = new EFBCopyContainer();
     for (int i = 0; i < kGCMaxActiveTextures; i++) {
         active_textures_[i] = NULL;
     }
@@ -37,7 +36,6 @@ TextureManager::TextureManager(const BackendInterface* backend_interface) {
 
 TextureManager::~TextureManager() {
     delete cache_;
-    delete efb_copy_cache_;
 }
 
 /**
@@ -58,57 +56,22 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     cache_entry.format_     = (gp::TextureFormat)tex_image_0.format;
     cache_entry.width_      = tex_image_0.width + 1;
     cache_entry.height_     = tex_image_0.height + 1;
-    cache_entry.type_       = kTextureType_Normal;
+    cache_entry.type_       = kSourceType_Normal;
     cache_entry.size_       = gp::TextureDecoder_GetSize(cache_entry.format_, 
                                                          cache_entry.width_, 
                                                          cache_entry.height_);
-    // Try to find an EFB copy
-    EFBCopyData* efb_copy_data = efb_copy_cache_->FetchFromHash(cache_entry.address_);
+    // Try to find an EFB copy in cache (EFB copy address used as hash)
+    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.address_);
 
-    /*if (efb_copy_data == NULL) {
-        // Not exact address, but maybe in bounds of one of our previous copies...
-        for (int i = 0; i < efb_copy_cache_->Size(); i++) {
-            EFBCopyData* res = efb_copy_cache_->FetchFromIndex(i);
-
-            // Check if in bounds of the EFB copy
-            if ((cache_entry.address_ >= res->efb_copy_addr) && (cache_entry.address_ < (res->efb_copy_addr + cache_entry.size_))) {
-                efb_copy_data = res;
-                break;
-            }
-        }
-    }*/
-    // Found result of an EFB copy
-    if (efb_copy_data != NULL) {
-        
-        cache_entry.width_      = efb_copy_data->width;
-        cache_entry.height_     = efb_copy_data->height;
-        cache_entry.type_       = kTextureType_EFBCopy;
-        cache_entry.hash_       = efb_copy_data->efb_copy_addr;
-
-        active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
-
-        if (NULL == active_textures_[active_texture_unit]) {
-
-            // Create a texture in VRAM from raw data...
-            cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
-                                                                   cache_entry,
-                                                                   NULL,
-                                                                   true,
-                                                                   efb_copy_data->efb_copy_addr);
-        }
-
-        // Update cache with new information...
-        active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
-
-    // Otherwise, normal texture...
-    } else {
+    // If that failed, try to find a normal texture in cache
+    if (NULL == active_textures_[active_texture_unit]) {
 
         cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
                                                     cache_entry.size_, 
                                                     kHashSamples);
         active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
 
-
+        // If that failed, create a new normal texture
         if (NULL == active_textures_[active_texture_unit]) {
             // Decode texture from source data to RGBA8 raw data...
             gp::TextureDecoder_Decode(cache_entry.format_, 
@@ -120,9 +83,7 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
             // Create a texture in VRAM from raw data...
             cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
                                                                    cache_entry,
-                                                                   raw_data,
-                                                                   false,
-                                                                   0);
+                                                                   raw_data);
             // Optionally dump texture to TGA...
             if (common::g_config->current_renderer_config().enable_texture_dumping) {
                 std::string filepath = common::g_config->program_dir() + std::string("/dump");
@@ -141,22 +102,38 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
     active_textures_[active_texture_unit]->frame_used_ = video_core::g_current_frame;
 }
 
-void TextureManager::UpdateData_EFBCopy(u32 efb_copy_addr, int width, int height, u8* raw_data) {
-    static EFBCopyData efb_copy_data;
-    static int i = 0;
-    efb_copy_data.efb_copy_addr = efb_copy_addr;
-    efb_copy_data.width = width;
-    efb_copy_data.height = height;
+/** 
+ * Copy the EFB to a texture
+ * @param efb_copy_addr Address in RAM EFB copy is supposed to go
+ * @param rect EFB rectangle to copy
+ */
+void TextureManager::CopyEFB(u32 efb_copy_addr, Rect rect) {
+    static CacheEntry   cache_entry;
+    CacheEntry*         cache_ptr;
 
-    EFBCopyData* res = efb_copy_cache_->FetchFromHash(efb_copy_addr);
-    /*if (res == NULL) {
-        efb_copy_data.raw_data = new u8[width * height * 4];
-    } else {
-        efb_copy_data.raw_data = res->raw_data;
+    //cache_entry.address_        = efb_copy_addr;
+    //cache_entry.format_         = (gp::TextureFormat)tex_image_0.format;
+    cache_entry.width_          = rect.width;
+    cache_entry.height_         = rect.height;
+    cache_entry.efb_copy_rect_  = rect;
+    cache_entry.type_           = kSourceType_EFBCopy;
+    //cache_entry.size_           = gp::TextureDecoder_GetSize(cache_entry.format_, 
+    //                                                     cache_entry.width_, 
+    //                                                     cache_entry.height_);
+    cache_entry.hash_           = efb_copy_addr;
+    cache_entry.efb_copy_addr_  = efb_copy_addr;
+
+    cache_ptr = cache_->FetchFromHash(cache_entry.hash_);
+
+    if (NULL == cache_ptr) {
+        // Create a texture in VRAM from raw data...
+        cache_entry.backend_data_ = backend_interface_->Create(0, 
+                                                               cache_entry,
+                                                               NULL);
+        cache_ptr = cache_->Update(cache_entry.hash_, cache_entry);   
     }
-    memcpy(efb_copy_data.raw_data, raw_data, width * height * 4);
-    */
-    efb_copy_cache_->Update(efb_copy_addr, efb_copy_data);
+    // Update texture with EFB region
+    backend_interface_->CopyEFB(rect, cache_ptr->backend_data_);
 }
 
 /**
@@ -209,7 +186,7 @@ void TextureManager::Purge(int age_limit) {
     CacheEntry* cache_entry = NULL;
     for (int i = 0; i < this->Size(); i++) {
         cache_entry = cache_->FetchFromIndex(i);
-        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame && cache_entry->type_ != kTextureType_EFBCopy) {
+        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame && cache_entry->type_ != kSourceType_EFBCopy) {
             backend_interface_->Delete(cache_entry->backend_data_);
             cache_->Remove(cache_entry->hash_);
         }

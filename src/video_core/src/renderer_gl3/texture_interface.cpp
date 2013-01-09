@@ -25,7 +25,7 @@
 #include "texture_interface.h"
 #include "utils.h"
 
-TextureInterface::TextureInterface(const RendererGL3* parent) {
+TextureInterface::TextureInterface(RendererGL3* parent) {
     parent_ = parent;
 }
 
@@ -40,28 +40,82 @@ TextureInterface::~TextureInterface() {
  * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
  */
 TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_texture_unit, 
-    const TextureManager::CacheEntry& cache_entry, u8* raw_data, bool efb_copy, u32 efb_copy_addr) {
+    const TextureManager::CacheEntry& cache_entry, u8* raw_data) {
 
     BackendData* backend_data = new BackendData();
 
     glActiveTexture(GL_TEXTURE0 + active_texture_unit);
+    glGenTextures(1, &backend_data->handle_);    
+    glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
 
-    if (!efb_copy) {
-        glGenTextures(1, &backend_data->handle_);
-        
-        glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
+    switch (cache_entry.type_) {
+
+    // Normal texture from RAM
+    case TextureManager::kSourceType_Normal:
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cache_entry.width_, cache_entry.height_, 0, GL_RGBA,
             GL_UNSIGNED_BYTE, raw_data);
-    } else {
-        RendererGL3::GLFramebufferObject* efb_copy_fbo = 
-            parent_->efb_copy_cache_->FetchFromHash(efb_copy_addr);
 
-        _ASSERT_MSG(TGP, efb_copy_fbo != NULL, "EFB copy FBO never was initialized!");
+        break;
 
-        backend_data->handle_ = efb_copy_fbo->texture;
+    // Texture is the result of an EFB copy
+    case TextureManager::kSourceType_EFBCopy:
 
-        glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
+        // Create the texture
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, cache_entry.efb_copy_rect_.width, 
+            cache_entry.efb_copy_rect_.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        //glBindTexture(GL_TEXTURE_2D, 0);
+        
+        // Generate depth buffer storage
+        glGenRenderbuffers(1, &backend_data->efb_depthbuffer_); // Generate depth buffer
+        glBindRenderbuffer(GL_RENDERBUFFER, backend_data->efb_depthbuffer_);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, cache_entry.efb_copy_rect_.width,
+            cache_entry.efb_copy_rect_.height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        
+        // Create the FBO and attach texture/depth buffer
+        glGenFramebuffers(1, &backend_data->efb_framebuffer_); // Generate framebuffer
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, backend_data->efb_framebuffer_);
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_2D, backend_data->handle_, 0);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+            GL_RENDERBUFFER, backend_data->efb_depthbuffer_);
+        
+        // Check for completeness
+        _ASSERT_MSG(TGP, GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER),
+            "couldn't create OpenGL FBO from new EFB copy!");
+
+        /*glBindFramebuffer(GL_READ_FRAMEBUFFER, efb_copy_fbo->framebuffer);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        static u8 raw_data[1024 * 1024 * 4];
+        static int num = 0;
+        num++;
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT); 
+        glReadPixels(0,0, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, raw_data);
+
+        // Optionally dump texture to TGA...
+        if (common::g_config->current_renderer_config().enable_texture_dumping) {
+            std::string filepath = common::g_config->program_dir() + std::string("/dump");
+            mkdir(filepath.c_str());
+            filepath = filepath + std::string("/efb-copies");
+            mkdir(filepath.c_str());
+            filepath = common::FormatStr("%s/%08x_%d.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5, num);
+            video_core::DumpTGA(filepath, rect.width, rect.height, raw_data);
+        }
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);*/
+
+        // Rebind EFB
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
+
+        break;
+
+    // Unknown texture source
+    default:
+        _ASSERT_MSG(TGP, 0, "Unknown texture source %d", (int)cache_entry.type_);
+        break;
+
     }
     return backend_data;
 }
@@ -71,8 +125,42 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
  * @param backend_data Renderer-specific texture data used by renderer to remove it
  */
 void TextureInterface::Delete(TextureManager::CacheEntry::BackendData* backend_data) {
-    glDeleteTextures(1, &(static_cast<BackendData*>(backend_data)->handle_));
+    BackendData* data = static_cast<BackendData*>(backend_data);
+
+    glDeleteTextures(1, &data->handle_);
+
+    if (data->efb_depthbuffer_) glDeleteRenderbuffers(1, &data->efb_depthbuffer_);
+    if (data->efb_framebuffer_) glDeleteFramebuffers(1, &data->efb_framebuffer_);
+
     delete backend_data;
+}
+
+/** 
+ * Call to update a texture with a new EFB copy of the region specified by rect
+ * @param rect EFB rectangle to copy
+ * @param backend_data Pointer to renderer-specific data used for the EFB copy
+ */
+void TextureInterface::CopyEFB(Rect rect, 
+    const TextureManager::CacheEntry::BackendData* backend_data) {
+    const BackendData* data = static_cast<const BackendData*>(backend_data);
+
+    parent_->ResetRenderState();
+
+    // Render target is destination framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, data->efb_framebuffer_);
+    //glViewport(0, 0, rect.width, rect.height);
+
+    // Render source is our EFB
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    // Blit
+    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height,
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+    parent_->RestoreRenderState();
 }
 
 /**

@@ -39,7 +39,7 @@
 class TextureInterface : virtual public TextureManager::BackendInterface {
 public:
 
-    TextureInterface(const RendererGL3* parent);
+    TextureInterface(RendererGL3* parent);
     ~TextureInterface();
 
     /**
@@ -50,13 +50,20 @@ public:
      * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
      */
     TextureManager::CacheEntry::BackendData* Create(int active_texture_unit, 
-        const TextureManager::CacheEntry& cache_entry, u8* raw_data, bool efb_copy, u32 efb_copy_addr);
+        const TextureManager::CacheEntry& cache_entry, u8* raw_data);
 
     /**
      * Delete a texture from the backend renderer
      * @param backend_data Renderer-specific texture data used by renderer to remove it
      */
     void Delete(TextureManager::CacheEntry::BackendData* backend_data);
+
+    /** 
+     * Call to update a texture with a new EFB copy of the region specified by rect
+     * @param rect EFB rectangle to copy
+     * @param backend_data Pointer to renderer-specific data used for the EFB copy
+     */
+    void CopyEFB(Rect rect, const TextureManager::CacheEntry::BackendData* backend_data);
 
     /**
      * Binds a texture to the backend renderer
@@ -76,11 +83,17 @@ public:
 
 private:
 
-    const RendererGL3* parent_;
+    RendererGL3* parent_;
 
     class BackendData : public TextureManager::CacheEntry::BackendData {
     public:
-        GLuint handle_;
+        BackendData() : handle_(0), efb_framebuffer_(0), efb_depthbuffer_(0) {
+        }
+        ~BackendData() {
+        }
+        GLuint handle_;             ///< GL handle to texture
+        GLuint efb_framebuffer_;    ///< GL handle to FBO (if from an EFB copy)
+        GLuint efb_depthbuffer_;    ///< GL handle to depth buffer (if from an EFB copy)
     };
 
     DISALLOW_COPY_AND_ASSIGN(TextureInterface);

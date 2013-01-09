@@ -129,7 +129,6 @@ RendererGL3::RendererGL3() {
     shader_manager_ = new ShaderManager();
     uniform_manager_ = new UniformManager();
     texture_interface_ = new TextureInterface(this);
-    efb_copy_cache_ = new EFBCopyCache();
 }
 
 /// RendererGL3 destructor
@@ -137,7 +136,6 @@ RendererGL3::~RendererGL3() {
     delete shader_manager_;
     delete uniform_manager_;
     delete texture_interface_;
-    delete efb_copy_cache_;
 }
 
 /**
@@ -481,12 +479,13 @@ void RendererGL3::ResetRenderState() {
     glDisable(GL_BLEND);
     glDepthMask(GL_FALSE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 /// Restore the full renderer API state - As the game set it
 void RendererGL3::RestoreRenderState() {
-    // TODO(ShizZy):
-    //  - Viewport
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+    gp::XF_UpdateViewport(); // TODO(ShizZy): Ugly has heck! Fix this code..
     SetGenerationMode();
     glEnable(GL_SCISSOR_TEST);
     SetScissorBox();
@@ -545,102 +544,23 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
 
     ResetRenderState();
     
-    if (dest == kFramebuffer_VirtualXFB) {
+    _ASSERT_MSG(TGP, (dest == kFramebuffer_VirtualXFB), 
+        "Bad code path for EFB copy, use TextureManager!");
 
-        // Render target is destination framebuffer
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
-        glViewport(0, 0, resolution_width_, resolution_height_);
+    // Render target is destination framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
+    glViewport(0, 0, resolution_width_, resolution_height_);
 
-        // Render source is our EFB
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
+    // Render source is our EFB
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-        // Blit
-        glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height,
-            0, 0, dest_width, dest_height,
-            GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    // Blit
+    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height, 0, 0, dest_width, dest_height,
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
-        // Rebind EFB
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-
-    } else if (dest == kFramebuffer_Texture) {
-        u32 dst_addr = gp::g_bp_regs.efb_copy_addr << 5;
-        GLFramebufferObject* efb_copy_fbo = efb_copy_cache_->FetchFromHash(dst_addr);
-
-        // If we dont already have an FBO created for this EFB copy address, make one!
-        if (NULL == efb_copy_fbo) {
-            GLFramebufferObject new_fbo;
-
-            // Create the texture
-            glGenTextures(1, &new_fbo.texture);
-            glBindTexture(GL_TEXTURE_2D, new_fbo.texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, rect.width, rect.height, 0,
-                         GL_RGBA, GL_UNSIGNED_BYTE, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            
-            // Generate depth buffer storage
-            glGenRenderbuffers(1, &new_fbo.depthbuffer); // Generate depth buffer
-            glBindRenderbuffer(GL_RENDERBUFFER, new_fbo.depthbuffer);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, rect.width, rect.height);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
-            
-            // Create the FBO and attach texture/depth buffer
-            glGenFramebuffers(1, &new_fbo.framebuffer); // Generate framebuffer
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, new_fbo.framebuffer);
-            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_2D, new_fbo.texture, 0);
-            glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                GL_RENDERBUFFER, new_fbo.depthbuffer);
-            
-            // Check for completeness
-            _ASSERT_MSG(TGP, GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER),
-                "couldn't create OpenGL FBO from new EFB copy!!!");
-
-            // Update cached stuffs
-            efb_copy_fbo = efb_copy_cache_->Update(dst_addr, new_fbo);
-            video_core::g_texture_manager->UpdateData_EFBCopy(dst_addr, rect.width, rect.height, NULL);
-        }
-        // Render target is destination framebuffer
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, efb_copy_fbo->framebuffer);
-        glViewport(0, 0, rect.width, rect.height);
-
-        // Render source is our EFB
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-        // Blit
-        glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height,
-            0, 0, rect.width, rect.height,
-            GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, efb_copy_fbo->framebuffer);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-        /*static u8 raw_data[1024 * 1024 * 4];
-        static int num = 0;
-        num++;
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT); 
-        glReadPixels(0,0, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, raw_data);
-
-        // Optionally dump texture to TGA...
-        if (common::g_config->current_renderer_config().enable_texture_dumping) {
-            std::string filepath = common::g_config->program_dir() + std::string("/dump");
-            mkdir(filepath.c_str());
-            filepath = filepath + std::string("/efb-copies");
-            mkdir(filepath.c_str());
-            filepath = common::FormatStr("%s/%08x_%d.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5, num);
-            video_core::DumpTGA(filepath, rect.width, rect.height, raw_data);
-        }
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);*/
-
-        // Rebind EFB
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-    }
     RestoreRenderState();
 }
 

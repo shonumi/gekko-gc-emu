@@ -194,13 +194,7 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                     xfb_width,
                     xfb_height);
             } else {
-                // TODO(ShizZy): Implement copy to texture
-
-                video_core::g_renderer->CopyEFB(
-                    RendererBase::kFramebuffer_Texture,
-                    rect,
-                    0,
-                    0);
+                video_core::g_texture_manager->CopyEFB(gp::g_bp_regs.efb_copy_addr << 5, rect);
             }
 
             if (pe_copy.clear) {
