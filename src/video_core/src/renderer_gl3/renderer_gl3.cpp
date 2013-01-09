@@ -401,7 +401,7 @@ void RendererGL3::SetColorMask() {
 
     // Enable alpha channel if supported by the current EFB format
     if (gp::g_bp_regs.cmode0.alpha_update && 
-        (gp::g_bp_regs.zcontrol.pixel_format == gp::BP_PIXELFORMAT_RGBA6_Z24)) {
+        (gp::g_bp_regs.zcontrol.pixel_format == gp::kPixelFormat_RGBA6_Z24)) {
             amask = GL_TRUE;
     }
     glColorMask(cmask,  cmask,  cmask,  amask);

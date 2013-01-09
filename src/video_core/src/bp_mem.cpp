@@ -200,19 +200,16 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                 bool enable_alpha = gp::g_bp_regs.cmode0.alpha_update;
                 bool enable_z = gp::g_bp_regs.zmode.update_enable;
 
-                // Forcibly disable alpha if the pixel format does not support it
-                if (gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_RGB8_Z24 || 
-                    gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_RGB565_Z16 || 
-                    gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_Z24) {
-                    enable_alpha = false;
-                }
-
                 if (enable_color || enable_alpha || enable_z) {
                     u32 color = ((gp::g_bp_regs.clear_ar & 0xffff) << 16) | 
                         (gp::g_bp_regs.clear_gb & 0xffff);
 
                     u32 z = gp::g_bp_regs.clear_z & 0xffffff;
 
+                    // Forcibly clear alpha to 1.0f the EFB pixel format does not support it
+                    if (!gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
+                        color |= 0xff000000;
+                    }
                     video_core::g_renderer->Clear(
                         efb_rect,                   // Clear rectangle
                         enable_color,               // Enable color clearing

@@ -120,14 +120,14 @@ namespace gp {
 
 /// BP pixel formats
 enum BPPixelFormat {
-    BP_PIXELFORMAT_RGB8_Z24     = 0,
-    BP_PIXELFORMAT_RGBA6_Z24    = 1,
-    BP_PIXELFORMAT_RGB565_Z16   = 2,
-    BP_PIXELFORMAT_Z24          = 3,
-    BP_PIXELFORMAT_Y8           = 4,
-    BP_PIXELFORMAT_U8           = 5,
-    BP_PIXELFORMAT_V8           = 6,
-    BP_PIXELFORMAT_YUV420       = 7
+    kPixelFormat_RGB8_Z24     = 0,
+    kPixelFormat_RGBA6_Z24    = 1,
+    kPixelFormat_RGB565_Z16   = 2,
+    kPixelFormat_Z24          = 3,
+    kPixelFormat_Y8           = 4,
+    kPixelFormat_U8           = 5,
+    kPixelFormat_V8           = 6,
+    kPixelFormat_YUV420       = 7
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ struct BPPECMode1{
         u32 _u32;
     };
 
-    f32 getalpha() { return alpha / 255.0f; }
+    inline f32 getalpha() const { return alpha / 255.0f; }
 };
 
 /// PE control
@@ -206,6 +206,12 @@ struct BPPEControl {
         };
         u32 _u32;
     };
+    /// True if EFB alpha channel is enabled
+    inline bool is_efb_alpha_enabled() const {
+        BPPixelFormat fmt = static_cast<BPPixelFormat>(pixel_format);
+        return (fmt == kPixelFormat_RGB8_Z24 || fmt == kPixelFormat_RGB565_Z16 || 
+            fmt == kPixelFormat_Z24) ? false : true;
+    }
 };
 
 /// PE EFB Copy Execute
@@ -230,7 +236,7 @@ struct BPEFBCopyExec {
         };
         u32 _u32;
     };
-    u32 tp_realFormat() { 
+    inline u32 tp_realFormat() const { 
         return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
     }
 };
@@ -309,8 +315,8 @@ struct BPTevKSel {
         };
         u32 _u32;
     };
-    int get_konst_color_sel(int stage) { return (stage&1) ? kcsel1 : kcsel0; }
-    int get_konst_alpha_sel(int stage) { return (stage&1) ? kasel1 : kasel0; }
+    inline int get_konst_color_sel(int stage) const { return (stage&1) ? kcsel1 : kcsel0; }
+    inline int get_konst_alpha_sel(int stage) const { return (stage&1) ? kasel1 : kasel0; }
 };
 
 /// TEV indirect texture map
@@ -328,8 +334,8 @@ union BPTevTexMap {
     };
     u32 _u32;
 
-    u32 get_tex_coord(int i) { return (_u32 >> (6 * i + 3)) & 3; }
-    u32 get_tex_map(int i) { return (_u32 >> (6 * i)) & 3; }
+    inline u32 get_tex_coord(int i) const { return (_u32 >> (6 * i + 3)) & 3; }
+    inline u32 get_tex_map(int i) const { return (_u32 >> (6 * i)) & 3; }
 };
 
 /// TEV raster color order
@@ -353,10 +359,10 @@ struct BPTevOrder {
         };
         u32 _u32;
     };
-    inline int get_texmap(int stage) { return (stage&1) ? texmap1 : texmap0; }
-    inline int get_texcoord(int stage) { return (stage&1) ? texcoord1 : texcoord0; }
-    inline int get_enable(int stage) { return (stage&1) ? texmapenable1 : texmapenable0; }
-    inline int get_colorchan(int stage) { return (stage&1) ? colorid1 : colorid0; }
+    inline int get_texmap(int stage) const { return (stage&1) ? texmap1 : texmap0; }
+    inline int get_texcoord(int stage) const { return (stage&1) ? texcoord1 : texcoord0; }
+    inline int get_enable(int stage) const { return (stage&1) ? texmapenable1 : texmapenable0; }
+    inline int get_colorchan(int stage) const { return (stage&1) ? colorid1 : colorid0; }
 };
 
 /// BP alpha/comparision function
@@ -388,7 +394,7 @@ struct BPTexMode0 {
         };
         u32 _u32;
     };
-    inline int use_mipmaps() { return (min_filter & 3); }
+    inline int use_mipmaps() const { return (min_filter & 3); }
 };
 
 /// TX_SETMODE1 - LOD Info
@@ -410,8 +416,8 @@ struct BPTexImage0 {
         };
         u32 _u32;
     };
-    inline int get_width() { return width + 1; }
-    inline int get_height() { return height + 1; }
+    inline int get_width() const { return width + 1; }
+    inline int get_height() const { return height + 1; }
 };
 
 /// TX_SETIMAGE1 - even LOD address in TMEM
@@ -446,7 +452,7 @@ struct BPTexImage3 {
         };
         u32 _u32;
     };
-    inline int get_addr() { return (image_base << 5); }
+    inline int get_addr() const { return (image_base << 5); }
 };
 
 /// TX_SETIMAGE3 - Address of Texture in main memory
