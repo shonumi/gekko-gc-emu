@@ -117,30 +117,34 @@ void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec,
     //cache_entry.address_  = efb_copy_addr;
     //cache_entry.format_   = (gp::TextureFormat)tex_image_0.format;
 
-    cache_entry.width_  = src_rect.width();
-    cache_entry.height_ = src_rect.height();
+    cache_entry.type_                           = kSourceType_EFBCopy;
+    cache_entry.hash_                           = addr;
+    cache_entry.width_                          = src_rect.width();
+    cache_entry.height_                         = src_rect.height();
+    cache_entry.efb_copy_data_.src_rect_        = src_rect;
+    cache_entry.efb_copy_data_.addr_            = addr;
+    cache_entry.efb_copy_data_.bp_copy_exec_    = efb_copy_exec;
 
     // Size the texture in half if half_scale ("mipmap") mode is enabled
     if (efb_copy_exec.half_scale) {
         cache_entry.width_  /= 2;
         cache_entry.height_ /= 2;
     }
-    cache_entry.efb_copy_rect_  = src_rect;
-    cache_entry.type_           = kSourceType_EFBCopy;
+
     //cache_entry.size_           = gp::TextureDecoder_GetSize(cache_entry.format_, 
     //                                                     cache_entry.width_, 
     //                                                     cache_entry.height_);
-    cache_entry.hash_           = addr;
-    cache_entry.efb_copy_addr_  = addr;
 
     // Do we have a cache entry for the EFB copy texture?
     cache_ptr = cache_->FetchFromHash(cache_entry.hash_);
 
     // If cache lookup did not fail...
     if (NULL != cache_ptr) {
-        // Invalidate previous EFB copy at this address if width/height changed
-        if ((cache_ptr->width_ != cache_entry.width_) || 
-            (cache_ptr->height_ != cache_entry.height_)) {
+        // Invalidate previous EFB copy if the previous copy at this hash was different
+        if (!(cache_ptr->efb_copy_data_ == cache_entry.efb_copy_data_)) {
+            // This would happen if a game reuses an area of memory for a different EFB copy - this
+            //  isn't super common, but does happen (e.g. SSBM Pokemon Stadium level to print both
+            //  game stats and the cam on the jumbotron
             backend_interface_->Delete(cache_ptr->backend_data_);
             cache_->Remove(cache_ptr->hash_);
             cache_ptr = NULL;
@@ -152,7 +156,6 @@ void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec,
         cache_entry.backend_data_ = backend_interface_->Create(0, cache_entry, NULL);
         cache_ptr = cache_->Update(cache_entry.hash_, cache_entry);   
     }
-
     dst_rect.x1_ = cache_entry.width_;
     dst_rect.y1_ = cache_entry.height_;
 

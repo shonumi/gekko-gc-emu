@@ -61,20 +61,18 @@ public:
         };
 
         CacheEntry() {
-            address_            = 0;
-            size_               = 0;
-            width_              = -1;
-            height_             = -1;
-            type_               = kSourceType_None;
-            format_             = gp::kTextureFormat_None; 
-            backend_data_       = NULL; 
-            hash_               = 0;
-            frame_used_         = -1; 
-            efb_copy_addr_      = 0; 
+            address_        = 0;
+            size_           = 0;
+            width_          = -1;
+            height_         = -1;
+            type_           = kSourceType_None;
+            format_         = gp::kTextureFormat_None; 
+            backend_data_   = NULL; 
+            hash_           = 0;
+            frame_used_     = -1;
         }
         ~CacheEntry() { 
         }
-
         u32                 address_;       ///< Source address of texture
         int                 width_;         ///< Source texture width in pixels
         int                 height_;        ///< Source texture height in pixels
@@ -84,8 +82,25 @@ public:
         BackendData*        backend_data_;  ///< Pointer to backend renderer data
         common::Hash64      hash_;          ///< Hash of source texture raw data
         int                 frame_used_;    ///< Last frame that the texture was used
-        u32                 efb_copy_addr_; ///< EFB copy address (only if texture is from EFB copy)
-        Rect                efb_copy_rect_; ///< EFB copy region (only if texture is from EFB copy)
+
+        /// EFB copy data (only relevant if if texture is from EFB copy)
+        class _EFBCopyData {
+        public:
+            _EFBCopyData() {
+                addr_ = 0;
+                bp_copy_exec_._u32 = 0;
+            }
+            ~_EFBCopyData() { }
+
+            u32                 addr_;          ///< EFB copy address 
+            Rect                src_rect_;      ///< EFB copy region rectangle
+            gp::BPEFBCopyExec   bp_copy_exec_;  ///< BP efb copy exec register used to create copy
+
+            inline bool operator == (const _EFBCopyData& val) const {
+                return (addr_ == val.addr_ && src_rect_ == val.src_rect_ && 
+                    bp_copy_exec_._u32 == val.bp_copy_exec_._u32);
+            }
+        } efb_copy_data_;
     };
 
     typedef HashContainer_STLMap<common::Hash64, CacheEntry> CacheContainer;
