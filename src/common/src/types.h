@@ -109,6 +109,10 @@ public:
 
     inline u32 width() const { return static_cast<u32>(x1_ - x0_); }
     inline u32 height() const { return static_cast<u32>(y1_ - y0_); }
+
+    inline bool operator == (const Rect& val) const {
+        return (x0_ == val.x0_ && y0_ == val.y0_ && x1_ == val.x1_ && y1_ == val.y1_);
+    }
 };
 
 #endif // COMMON_TYPES_H_
