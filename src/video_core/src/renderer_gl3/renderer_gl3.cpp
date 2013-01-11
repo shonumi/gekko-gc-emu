@@ -273,7 +273,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(12));
     // Color 1
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(16));
     // TexCoords
