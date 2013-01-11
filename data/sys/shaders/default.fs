@@ -1,3 +1,6 @@
+// Adjust value to unsigned 8-bit
+#define FIX_U8(val) (round((fract(val * 255.0f/256.0f) * 256.0f/255.0f) * 255.0f) / 255.0f)
+
 // Prepare and compute TEV stage result
 #define STAGE_RESULT(s) \
     tex = _FSDEF_TEXTURE_##s; \
@@ -5,16 +8,19 @@
     stage = fs_ubo.tev_stages[s]; \
     konst = stage.konst; \
     ras = _FSDEF_RASCOLOR_##s; \
+    scale = vec4(stage.color_scale, stage.color_scale, stage.color_scale, 1.0); \
+    \
+    reg_a = FIX_U8(vec4(_FSDEF_COMBINER_COLOR_A_##s, _FSDEF_COMBINER_ALPHA_A_##s)); \
+    reg_b = FIX_U8(vec4(_FSDEF_COMBINER_COLOR_B_##s, _FSDEF_COMBINER_ALPHA_B_##s)); \
+    reg_c = FIX_U8(vec4(_FSDEF_COMBINER_COLOR_C_##s, _FSDEF_COMBINER_ALPHA_C_##s)); \
+    reg_d = vec4(_FSDEF_COMBINER_COLOR_D_##s, _FSDEF_COMBINER_ALPHA_D_##s); \
  \
-    stage_result = (vec4(_FSDEF_COMBINER_COLOR_D_##s, _FSDEF_COMBINER_ALPHA_D_##s) + \
+    stage_result = scale * (reg_d + \
         (vec4(stage.color_sub, stage.color_sub, stage.color_sub, stage.alpha_sub) * \
-        (mix(vec4(_FSDEF_COMBINER_COLOR_A_##s, _FSDEF_COMBINER_ALPHA_A_##s), \
-        vec4(_FSDEF_COMBINER_COLOR_B_##s, _FSDEF_COMBINER_ALPHA_B_##s), \
-        vec4(_FSDEF_COMBINER_COLOR_C_##s, _FSDEF_COMBINER_ALPHA_C_##s)) + \
+        (mix(reg_a, reg_b, reg_c) + \
         vec4(stage.color_bias, stage.color_bias, stage.color_bias, stage.alpha_bias)))); \
  \
-    _FSDEF_COMBINER_COLOR_DEST_##s = _FSDEF_CLAMP_COLOR_##s(stage.color_scale * \
-        stage_result.rgb); \
+    _FSDEF_COMBINER_COLOR_DEST_##s = _FSDEF_CLAMP_COLOR_##s(stage_result.rgb); \
     _FSDEF_COMBINER_ALPHA_DEST_##s = _FSDEF_CLAMP_ALPHA_##s(stage_result.a);
     
 struct TevStage {
@@ -70,6 +76,11 @@ void main() {
     vec4 tex;
     vec4 konst;
     vec4 ras;
+    vec4 reg_a;
+    vec4 reg_b;
+    vec4 reg_c;
+    vec4 reg_d;
+    vec4 scale;
     
     STAGE_RESULT(0);
 #if _FSDEF_NUM_STAGES > 0
@@ -117,7 +128,7 @@ void main() {
 #if _FSDEF_NUM_STAGES > 14
     STAGE_RESULT(15);
 #endif
-    frag_dest = _FSDEF_STAGE_DEST;
+    frag_dest = FIX_U8(_FSDEF_STAGE_DEST);
     
     // Alpha compare
     // -------------
