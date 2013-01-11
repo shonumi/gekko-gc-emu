@@ -176,6 +176,7 @@ u32 ShaderManager::GetCurrentHash() {
 
 #define _SHADER_VSDEF(...) _vs_offset += sprintf(&_vs_def[_vs_offset], __VA_ARGS__)
 #define _SHADER_FSDEF(...) _fs_offset += sprintf(&_fs_def[_fs_offset], __VA_ARGS__)
+
 /// Compiles a shader program given the specified shader inputs
 GLuint ShaderManager::LoadShader() {
 
@@ -195,16 +196,14 @@ GLuint ShaderManager::LoadShader() {
     static const char* tev_alpha_input[] = { "prev.a", "color0.a", "color1.a", "color2.a", "tex.a",
         "ras.a", "konst.a", "0.0f" };
     static const char* tev_dest[] = { "prev", "color0", "color1", "color2" };
-    static const char* tev_ras[] = { "vtx_color[0]", "vtx_color[1]", "vec4(0.0f, 0.0f, 0.0f, 0.0f)",
-        "vec4(0.0f, 0.0f, 0.0f, 0.0f)", "vec4(0.0f, 0.0f, 0.0f, 0.0f)", 
-        "vec4(1.0f, 1.0f, 1.0f, 1.0f)", "vec4(1.0f, 1.0f, 1.0f, 1.0f)",
-        "vec4(0.0f, 0.0f, 0.0f, 0.0f)" };
+    static const char* tev_ras[] = { "vtx_color[0]", "vtx_color[1]", "ERROR", "ERROR", "ERROR",
+        "vtx_color[0]", "vtx_color[0]", "vec4(0.0f, 0.0f, 0.0f, 0.0f)" };
 
     int _vs_offset = 0;
     int _fs_offset = 0;
-    char temp[256];
-    char _vs_def[1024];
-    char _fs_def[8192];
+    static char temp[256];
+    static char _vs_def[1024];
+    static char _fs_def[8192];
 
     // Generate vertex preprocessor
     // ----------------------------
