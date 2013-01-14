@@ -56,7 +56,7 @@ EmuWindow_GLFW::EmuWindow_GLFW() {
         exit(E_ERR);
     }
     glfwWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
     render_window_ = glfwCreateWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
 
     // Setup callbacks
