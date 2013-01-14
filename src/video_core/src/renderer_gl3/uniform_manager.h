@@ -121,7 +121,7 @@ public:
         int alpha_func_ref0;
         int alpha_func_ref1;
 
-        int pad0;
+        f32 dest_alpha;
         int pad1;
 
         Vec4Color color[4];
@@ -130,6 +130,7 @@ public:
             return (
                 alpha_func_ref0 == val.alpha_func_ref0  &&
                 alpha_func_ref1 == val.alpha_func_ref1  &&
+                dest_alpha      == val.dest_alpha &&
                 color[0]        == val.color[0]  &&
                 color[1]        == val.color[1]  &&
                 color[2]        == val.color[2]  &&

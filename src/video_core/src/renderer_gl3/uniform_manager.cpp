@@ -96,6 +96,10 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
     static const f32 tev_bias[] = { 0.0, 0.5, -0.5, 0.0 };
 
     switch(addr) {
+    case BP_REG_PE_CMODE1:
+        staged_uniform_data_.fs_ubo.tev_state.dest_alpha = gp::g_bp_regs.cmode1.get_alpha();
+        break;
+
     case BP_REG_TEV_COLOR_ENV + 0:
     case BP_REG_TEV_COLOR_ENV + 2:
     case BP_REG_TEV_COLOR_ENV + 4:
