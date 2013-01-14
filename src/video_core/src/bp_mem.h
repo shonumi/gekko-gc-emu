@@ -191,8 +191,7 @@ struct BPPECMode1{
         };
         u32 _u32;
     };
-
-    inline f32 getalpha() const { return alpha / 255.0f; }
+    inline f32 get_alpha() const { return ((f32)alpha) / 255.0f; }
 };
 
 /// PE control
