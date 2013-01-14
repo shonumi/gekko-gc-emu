@@ -116,6 +116,10 @@ GLuint ShaderManager::CompileShaderProgram(const char* vs_def, const char* fs_de
         _ASSERT_MSG(TVIDEO, 0, "Shader program linker failed! Error(s):\n%s", log);
         delete [] log;
     }
+    // Setup dual-source blending
+    glBindFragDataLocationIndexed(program_id, 0, 0, "col0");
+    glBindFragDataLocationIndexed(program_id, 0, 1, "col1");
+
     // Cleanup
     glDeleteShader(vs_id);
     glDeleteShader(fs_id);
@@ -142,11 +146,9 @@ u32 ShaderManager::GetCurrentHash() {
         gp::g_bp_regs.genmode.num_tevstages);
 	crc = CRC_ROTL(crc);
     
-    crc ^= ((gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format << 3) | 
+    crc ^= ((gp::g_bp_regs.zcontrol.pixel_format << 7) | (gp::g_bp_regs.cmode1.enable << 6) | 
+        (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format << 3) | 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
-    crc = CRC_ROTL(crc);
-
-    crc ^= gp::g_bp_regs.zcontrol._u32;
     crc = CRC_ROTL(crc);
 
     for (int stage = 0; stage < (gp::g_bp_regs.genmode.num_tevstages + 1); stage++) {
@@ -285,19 +287,27 @@ GLuint ShaderManager::LoadShader() {
         _SHADER_FSDEF("#define _FSDEF_RASCOLOR_%d %s\n", stage, 
             tev_ras[gp::g_bp_regs.tevorder[reg_index].get_colorchan(stage)]);
     }
+
+    // Do destination alpha?
+    if (gp::g_bp_regs.cmode1.enable) {
+        _SHADER_FSDEF("#define _FSDEF_SET_DESTINATION_ALPHA\n");
+    }
+
+
     // Adjust color for current EFB format
     switch (gp::g_bp_regs.zcontrol.pixel_format) {
+
     case gp::kPixelFormat_RGB8_Z24:
-        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) vec4(val.rgb, 1.0f)\n");
+        _SHADER_FSDEF("#define _FSDEF_EFB_FORMAT(val) vec4((round(val.rgb * 255.0f) / 255.0f), 1.0f)\n");
         break;
     case gp::kPixelFormat_RGBA6_Z24:
-        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) FIX_U6(val)\n");
+        _SHADER_FSDEF("#define _FSDEF_EFB_FORMAT(val) FIX_U6(val)\n");
         break;
     case gp::kPixelFormat_RGB565_Z16:
-        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)\n");
+        _SHADER_FSDEF("#define _FSDEF_EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)\n");
         break;
     default:
-        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) vec4(val.rgb, 1.0f)\\n");
+        _SHADER_FSDEF("#define _FSDEF_EFB_FORMAT(val) vec4(val.rgb, 1.0f)\n");
         break;
     }
     return this->CompileShaderProgram(_vs_def, _fs_def);

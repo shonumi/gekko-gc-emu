@@ -1,6 +1,9 @@
 // Adjust value to unsigned 8-bit
 #define FIX_U8(val) (round((fract(val * 255.0f/256.0f) * 256.0f/255.0f) * 255.0f) / 255.0f)
 
+#define FIX_U6(val) (round(val * 63.0f) / 63.0f)
+#define FIX_U5(val) (round(val * 31.0f) / 31.0f)
+
 // Prepare and compute TEV stage result
 #define STAGE_RESULT(s) \
     tex = _FSDEF_TEXTURE_##s; \
@@ -44,7 +47,7 @@ struct TevState {
     int alpha_func_ref0;
     int alpha_func_ref1;
 
-    int pad0;
+    int dest_alpha;
     int pad1;
     
     vec4 color[4];
@@ -62,7 +65,10 @@ uniform sampler2D texture[8];
 in vec4 vtx_color[2];
 in vec2 vtx_texcoord[8];
 
-out vec4 frag_dest;
+
+
+out vec4 col0;
+out vec4 col1;
 
 void main() {
     float alpha; 
@@ -128,13 +134,20 @@ void main() {
 #if _FSDEF_NUM_STAGES > 14
     STAGE_RESULT(15);
 #endif
-    frag_dest = FIX_U8(_FSDEF_STAGE_DEST);
+    prev = fract(_FSDEF_STAGE_DEST * 255.0f/256.0f) * 256.0f/255.0f;
+    col0 = prev;
+    col1 = prev;
     
     // Alpha compare
     // -------------
 
-    int val = int(frag_dest.a * 255.0f) & 0xFF;                                   
+    int val = int(prev.a * 255.0f) & 0xFF;                                   
     if (_FSDEF_ALPHA_COMPARE(val, fs_ubo.tev_state.alpha_func_ref0, 
-        fs_ubo.tev_state.alpha_func_ref1))
+        fs_ubo.tev_state.alpha_func_ref1)) {
         discard;
+    }
+#ifdef _FSDEF_SET_DESTINATION_ALPHA
+    col0.a = fs_ubo.tev_state.dest_alpha;
+#endif
+    col0 = _FSDEF_EFB_FORMAT(col0);
 }

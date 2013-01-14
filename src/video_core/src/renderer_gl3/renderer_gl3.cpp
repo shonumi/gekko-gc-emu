@@ -47,8 +47,8 @@ static const GLenum g_src_factors[8] =
     GL_ONE,
     GL_DST_COLOR,
     GL_ONE_MINUS_DST_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
+    GL_SRC1_ALPHA,
+    GL_ONE_MINUS_SRC1_ALPHA,
     GL_DST_ALPHA,
     GL_ONE_MINUS_DST_ALPHA
 };
@@ -57,10 +57,10 @@ static const GLenum g_src_factors[8] =
 static const GLenum g_dst_factors[8] = {
     GL_ZERO,
     GL_ONE,
-    GL_SRC_COLOR,
-    GL_ONE_MINUS_SRC_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
+    GL_SRC1_COLOR,
+    GL_ONE_MINUS_SRC1_COLOR,
+    GL_SRC1_ALPHA,
+    GL_ONE_MINUS_SRC1_ALPHA,
     GL_DST_ALPHA,
     GL_ONE_MINUS_DST_ALPHA
 };
