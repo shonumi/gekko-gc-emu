@@ -146,6 +146,9 @@ u32 ShaderManager::GetCurrentHash() {
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_format);
     crc = CRC_ROTL(crc);
 
+    crc ^= gp::g_bp_regs.zcontrol._u32;
+    crc = CRC_ROTL(crc);
+
     for (int stage = 0; stage < (gp::g_bp_regs.genmode.num_tevstages + 1); stage++) {
         int reg_index = stage >> 1;
 
@@ -281,7 +284,21 @@ GLuint ShaderManager::LoadShader() {
             tev_dest[gp::g_bp_regs.combiner[stage].alpha.dest]);
         _SHADER_FSDEF("#define _FSDEF_RASCOLOR_%d %s\n", stage, 
             tev_ras[gp::g_bp_regs.tevorder[reg_index].get_colorchan(stage)]);
-        
+    }
+    // Adjust color for current EFB format
+    switch (gp::g_bp_regs.zcontrol.pixel_format) {
+    case gp::kPixelFormat_RGB8_Z24:
+        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) vec4(val.rgb, 1.0f)\n");
+        break;
+    case gp::kPixelFormat_RGBA6_Z24:
+        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) FIX_U6(val)\n");
+        break;
+    case gp::kPixelFormat_RGB565_Z16:
+        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)\n");
+        break;
+    default:
+        _SHADER_FSDEF("#define _FSDEF_FIX_EFB_FORMAT(val) vec4(val.rgb, 1.0f)\\n");
+        break;
     }
     return this->CompileShaderProgram(_vs_def, _fs_def);
 }
