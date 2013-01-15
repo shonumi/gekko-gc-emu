@@ -184,17 +184,19 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                 } else {
                     scale_y = (f32)gp::g_bp_regs.disp_copy_y_scale / 256.0f;
                 }
-            
                 u32 xfb_height = (u32)(((f32)gp::g_bp_regs.efb_height_width.y + 1.0f) * scale_y);
                 u32 xfb_width = gp::g_bp_regs.disp_stride << 4;
                 Rect xfb_rect(0, 0, xfb_width, xfb_height);
 
                 video_core::g_renderer->CopyToXFB(efb_rect, xfb_rect);
             } else {
-                video_core::g_texture_manager->CopyEFB(gp::g_bp_regs.efb_copy_addr << 5, 
-                    efb_copy_exec, efb_rect);
+                video_core::g_texture_manager->CopyEFB(
+                    gp::g_bp_regs.efb_copy_addr << 5, 
+                    static_cast<BPPixelFormat>(gp::g_bp_regs.zcontrol.pixel_format), 
+                    efb_copy_exec,
+                    efb_rect
+                );
             }
-
             if (efb_copy_exec.clear) {
                 bool enable_color = gp::g_bp_regs.cmode0.color_update;
                 bool enable_alpha = gp::g_bp_regs.cmode0.alpha_update;

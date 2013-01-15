@@ -105,11 +105,12 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
 /** 
  * Copy the EFB to a texture
  * @param addr Address in RAM EFB copy is supposed to go
- * @param efb_copy BP efb copy register
+ * @param efb_pixel_format EFB pixel format
+ * @param efb_copy_exec EFB copy execute register
  * @param src_rect EFB rectangle to copy
  */
-void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, 
-    const Rect& src_rect) {
+void TextureManager::CopyEFB(u32 addr, gp::BPPixelFormat efb_pixel_format, 
+    const gp::BPEFBCopyExec& efb_copy_exec, const Rect& src_rect) {
     static Rect         dst_rect;
     static CacheEntry   cache_entry;
     CacheEntry*         cache_ptr;
@@ -123,7 +124,8 @@ void TextureManager::CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec,
     cache_entry.height_                         = src_rect.height();
     cache_entry.efb_copy_data_.src_rect_        = src_rect;
     cache_entry.efb_copy_data_.addr_            = addr;
-    cache_entry.efb_copy_data_.bp_copy_exec_    = efb_copy_exec;
+    cache_entry.efb_copy_data_.pixel_format_    = efb_pixel_format;
+    cache_entry.efb_copy_data_.copy_exec_       = efb_copy_exec;
 
     // Size the texture in half if half_scale ("mipmap") mode is enabled
     if (efb_copy_exec.half_scale) {

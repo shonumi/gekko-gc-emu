@@ -88,17 +88,23 @@ public:
         public:
             _EFBCopyData() {
                 addr_ = 0;
-                bp_copy_exec_._u32 = 0;
+                pixel_format_ = gp::kPixelFormat_RGB8_Z24;
+                copy_exec_._u32 = 0;
             }
             ~_EFBCopyData() { }
 
             u32                 addr_;          ///< EFB copy address 
             Rect                src_rect_;      ///< EFB copy region rectangle
-            gp::BPEFBCopyExec   bp_copy_exec_;  ///< BP efb copy exec register used to create copy
+            gp::BPPixelFormat   pixel_format_;  ///< EFB source pixel format
+            gp::BPEFBCopyExec   copy_exec_;     ///< EFB copy exec register used to create copy
 
             inline bool operator == (const _EFBCopyData& val) const {
-                return (addr_ == val.addr_ && src_rect_ == val.src_rect_ && 
-                    bp_copy_exec_._u32 == val.bp_copy_exec_._u32);
+                return (
+                    addr_           == val.addr_ && 
+                    src_rect_       == val.src_rect_ && 
+                    copy_exec_._u32 == val.copy_exec_._u32 && 
+                    pixel_format_   == val.pixel_format_
+                    );
             }
         } efb_copy_data_;
     };
@@ -170,10 +176,12 @@ public:
     /** 
      * Copy the EFB to a texture
      * @param addr Address in RAM EFB copy is supposed to go
-     * @param efb_copy_exec BP efb copy register
+     * @param efb_pixel_format EFB pixel format
+     * @param efb_copy_exec EFB copy execute register
      * @param src_rect EFB rectangle to copy
      */
-    void CopyEFB(u32 addr, const gp::BPEFBCopyExec& efb_copy_exec, const Rect& src_rect);
+    void CopyEFB(u32 addr, gp::BPPixelFormat efb_pixel_format, 
+        const gp::BPEFBCopyExec& efb_copy_exec, const Rect& src_rect);
 
     /**
      * Updates the texture parameters
