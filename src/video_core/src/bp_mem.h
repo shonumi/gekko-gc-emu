@@ -207,9 +207,7 @@ struct BPPEControl {
     };
     /// True if EFB alpha channel is enabled
     inline bool is_efb_alpha_enabled() const {
-        BPPixelFormat fmt = static_cast<BPPixelFormat>(pixel_format);
-        return (fmt == kPixelFormat_RGB8_Z24 || fmt == kPixelFormat_RGB565_Z16 || 
-            fmt == kPixelFormat_Z24) ? false : true;
+        return (static_cast<BPPixelFormat>(pixel_format) == kPixelFormat_RGBA6_Z24) ? true : false;
     }
 };
 
