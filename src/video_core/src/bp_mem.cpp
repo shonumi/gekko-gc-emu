@@ -32,6 +32,7 @@
 
 #include "renderer_gl3/shader_manager.h"
 
+#include "utils.h"
 #include "video_core.h"
 #include "vertex_manager.h"
 #include "fifo.h"
@@ -143,27 +144,11 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_PE_TOKEN: // PE_TOKEN
         GX_PE_TOKEN_VALUE = (data & 0xffff);
-        LOG_DEBUG(TGP, "BP-> PE_TOKEN");
         break;
 
     case BP_REG_PE_TOKEN_INT: // PE_TOKEN_INT
         GX_PE_TOKEN_VALUE = (data & 0xffff); 
         GX_PE_TOKEN = 1;
-        LOG_DEBUG(TGP, "BP-> PE_TOKEN_INT");
-        break;
-
-    case BP_REG_PE_CLEAR_AR: // PE copy clear AR - set clear alpha and red components
-    case BP_REG_PE_CLEAR_GB: // PE copy clear GB - green and blue
-        //gx_states::set_copyclearcolor();
-        LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_COLOR");
-        break;
-
-    case BP_REG_PE_CLEAR_Z: // PE copy clear Z - 24-bit Z value
-        //gx_states::set_copyclearz();
-	    // unpack z data
-	    // send to efb
-	    //glClearDepth(((GLclampd)BP_PE_COPYCLEAR_Z_VALUE) / GX_VIEWPORT_ZMAX);
-        LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_X");
         break;
 
     case BP_REG_EFB_COPY:  // pe copy execute
@@ -202,16 +187,22 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                 bool enable_alpha = gp::g_bp_regs.cmode0.alpha_update;
                 bool enable_z = gp::g_bp_regs.zmode.update_enable;
 
+                // Disable unused alpha channels
+                if (!g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
+                    enable_alpha = false;
+                }
                 if (enable_color || enable_alpha || enable_z) {
-                    u32 color = ((gp::g_bp_regs.clear_ar & 0xffff) << 16) | 
-                        (gp::g_bp_regs.clear_gb & 0xffff);
+                    u32 color = (g_bp_regs.clear_ar << 16) | g_bp_regs.clear_gb;
 
-                    u32 z = gp::g_bp_regs.clear_z & 0xffffff;
+                    u32 z = g_bp_regs.clear_z;
 
-                    // Forcibly clear alpha to 1.0f the EFB pixel format does not support it
-                    if (!gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
-                        color |= 0xff000000;
-                    }
+		            // Drop additional accuracy
+		            if (g_bp_regs.zcontrol.pixel_format == kPixelFormat_RGBA6_Z24) {
+			            color = format_precision::rgba8_with_rgba6(color);
+		            } else if (g_bp_regs.zcontrol.pixel_format == kPixelFormat_RGB565_Z16) {
+			            color = format_precision::rgba8_with_rgb565(color);
+			            z = format_precision::z24_with_z16(z);
+		            }
                     video_core::g_renderer->Clear(
                         efb_rect,                   // Clear rectangle
                         enable_color,               // Enable color clearing
