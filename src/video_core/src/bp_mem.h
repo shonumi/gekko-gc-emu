@@ -376,6 +376,60 @@ union BPAlphaFunc {
         unsigned logic : 2;
     };
     u32 _u32;
+
+    enum TestResult {
+        kTestResult_Unknown = 0,
+        kTestResult_Fail,
+        kTestResult_Pass
+    };
+
+    enum AlphaCompare {
+        kAlphaCompare_Never = 0,
+        kAlphaCompare_Less,
+        kAlphaCompare_Equal,
+        kAlphaCompare_LessEqual,
+        kAlphaCompare_Greater,
+        kAlphaCompare_NessEqual,
+        kAlphaCompare_GreaterEqual,
+        kAlphaCompare_Always
+    };
+
+    inline TestResult test_result() const {
+        switch(logic) {
+        case 0: // AND
+            if (comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Always)
+                return kTestResult_Pass;
+            if (comp0 == kAlphaCompare_Never || comp1 == kAlphaCompare_Never)
+                return kTestResult_Fail;
+            break;
+
+        case 1: // OR
+            if (comp0 == kAlphaCompare_Always || comp1 == kAlphaCompare_Always)
+                return kTestResult_Pass;
+            if (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Never)
+                return kTestResult_Fail;
+            break;
+
+        case 2: // XOR
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Never) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Always))
+                return kTestResult_Pass;
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Always) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Never))
+                return kTestResult_Fail;
+            break;
+
+        case 3: // XNOR
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Never) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Always))
+                return kTestResult_Pass;
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Always) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Never))
+                return kTestResult_Fail;
+            break;
+        }
+        return kTestResult_Unknown;
+    }
 };
 
 /// TX_SETMODE0 - Texture lookup and filtering mode
