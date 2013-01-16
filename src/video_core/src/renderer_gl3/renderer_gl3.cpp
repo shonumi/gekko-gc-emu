@@ -405,12 +405,16 @@ void RendererGL3::SetDitherMode() {
 
 /// Sets the renderer color mask mode
 void RendererGL3::SetColorMask() {
-    GLenum cmask = gp::g_bp_regs.cmode0.color_update ? GL_TRUE : GL_FALSE;
+    GLenum cmask = GL_FALSE;
     GLenum amask = GL_FALSE;
 
-    // Enable alpha channel if supported by the current EFB format
-    if (gp::g_bp_regs.cmode0.alpha_update && gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
-        amask = GL_TRUE;
+    if (gp::g_bp_regs.alpha_func.test_result() != gp::BPAlphaFunc::kTestResult_Fail) {
+        if (gp::g_bp_regs.cmode0.color_update) {
+            cmask = GL_TRUE;
+        }
+        if (gp::g_bp_regs.cmode0.alpha_update && gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
+            amask = GL_TRUE;
+        }
     }
     glColorMask(cmask,  cmask,  cmask,  amask);
 }
