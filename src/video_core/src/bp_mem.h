@@ -205,9 +205,13 @@ struct BPPEControl {
         };
         u32 _u32;
     };
-    /// True if EFB alpha channel is enabled
+    /// True if EFB alpha channel is enabled, otherwise false
     inline bool is_efb_alpha_enabled() const {
         return (static_cast<BPPixelFormat>(pixel_format) == kPixelFormat_RGBA6_Z24) ? true : false;
+    }
+    /// True if EFB is depth only, otherwise false
+    inline bool is_depth_only() const {
+        return (static_cast<BPPixelFormat>(pixel_format) == kPixelFormat_Z24) ? true : false;
     }
 };
 
