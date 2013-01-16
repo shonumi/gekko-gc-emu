@@ -45,69 +45,77 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
     BackendData* backend_data = new BackendData();
 
     glActiveTexture(GL_TEXTURE0 + active_texture_unit);
-    glGenTextures(1, &backend_data->handle_);    
-    glBindTexture(GL_TEXTURE_2D, backend_data->handle_);
 
     switch (cache_entry.type_) {
 
     // Normal texture from RAM
     case TextureManager::kSourceType_Normal:
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cache_entry.width_, cache_entry.height_, 0, GL_RGBA,
-            GL_UNSIGNED_BYTE, raw_data);
-
+        glGenTextures(1, &backend_data->color_texture_);    
+        glBindTexture(GL_TEXTURE_2D, backend_data->color_texture_);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, cache_entry.width_, cache_entry.height_, 0, 
+            GL_RGBA, GL_UNSIGNED_BYTE, raw_data);
         break;
 
     // Texture is the result of an EFB copy
     case TextureManager::kSourceType_EFBCopy:
+        {
+            GLuint textures[2];
+            glGenTextures(2, textures);  
 
-        // Create the texture
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, cache_entry.width_, 
-            cache_entry.height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-        //glBindTexture(GL_TEXTURE_2D, 0);
+            backend_data->color_texture_ = textures[0];
+            backend_data->depth_texture_ = textures[1];
+            backend_data->is_depth_copy = (cache_entry.efb_copy_data_.pixel_format_ == gp::kPixelFormat_Z24);
+
+            // Create the color component texture
+            glBindTexture(GL_TEXTURE_2D, backend_data->color_texture_);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, cache_entry.width_, cache_entry.height_, 0, 
+                GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glBindTexture(GL_TEXTURE_2D, 0);
         
-        // Generate depth buffer storage
-        glGenRenderbuffers(1, &backend_data->efb_depthbuffer_); // Generate depth buffer
-        glBindRenderbuffer(GL_RENDERBUFFER, backend_data->efb_depthbuffer_);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, cache_entry.width_,
-            cache_entry.height_);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+            // Create the depth component texture
+            glBindTexture(GL_TEXTURE_2D, backend_data->depth_texture_);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cache_entry.width_, 
+                cache_entry.height_, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+            glBindTexture(GL_TEXTURE_2D, 0);
         
-        // Create the FBO and attach texture/depth buffer
-        glGenFramebuffers(1, &backend_data->efb_framebuffer_); // Generate framebuffer
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, backend_data->efb_framebuffer_);
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_2D, backend_data->handle_, 0);
-        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-            GL_RENDERBUFFER, backend_data->efb_depthbuffer_);
+            // Create the FBO and attach color/depth textures
+            glGenFramebuffers(1, &backend_data->efb_framebuffer_); // Generate framebuffer
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, backend_data->efb_framebuffer_);
+
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 
+                backend_data->color_texture_, 0);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 
+                backend_data->depth_texture_, 0);
         
-        // Check for completeness
-        _ASSERT_MSG(TGP, GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER),
-            "couldn't create OpenGL FBO from new EFB copy!");
+            // Check for completeness
+            GLenum res = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+            _ASSERT_MSG(TGP, GL_FRAMEBUFFER_COMPLETE == res, "couldn't OpenGL EFB copy FBO!");
 
-        /*glBindFramebuffer(GL_READ_FRAMEBUFFER, efb_copy_fbo->framebuffer);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
+            //////////////////////
 
-        static u8 raw_data[1024 * 1024 * 4];
-        static int num = 0;
-        num++;
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT); 
-        glReadPixels(0,0, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, raw_data);
+            /*static u8 raw_data[1024 * 1024 * 4];
+            static int num = 0;
+            num++;
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
+            glReadBuffer(GL_DEPTH_ATTACHMENT); 
+            glReadPixels(cache_entry.efb_copy_data_.src_rect_.x0_,cache_entry.efb_copy_data_.src_rect_.y0_, cache_entry.efb_copy_data_.src_rect_.width(), cache_entry.efb_copy_data_.src_rect_.height(), GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT, raw_data);
 
-        // Optionally dump texture to TGA...
-        if (common::g_config->current_renderer_config().enable_texture_dumping) {
-            std::string filepath = common::g_config->program_dir() + std::string("/dump");
-            mkdir(filepath.c_str());
-            filepath = filepath + std::string("/efb-copies");
-            mkdir(filepath.c_str());
-            filepath = common::FormatStr("%s/%08x_%d.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5, num);
-            video_core::DumpTGA(filepath, rect.width, rect.height, raw_data);
+            // Optionally dump texture to TGA...
+            if (backend_data->is_depth_copy) {//common::g_config->current_renderer_config().enable_texture_dumping) {
+                std::string filepath = common::g_config->program_dir() + std::string("/dump");
+                mkdir(filepath.c_str());
+                filepath = filepath + std::string("/efb-copies");
+                mkdir(filepath.c_str());
+                filepath = common::FormatStr("%s/%08x_%d.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5, num);
+                video_core::DumpTGA(filepath, cache_entry.efb_copy_data_.src_rect_.width(), cache_entry.efb_copy_data_.src_rect_.height(), raw_data);
+            }
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);*/
+
+            //////////////////////////////
+
+            // Rebind EFB
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
         }
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);*/
-
-        // Rebind EFB
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
 
         break;
 
@@ -127,9 +135,9 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
 void TextureInterface::Delete(TextureManager::CacheEntry::BackendData* backend_data) {
     BackendData* data = static_cast<BackendData*>(backend_data);
 
-    glDeleteTextures(1, &data->handle_);
+    glDeleteTextures(1, &data->color_texture_);
 
-    if (data->efb_depthbuffer_) glDeleteRenderbuffers(1, &data->efb_depthbuffer_);
+    if (data->depth_texture_) glDeleteTextures(1, &data->depth_texture_);
     if (data->efb_framebuffer_) glDeleteFramebuffers(1, &data->efb_framebuffer_);
 
     delete backend_data;
@@ -153,12 +161,12 @@ void TextureInterface::CopyEFB(const Rect& src_rect, const Rect& dst_rect,
 
     // Render source is our EFB
     glBindFramebuffer(GL_READ_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(data->is_depth_copy ? GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0);
 
     // Blit
     glBlitFramebuffer(src_rect.x0_, src_rect.y0_, src_rect.x1_, src_rect.y1_, 
                       dst_rect.x0_, dst_rect.y0_, dst_rect.x1_, dst_rect.y1_,
-                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+                      data->is_depth_copy ? GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
@@ -172,8 +180,9 @@ void TextureInterface::CopyEFB(const Rect& src_rect, const Rect& dst_rect,
  */
 void TextureInterface::Bind(int active_texture_unit, 
     const TextureManager::CacheEntry::BackendData* backend_data) {
+    const BackendData* data = static_cast<const BackendData*>(backend_data);
     glActiveTexture(GL_TEXTURE0 + active_texture_unit);
-    glBindTexture(GL_TEXTURE_2D, static_cast<const BackendData*>(backend_data)->handle_);
+    glBindTexture(GL_TEXTURE_2D, data->is_depth_copy ? data->depth_texture_ : data->color_texture_);
 }
 
 /**

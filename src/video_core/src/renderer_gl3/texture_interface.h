@@ -89,13 +89,16 @@ private:
 
     class BackendData : public TextureManager::CacheEntry::BackendData {
     public:
-        BackendData() : handle_(0), efb_framebuffer_(0), efb_depthbuffer_(0) {
+        BackendData() : color_texture_(0), depth_texture_(0), efb_framebuffer_(0), 
+            is_depth_copy(false) {
         }
         ~BackendData() {
         }
-        GLuint handle_;             ///< GL handle to texture
-        GLuint efb_framebuffer_;    ///< GL handle to FBO (if from an EFB copy)
-        GLuint efb_depthbuffer_;    ///< GL handle to depth buffer (if from an EFB copy)
+        GLuint color_texture_;      ///< GL handle to color texture
+        GLuint depth_texture_;      ///< GL handle to depth texture (if from an EFB copy)
+        GLuint efb_framebuffer_;    ///< GL handle to EFB copy FBO
+
+        bool is_depth_copy;
     };
 
     DISALLOW_COPY_AND_ASSIGN(TextureInterface);
