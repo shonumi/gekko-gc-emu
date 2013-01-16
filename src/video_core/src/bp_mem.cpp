@@ -111,19 +111,13 @@ void BP_RegisterWrite(u8 addr, u32 data) {
             }
             // Set Color Mask
             if (data & 0x18) {
-                // TODO(ShizZy): Renable when we have EFB emulated
                 video_core::g_renderer->SetColorMask();
             }
         }
         break;
 
-    case BP_REG_PE_CMODE1: // PE_CMODE1 destination alpha
-        //gx_tev::set_modifed();
-        LOG_DEBUG(TGP, "BP-> PE_CMODE1");
-        break;
-
     case BP_REG_PE_CONTROL: // PE_CONTROL comp z location z_comp_loc(0x43000040)pixel_fmt(0x43000041)
-        //video_core::g_renderer->SetColorMask(); TODO(ShizZy): Renable when we have EFB emulated
+        //video_core::g_renderer->SetColorMask();
         break;
 
     case BP_REG_PE_DRAWDONE: // PE_DONE - draw done
