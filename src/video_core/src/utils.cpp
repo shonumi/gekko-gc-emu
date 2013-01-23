@@ -22,6 +22,9 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "utils.h"
 
 namespace video_core {
