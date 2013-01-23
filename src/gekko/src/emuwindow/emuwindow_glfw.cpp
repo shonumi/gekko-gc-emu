@@ -60,9 +60,9 @@ EmuWindow_GLFW::EmuWindow_GLFW() {
     render_window_ = glfwCreateWindow(640, 480, GLFW_WINDOWED, "gekko", 0);
 
     // Setup callbacks
-	glfwSetWindowUserPointer(render_window_, this);
-    glfwSetKeyCallback(OnKeyEvent);
-    glfwSetWindowSizeCallback(OnWindowSizeEvent);
+    glfwSetWindowUserPointer(render_window_, this);
+    glfwSetKeyCallback(render_window_, OnKeyEvent);
+    glfwSetWindowSizeCallback(render_window_, OnWindowSizeEvent);
 
     DoneCurrent();
 }
