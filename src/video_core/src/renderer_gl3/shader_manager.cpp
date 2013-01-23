@@ -39,7 +39,7 @@
 // Default shader header prefixed on all shaders. Contains minimum shader version and required 
 // extensions enabled
 static const char __default_shader_header[] = {
-    "#version 140\n"
+    "#version 130\n"
     "#extension GL_ARB_explicit_attrib_location : enable\n"
     "#extension GL_ARB_separate_shader_objects : enable\n"
     "#extension GL_ARB_uniform_buffer_object : enable\n"
