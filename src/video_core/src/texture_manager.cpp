@@ -22,6 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include "platform.h"
 #include "texture_manager.h"
 #include "utils.h"
 #include "config.h"
