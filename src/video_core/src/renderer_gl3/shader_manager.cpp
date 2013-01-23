@@ -255,9 +255,12 @@ GLuint ShaderManager::LoadShader() {
         
         // Texture enabled for stage?
         if (gp::g_bp_regs.tevorder[reg_index].get_enable(stage)) {
-
-            _SHADER_FSDEF(temp, gp::g_bp_regs.tevorder[reg_index].get_texmap(stage), 
-                gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage));
+            int texcoord = gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage);
+            // Set texture to 0 if texgen is disabled...
+            if (!(u32)texcoord < gp::g_bp_regs.genmode.num_texgens) {
+                texcoord = 0;
+            }
+            _SHADER_FSDEF(temp, gp::g_bp_regs.tevorder[reg_index].get_texmap(stage), texcoord);
         
         // This will use white color for texture
         } else {
