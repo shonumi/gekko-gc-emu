@@ -97,6 +97,12 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
             // Update cache with new information...
             active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
         }
+    } else {
+        // Get "used as" format for EFB copies
+        //_ASSERT_MSG(TGP, (cache_entry.format_ == active_textures_[active_texture_unit]->format_),
+        //    "EFB copy target format %d (from BPEFBCopyExec) is not the same as requested %d!",
+        //    cache_entry.format_, active_textures_[active_texture_unit]->format_);
+        active_textures_[active_texture_unit]->format_ = cache_entry.format_;
     }
 
     active_textures_[active_texture_unit]->frame_used_ = video_core::g_current_frame;
@@ -115,9 +121,10 @@ void TextureManager::CopyEFB(u32 addr, gp::BPPixelFormat efb_pixel_format,
     static CacheEntry   cache_entry;
     CacheEntry*         cache_ptr;
 
-    //cache_entry.address_  = efb_copy_addr;
-    //cache_entry.format_   = (gp::TextureFormat)tex_image_0.format;
+    //_ASSERT_MSG(TGP, efb_pixel_format != gp::kPixelFormat_Z24, "Shit!- Got kPixelFormat_Z24!");
 
+    //cache_entry.address_  = efb_copy_addr;
+    cache_entry.format_                         = efb_copy_exec.texture_format();
     cache_entry.type_                           = kSourceType_EFBCopy;
     cache_entry.hash_                           = addr;
     cache_entry.width_                          = src_rect.width();
@@ -126,6 +133,7 @@ void TextureManager::CopyEFB(u32 addr, gp::BPPixelFormat efb_pixel_format,
     cache_entry.efb_copy_data_.addr_            = addr;
     cache_entry.efb_copy_data_.pixel_format_    = efb_pixel_format;
     cache_entry.efb_copy_data_.copy_exec_       = efb_copy_exec;
+
 
     // Size the texture in half if half_scale ("mipmap") mode is enabled
     if (efb_copy_exec.half_scale) {
