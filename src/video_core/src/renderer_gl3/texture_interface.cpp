@@ -93,24 +93,27 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
 
             //////////////////////
 
-            /*static u8 raw_data[1024 * 1024 * 4];
+            /*glBindFramebuffer(GL_READ_FRAMEBUFFER, backend_data->efb_framebuffer_);
+            glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+            static u8 raw_data[1024 * 1024 * 4];
             static int num = 0;
             num++;
             glBindFramebuffer(GL_READ_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
             glReadBuffer(GL_DEPTH_ATTACHMENT); 
-            glReadPixels(cache_entry.efb_copy_data_.src_rect_.x0_,cache_entry.efb_copy_data_.src_rect_.y0_, cache_entry.efb_copy_data_.src_rect_.width(), cache_entry.efb_copy_data_.src_rect_.height(), GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT, raw_data);
+            glReadPixels(0,0, cache_entry.width_, cache_entry.height_, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, raw_data);
 
             // Optionally dump texture to TGA...
-            if (backend_data->is_depth_copy) {//common::g_config->current_renderer_config().enable_texture_dumping) {
+            if (1) {
                 std::string filepath = common::g_config->program_dir() + std::string("/dump");
                 mkdir(filepath.c_str());
                 filepath = filepath + std::string("/efb-copies");
                 mkdir(filepath.c_str());
                 filepath = common::FormatStr("%s/%08x_%d.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5, num);
-                video_core::DumpTGA(filepath, cache_entry.efb_copy_data_.src_rect_.width(), cache_entry.efb_copy_data_.src_rect_.height(), raw_data);
+                video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
             }
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);*/
-
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+            */
             //////////////////////////////
 
             // Rebind EFB
@@ -157,7 +160,6 @@ void TextureInterface::CopyEFB(const Rect& src_rect, const Rect& dst_rect,
 
     // Render target is destination framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, data->efb_framebuffer_);
-    //glViewport(0, 0, rect.width, rect.height);
 
     // Render source is our EFB
     glBindFramebuffer(GL_READ_FRAMEBUFFER, parent_->fbo_[RendererBase::kFramebuffer_EFB]);
