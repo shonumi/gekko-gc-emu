@@ -26,6 +26,7 @@
 #define VIDEO_CORE_BP_MEM_H_
 
 #include "common.h"
+#include "texture_decoder.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // BP registers
@@ -237,8 +238,8 @@ struct BPEFBCopyExec {
         };
         u32 _u32;
     };
-    inline u32 tp_realFormat() const { 
-        return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
+    inline TextureFormat texture_format() const { 
+        return static_cast<TextureFormat>(target_pixel_format / 2 + (target_pixel_format & 1) * 8);
     }
 };
 
