@@ -216,13 +216,14 @@ public:
      * Purges expired textures (textures that are older than current_frame + age_limit)
      * @param age_limit Acceptable age limit (in frames) for textures to still be considered fresh
      */
-    void Purge(int age_limit=100);
+    void Purge(int age_limit=1000);
+
+    CacheEntry*         active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
 
 private:
 
     CacheContainer*     cache_;                                 ///< Texture cache
     BackendInterface*   backend_interface_;                     ///< Backend renderer interface
-    CacheEntry*         active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
 
     DISALLOW_COPY_AND_ASSIGN(TextureManager);
 };
