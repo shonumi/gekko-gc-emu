@@ -232,7 +232,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(16));
     // TexCoords
-    _ASSERT_MSG(TGP, gp::g_xf_regs.num_texgen.num_texgens < 7, "Number of texgens >= 7"); 
+    //_ASSERT_MSG(TGP, gp::g_xf_regs.num_texgen.num_texgens < 7, "Number of texgens >= 7"); 
     for (int i = 0; i < gp::g_xf_regs.num_texgen.num_texgens; i++) {
 		if (vertex_texcoord_enable_[i]) {
 			glEnableVertexAttribArray(i + 4);
