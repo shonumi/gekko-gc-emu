@@ -22,6 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include "crc.h"
 #include "texture_manager.h"
 #include "utils.h"
 #include "config.h"
@@ -226,4 +227,23 @@ void TextureManager::Purge(int age_limit) {
             cache_->Remove(cache_entry->hash_);
         }
     }
+}
+
+/**
+ * Gets a hash that represents the current texturing state (primarily for use with shaders)
+ * @return A 32-bit hash code for the current state
+ */
+u32 TextureManager::GetStateHash() {
+    u32 crc = - 1;
+    // Should we check here if any of the TEV stages are using the texture as well?
+    for (int i = 0; i < kGCMaxActiveTextures; i++) {
+        if (active_textures_[i] != NULL) {
+            crc ^= (active_textures_[i]->format_ << 0) |
+                   (active_textures_[i]->type_ << 8) |
+                   (active_textures_[i]->efb_copy_data_.pixel_format_ << 16) | 
+                   (active_textures_[i]->efb_copy_data_.copy_exec_.intensity_fmt << 24);
+            crc = CRC_ROTL(crc);
+        }
+    }
+    return crc;
 }

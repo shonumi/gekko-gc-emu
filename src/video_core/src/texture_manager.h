@@ -45,8 +45,7 @@ public:
 
     /// Source of texture data
     enum SourceType {
-        kSourceType_None = 0,  
-        kSourceType_Normal,     ///< Texture is raw RAM data
+        kSourceType_Normal = 0, ///< Texture is raw RAM data
         kSourceType_EFBCopy,    ///< Texture is result of an EFB copy
     };
 
@@ -65,7 +64,7 @@ public:
             size_           = 0;
             width_          = -1;
             height_         = -1;
-            type_           = kSourceType_None;
+            type_           = kSourceType_Normal;
             format_         = gp::kTextureFormat_None; 
             backend_data_   = NULL; 
             hash_           = 0;
@@ -217,6 +216,12 @@ public:
      * @param age_limit Acceptable age limit (in frames) for textures to still be considered fresh
      */
     void Purge(int age_limit=1000);
+
+    /**
+     * Gets a hash that represents the current texturing state (primarily for use with shaders)
+     * @return A 32-bit hash code for the current state
+     */
+    u32 GetStateHash();
 
     CacheEntry*         active_textures_[kGCMaxActiveTextures]; ///< Currently active textures
 
