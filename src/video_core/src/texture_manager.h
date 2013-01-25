@@ -214,8 +214,9 @@ public:
     /**
      * Purges expired textures (textures that are older than current_frame + age_limit)
      * @param age_limit Acceptable age limit (in frames) for textures to still be considered fresh
+     * @todo The age_limit seems to affect games - e.g. Link's eyes in ZWW. Figure out why.
      */
-    void Purge(int age_limit=1000);
+    void Purge(int age_limit=280);
 
     /**
      * Gets a hash that represents the current texturing state (primarily for use with shaders)
