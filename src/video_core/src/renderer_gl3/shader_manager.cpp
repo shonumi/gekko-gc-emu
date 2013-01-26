@@ -26,10 +26,13 @@
 #include "crc.h"
 #include "config.h"
 
+#include "video_core.h"
 #include "gx_types.h"
 #include "bp_mem.h"
 #include "cp_mem.h"
 #include "xf_mem.h"
+#include "texture_decoder.h"
+#include "texture_manager.h"
 
 #include "shader_manager.h"
 #include "uniform_manager.h"
@@ -131,8 +134,6 @@ GLuint ShaderManager::CompileShaderProgram(const char* vs_def, const char* fs_de
  * Compute a 32-bit hash for the current TEV state, used for identifying the current shader to use
  * @return Unsigned int hash
  */
-#define CRC_ROTL(crc) crc32_table[3][((crc) & 0xFF)] ^ crc32_table[2][((crc >> 8) & 0xFF)] ^ \
-        crc32_table[1][((crc >> 16) & 0xFF)] ^ crc32_table[0][((crc >> 24))]
 u32 ShaderManager::GetCurrentHash() {
 	u32 crc = - 1;
     const u8 cur_alpha_func = ((gp::g_bp_regs.alpha_func.comp1 << 5) | 
@@ -176,6 +177,8 @@ u32 ShaderManager::GetCurrentHash() {
             (gp::g_bp_regs.tevorder[reg_index].get_texmap(stage) << 22);
 	    crc = CRC_ROTL(crc);*/
     }
+    crc ^= video_core::g_texture_manager->GetStateHash();
+
 	return crc;
 }
 
@@ -192,8 +195,6 @@ GLuint ShaderManager::LoadShader() {
         "(val <= ref0)", "(val > ref0)", "(val != ref0)", "(val >= ref0)", "(true)" };
     static const char* alpha_compare_1[] = { "(false)", "(val < ref1)", "(val == ref1)", 
         "(val <= ref1)", "(val > ref1)", "(val != ref1)", "(val >= ref1)", "(true)" };
-    static const char* texture[] = { "vec4(1.0f, 1.0f, 1.0f, 1.0f)", 
-        "texture2D(texture[%d], vtx_texcoord[%d])" };
     static const char* tev_color_input[] = { "prev.rgb",  "prev.aaa", "color0.rgb", "color0.aaa",
         "color1.rgb", "color1.aaa", "color2.rgb", "color2.aaa", "tex.rgb", "tex.aaa", "ras.rgb",
         "ras.aaa", "vec3(1.0f, 1.0f, 1.0f)", "vec3(0.5f, 0.5f, 0.5f)", "konst.rgb", 
@@ -250,22 +251,36 @@ GLuint ShaderManager::LoadShader() {
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].color.dest], 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].alpha.dest]);
 
-        sprintf(temp, "#define _FSDEF_TEXTURE_%d %s\n", stage, 
-            texture[gp::g_bp_regs.tevorder[reg_index].get_enable(stage)]);
-        
+        std::string fix_texture_format = "tex";
+
         // Texture enabled for stage?
         if (gp::g_bp_regs.tevorder[reg_index].get_enable(stage)) {
             int texcoord = gp::g_bp_regs.tevorder[reg_index].get_texcoord(stage);
+            int texmap = gp::g_bp_regs.tevorder[reg_index].get_texmap(stage);
+            
             // Set texture to 0 if texgen is disabled...
             if (!(u32)texcoord < gp::g_bp_regs.genmode.num_texgens) {
                 texcoord = 0;
             }
-            _SHADER_FSDEF(temp, gp::g_bp_regs.tevorder[reg_index].get_texmap(stage), texcoord);
-        
+            TextureManager::CacheEntry* tex_entry = video_core::g_texture_manager->active_textures_[texmap];
+            if (tex_entry != NULL) {
+                // EFB copy adjustments stuff
+                if (tex_entry->type_ == TextureManager::kSourceType_EFBCopy) {
+                    // 
+                    if (tex_entry->efb_copy_data_.copy_exec_.intensity_fmt) {
+                        fix_texture_format = "vec4(0.257f * tex.r, 0.504f * tex.g, 0.098f * tex.b, tex.a)";
+                    }
+                }
+            }
+            _SHADER_FSDEF("#define _FSDEF_TEXTURE_%d texture2D(texture[%d], vtx_texcoord[%d])\n", 
+                stage, texmap, texcoord);
+
         // This will use white color for texture
         } else {
-            _SHADER_FSDEF(temp);
+            _SHADER_FSDEF("#define _FSDEF_TEXTURE_%d vec4(1.0f, 1.0f, 1.0f, 1.0f)\n", stage);
         }
+        _SHADER_FSDEF("#define _FSDEF_FIX_FORMAT_TEXTURE_%d %s\n", stage, fix_texture_format.c_str());
+
         _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_A_%d %s\n", stage, 
             tev_color_input[gp::g_bp_regs.combiner[stage].color.sel_a]);
         _SHADER_FSDEF("#define _FSDEF_COMBINER_COLOR_B_%d %s\n", stage, 
