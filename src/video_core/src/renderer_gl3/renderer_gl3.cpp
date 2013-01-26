@@ -38,31 +38,7 @@
 #include "renderer_gl3.h"
 #include "shader_manager.h"
 #include "texture_interface.h"
-
-/// OpenGL color source factors
-static const GLenum g_src_factors[8] =
-{
-    GL_ZERO,
-    GL_ONE,
-    GL_DST_COLOR,
-    GL_ONE_MINUS_DST_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_ALPHA
-};
-
-/// OpenGL color destination factors
-static const GLenum g_dst_factors[8] = {
-    GL_ZERO,
-    GL_ONE,
-    GL_SRC_COLOR,
-    GL_ONE_MINUS_SRC_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_ALPHA
-};
+#include "utils.h"
 
 /// OpenGL Z compare functions factors
 static const GLenum g_compare_funcs[8] = {
@@ -74,26 +50,6 @@ static const GLenum g_compare_funcs[8] = {
     GL_NOTEQUAL,
     GL_GEQUAL,
     GL_ALWAYS
-};
-
-/// OpenGL color logic opcodes
-static const GLenum g_logic_opcodes[16] = {
-    GL_CLEAR,
-    GL_AND,
-    GL_AND_REVERSE,
-    GL_COPY,
-    GL_AND_INVERTED,
-    GL_NOOP,
-    GL_XOR,
-    GL_OR,
-    GL_NOR,
-    GL_EQUIV,
-    GL_INVERT,
-    GL_OR_REVERSE,
-    GL_COPY_INVERTED,
-    GL_OR_INVERTED,
-    GL_NAND,
-    GL_SET
 };
 
 /// RendererGL3 constructor
@@ -127,7 +83,7 @@ RendererGL3::RendererGL3() {
     gl_prim_type_ = 0;
     shader_manager_ = new ShaderManager();
     uniform_manager_ = new UniformManager();
-    texture_interface_ = new TextureInterface();
+    texture_interface_ = new TextureInterface(this);
 }
 
 /// RendererGL3 destructor
@@ -272,11 +228,12 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(12));
     // Color 1
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(16));
     // TexCoords
-	for (int i = 0; i < kGCMaxActiveTextures; i++) {
+    //_ASSERT_MSG(TGP, gp::g_xf_regs.num_texgen.num_texgens < 7, "Number of texgens >= 7"); 
+    for (int i = 0; i < gp::g_xf_regs.num_texgen.num_texgens; i++) {
 		if (vertex_texcoord_enable_[i]) {
 			glEnableVertexAttribArray(i + 4);
 			glVertexAttribPointer(i + 4, 4, vertex_texcoord_format_[i], GL_FALSE, sizeof(GXVertex), 
@@ -346,7 +303,20 @@ void RendererGL3::SetGenerationMode() {
  * @param blend_mode_ Forces blend mode to update
  */
 void RendererGL3::SetBlendMode(bool force_update) {
+
+    /// OpenGL color source factors
+    static const GLenum g_src_factors[8] = {
+        GL_ZERO,       GL_ONE,                  GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR,
+        GL_SRC1_ALPHA, GL_ONE_MINUS_SRC1_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
+    };
+    /// OpenGL color destination factors
+    static const GLenum g_dst_factors[8] = {
+        GL_ZERO,       GL_ONE,                  GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
+        GL_SRC1_ALPHA, GL_ONE_MINUS_SRC1_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
+    };
     u32 temp = gp::g_bp_regs.cmode0.subtract << 2;
+    bool use_dest_alpha = gp::g_bp_regs.cmode1.enable && gp::g_bp_regs.cmode0.alpha_update && 
+        gp::g_bp_regs.zcontrol.is_efb_alpha_enabled();
 
     if (gp::g_bp_regs.cmode0.subtract) {
         temp |= 0x0049;                             // Enable blending src 1 dst 1
@@ -355,30 +325,71 @@ void RendererGL3::SetBlendMode(bool force_update) {
         temp |= gp::g_bp_regs.cmode0.src_factor << 3;
         temp |= gp::g_bp_regs.cmode0.dst_factor << 6;
     }
-
     u32 changes = force_update ? 0xFFFFFFFF : temp ^ blend_mode_;
 
     // Blend enable change
     if (changes & 1) {
         (temp & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
     }
-
     if (changes & 4) {
-        glBlendEquation(temp & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
+        GLenum equation = temp & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+        GLenum equation_alpha = use_dest_alpha ? GL_FUNC_ADD : equation;
+        glBlendEquationSeparate(equation, equation_alpha);
     }
-
     if (changes & 0x1F8) {
-        glBlendFunc(g_src_factors[(temp >> 3) & 7], g_dst_factors[(temp >> 6) & 7]);
-    }
+        GLenum src_factor = g_src_factors[(temp >> 3) & 7];
+        GLenum dst_factor = g_dst_factors[(temp >> 6) & 7];
 
+        if (!gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
+            if (src_factor == GL_DST_ALPHA) {
+                src_factor = GL_ONE;
+            } else if (src_factor == GL_ONE_MINUS_DST_ALPHA) {
+                src_factor = GL_ZERO;
+            }
+            if (dst_factor == GL_DST_ALPHA) {
+                dst_factor = GL_ONE;
+            } else if (dst_factor == GL_ONE_MINUS_DST_ALPHA) {
+                dst_factor = GL_ZERO;
+            }
+        }
+        GLenum src_factor_alpha = src_factor;
+        GLenum dst_factor_alpha = dst_factor;
+
+        if (use_dest_alpha) {
+            src_factor_alpha = GL_ONE;
+            dst_factor_alpha = GL_ZERO;
+        }
+        glBlendFuncSeparate(src_factor, dst_factor, src_factor_alpha, dst_factor_alpha);
+    }
     blend_mode_ = temp;
 }
 
 /// Sets the renderer logic op mode
 void RendererGL3::SetLogicOpMode() {
+
+    /// OpenGL color logic opcodes
+    static const GLenum logic_opcodes[16] = {
+        GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,
+        GL_AND_INVERTED,  GL_NOOP,        GL_XOR,         GL_OR,
+        GL_NOR,           GL_EQUIV,       GL_INVERT,      GL_OR_REVERSE,
+        GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET
+    };
+    static const GLenum logic_opcodes_no_alpha[16] = {
+		GL_CLEAR,         GL_COPY, GL_CLEAR,         GL_COPY,
+		GL_AND_INVERTED,  GL_SET,  GL_COPY_INVERTED, GL_COPY,
+		GL_CLEAR,         GL_COPY, GL_CLEAR,         GL_COPY,
+		GL_COPY_INVERTED, GL_SET,  GL_COPY_INVERTED, GL_SET
+    };
     if (gp::g_bp_regs.cmode0.logicop_enable && gp::g_bp_regs.cmode0.logic_mode != 3) {
+        GLenum logic_opcode = 0;
         glEnable(GL_COLOR_LOGIC_OP);
-        glLogicOp(g_logic_opcodes[gp::g_bp_regs.cmode0.logic_mode]);
+
+        if (gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
+            logic_opcode = logic_opcodes[gp::g_bp_regs.cmode0.logic_mode];
+        } else {
+            logic_opcode = logic_opcodes_no_alpha[gp::g_bp_regs.cmode0.logic_mode];
+        }
+        glLogicOp(logic_opcode);
     } else {
         glDisable(GL_COLOR_LOGIC_OP);
     }
@@ -395,13 +406,16 @@ void RendererGL3::SetDitherMode() {
 
 /// Sets the renderer color mask mode
 void RendererGL3::SetColorMask() {
-    GLenum cmask = gp::g_bp_regs.cmode0.color_update ? GL_TRUE : GL_FALSE;
+    GLenum cmask = GL_FALSE;
     GLenum amask = GL_FALSE;
 
-    // Enable alpha channel if supported by the current EFB format
-    if (gp::g_bp_regs.cmode0.alpha_update && 
-        (gp::g_bp_regs.zcontrol.pixel_format == gp::BP_PIXELFORMAT_RGBA6_Z24)) {
+    if (gp::g_bp_regs.alpha_func.test_result() != gp::BPAlphaFunc::kTestResult_Fail) {
+        if (gp::g_bp_regs.cmode0.color_update) {
+            cmask = GL_TRUE;
+        }
+        if (gp::g_bp_regs.cmode0.alpha_update && gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
             amask = GL_TRUE;
+        }
     }
     glColorMask(cmask,  cmask,  cmask,  amask);
 }
@@ -478,12 +492,13 @@ void RendererGL3::ResetRenderState() {
     glDisable(GL_BLEND);
     glDepthMask(GL_FALSE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 /// Restore the full renderer API state - As the game set it
 void RendererGL3::RestoreRenderState() {
-    // TODO(ShizZy):
-    //  - Viewport
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+    gp::XF_UpdateViewport(); // TODO(ShizZy): Ugly has heck! Fix this code..
     SetGenerationMode();
     glEnable(GL_SCISSOR_TEST);
     SetScissorBox();
@@ -511,7 +526,6 @@ void RendererGL3::UpdateFramerate() {
 
 /// Swap buffers (render frame)
 void RendererGL3::SwapBuffers() {
-
     ResetRenderState();
 
     // FBO->Window copy
@@ -532,18 +546,16 @@ void RendererGL3::SetWindow(EmuWindow* window) {
 }
 
 /** 
- * Blits the EFB to the specified destination buffer
- * @param dest Destination framebuffer
- * @param rect EFB rectangle to copy
- * @param dest_width Destination width in pixels 
+ * Blits the EFB to the external framebuffer (XFB)
+ * @param src_rect Source rectangle in EFB to copy
+ * @param dst_rect Destination rectangle in EFB to copy to
  * @param dest_height Destination height in pixels
  */
-void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) {
-
+void RendererGL3::CopyToXFB(const Rect& src_rect, const Rect& dst_rect) {
     ResetRenderState();
 
     // Render target is destination framebuffer
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[dest]);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_VirtualXFB]);
     glViewport(0, 0, resolution_width_, resolution_height_);
 
     // Render source is our EFB
@@ -551,12 +563,11 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     // Blit
-    glBlitFramebuffer(rect.x, rect.y, rect.width, rect.height,
-        0, 0, dest_width, dest_height,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(src_rect.x0_, src_rect.y0_, src_rect.x1_, src_rect.y1_, 
+                      dst_rect.x0_, dst_rect.y0_, dst_rect.x1_, dst_rect.y1_,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-    // Rebind EFB
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
     RestoreRenderState();
 }
@@ -570,7 +581,7 @@ void RendererGL3::CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest
  * @param color Clear color
  * @param z Clear depth
  */
-void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
+void RendererGL3::Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
     u32 z) {
 
         GLboolean const color_mask = enable_color ? GL_TRUE : GL_FALSE;
@@ -589,7 +600,7 @@ void RendererGL3::Clear(Rect rect, bool enable_color, bool enable_alpha, bool en
 
         // Specify the rectangle of the EFB to clear
         glEnable(GL_SCISSOR_TEST);
-        glScissor(rect.x, rect.y, rect.width, rect.height);
+        glScissor(rect.x0_, rect.y0_, rect.width(), rect.height());
 
         // Clear it!
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

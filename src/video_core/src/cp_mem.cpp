@@ -35,6 +35,30 @@ CPMemory g_cp_regs; ///< CP memory/registers
 /// Write a BP register
 void CP_RegisterWrite(u8 addr, u32 data) {
     g_cp_regs.mem[addr] = data;
+
+    switch (addr) {
+    // Map all 8 CP_REG_VCD_LO registers to the base register
+    case CP_REG_VCD_LO + 1:
+    case CP_REG_VCD_LO + 2:
+    case CP_REG_VCD_LO + 3:
+    case CP_REG_VCD_LO + 4:
+    case CP_REG_VCD_LO + 5:
+    case CP_REG_VCD_LO + 6:
+    case CP_REG_VCD_LO + 7:
+        g_cp_regs.mem[CP_REG_VCD_LO] = data;
+        break;
+
+    // Map all 8 CP_REG_VCD_HI registers to the base register
+    case CP_REG_VCD_HI + 1:
+    case CP_REG_VCD_HI + 2:
+    case CP_REG_VCD_HI + 3:
+    case CP_REG_VCD_HI + 4:
+    case CP_REG_VCD_HI + 5:
+    case CP_REG_VCD_HI + 6:
+    case CP_REG_VCD_HI + 7:
+        g_cp_regs.mem[CP_REG_VCD_HI] = data;
+        break;
+    }
 }
 
 /// Initialize CP

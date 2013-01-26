@@ -26,6 +26,7 @@
 #define VIDEO_CORE_BP_MEM_H_
 
 #include "common.h"
+#include "texture_decoder.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // BP registers
@@ -65,7 +66,7 @@
 #define BP_REG_PE_CLEAR_AR      0x4F
 #define BP_REG_PE_CLEAR_GB      0x50
 #define BP_REG_PE_CLEAR_Z       0x51
-#define BP_REG_PE_COPY_EXECUTE  0x52
+#define BP_REG_EFB_COPY         0x52
 #define BP_REG_COPYFILTER0      0x53
 #define BP_REG_COPYFILTER1      0x54
 #define BP_REG_CLEARBBOX1       0x55
@@ -120,14 +121,14 @@ namespace gp {
 
 /// BP pixel formats
 enum BPPixelFormat {
-    BP_PIXELFORMAT_RGB8_Z24     = 0,
-    BP_PIXELFORMAT_RGBA6_Z24    = 1,
-    BP_PIXELFORMAT_RGB565_Z16   = 2,
-    BP_PIXELFORMAT_Z24          = 3,
-    BP_PIXELFORMAT_Y8           = 4,
-    BP_PIXELFORMAT_U8           = 5,
-    BP_PIXELFORMAT_V8           = 6,
-    BP_PIXELFORMAT_YUV420       = 7
+    kPixelFormat_RGB8_Z24     = 0,
+    kPixelFormat_RGBA6_Z24    = 1,
+    kPixelFormat_RGB565_Z16   = 2,
+    kPixelFormat_Z24          = 3,
+    kPixelFormat_Y8           = 4,
+    kPixelFormat_U8           = 5,
+    kPixelFormat_V8           = 6,
+    kPixelFormat_YUV420       = 7
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,8 +192,7 @@ struct BPPECMode1{
         };
         u32 _u32;
     };
-
-    f32 getalpha() { return alpha / 255.0f; }
+    inline f32 get_alpha() const { return ((f32)alpha) / 255.0f; }
 };
 
 /// PE control
@@ -206,10 +206,18 @@ struct BPPEControl {
         };
         u32 _u32;
     };
+    /// True if EFB alpha channel is enabled, otherwise false
+    inline bool is_efb_alpha_enabled() const {
+        return (static_cast<BPPixelFormat>(pixel_format) == kPixelFormat_RGBA6_Z24) ? true : false;
+    }
+    /// True if EFB is depth only, otherwise false
+    inline bool is_depth_only() const {
+        return (static_cast<BPPixelFormat>(pixel_format) == kPixelFormat_Z24) ? true : false;
+    }
 };
 
-/// PE Copy Execute
-struct BPPECopyExecute {
+/// PE EFB Copy Execute
+struct BPEFBCopyExec {
     union {
         struct {
             u32 clamp0              : 1; // if set clamp top
@@ -230,8 +238,8 @@ struct BPPECopyExecute {
         };
         u32 _u32;
     };
-    u32 tp_realFormat() { 
-        return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
+    inline TextureFormat texture_format() const { 
+        return static_cast<TextureFormat>(target_pixel_format / 2 + (target_pixel_format & 1) * 8);
     }
 };
 
@@ -309,8 +317,8 @@ struct BPTevKSel {
         };
         u32 _u32;
     };
-    int get_konst_color_sel(int stage) { return (stage&1) ? kcsel1 : kcsel0; }
-    int get_konst_alpha_sel(int stage) { return (stage&1) ? kasel1 : kasel0; }
+    inline int get_konst_color_sel(int stage) const { return (stage&1) ? kcsel1 : kcsel0; }
+    inline int get_konst_alpha_sel(int stage) const { return (stage&1) ? kasel1 : kasel0; }
 };
 
 /// TEV indirect texture map
@@ -328,8 +336,8 @@ union BPTevTexMap {
     };
     u32 _u32;
 
-    u32 get_tex_coord(int i) { return (_u32 >> (6 * i + 3)) & 3; }
-    u32 get_tex_map(int i) { return (_u32 >> (6 * i)) & 3; }
+    inline u32 get_tex_coord(int i) const { return (_u32 >> (6 * i + 3)) & 3; }
+    inline u32 get_tex_map(int i) const { return (_u32 >> (6 * i)) & 3; }
 };
 
 /// TEV raster color order
@@ -353,10 +361,10 @@ struct BPTevOrder {
         };
         u32 _u32;
     };
-    inline int get_texmap(int stage) { return (stage&1) ? texmap1 : texmap0; }
-    inline int get_texcoord(int stage) { return (stage&1) ? texcoord1 : texcoord0; }
-    inline int get_enable(int stage) { return (stage&1) ? texmapenable1 : texmapenable0; }
-    inline int get_colorchan(int stage) { return (stage&1) ? colorid1 : colorid0; }
+    inline int get_texmap(int stage) const { return (stage&1) ? texmap1 : texmap0; }
+    inline int get_texcoord(int stage) const { return (stage&1) ? texcoord1 : texcoord0; }
+    inline int get_enable(int stage) const { return (stage&1) ? texmapenable1 : texmapenable0; }
+    inline int get_colorchan(int stage) const { return (stage&1) ? colorid1 : colorid0; }
 };
 
 /// BP alpha/comparision function
@@ -369,6 +377,60 @@ union BPAlphaFunc {
         unsigned logic : 2;
     };
     u32 _u32;
+
+    enum TestResult {
+        kTestResult_Unknown = 0,
+        kTestResult_Fail,
+        kTestResult_Pass
+    };
+
+    enum AlphaCompare {
+        kAlphaCompare_Never = 0,
+        kAlphaCompare_Less,
+        kAlphaCompare_Equal,
+        kAlphaCompare_LessEqual,
+        kAlphaCompare_Greater,
+        kAlphaCompare_NessEqual,
+        kAlphaCompare_GreaterEqual,
+        kAlphaCompare_Always
+    };
+
+    inline TestResult test_result() const {
+        switch(logic) {
+        case 0: // AND
+            if (comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Always)
+                return kTestResult_Pass;
+            if (comp0 == kAlphaCompare_Never || comp1 == kAlphaCompare_Never)
+                return kTestResult_Fail;
+            break;
+
+        case 1: // OR
+            if (comp0 == kAlphaCompare_Always || comp1 == kAlphaCompare_Always)
+                return kTestResult_Pass;
+            if (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Never)
+                return kTestResult_Fail;
+            break;
+
+        case 2: // XOR
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Never) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Always))
+                return kTestResult_Pass;
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Always) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Never))
+                return kTestResult_Fail;
+            break;
+
+        case 3: // XNOR
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Never) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Always))
+                return kTestResult_Pass;
+            if ((comp0 == kAlphaCompare_Always && comp1 == kAlphaCompare_Always) || 
+                (comp0 == kAlphaCompare_Never && comp1 == kAlphaCompare_Never))
+                return kTestResult_Fail;
+            break;
+        }
+        return kTestResult_Unknown;
+    }
 };
 
 /// TX_SETMODE0 - Texture lookup and filtering mode
@@ -388,7 +450,7 @@ struct BPTexMode0 {
         };
         u32 _u32;
     };
-    inline int use_mipmaps() { return (min_filter & 3); }
+    inline int use_mipmaps() const { return (min_filter & 3); }
 };
 
 /// TX_SETMODE1 - LOD Info
@@ -410,8 +472,8 @@ struct BPTexImage0 {
         };
         u32 _u32;
     };
-    inline int get_width() { return width + 1; }
-    inline int get_height() { return height + 1; }
+    inline int get_width() const { return width + 1; }
+    inline int get_height() const { return height + 1; }
 };
 
 /// TX_SETIMAGE1 - even LOD address in TMEM
@@ -446,7 +508,7 @@ struct BPTexImage3 {
         };
         u32 _u32;
     };
-    inline int get_addr() { return (image_base << 5); }
+    inline int get_addr() const { return (image_base << 5); }
 };
 
 /// TX_SETIMAGE3 - Address of Texture in main memory
@@ -501,7 +563,8 @@ union BPMemory {
         u32             clear_ar;               // 0x4f
         u32             clear_gb;               // 0x50
         u32             clear_z;                // 0x51
-        u32             pad5[0x7];              // 0x52
+        BPEFBCopyExec   efb_copy_exec;          // 0x52
+        u32             pad5[0x6];              // 0x53
         BPEFBCoords10   scissor_offset;         // 0x59
         u32             pad6[0x26];             // 0x5a
 

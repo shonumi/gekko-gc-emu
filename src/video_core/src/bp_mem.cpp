@@ -32,6 +32,7 @@
 
 #include "renderer_gl3/shader_manager.h"
 
+#include "utils.h"
 #include "video_core.h"
 #include "vertex_manager.h"
 #include "fifo.h"
@@ -110,19 +111,13 @@ void BP_RegisterWrite(u8 addr, u32 data) {
             }
             // Set Color Mask
             if (data & 0x18) {
-                // TODO(ShizZy): Renable when we have EFB emulated
                 video_core::g_renderer->SetColorMask();
             }
         }
         break;
 
-    case BP_REG_PE_CMODE1: // PE_CMODE1 destination alpha
-        //gx_tev::set_modifed();
-        LOG_DEBUG(TGP, "BP-> PE_CMODE1");
-        break;
-
     case BP_REG_PE_CONTROL: // PE_CONTROL comp z location z_comp_loc(0x43000040)pixel_fmt(0x43000041)
-        //video_core::g_renderer->SetColorMask(); TODO(ShizZy): Renable when we have EFB emulated
+        //video_core::g_renderer->SetColorMask();
         break;
 
     case BP_REG_PE_DRAWDONE: // PE_DONE - draw done
@@ -143,85 +138,72 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_PE_TOKEN: // PE_TOKEN
         GX_PE_TOKEN_VALUE = (data & 0xffff);
-        LOG_DEBUG(TGP, "BP-> PE_TOKEN");
         break;
 
     case BP_REG_PE_TOKEN_INT: // PE_TOKEN_INT
         GX_PE_TOKEN_VALUE = (data & 0xffff); 
         GX_PE_TOKEN = 1;
-        LOG_DEBUG(TGP, "BP-> PE_TOKEN_INT");
         break;
 
-    case BP_REG_PE_CLEAR_AR: // PE copy clear AR - set clear alpha and red components
-    case BP_REG_PE_CLEAR_GB: // PE copy clear GB - green and blue
-        //gx_states::set_copyclearcolor();
-        LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_COLOR");
-        break;
-
-    case BP_REG_PE_CLEAR_Z: // PE copy clear Z - 24-bit Z value
-        //gx_states::set_copyclearz();
-	    // unpack z data
-	    // send to efb
-	    //glClearDepth(((GLclampd)BP_PE_COPYCLEAR_Z_VALUE) / GX_VIEWPORT_ZMAX);
-        LOG_DEBUG(TGP, "BP-> PE_COPY_CLEAR_X");
-        break;
-
-    case BP_REG_PE_COPY_EXECUTE:  // pe copy execute
+    case BP_REG_EFB_COPY:  // pe copy execute
         {
-            Rect rect;
-            rect.x = gp::g_bp_regs.efb_top_left.x;
-            rect.y = gp::g_bp_regs.efb_top_left.y;
-            rect.width = gp::g_bp_regs.efb_height_width.x + 1;
-            rect.height = gp::g_bp_regs.efb_height_width.y + 1;
+            Rect efb_rect;
+            efb_rect.x0_ = gp::g_bp_regs.efb_top_left.x;
+            efb_rect.y0_ = gp::g_bp_regs.efb_top_left.y;
+            efb_rect.x1_ = efb_rect.x0_ + gp::g_bp_regs.efb_height_width.x + 1;
+            efb_rect.y1_ = efb_rect.y0_ + gp::g_bp_regs.efb_height_width.y + 1;
 
-            BPPECopyExecute pe_copy;
-            pe_copy._u32 = data;
+            BPEFBCopyExec efb_copy_exec;
+            efb_copy_exec._u32 = data;
 
-            if (pe_copy.copy_to_xfb) {
+            if (efb_copy_exec.copy_to_xfb) {
                 f32 scale_y;
-                if (pe_copy.scale_invert) {
+                if (efb_copy_exec.scale_invert) {
                     scale_y = 256.0f / (f32)gp::g_bp_regs.disp_copy_y_scale;
                 } else {
                     scale_y = (f32)gp::g_bp_regs.disp_copy_y_scale / 256.0f;
                 }
-            
                 u32 xfb_height = (u32)(((f32)gp::g_bp_regs.efb_height_width.y + 1.0f) * scale_y);
                 u32 xfb_width = gp::g_bp_regs.disp_stride << 4;
+                Rect xfb_rect(0, 0, xfb_width, xfb_height);
 
-                video_core::g_renderer->CopyEFB(
-                    RendererBase::kFramebuffer_VirtualXFB,
-                    rect,
-                    xfb_width,
-                    xfb_height);
+                video_core::g_renderer->CopyToXFB(efb_rect, xfb_rect);
             } else {
-                // TODO(ShizZy): Implement copy to texture
+                video_core::g_texture_manager->CopyEFB(
+                    gp::g_bp_regs.efb_copy_addr << 5, 
+                    static_cast<BPPixelFormat>(gp::g_bp_regs.zcontrol.pixel_format), 
+                    efb_copy_exec,
+                    efb_rect
+                );
             }
-
-            if (pe_copy.clear) {
+            if (efb_copy_exec.clear) {
                 bool enable_color = gp::g_bp_regs.cmode0.color_update;
                 bool enable_alpha = gp::g_bp_regs.cmode0.alpha_update;
                 bool enable_z = gp::g_bp_regs.zmode.update_enable;
 
-                // Forcibly disable alpha if the pixel format does not support it
-                if (gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_RGB8_Z24 || 
-                    gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_RGB565_Z16 || 
-                    gp::g_bp_regs.zcontrol.pixel_format == BP_PIXELFORMAT_Z24) {
+                // Disable unused alpha channels
+                if (!g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
                     enable_alpha = false;
                 }
-
                 if (enable_color || enable_alpha || enable_z) {
-                    u32 color = ((gp::g_bp_regs.clear_ar & 0xffff) << 16) | 
-                        (gp::g_bp_regs.clear_gb & 0xffff);
+                    u32 color = (g_bp_regs.clear_ar << 16) | g_bp_regs.clear_gb;
 
-                    u32 z = gp::g_bp_regs.clear_z & 0xffffff;
+                    u32 z = g_bp_regs.clear_z;
 
+		            // Drop additional accuracy
+		            if (g_bp_regs.zcontrol.pixel_format == kPixelFormat_RGBA6_Z24) {
+			            color = format_precision::rgba8_with_rgba6(color);
+		            } else if (g_bp_regs.zcontrol.pixel_format == kPixelFormat_RGB565_Z16) {
+			            color = format_precision::rgba8_with_rgb565(color);
+			            z = format_precision::z24_with_z16(z);
+		            }
                     video_core::g_renderer->Clear(
-                        rect,                               // Clear rectangle
-                        enable_color,                       // Enable color clearing
-                        enable_alpha,                       // Enable alpha clearing
-                        enable_z,                           // Enable depth clearing
-                        color,                              // Clear color
-                        z);                                 // Clear depth
+                        efb_rect,                   // Clear rectangle
+                        enable_color,               // Enable color clearing
+                        enable_alpha,               // Enable alpha clearing
+                        enable_z,                   // Enable depth clearing
+                        color,                      // Clear color
+                        z);                         // Clear depth
                 }
         
             }
@@ -264,6 +246,17 @@ void BP_LoadTexture() {
 /// Initialize BP
 void BP_Init() {
     memset(&g_bp_regs, 0, sizeof(g_bp_regs));
+
+    // Clear EFB on startup with alpha of 1.0f
+    // TODO(ShizZy): Remove hard coded EFB rect size (still need a video_core or renderer interface
+    // for this, actually)
+    video_core::g_renderer->Clear(
+        Rect(0, 0, 640, 480),   // Clear rectangle
+        true,                   // Enable color clearing
+        true,                   // Enable alpha clearing
+        true,                   // Enable depth clearing
+        0xFF000000,             // Clear color - ARGB color black with alpha set to 1.0f!
+        0);                     // Clear depth
 }
 
 } // namespace

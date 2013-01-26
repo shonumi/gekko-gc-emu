@@ -28,6 +28,7 @@
 #include <GL/glew.h>
 
 #include "common.h"
+#include "hash_container.h"
 #include "gx_types.h"
 #include "renderer_base.h"
 #include "shader_manager.h"
@@ -146,13 +147,12 @@ public:
     void SetLinePointSize(f32 line_width, f32 point_size);
 
     /** 
-     * Blits the EFB to the specified destination buffer
-     * @param dest Destination framebuffer
-     * @param rect EFB rectangle to copy
-     * @param dest_width Destination width in pixels 
+     * Blits the EFB to the external framebuffer (XFB)
+     * @param src_rect Source rectangle in EFB to copy
+     * @param dst_rect Destination rectangle in EFB to copy to
      * @param dest_height Destination height in pixels
      */
-    void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height);
+    void CopyToXFB(const Rect& src_rect, const Rect& dst_rect);
 
     /**
      * Clear the screen
@@ -163,7 +163,8 @@ public:
      * @param color Clear color
      * @param z Clear depth
      */
-    void Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, u32 z);
+    void Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
+        u32 z);
 
     /**
      * Set a specific render mode
@@ -192,6 +193,11 @@ public:
     void Init();
     void ShutDown();
 
+    // Framebuffer object(s)
+    // ---------------------
+
+    GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
+
 private:
 
     /// Initialize the FBO
@@ -206,10 +212,9 @@ private:
     int resolution_width_;
     int resolution_height_;
 
-    // Framebuffer object
-    // ------------------
+    // Framebuffer object(s)
+    // ---------------------
 
-    GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
     GLuint      fbo_rbo_[MAX_FRAMEBUFFERS];             ///< Render buffer objects
     GLuint      fbo_depth_buffers_[MAX_FRAMEBUFFERS];   ///< Depth buffers objects
 

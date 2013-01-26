@@ -1,3 +1,9 @@
+// Adjust value to unsigned 8-bit
+#define FIX_U8(val) (round((fract(val * 255.0f/256.0f) * 256.0f/255.0f) * 255.0f) / 255.0f)
+
+#define FIX_U6(val) (round(val * 63.0f) / 63.0f)
+#define FIX_U5(val) (round(val * 31.0f) / 31.0f)
+
 // Prepare and compute TEV stage result
 #define STAGE_RESULT(s) \
     tex = _FSDEF_TEXTURE_##s; \
@@ -5,16 +11,19 @@
     stage = fs_ubo.tev_stages[s]; \
     konst = stage.konst; \
     ras = _FSDEF_RASCOLOR_##s; \
+    scale = vec4(stage.color_scale, stage.color_scale, stage.color_scale, 1.0); \
+    \
+    reg_a = FIX_U8(vec4(_FSDEF_COMBINER_COLOR_A_##s, _FSDEF_COMBINER_ALPHA_A_##s)); \
+    reg_b = FIX_U8(vec4(_FSDEF_COMBINER_COLOR_B_##s, _FSDEF_COMBINER_ALPHA_B_##s)); \
+    reg_c = FIX_U8(vec4(_FSDEF_COMBINER_COLOR_C_##s, _FSDEF_COMBINER_ALPHA_C_##s)); \
+    reg_d = vec4(_FSDEF_COMBINER_COLOR_D_##s, _FSDEF_COMBINER_ALPHA_D_##s); \
  \
-    stage_result = (vec4(_FSDEF_COMBINER_COLOR_D_##s, _FSDEF_COMBINER_ALPHA_D_##s) + \
+    stage_result = scale * (reg_d + \
         (vec4(stage.color_sub, stage.color_sub, stage.color_sub, stage.alpha_sub) * \
-        (mix(vec4(_FSDEF_COMBINER_COLOR_A_##s, _FSDEF_COMBINER_ALPHA_A_##s), \
-        vec4(_FSDEF_COMBINER_COLOR_B_##s, _FSDEF_COMBINER_ALPHA_B_##s), \
-        vec4(_FSDEF_COMBINER_COLOR_C_##s, _FSDEF_COMBINER_ALPHA_C_##s)) + \
+        (mix(reg_a, reg_b, reg_c) + \
         vec4(stage.color_bias, stage.color_bias, stage.color_bias, stage.alpha_bias)))); \
  \
-    _FSDEF_COMBINER_COLOR_DEST_##s = _FSDEF_CLAMP_COLOR_##s(stage.color_scale * \
-        stage_result.rgb); \
+    _FSDEF_COMBINER_COLOR_DEST_##s = _FSDEF_CLAMP_COLOR_##s(stage_result.rgb); \
     _FSDEF_COMBINER_ALPHA_DEST_##s = _FSDEF_CLAMP_ALPHA_##s(stage_result.a);
     
 struct TevStage {
@@ -38,7 +47,7 @@ struct TevState {
     int alpha_func_ref0;
     int alpha_func_ref1;
 
-    int pad0;
+    int dest_alpha;
     int pad1;
     
     vec4 color[4];
@@ -56,7 +65,10 @@ uniform sampler2D texture[8];
 in vec4 vtx_color[2];
 in vec2 vtx_texcoord[8];
 
-out vec4 frag_dest;
+
+
+out vec4 col0;
+out vec4 col1;
 
 void main() {
     float alpha; 
@@ -70,6 +82,11 @@ void main() {
     vec4 tex;
     vec4 konst;
     vec4 ras;
+    vec4 reg_a;
+    vec4 reg_b;
+    vec4 reg_c;
+    vec4 reg_d;
+    vec4 scale;
     
     STAGE_RESULT(0);
 #if _FSDEF_NUM_STAGES > 0
@@ -117,13 +134,20 @@ void main() {
 #if _FSDEF_NUM_STAGES > 14
     STAGE_RESULT(15);
 #endif
-    frag_dest = _FSDEF_STAGE_DEST;
+    prev = fract(_FSDEF_STAGE_DEST * 255.0f/256.0f) * 256.0f/255.0f;
+    col0 = prev;
+    col1 = prev;
     
     // Alpha compare
     // -------------
 
-    int val = int(frag_dest.a * 255.0f) & 0xFF;                                   
+    int val = int(prev.a * 255.0f) & 0xFF;                                   
     if (_FSDEF_ALPHA_COMPARE(val, fs_ubo.tev_state.alpha_func_ref0, 
-        fs_ubo.tev_state.alpha_func_ref1))
+        fs_ubo.tev_state.alpha_func_ref1)) {
         discard;
+    }
+#ifdef _FSDEF_SET_DESTINATION_ALPHA
+    col0.a = fs_ubo.tev_state.dest_alpha;
+#endif
+    col0 = _FSDEF_EFB_FORMAT(col0);
 }

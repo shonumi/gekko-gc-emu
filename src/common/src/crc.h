@@ -4,6 +4,9 @@
 #include "types.h"
 #include "platform.h"
 
+#define CRC_ROTL(crc) crc32_table[3][((crc) & 0xFF)] ^ crc32_table[2][((crc >> 8) & 0xFF)] ^ \
+        crc32_table[1][((crc >> 16) & 0xFF)] ^ crc32_table[0][((crc >> 24))]
+
 // Some definitions for using the X86 CRC32 instruction on different platforms. Keep in mind, you 
 // should check for X86/X64 architecture support before using these, as well as for SSE 4.2 (see the
 // x86_utils module).

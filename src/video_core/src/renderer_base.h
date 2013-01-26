@@ -38,7 +38,8 @@ public:
     /// Used to reference a framebuffer
     enum kFramebuffer {
         kFramebuffer_VirtualXFB = 0,
-        kFramebuffer_EFB
+        kFramebuffer_EFB,
+        kFramebuffer_Texture
     };
 
     /// Used for referencing the render modes
@@ -159,13 +160,12 @@ public:
     virtual void SetLinePointSize(f32 line_width, f32 point_size) = 0;
 
     /** 
-     * Blits the EFB to the specified destination buffer
-     * @param dest Destination framebuffer
-     * @param rect EFB rectangle to copy
-     * @param dest_width Destination width in pixels 
+     * Blits the EFB to the external framebuffer (XFB)
+     * @param src_rect Source rectangle in EFB to copy
+     * @param dst_rect Destination rectangle in EFB to copy to
      * @param dest_height Destination height in pixels
      */
-    virtual void CopyEFB(kFramebuffer dest, Rect rect, u32 dest_width, u32 dest_height) = 0;
+    virtual void CopyToXFB(const Rect& src_rect, const Rect& dst_rect) = 0;
 
     /**
      * Clear the screen
@@ -176,8 +176,8 @@ public:
      * @param color Clear color
      * @param z Clear depth
      */
-    virtual void Clear(Rect rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
-        u32 z) = 0;
+    virtual void Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, 
+        u32 color, u32 z) = 0;
 
     /**
      * Set a specific render mode

@@ -23,6 +23,7 @@
  */
 
 #include "platform.h"
+#include "crc.h"
 #include "texture_manager.h"
 #include "utils.h"
 #include "config.h"
@@ -54,46 +55,124 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
         return;
     }
     cache_entry.address_    = tex_image_3.image_base << 5;
+    cache_entry.format_     = (gp::TextureFormat)tex_image_0.format;
     cache_entry.width_      = tex_image_0.width + 1;
     cache_entry.height_     = tex_image_0.height + 1;
-    cache_entry.type_       = kTextureType_Normal;
-    cache_entry.format_     = (gp::TextureFormat)tex_image_0.format;
+    cache_entry.type_       = kSourceType_Normal;
     cache_entry.size_       = gp::TextureDecoder_GetSize(cache_entry.format_, 
                                                          cache_entry.width_, 
                                                          cache_entry.height_);
-    cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
-                                                cache_entry.size_, 
-                                                kHashSamples);
-    // Query cache for texture existance...
-    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
+    // Try to find an EFB copy in cache (EFB copy address used as hash)
+    active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.address_);
 
-    // Create and add to cache if texture does not exists...
+    // If that failed, try to find a normal texture in cache
     if (NULL == active_textures_[active_texture_unit]) {
-        // Decode texture from source data to RGBA8 raw data...
-        gp::TextureDecoder_Decode(cache_entry.format_, 
-                                  cache_entry.width_,
-                                  cache_entry.height_,
-                                  &Mem_RAM[cache_entry.address_ & RAM_MASK],
-                                  raw_data);
 
-        // Optionally dump texture to TGA...
-        if (common::g_config->current_renderer_config().enable_texture_dumping) {
-            std::string filepath = common::g_config->program_dir() + std::string("/dump");
-            mkdir(filepath.c_str());
-            filepath = filepath + std::string("/textures");
-            mkdir(filepath.c_str());
-            filepath = common::FormatStr("%s/%08X.TGA", filepath.c_str(), cache_entry.hash_);
-            video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
+        cache_entry.hash_       = common::GetHash64(&Mem_RAM[cache_entry.address_ & RAM_MASK],
+                                                    cache_entry.size_, 
+                                                    kHashSamples);
+        active_textures_[active_texture_unit] = cache_->FetchFromHash(cache_entry.hash_);
+
+        // If that failed, create a new normal texture
+        if (NULL == active_textures_[active_texture_unit]) {
+            // Decode texture from source data to RGBA8 raw data...
+            gp::TextureDecoder_Decode(cache_entry.format_, 
+                                      cache_entry.width_,
+                                      cache_entry.height_,
+                                      &Mem_RAM[cache_entry.address_ & RAM_MASK],
+                                      raw_data);
+
+            // Create a texture in VRAM from raw data...
+            cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
+                                                                   cache_entry,
+                                                                   raw_data);
+            // Optionally dump texture to TGA...
+            if (common::g_config->current_renderer_config().enable_texture_dumping) {
+                std::string filepath = common::g_config->program_dir() + std::string("/dump");
+                mkdir(filepath.c_str());
+                filepath = filepath + std::string("/textures");
+                mkdir(filepath.c_str());
+                filepath = common::FormatStr("%s/%08x.tga", filepath.c_str(), cache_entry.hash_);
+                video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
+            }
+
+            // Update cache with new information...
+            active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
         }
-
-        // Create a texture in VRAM from raw data...
-        cache_entry.backend_data_ = backend_interface_->Create(active_texture_unit, 
-                                                               cache_entry,
-                                                               raw_data);
-        // Update cache with new information...
-        active_textures_[active_texture_unit] = cache_->Update(cache_entry.hash_, cache_entry);
+    } else {
+        // Get "used as" format for EFB copies
+        //_ASSERT_MSG(TGP, (cache_entry.format_ == active_textures_[active_texture_unit]->format_),
+        //    "EFB copy target format %d (from BPEFBCopyExec) is not the same as requested %d!",
+        //    cache_entry.format_, active_textures_[active_texture_unit]->format_);
+        active_textures_[active_texture_unit]->format_ = cache_entry.format_;
     }
+
     active_textures_[active_texture_unit]->frame_used_ = video_core::g_current_frame;
+}
+
+/** 
+ * Copy the EFB to a texture
+ * @param addr Address in RAM EFB copy is supposed to go
+ * @param efb_pixel_format EFB pixel format
+ * @param efb_copy_exec EFB copy execute register
+ * @param src_rect EFB rectangle to copy
+ */
+void TextureManager::CopyEFB(u32 addr, gp::BPPixelFormat efb_pixel_format, 
+    const gp::BPEFBCopyExec& efb_copy_exec, const Rect& src_rect) {
+    static Rect         dst_rect;
+    static CacheEntry   cache_entry;
+    CacheEntry*         cache_ptr;
+
+    //_ASSERT_MSG(TGP, efb_pixel_format != gp::kPixelFormat_Z24, "Shit!- Got kPixelFormat_Z24!");
+
+    //cache_entry.address_  = efb_copy_addr;
+    cache_entry.format_                         = efb_copy_exec.texture_format();
+    cache_entry.type_                           = kSourceType_EFBCopy;
+    cache_entry.hash_                           = addr;
+    cache_entry.width_                          = src_rect.width();
+    cache_entry.height_                         = src_rect.height();
+    cache_entry.efb_copy_data_.src_rect_        = src_rect;
+    cache_entry.efb_copy_data_.addr_            = addr;
+    cache_entry.efb_copy_data_.pixel_format_    = efb_pixel_format;
+    cache_entry.efb_copy_data_.copy_exec_       = efb_copy_exec;
+
+
+    // Size the texture in half if half_scale ("mipmap") mode is enabled
+    if (efb_copy_exec.half_scale) {
+        cache_entry.width_  /= 2;
+        cache_entry.height_ /= 2;
+    }
+
+    //cache_entry.size_           = gp::TextureDecoder_GetSize(cache_entry.format_, 
+    //                                                     cache_entry.width_, 
+    //                                                     cache_entry.height_);
+
+    // Do we have a cache entry for the EFB copy texture?
+    cache_ptr = cache_->FetchFromHash(cache_entry.hash_);
+
+    // If cache lookup did not fail...
+    if (NULL != cache_ptr) {
+        // Invalidate previous EFB copy if the previous copy at this hash was different
+        if (!(cache_ptr->efb_copy_data_ == cache_entry.efb_copy_data_)) {
+            // This would happen if a game reuses an area of memory for a different EFB copy - this
+            //  isn't super common, but does happen (e.g. SSBM Pokemon Stadium level to print both
+            //  game stats and the cam on the jumbotron
+            backend_interface_->Delete(cache_ptr->backend_data_);
+            cache_->Remove(cache_ptr->hash_);
+            cache_ptr = NULL;
+        }
+    }
+    // If cache lookup failed...
+    if (NULL == cache_ptr) {
+        // create a texture in VRAM for storing the EFB copy...
+        cache_entry.backend_data_ = backend_interface_->Create(0, cache_entry, NULL);
+        cache_ptr = cache_->Update(cache_entry.hash_, cache_entry);   
+    }
+    dst_rect.x1_ = cache_entry.width_;
+    dst_rect.y1_ = cache_entry.height_;
+
+    // Update texture with EFB copy region...
+    backend_interface_->CopyEFB(src_rect, dst_rect, cache_ptr->backend_data_);
 }
 
 /**
@@ -144,9 +223,28 @@ void TextureManager::Purge(int age_limit) {
     CacheEntry* cache_entry = NULL;
     for (int i = 0; i < this->Size(); i++) {
         cache_entry = cache_->FetchFromIndex(i);
-        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame) {
+        if ((cache_entry->frame_used_ + age_limit) < video_core::g_current_frame && cache_entry->type_ != kSourceType_EFBCopy) {
             backend_interface_->Delete(cache_entry->backend_data_);
             cache_->Remove(cache_entry->hash_);
         }
     }
+}
+
+/**
+ * Gets a hash that represents the current texturing state (primarily for use with shaders)
+ * @return A 32-bit hash code for the current state
+ */
+u32 TextureManager::GetStateHash() {
+    u32 crc = - 1;
+    // Should we check here if any of the TEV stages are using the texture as well?
+    for (int i = 0; i < kGCMaxActiveTextures; i++) {
+        if (active_textures_[i] != NULL) {
+            crc ^= (active_textures_[i]->format_ << 0) |
+                   (active_textures_[i]->type_ << 8) |
+                   (active_textures_[i]->efb_copy_data_.pixel_format_ << 16) | 
+                   (active_textures_[i]->efb_copy_data_.copy_exec_.intensity_fmt << 24);
+            crc = CRC_ROTL(crc);
+        }
+    }
+    return crc;
 }
