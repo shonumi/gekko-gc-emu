@@ -136,8 +136,10 @@ public:
     /// Sets the renderer color mask mode
     void SetColorMask();
 
-    /// Sets the scissor box
-    void SetScissorBox();
+    /* Sets the scissor box
+     * @param rect Renderer rectangle to set scissor box to
+     */
+    void SetScissorBox(const Rect& rect);
 
     /**
      * Sets the line and point size

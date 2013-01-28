@@ -50,6 +50,46 @@ namespace gp {
 
 BPMemory g_bp_regs; ///< BP memory/registers
 
+/// Sets the scissor box
+void BP_SetScissorBox() {
+    // The scissor rectangle specifies an area of the screen outside of which all primitives are 
+    // culled. This function sets the scissor rectangle in screen coordinates. The screen origin 
+    // (xOrigin=0, yOrigin=0) is at the top left corner of the display.
+    //
+    // The values may be within the range of 0 - 2047 inclusive. Using values that extend beyond the
+    // EFB size is allowable since the scissor box may be repositioned within the EFB using 
+    // GX_SetScissorBoxOffset().
+    const int offset_x = gp::g_bp_regs.scissor_offset.x * 2 - 342;
+    const int offset_y = gp::g_bp_regs.scissor_offset.y * 2 - 342;
+
+    Rect rect(gp::g_bp_regs.scissor_top_left.x - offset_x - 342, 
+              gp::g_bp_regs.scissor_top_left.y - offset_y - 342,
+              gp::g_bp_regs.scissor_bottom_right.x - offset_x - 341, 
+              gp::g_bp_regs.scissor_bottom_right.y - offset_y - 341);
+
+    rect.x0_ = CLAMP(rect.x0_, 0, kGCEFBWidth);
+    rect.y0_ = CLAMP(rect.y0_, 0, kGCEFBHeight);
+
+    rect.x1_ = CLAMP(rect.x1_, rect.x0_, kGCEFBWidth);
+    rect.y1_ = CLAMP(rect.y1_, rect.y0_, kGCEFBHeight);
+
+    Rect target_rect = RendererBase::EFBToRendererRect(rect);
+
+    video_core::g_renderer->SetScissorBox(target_rect);
+
+    gp::XF_UpdateViewport();
+}
+
+/// Sets the size of point/line primitives.
+void BP_SetLinePointSize() {
+    // TODO(ShizZy): scale based on resolution...
+    //f32 scale = (gp::g_xf_regs.viewport.wd != 0) ? ((f32)resolution_width_ / kGCEFBWidth) : 1.0f;
+    f32 scale = 1.0f;
+    f32 line_width = gp::g_bp_regs.line_point_size.linesize * scale / 6.0f;
+    f32 point_size = gp::g_bp_regs.line_point_size.pointsize * scale / 6.0f;
+    video_core::g_renderer->SetLinePointSize(line_width, point_size);
+}
+
 /// Write a BP register
 void BP_RegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
@@ -70,24 +110,11 @@ void BP_RegisterWrite(u8 addr, u32 data) {
     case BP_REG_SCISSORTL: // SU_SCIS0 - Scissorbox Top Left Corner
     case BP_REG_SCISSORBR: // SU_SCIS1 - Scissorbox Bottom Right Corner
     case BP_REG_SCISSOROFFSET:
-        video_core::g_renderer->SetScissorBox();
+        BP_SetScissorBox();
         break;
 
     case BP_REG_LINEPTWIDTH: // SU_LPSIZE - Line and Point Size
-        //gx_states::set_lpsize();
-        LOG_DEBUG(TGP, "BP-> SU_LPSIZE");
-        break;
-
-    case BP_REG_TREF + 0: // RAS_TREF0
-    case BP_REG_TREF + 1: // RAS_TREF1
-    case BP_REG_TREF + 2: // RAS_TREF2
-    case BP_REG_TREF + 3: // RAS_TREF3
-    case BP_REG_TREF + 4: // RAS_TREF4
-    case BP_REG_TREF + 5: // RAS_TREF5
-    case BP_REG_TREF + 6: // RAS_TREF6
-    case BP_REG_TREF + 7: // RAS_TREF7
-        //gx_tev::set_modifed();
-        LOG_DEBUG(TGP, "BP-> RAS_TREFx");
+        BP_SetLinePointSize();
         break;
 
     case BP_REG_PE_ZMODE: // PE_ZMODE set z mode
@@ -95,7 +122,6 @@ void BP_RegisterWrite(u8 addr, u32 data) {
         break;
 
     case BP_REG_PE_CMODE0: // PE_CMODE0 dithering / blend mode/color_update/alpha_update/set_dither
-        //gx_states::set_cmode0();
         if (data & 0xFFFF) {
             // Set LogicOp Blending Mode
             if (data & 2) {
@@ -147,11 +173,10 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_EFB_COPY:  // pe copy execute
         {
-            Rect efb_rect;
-            efb_rect.x0_ = gp::g_bp_regs.efb_top_left.x;
-            efb_rect.y0_ = gp::g_bp_regs.efb_top_left.y;
-            efb_rect.x1_ = efb_rect.x0_ + gp::g_bp_regs.efb_height_width.x + 1;
-            efb_rect.y1_ = efb_rect.y0_ + gp::g_bp_regs.efb_height_width.y + 1;
+            Rect efb_rect(gp::g_bp_regs.efb_top_left.x,
+                          gp::g_bp_regs.efb_top_left.y,
+                          gp::g_bp_regs.efb_top_left.x + gp::g_bp_regs.efb_height_width.x + 1,
+                          gp::g_bp_regs.efb_top_left.y + gp::g_bp_regs.efb_height_width.y + 1);
 
             BPEFBCopyExec efb_copy_exec;
             efb_copy_exec._u32 = data;
@@ -167,13 +192,14 @@ void BP_RegisterWrite(u8 addr, u32 data) {
                 u32 xfb_width = gp::g_bp_regs.disp_stride << 4;
                 Rect xfb_rect(0, 0, xfb_width, xfb_height);
 
-                video_core::g_renderer->CopyToXFB(efb_rect, xfb_rect);
+                video_core::g_renderer->CopyToXFB(RendererBase::EFBToRendererRect(efb_rect), 
+                                                  xfb_rect);
             } else {
                 video_core::g_texture_manager->CopyEFB(
                     gp::g_bp_regs.efb_copy_addr << 5, 
                     static_cast<BPPixelFormat>(gp::g_bp_regs.zcontrol.pixel_format), 
                     efb_copy_exec,
-                    efb_rect
+                    RendererBase::EFBToRendererRect(efb_rect)
                 );
             }
             if (efb_copy_exec.clear) {
@@ -198,12 +224,12 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 			            z = format_precision::z24_with_z16(z);
 		            }
                     video_core::g_renderer->Clear(
-                        efb_rect,                   // Clear rectangle
-                        enable_color,               // Enable color clearing
-                        enable_alpha,               // Enable alpha clearing
-                        enable_z,                   // Enable depth clearing
-                        color,                      // Clear color
-                        z);                         // Clear depth
+                        RendererBase::EFBToRendererRect(efb_rect),  // Clear rectangle
+                        enable_color,                               // Enable color clearing
+                        enable_alpha,                               // Enable alpha clearing
+                        enable_z,                                   // Enable depth clearing
+                        color,                                      // Clear color
+                        z);                                         // Clear depth
                 }
         
             }
@@ -250,13 +276,14 @@ void BP_Init() {
     // Clear EFB on startup with alpha of 1.0f
     // TODO(ShizZy): Remove hard coded EFB rect size (still need a video_core or renderer interface
     // for this, actually)
+    Rect efb_rect(0, 0, kGCEFBWidth, kGCEFBHeight);
     video_core::g_renderer->Clear(
-        Rect(0, 0, 640, 480),   // Clear rectangle
-        true,                   // Enable color clearing
-        true,                   // Enable alpha clearing
-        true,                   // Enable depth clearing
-        0xFF000000,             // Clear color - ARGB color black with alpha set to 1.0f!
-        0);                     // Clear depth
+        RendererBase::EFBToRendererRect(efb_rect),  // Clear rectangle
+        true,                                       // Enable color clearing
+        true,                                       // Enable alpha clearing
+        true,                                       // Enable depth clearing
+        0xFF000000,                                 // Clear color, ARGB color black with alpha=1.0f
+        0);                                         // Clear depth
 }
 
 } // namespace

@@ -263,6 +263,20 @@ union BPEFBCoords12 {
     u32 _u32;
 };
 
+/// BP line and point size
+union BPLinePointSize {
+    struct 
+    {
+        unsigned linesize : 8;      // in 1/6th pixels
+        unsigned pointsize : 8;     // in 1/6th pixels
+        unsigned lineoff : 3;
+        unsigned pointoff : 3;
+        unsigned lineaspect : 1;    // interlacing: adjust for pixels having AR of 1/2
+        unsigned padding : 1;
+    };
+    u32 _u32;
+};
+
 /// TEV color/alpha combiner
 struct BPTevCombiner {
     struct {
@@ -545,7 +559,8 @@ union BPMemory {
         u32             pad0[0x1F];             // 0x01
         BPEFBCoords12   scissor_top_left;       // 0x20
         BPEFBCoords12   scissor_bottom_right;   // 0x21
-        u32             pad1[0x5];              // 0x22
+        BPLinePointSize line_point_size;        // 0x22
+        u32             pad1[0x4];              // 0x23
         BPTevTexMap     tev_tex_map;            // 0x27
         BPTevOrder      tevorder[0x8];          // 0x28
         u32             pad2[0x10];             // 0x30
@@ -599,6 +614,12 @@ void BP_RegisterWrite(u8 addr, u32 data);
 
 /// Load a texture
 void BP_LoadTexture();
+
+/// Sets the scissor box
+void BP_SetScissorBox();
+
+/// Sets the size of point/line primitives.
+void BP_SetLinePointSize();
 
 /// Initialize BP
 void BP_Init();

@@ -149,8 +149,10 @@ public:
     /// Sets the renderer color mask mode
     virtual void SetColorMask() = 0;
 
-    /// Sets the scissor box
-    virtual void SetScissorBox() = 0;
+    /* Sets the scissor box
+     * @param rect Renderer rectangle to set scissor box to
+     */
+    virtual void SetScissorBox(const Rect& rect) = 0;
 
     /**
      * Sets the line and point size
@@ -205,6 +207,11 @@ public:
 
     /// Shutdown the renderer
     virtual void ShutDown() = 0;
+
+    /// Converts EFB rectangle coordinates to renderer rectangle coordinates
+    static Rect EFBToRendererRect(const Rect& rect) {
+	    return Rect(rect.x0_, kGCEFBHeight - rect.y0_, rect.x1_, kGCEFBHeight - rect.y1_);
+    }
 
     // Getter/setter functions:
     // ------------------------

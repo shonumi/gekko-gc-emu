@@ -167,7 +167,7 @@ void TextureInterface::CopyEFB(const Rect& src_rect, const Rect& dst_rect,
 
     // Blit
     glBlitFramebuffer(src_rect.x0_, src_rect.y0_, src_rect.x1_, src_rect.y1_, 
-                      dst_rect.x0_, dst_rect.y1_, dst_rect.x1_, dst_rect.y0_,
+                      dst_rect.x0_, dst_rect.y0_, dst_rect.x1_, dst_rect.y1_,
                       data->is_depth_copy ? GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

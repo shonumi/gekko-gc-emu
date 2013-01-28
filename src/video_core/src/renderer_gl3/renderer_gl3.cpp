@@ -266,7 +266,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
 
 /// Sets the renderer viewport location, width, and height
 void RendererGL3::SetViewport(int x, int y, int width, int height) {
-    glViewport(x, ((480 - (y + height))), width, height);
+    glViewport(x, y, width, height);
 }
 
 /// Sets the renderer depthrange, znear and zfar
@@ -420,23 +420,11 @@ void RendererGL3::SetColorMask() {
     glColorMask(cmask,  cmask,  cmask,  amask);
 }
 
-/// Sets the scissor box
-void RendererGL3::SetScissorBox() {
-    const int x_ofs = gp::g_bp_regs.scissor_offset.x * 2 - 342;
-    const int y_ofs = gp::g_bp_regs.scissor_offset.y * 2 - 342;
-
-    GLint left = CLAMP((gp::g_bp_regs.scissor_top_left.x - x_ofs - 342), 0, 640);
-    GLint top = CLAMP((gp::g_bp_regs.scissor_top_left.y - y_ofs - 342), 0, 480);
-    GLsizei right = CLAMP((gp::g_bp_regs.scissor_bottom_right.x - x_ofs - 341), 0, 640);
-    GLsizei bottom = CLAMP((gp::g_bp_regs.scissor_bottom_right.y - y_ofs - 341), 0, 480);
-
-    if (left > right) left = right;
-    if (top > bottom) top = bottom;
-
-    //glScissor(left, top, right-left, bottom-top);
-    // Is this right?? or should it be:
-    //glScissor(left, top, right, bottom);
-    glScissor(0, 0, 640, 480);
+/* Sets the scissor box
+ * @param rect Renderer rectangle to set scissor box to
+ */
+void RendererGL3::SetScissorBox(const Rect& rect) {
+    glScissor(rect.x0_, rect.y1_, rect.width(), rect.height());
 }
 
 /**
@@ -445,6 +433,8 @@ void RendererGL3::SetScissorBox() {
  * @param point_size Point size to use
  */
 void RendererGL3::SetLinePointSize(f32 line_width, f32 point_size) {
+    glLineWidth((GLfloat)line_width);
+    glPointSize((GLfloat)point_size);
 }
 
 /**
@@ -498,10 +488,10 @@ void RendererGL3::ResetRenderState() {
 /// Restore the full renderer API state - As the game set it
 void RendererGL3::RestoreRenderState() {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[kFramebuffer_EFB]);
-    gp::XF_UpdateViewport(); // TODO(ShizZy): Ugly has heck! Fix this code..
+    gp::XF_UpdateViewport();
     SetGenerationMode();
     glEnable(GL_SCISSOR_TEST);
-    SetScissorBox();
+    gp::BP_SetScissorBox();
     SetColorMask();
     SetDepthMode();
     SetBlendMode(true);
@@ -564,7 +554,7 @@ void RendererGL3::CopyToXFB(const Rect& src_rect, const Rect& dst_rect) {
 
     // Blit
     glBlitFramebuffer(src_rect.x0_, src_rect.y0_, src_rect.x1_, src_rect.y1_, 
-                      dst_rect.x0_, dst_rect.y0_, dst_rect.x1_, dst_rect.y1_,
+                      dst_rect.x0_, dst_rect.y1_, dst_rect.x1_, dst_rect.y0_,
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -581,31 +571,31 @@ void RendererGL3::CopyToXFB(const Rect& src_rect, const Rect& dst_rect) {
  * @param color Clear color
  * @param z Clear depth
  */
-void RendererGL3::Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, u32 color, 
-    u32 z) {
+void RendererGL3::Clear(const Rect& rect, bool enable_color, bool enable_alpha, bool enable_z, 
+    u32 color, u32 z) {
 
-        GLboolean const color_mask = enable_color ? GL_TRUE : GL_FALSE;
-        GLboolean const alpha_mask = enable_alpha ? GL_TRUE : GL_FALSE;
+    GLboolean const color_mask = enable_color ? GL_TRUE : GL_FALSE;
+    GLboolean const alpha_mask = enable_alpha ? GL_TRUE : GL_FALSE;
 
-        ResetRenderState();
+    ResetRenderState();
 
-        // Clear color
-        glColorMask(color_mask,  color_mask,  color_mask,  alpha_mask);
-        glClearColor(float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
-            float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
+    // Clear color
+    glColorMask(color_mask,  color_mask,  color_mask,  alpha_mask);
+    glClearColor(float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
+        float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
 
-        // Clear depth
-        glDepthMask(enable_z ? GL_TRUE : GL_FALSE);
-        glClearDepth(float(z & 0xFFFFFF) / float(0xFFFFFF));
+    // Clear depth
+    glDepthMask(enable_z ? GL_TRUE : GL_FALSE);
+    glClearDepth(float(z & 0xFFFFFF) / float(0xFFFFFF));
 
-        // Specify the rectangle of the EFB to clear
-        glEnable(GL_SCISSOR_TEST);
-        glScissor(rect.x0_, rect.y0_, rect.width(), rect.height());
+    // Specify the rectangle of the EFB to clear
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(rect.x0_, rect.y1_, rect.width(), rect.height());
 
-        // Clear it!
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Clear it!
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        RestoreRenderState();
+    RestoreRenderState();
 }
 
 /// Shutdown the renderer
@@ -656,12 +646,11 @@ void RendererGL3::InitFramebuffer() {
     for (int i = 0; i < MAX_FRAMEBUFFERS; i++) {
         // Generate color buffer storage
         glBindRenderbuffer(GL_RENDERBUFFER, fbo_rbo_[i]);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, resolution_width_, resolution_height_);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, kGCEFBWidth, kGCEFBHeight);
 
         // Generate depth buffer storage
         glBindRenderbuffer(GL_RENDERBUFFER, fbo_depth_buffers_[i]);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, resolution_width_, 
-            resolution_height_);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, kGCEFBWidth, kGCEFBHeight);
 
         // Attach the buffers
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_[i]);
@@ -692,7 +681,7 @@ void RendererGL3::Init() {
     glStencilFunc(GL_ALWAYS, 0, 0);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    glViewport(0, 0, 640, 480);
+    glViewport(0, 0, resolution_width_, resolution_height_);
 
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -704,7 +693,7 @@ void RendererGL3::Init() {
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
 
-    glScissor(0, 0, 640, 480);
+    glScissor(0, 0, kGCEFBWidth, kGCEFBHeight);
     glClearDepth(1.0f);
 
     GLenum err = glewInit();

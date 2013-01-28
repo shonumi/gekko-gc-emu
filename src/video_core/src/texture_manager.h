@@ -121,7 +121,7 @@ public:
         /**
          * Create a new texture in the backend renderer
          * @param active_texture_unit Active texture unit to bind to for creation
-         * @param texture cache_entry to create texture for
+         * @param cache_entry to create texture for
          * @param raw_data Raw texture data
          * @return a pointer to CacheEntry::BackendData with renderer-specific texture data
          */

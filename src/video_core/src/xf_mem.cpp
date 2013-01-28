@@ -52,12 +52,11 @@ void XF_UpdateViewport() {
     int scissorXOff = g_bp_regs.scissor_offset.x * 2;
     int scissorYOff = g_bp_regs.scissor_offset.y * 2;
 
-    // TODO: ceil, floor or just cast to int?
     int x = ((int)ceil(g_xf_regs.viewport.x_orig - g_xf_regs.viewport.wd - (float)scissorXOff));
-    int y = ((int)ceil((float)480 - g_xf_regs.viewport.y_orig + g_xf_regs.viewport.ht + (float)scissorYOff));
+    int y = ((int)ceil((float)kGCEFBHeight - g_xf_regs.viewport.y_orig + g_xf_regs.viewport.ht + (float)scissorYOff));
     int width = ((int)ceil(2.0f * g_xf_regs.viewport.wd));
     int height = ((int)ceil(-2.0f * g_xf_regs.viewport.ht));
-    double znear = (g_xf_regs.viewport.far_z - g_xf_regs.viewport.z_range) / XF_VIEWPORT_ZMAX;
+    double znear = (g_xf_regs.viewport.far_z - g_xf_regs.viewport.z_range) / 16777216.0f;
     double zfar = g_xf_regs.viewport.far_z / 16777216.0f;
     if (width < 0) {
         x += width;
@@ -67,7 +66,6 @@ void XF_UpdateViewport() {
         y += height;
         height *= -1;
     }
-
     // Update the view port
     video_core::g_renderer->SetViewport(x, y, width, height);
     video_core::g_renderer->SetDepthRange(znear, zfar);
