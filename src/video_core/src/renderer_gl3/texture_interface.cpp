@@ -22,6 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include "file_utils.h"
 #include "texture_interface.h"
 #include "utils.h"
 
@@ -105,10 +106,8 @@ TextureManager::CacheEntry::BackendData* TextureInterface::Create(int active_tex
 
             // Optionally dump texture to TGA...
             if (1) {
-                std::string filepath = common::g_config->program_dir() + std::string("/dump");
-                mkdir(filepath.c_str());
-                filepath = filepath + std::string("/efb-copies");
-                mkdir(filepath.c_str());
+                std::string filepath = common::g_config->program_dir() + std::string("/dump/efb-copies/");
+                common::CreateFullPath(filepath);
                 filepath = common::FormatStr("%s/%08x_%d.tga", filepath.c_str(), gp::g_bp_regs.efb_copy_addr << 5, num);
                 video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
             }

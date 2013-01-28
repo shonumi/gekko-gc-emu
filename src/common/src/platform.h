@@ -98,7 +98,6 @@ extern char *kGekkoOS;
 #define _snprintf snprintf
 #define _getcwd getcwd
 #define _tzset tzset
-#define mkdir(str) mkdir(str, 0755)
 
 typedef void EXCEPTION_POINTERS;
 

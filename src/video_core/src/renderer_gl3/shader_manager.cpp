@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "file_utils.h"
 #include "crc.h"
 #include "config.h"
 
@@ -369,24 +370,12 @@ void ShaderManager::Init(UniformManager* uniform_manager) {
     // Load vertex shader source
     strcpy(vertex_shader_path_, common::g_config->program_dir());
     strcat(vertex_shader_path_, "sys/shaders/default.vs");
-    std::ifstream vs_ifs(vertex_shader_path_);
-    if (vs_ifs.fail()) {
-        LOG_ERROR(TVIDEO, "Failed to open shader %s", vertex_shader_path_);
-        return;
-    }
-    vertex_shader_src_ = std::string((std::istreambuf_iterator<char>(vs_ifs)), 
-        std::istreambuf_iterator<char>());
+    common::ReadFileToString(true, vertex_shader_path_, vertex_shader_src_);
 
     // Load fragment shader source
     strcpy(fragment_shader_path_, common::g_config->program_dir());
     strcat(fragment_shader_path_, "sys/shaders/default.fs");
-    std::ifstream fs_ifs(fragment_shader_path_);
-    if (fs_ifs.fail()) {
-        LOG_ERROR(TVIDEO, "Failed to fragment shader %s", fragment_shader_path_);
-        return;
-    }
-    fragment_shader_src_ = std::string((std::istreambuf_iterator<char>(fs_ifs)), 
-        std::istreambuf_iterator<char>());
+    common::ReadFileToString(true, fragment_shader_path_, fragment_shader_src_);
 
     // Build and assign default shader
     default_shader_ = LoadShader();

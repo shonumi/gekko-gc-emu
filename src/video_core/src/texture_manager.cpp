@@ -22,6 +22,7 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+#include "file_utils.h"
 #include "platform.h"
 #include "crc.h"
 #include "texture_manager.h"
@@ -88,10 +89,8 @@ void TextureManager::UpdateData(int active_texture_unit, const gp::BPTexImage0& 
                                                                    raw_data);
             // Optionally dump texture to TGA...
             if (common::g_config->current_renderer_config().enable_texture_dumping) {
-                std::string filepath = common::g_config->program_dir() + std::string("/dump");
-                mkdir(filepath.c_str());
-                filepath = filepath + std::string("/textures");
-                mkdir(filepath.c_str());
+                std::string filepath = common::g_config->program_dir() + std::string("/dump/textures/");
+                common::CreateFullPath(filepath);
                 filepath = common::FormatStr("%s/%08x.tga", filepath.c_str(), cache_entry.hash_);
                 video_core::DumpTGA(filepath, cache_entry.width_, cache_entry.height_, raw_data);
             }

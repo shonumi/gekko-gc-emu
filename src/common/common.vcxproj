@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\crc.cpp" />
+    <ClCompile Include="src\file_utils.cpp" />
     <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\log.cpp" />
     <ClCompile Include="src\misc_utils.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\crc.h" />
+    <ClInclude Include="src\file_utils.h" />
     <ClInclude Include="src\hash.h" />
     <ClInclude Include="src\hash_container.h" />
     <ClInclude Include="src\log.h" />

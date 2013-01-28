@@ -1,5 +1,6 @@
 set(SRCS    src/config.cpp
             src/crc.cpp
+            src/file_utils.cpp
             src/hash.cpp
             src/log.cpp
             src/misc_utils.cpp
