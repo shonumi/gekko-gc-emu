@@ -36,8 +36,9 @@ public:
     /// Enumeration of X86 vendors
     enum VendorX86 {
         kVendorX86_None = 0,
-        kVendorX86_Intel = 1,
-        kVendorX86_AMD = 2
+        kVendorX86_Intel,
+        kVendorX86_AMD,
+        kVendorX86_NumberOf
     };
 
     /// Enumeration of X86 extensions
@@ -48,7 +49,8 @@ public:
         kExtensionX86_SSE3,
         kExtensionX86_SSSE3,
         kExtensionX86_SSE4_1,
-        kExtensionX86_SSE4_2
+        kExtensionX86_SSE4_2,
+        kExtensionX86_NumberOf
     };
 
     X86Utils();
@@ -68,10 +70,6 @@ public:
     std::string Summary();
 
 private:
-
-    std::string cpu_name_;
-    std::string brand_name_;
-
     bool support_x64_os_;
     bool support_x64_cpu_;
     bool support_hyper_threading_;

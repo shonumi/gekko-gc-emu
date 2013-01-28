@@ -127,11 +127,10 @@ X86Utils::X86Utils() {
     if (!strcmp(cpu_string, "GenuineIntel")) {
         cpu_vendor_ = kVendorX86_Intel;
     } else if (!strcmp(cpu_string, "AuthenticAMD")) {
-        cpu_vendor_ = kVendorX86_Intel;
+        cpu_vendor_ = kVendorX86_AMD;
     } else {
         cpu_vendor_ = kVendorX86_None;
     }
-    cpu_name_ = cpu_string;
 
     // Detect family and other misc stuff.
     bool ht = false;
@@ -215,8 +214,11 @@ bool X86Utils::IsExtensionSupported(X86Utils::ExtensionX86 extension) {
  * @return String summary
  */
 std::string X86Utils::Summary() {
+    const char* cpu_vendors[] = {
+        "Unknown", "Intel", "AMD"
+    };
     std::string res;
-    res = FormatStr("%s, %d core%s", cpu_name_.c_str(), num_cores_, (num_cores_ > 1) ? "s" : "");
+    res = FormatStr("%s, %d core%s", cpu_vendors[cpu_vendor_], num_cores_, (num_cores_ > 1) ? "s" : "");
     if (support_sse4_2_) {
         res += FormatStr(" (%i logical threads per physical core)", logical_cpu_count_);
     }
