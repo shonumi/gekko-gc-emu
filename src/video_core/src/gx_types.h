@@ -25,6 +25,9 @@
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
 
+static const int kGCEFBWidth            = 640;
+static const int kGCEFBHeight           = 528;
+
 static const int kGCMaxTextureWidth     = 1024;
 static const int kGCMaxTextureHeight    = 1024;
 
