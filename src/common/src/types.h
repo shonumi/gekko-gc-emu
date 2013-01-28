@@ -25,6 +25,7 @@
 #ifndef COMMON_TYPES_H_
 #define COMMON_TYPES_H_
 
+#include <math.h>
 #include <xmmintrin.h> // data_types__m128.cpp
 
 typedef unsigned char       u8;     ///< 8-bit unsigned byte
@@ -107,8 +108,8 @@ public:
     int x1_;    ///< Rect bottom left X-coordinate
     int y1_;    ///< Rect bottom right Y-coordinate
 
-    inline u32 width() const { return static_cast<u32>(x1_ - x0_); }
-    inline u32 height() const { return static_cast<u32>(y1_ - y0_); }
+    inline u32 width() const { return abs(x1_ - x0_); }
+    inline u32 height() const { return abs(y1_ - y0_); }
 
     inline bool operator == (const Rect& val) const {
         return (x0_ == val.x0_ && y0_ == val.y0_ && x1_ == val.x1_ && y1_ == val.y1_);
