@@ -103,23 +103,6 @@
 #define XF_SETTEXMTXINFO        0x1040
 #define XF_SETPOSMTXINFO        0x1050
 
-#define XF_VIEWPORT_SCALE_X			g_xf_regs.mem[0x1a]
-#define XF_VIEWPORT_SCALE_Y			g_xf_regs.mem[0x1b]
-#define XF_VIEWPORT_SCALE_Z			g_xf_regs.mem[0x1c]
-#define XF_VIEWPORT_OFFSET_X		g_xf_regs.mem[0x1d]
-#define XF_VIEWPORT_OFFSET_Y		g_xf_regs.mem[0x1e]
-#define XF_VIEWPORT_OFFSET_Z		g_xf_regs.mem[0x1f]
-#define XF_PROJECTION_A				g_xf_regs.mem[0x20]
-#define XF_PROJECTION_B				g_xf_regs.mem[0x21]
-#define XF_PROJECTION_C				g_xf_regs.mem[0x22]
-#define XF_PROJECTION_D				g_xf_regs.mem[0x23]
-#define XF_PROJECTION_E				g_xf_regs.mem[0x24]
-#define XF_PROJECTION_F				g_xf_regs.mem[0x25]
-#define XF_PROJECTION_ORTHOGRAPHIC	g_xf_regs.mem[0x26]
-
-#define XF_ADDR_MASK                0xff00  ///< Mask the base of an xf address
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Graphics Processor namespace
 
@@ -245,12 +228,20 @@ union XFTexMtxInfo {
 };
 
 union XFPostMtxInfo {
-    struct  {
+    struct {
         u32 index   : 6; // base row of dual transform matrix
         u32 unused  : 2;
         u32 normalize : 1; // normalize before send operation
     };
     u32 _u32;
+};
+
+union XFProjectionMode { 
+    struct {
+        unsigned is_orthographic    : 1; 
+        unsigned unused             :31;
+    };
+    u32 hex;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,31 +256,32 @@ static const int kXFMemEntriesNum   = 0x40;     ///< Number of entries used in e
 /// XF memory uniion
 union XFMemory {
     struct {
-        u32             error;                  ///< 0x1000
-        u32             diag;                   ///< 0x1001
-        u32             state_0;                ///< 0x1002
-        u32             state_1;                ///< 0x1003
-        u32             xf_clock;               ///< 0x1004
-        u32             clip_disable;           ///< 0x1005
-        u32             perf0;                  ///< 0x1006
-        u32             perf1;                  ///< 0x1007
-        INVTXSPEC       hostinfo;               ///< 0x1008
-        XFNumColors     num_color_channels;     ///< 0x1009
-        XFColorChannel  ambient[0x2];           ///< 0x100a, 0x100b - Ambient color channels
-        XFColorChannel  material[0x2];          ///< 0x100c, 0x100d - Material color channels
-        XFLitChannel    color[0x2];             ///< 0x100e, 0x100f
-        XFLitChannel    alpha[0x2];             ///< 0x1010, 0x1011
-        XFDualTexTrans  dual_tex_trans;         ///< 0x1012
-        u32             pad1[0x5];              ///< 0x1013-0x1017
-        u32             matrix_index_a;         ///< 0x1018
-        u32             matrix_index_b;         ///< 0x1019
-        XFViewport      viewport;               ///< 0x101a - 0x101f
-        f32             projection_matrix[0x7]; ///< 0x1020 - 0x1026
-        u32             pad2[0x18];             ///< 0x1027 - 0x103e
-        XFNumTexGen     num_texgen;             ///< 0x103f
-        XFTexMtxInfo    texMtxInfo[0x8];        ///< 0x1040 - 0x1047
-        u32             pad3[0x8];              ///< 0x1048 - 0x104f
-        XFPostMtxInfo   postMtxInfo[0x8];       ///< 0x1050 - 0x1057
+        u32                 error;                  ///< 0x1000
+        u32                 diag;                   ///< 0x1001
+        u32                 state_0;                ///< 0x1002
+        u32                 state_1;                ///< 0x1003
+        u32                 xf_clock;               ///< 0x1004
+        u32                 clip_disable;           ///< 0x1005
+        u32                 perf0;                  ///< 0x1006
+        u32                 perf1;                  ///< 0x1007
+        INVTXSPEC           hostinfo;               ///< 0x1008
+        XFNumColors         num_color_channels;     ///< 0x1009
+        XFColorChannel      ambient[0x2];           ///< 0x100a, 0x100b - Ambient color channels
+        XFColorChannel      material[0x2];          ///< 0x100c, 0x100d - Material color channels
+        XFLitChannel        color[0x2];             ///< 0x100e, 0x100f
+        XFLitChannel        alpha[0x2];             ///< 0x1010, 0x1011
+        XFDualTexTrans      dual_tex_trans;         ///< 0x1012
+        u32                 pad1[0x5];              ///< 0x1013-0x1017
+        u32                 matrix_index_a;         ///< 0x1018
+        u32                 matrix_index_b;         ///< 0x1019
+        XFViewport          viewport;               ///< 0x101a - 0x101f
+        f32                 projection_matrix[0x6]; ///< 0x1020 - 0x1025
+        XFProjectionMode    projection_mode;        ///< 0x1026
+        u32                 pad2[0x18];             ///< 0x1027 - 0x103e
+        XFNumTexGen         num_texgen;             ///< 0x103f
+        XFTexMtxInfo        texMtxInfo[0x8];        ///< 0x1040 - 0x1047
+        u32                 pad3[0x8];              ///< 0x1048 - 0x104f
+        XFPostMtxInfo       postMtxInfo[0x8];       ///< 0x1050 - 0x1057
     };
     u32 mem[0x100];                         ///< Addressable memory
 };

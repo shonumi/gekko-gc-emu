@@ -72,29 +72,28 @@ void XF_UpdateViewport() {
 }
 
 void XF_UpdateProjection() {
-	t32 mtx[16] = {0};
+    memset(g_projection_matrix, 0, sizeof(g_projection_matrix));
 
-	// is it orthographic mode...
-	if(XF_PROJECTION_ORTHOGRAPHIC)
-	{ 
-		mtx[0]._u32 = XF_PROJECTION_A;
-		mtx[5]._u32 = XF_PROJECTION_C;
-		mtx[10]._u32 = XF_PROJECTION_E;
-		mtx[12]._u32 = XF_PROJECTION_B;
-		mtx[13]._u32 = XF_PROJECTION_D;
-		mtx[14]._u32 = XF_PROJECTION_F;
-		mtx[15]._f32 = 1.0f;
-	// otherwise it is perspective mode
-	}else{ 
-		mtx[0]._u32 = XF_PROJECTION_A;
-		mtx[5]._u32 = XF_PROJECTION_C;
-		mtx[8]._u32 = XF_PROJECTION_B;
-		mtx[9]._u32 = XF_PROJECTION_D;
-		mtx[10]._u32 = XF_PROJECTION_E;
-		mtx[11]._f32 = -1.0f;
-		mtx[14]._u32 = XF_PROJECTION_F;
-	}
-    memcpy(g_projection_matrix, mtx, 16*4);
+    // Is it orthographic mode...
+    if (g_xf_regs.projection_mode.is_orthographic) { 
+        g_projection_matrix[0]  = g_xf_regs.projection_matrix[0]; // XF_PROJECTION_A;
+        g_projection_matrix[5]  = g_xf_regs.projection_matrix[2]; // XF_PROJECTION_C;
+        g_projection_matrix[10] = g_xf_regs.projection_matrix[4]; // XF_PROJECTION_E;
+        g_projection_matrix[12] = g_xf_regs.projection_matrix[1]; // XF_PROJECTION_B;
+        g_projection_matrix[13] = g_xf_regs.projection_matrix[3]; // XF_PROJECTION_D;
+        g_projection_matrix[14] = g_xf_regs.projection_matrix[5]; // XF_PROJECTION_F;
+        g_projection_matrix[15] = 1.0f;
+
+    // Otherwise it is perspective mode
+    } else { 
+        g_projection_matrix[0]  = g_xf_regs.projection_matrix[0]; // XF_PROJECTION_A;
+        g_projection_matrix[5]  = g_xf_regs.projection_matrix[2]; // XF_PROJECTION_C;
+        g_projection_matrix[8]  = g_xf_regs.projection_matrix[1]; // XF_PROJECTION_B;
+        g_projection_matrix[9]  = g_xf_regs.projection_matrix[3]; // XF_PROJECTION_D;
+        g_projection_matrix[10] = g_xf_regs.projection_matrix[4]; // XF_PROJECTION_E;
+        g_projection_matrix[11] = -1.0f;
+        g_projection_matrix[14] = g_xf_regs.projection_matrix[5]; // XF_PROJECTION_F;
+    }
 }
 
 void XF_Load(u32 length, u32 base_addr, u32* data) {
