@@ -7,8 +7,9 @@
 // Prepare and compute TEV stage result
 #define STAGE_RESULT(s) \
     tex = _FSDEF_TEXTURE_##s; \
+    tex = _FSDEF_FIX_FORMAT_TEXTURE_##s; \
  \
-    stage = fs_ubo.tev_stages[s]; \
+    stage = tev_stages[s]; \
     konst = stage.konst; \
     ras = _FSDEF_RASCOLOR_##s; \
     scale = vec4(stage.color_scale, stage.color_scale, stage.color_scale, 1.0); \
@@ -58,14 +59,12 @@ struct TevState {
 layout(std140) uniform _FS_UBO {
     TevState tev_state;
     TevStage tev_stages[16];
-} fs_ubo;
+};
 
 // Textures
 uniform sampler2D texture[8];
 in vec4 vtx_color[2];
 in vec2 vtx_texcoord[8];
-
-
 
 out vec4 col0;
 out vec4 col1;
@@ -75,10 +74,10 @@ void main() {
     TevStage stage;
     vec4 stage_result;
 
-    vec4 prev = fs_ubo.tev_state.color[0];
-    vec4 color0= fs_ubo.tev_state.color[1];
-    vec4 color1 = fs_ubo.tev_state.color[2];
-    vec4 color2 = fs_ubo.tev_state.color[3];
+    vec4 prev   = tev_state.color[0];
+    vec4 color0 = tev_state.color[1];
+    vec4 color1 = tev_state.color[2];
+    vec4 color2 = tev_state.color[3];
     vec4 tex;
     vec4 konst;
     vec4 ras;
@@ -142,12 +141,11 @@ void main() {
     // -------------
 
     int val = int(prev.a * 255.0f) & 0xFF;                                   
-    if (_FSDEF_ALPHA_COMPARE(val, fs_ubo.tev_state.alpha_func_ref0, 
-        fs_ubo.tev_state.alpha_func_ref1)) {
+    if (_FSDEF_ALPHA_COMPARE(val, tev_state.alpha_func_ref0, tev_state.alpha_func_ref1)) {
         discard;
     }
 #ifdef _FSDEF_SET_DESTINATION_ALPHA
-    col0.a = fs_ubo.tev_state.dest_alpha;
+    col0.a = tev_state.dest_alpha;
 #endif
     col0 = _FSDEF_EFB_FORMAT(col0);
 }
