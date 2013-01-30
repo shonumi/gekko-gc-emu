@@ -25,6 +25,8 @@
 #ifndef VIDEO_CORE_GX_TYPES_H_
 #define VIDEO_CORE_GX_TYPES_H_
 
+#include "types.h"
+
 static const int kGCEFBWidth            = 640;
 static const int kGCEFBHeight           = 528;
 
