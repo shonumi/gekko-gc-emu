@@ -25,7 +25,8 @@
 #ifndef VIDEO_CORE_BP_MEM_H_
 #define VIDEO_CORE_BP_MEM_H_
 
-#include "common.h"
+#include "types.h"
+#include "gx_types.h"
 #include "texture_decoder.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -555,35 +556,35 @@ union BPTevZEnv1 {
 
 union BPMemory {
     struct {
-        BPGenMode       genmode;                // 0x00
-        u32             pad0[0x1F];             // 0x01
-        BPEFBCoords12   scissor_top_left;       // 0x20
-        BPEFBCoords12   scissor_bottom_right;   // 0x21
-        BPLinePointSize line_point_size;        // 0x22
-        u32             pad1[0x4];              // 0x23
-        BPTevTexMap     tev_tex_map;            // 0x27
-        BPTevOrder      tevorder[0x8];          // 0x28
-        u32             pad2[0x10];             // 0x30
-        BPPEZMode       zmode;                  // 0x40
-        BPPECMode0      cmode0;                 // 0x41
-        BPPECMode1      cmode1;                 // 0x42
-        BPPEControl     zcontrol;               // 0x43
-        u32             pad3[0x5];              // 0x44
-        BPEFBCoords10   efb_top_left;           // 0x49
-        BPEFBCoords10   efb_height_width;       // 0x4a
-        u32             efb_copy_addr;          // 0x4b
-        u32             pad4;                   // 0x4c
-        u32             disp_stride;            // 0x4d
-        u32             disp_copy_y_scale;      // 0x4e
-        u32             clear_ar;               // 0x4f
-        u32             clear_gb;               // 0x50
-        u32             clear_z;                // 0x51
-        BPEFBCopyExec   efb_copy_exec;          // 0x52
-        u32             pad5[0x6];              // 0x53
-        BPEFBCoords10   scissor_offset;         // 0x59
-        u32             pad6[0x26];             // 0x5a
+        BPGenMode       genmode;                    // 0x00
+        u32             pad0[0x1F];                 // 0x01
+        BPEFBCoords12   scissor_top_left;           // 0x20
+        BPEFBCoords12   scissor_bottom_right;       // 0x21
+        BPLinePointSize line_point_size;            // 0x22
+        u32             pad1[0x4];                  // 0x23
+        BPTevTexMap     tev_tex_map;                // 0x27
+        BPTevOrder      tevorder[0x8];              // 0x28
+        u32             pad2[0x10];                 // 0x30
+        BPPEZMode       zmode;                      // 0x40
+        BPPECMode0      cmode0;                     // 0x41
+        BPPECMode1      cmode1;                     // 0x42
+        BPPEControl     zcontrol;                   // 0x43
+        u32             pad3[0x5];                  // 0x44
+        BPEFBCoords10   efb_top_left;               // 0x49
+        BPEFBCoords10   efb_height_width;           // 0x4a
+        u32             efb_copy_addr;              // 0x4b
+        u32             pad4;                       // 0x4c
+        u32             disp_stride;                // 0x4d
+        u32             disp_copy_y_scale;          // 0x4e
+        u32             clear_ar;                   // 0x4f
+        u32             clear_gb;                   // 0x50
+        u32             clear_z;                    // 0x51
+        BPEFBCopyExec   efb_copy_exec;              // 0x52
+        u32             pad5[0x6];                  // 0x53
+        BPEFBCoords10   scissor_offset;             // 0x59
+        u32             pad6[0x26];                 // 0x5a
 
-        struct {                                // 0x80
+        struct {                                    // 0x80
             BPTexMode0  mode_0[4];
             BPTexMode1  mode_1[4];
             BPTexImage0 image_0[4];
@@ -594,11 +595,11 @@ union BPMemory {
             u32         pad[4];
         } tex[2];
 
-        BPTevCombiner   combiner[0x10];         // 0xC0
-        u32             pad7[0x13];             // 0xE0
-		BPAlphaFunc		alpha_func;				// 0xF3
-		u32             pad8[0x2];				// 0xF4
-        BPTevKSel       ksel[0x8];              // 0xf6
+        BPTevCombiner   combiner[kGCMaxTevStages];  // 0xC0
+        u32             pad7[0x13];                 // 0xE0
+        BPAlphaFunc     alpha_func;				    // 0xF3
+        u32             pad8[0x2];				    // 0xF4
+        BPTevKSel       ksel[0x8];                  // 0xf6
     };
     u32 mem[0x100];
 };
