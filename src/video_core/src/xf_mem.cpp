@@ -49,11 +49,14 @@ XFMemory    g_xf_regs;                  ///< XF registers
 f32         g_projection_matrix[16];    ///< Decoded projection matrix
 
 void XF_UpdateViewport() {
-    int scissorXOff = g_bp_regs.scissor_offset.x * 2;
-    int scissorYOff = g_bp_regs.scissor_offset.y * 2;
+    int scissor_x_offs = g_bp_regs.scissor_offset.x * 2;
+    int scissor_y_offs = g_bp_regs.scissor_offset.y * 2;
 
-    int x = ((int)ceil(g_xf_regs.viewport.x_orig - g_xf_regs.viewport.wd - (float)scissorXOff));
-    int y = ((int)ceil((float)kGCEFBHeight - g_xf_regs.viewport.y_orig + g_xf_regs.viewport.ht + (float)scissorYOff));
+    // NOTE: ceil is unverified but seems to be correct in my testing, might be worth writing a demo
+    // to check if it should be floor sometime in the future
+    int x = ((int)ceil(g_xf_regs.viewport.x_orig - g_xf_regs.viewport.wd - (float)scissor_x_offs));
+    int y = ((int)ceil((float)kGCEFBHeight - g_xf_regs.viewport.y_orig + g_xf_regs.viewport.ht + 
+        (float)scissor_y_offs));
     int width = ((int)ceil(2.0f * g_xf_regs.viewport.wd));
     int height = ((int)ceil(-2.0f * g_xf_regs.viewport.ht));
     double znear = (g_xf_regs.viewport.far_z - g_xf_regs.viewport.z_range) / 16777216.0f;
@@ -71,28 +74,26 @@ void XF_UpdateViewport() {
     video_core::g_renderer->SetDepthRange(znear, zfar);
 }
 
+/// Sets the decoded XF projection matrix
 void XF_UpdateProjection() {
     memset(g_projection_matrix, 0, sizeof(g_projection_matrix));
 
+    g_projection_matrix[0]  = g_xf_regs.projection_matrix[0]; // XF_PROJECTION_A;
+    g_projection_matrix[5]  = g_xf_regs.projection_matrix[2]; // XF_PROJECTION_C;
+    g_projection_matrix[10] = g_xf_regs.projection_matrix[4]; // XF_PROJECTION_E;
+    g_projection_matrix[14] = g_xf_regs.projection_matrix[5]; // XF_PROJECTION_F;
+
     // Is it orthographic mode...
     if (g_xf_regs.projection_mode.is_orthographic) { 
-        g_projection_matrix[0]  = g_xf_regs.projection_matrix[0]; // XF_PROJECTION_A;
-        g_projection_matrix[5]  = g_xf_regs.projection_matrix[2]; // XF_PROJECTION_C;
-        g_projection_matrix[10] = g_xf_regs.projection_matrix[4]; // XF_PROJECTION_E;
         g_projection_matrix[12] = g_xf_regs.projection_matrix[1]; // XF_PROJECTION_B;
         g_projection_matrix[13] = g_xf_regs.projection_matrix[3]; // XF_PROJECTION_D;
-        g_projection_matrix[14] = g_xf_regs.projection_matrix[5]; // XF_PROJECTION_F;
         g_projection_matrix[15] = 1.0f;
 
     // Otherwise it is perspective mode
     } else { 
-        g_projection_matrix[0]  = g_xf_regs.projection_matrix[0]; // XF_PROJECTION_A;
-        g_projection_matrix[5]  = g_xf_regs.projection_matrix[2]; // XF_PROJECTION_C;
         g_projection_matrix[8]  = g_xf_regs.projection_matrix[1]; // XF_PROJECTION_B;
         g_projection_matrix[9]  = g_xf_regs.projection_matrix[3]; // XF_PROJECTION_D;
-        g_projection_matrix[10] = g_xf_regs.projection_matrix[4]; // XF_PROJECTION_E;
         g_projection_matrix[11] = -1.0f;
-        g_projection_matrix[14] = g_xf_regs.projection_matrix[5]; // XF_PROJECTION_F;
     }
 }
 
