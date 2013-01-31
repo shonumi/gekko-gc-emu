@@ -230,12 +230,7 @@ union CPArrayStride {
 #define CP_VCD_HI(idx)					gp::g_cp_regs.mem[0x60 + idx]
 #define CP_VAT_A						gp::g_cp_regs.mem[0x70 + gp::g_cur_vat]
 #define CP_VAT_B						gp::g_cp_regs.mem[0x80 + gp::g_cur_vat]
-#define CP_VAT_C						gp::g_cp_regs.mem[0x90 + gp::g_cur_vat]
-/*#define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.array_base[0] + (idx) * gp::g_cp_regs.array_stride[0])
-#define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.array_base[1] + (idx) * gp::g_cp_regs.array_stride[1])
-#define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.array_base[2] + (idx) * gp::g_cp_regs.array_stride[2])
-#define CP_DATA_TEX_ADDR(idx, n)		(gp::g_cp_regs.array_base[4+n] + (idx) * gp::g_cp_regs.array_stride[4+n])*/		
-#define CP_MATIDX_REG_A					gp::g_cp_regs.mem[0x30]
+#define CP_VAT_C						gp::g_cp_regs.mem[0x90 + gp::g_cur_vat]#define CP_MATIDX_REG_A					gp::g_cp_regs.mem[0x30]
 #define CP_MATIDX_REG_B					gp::g_cp_regs.mem[0x40]
 
 // Address reference (used for XF)
@@ -273,11 +268,15 @@ static const u8 kVertexTextureSize[16] = {
     2,  2,  4,  4,  8,  0,  0,  0   // two coords st
 };
 
-#define CP_VCD_LO(idx)					gp::g_cp_regs.mem[0x50 + idx]
-#define CP_VCD_HI(idx)					gp::g_cp_regs.mem[0x60 + idx]
-#define CP_VAT_A						gp::g_cp_regs.mem[0x70 + gp::g_cur_vat]
-#define CP_VAT_B						gp::g_cp_regs.mem[0x80 + gp::g_cur_vat]
-#define CP_VAT_C						gp::g_cp_regs.mem[0x90 + gp::g_cur_vat]
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// CP registers
+
+#define CP_REG_VCD_LO       0x50
+#define CP_REG_VCD_HI       0x60
+#define CP_REG_VAT_A        0x70
+#define CP_REG_VAT_B        0x80
+#define CP_REG_VAT_B        0x90
+
 #define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + (idx) * gp::g_cp_regs.mem[0xb0])
 #define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + (idx) * gp::g_cp_regs.mem[0xb1])
 #define CP_DATA_COL0_ADDR(idx)			(gp::g_cp_regs.mem[0xa2] + (idx) * gp::g_cp_regs.mem[0xb2])
