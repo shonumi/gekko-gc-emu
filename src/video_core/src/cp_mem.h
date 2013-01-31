@@ -275,7 +275,7 @@ static const u8 kVertexTextureSize[16] = {
 #define CP_REG_VCD_HI       0x60
 #define CP_REG_VAT_A        0x70
 #define CP_REG_VAT_B        0x80
-#define CP_REG_VAT_B        0x90
+#define CP_REG_VAT_C        0x90
 
 #define CP_DATA_POS_ADDR(idx)			(gp::g_cp_regs.mem[0xa0] + (idx) * gp::g_cp_regs.mem[0xb0])
 #define CP_DATA_NRM_ADDR(idx)			(gp::g_cp_regs.mem[0xa1] + (idx) * gp::g_cp_regs.mem[0xb1])
