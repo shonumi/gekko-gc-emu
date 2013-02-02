@@ -64,14 +64,11 @@ static inline u32 __decode_col_rgb5a3(u16 _data) {
 }
 
 static inline u32 __decode_col_rgb565(u16 _data) {
-    u8 r, g, b;
-
-    // unpack colors
+    u32 r, g, b;
     r = (_data >> 11) << 3;
-    g = ((_data >> 5) & 0x3f) << 2;
-    b = (_data & 0x1f)<< 3;
-
-    return 0xff000000 | (b << 16) | (g << 8) | (r);
+    g = _data & 0x7E0; 
+    b = _data & 0x1F;
+    return 0xff000000 | (b << 19) | (g << 5) | r;
 }
 
 static inline void DecodeDtxBlock(const u8 *_src, u32 *_dst, u32 _width) {
