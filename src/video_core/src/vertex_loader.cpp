@@ -70,21 +70,21 @@ static __inline u32 _indexed_read_32(u32 addr) {
 static void __pos_unknown(u32 addr, u32* data) {
     _ASSERT_MSG(TGP, 0, "Unknown vertex position - count: %d format: %d", 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_count, 
-        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format);
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_type);
 }
 
 /// Unknown color vertex component
 static void __col_unknown(u32 addr, u32* data) {
     _ASSERT_MSG(TGP, 0, "Unknown vertex color - count: %d format: %d", 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_count, 
-        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_format);
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type);
 }
 
 /// Unknown normal vertex component
 static void __normal_unknown(u32 addr, u32* data) {
     _ASSERT_MSG(TGP, 0, "Unknown vertex normal - count: %d format: %d", 
         gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].normal_count, 
-        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].normal_format);
+        gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].normal_type);
 }
 
 /// Unknown texture coordinate vertex component
@@ -521,13 +521,17 @@ int VertexLoader_GetVertexSize() {
     return size;
 }
 
+void SetVertexState() {
+}
+
+
 /**
  * @brief Decode a primitive type
  * @param type Type of primitive (e.g. points, lines, triangles, etc.)
  * @param count Number of vertices
  */
 void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
-
+    static VertexState state;
     CPVatRegA* vat_a = &gp::g_cp_regs.vat_reg_a[gp::g_cur_vat];
     CPVatRegB* vat_b = &gp::g_cp_regs.vat_reg_b[gp::g_cur_vat];
     CPVatRegC* vat_c = &gp::g_cp_regs.vat_reg_c[gp::g_cur_vat];
@@ -561,29 +565,33 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
     VertexManager_BeginPrimitive(type, count);
 
     // Set renderer types
-    video_core::g_renderer->VertexPosition_SetType((GXCompType)vat_a->pos_format,
-        (GXCompCnt)vat_a->pos_count);
-    video_core::g_renderer->VertexColor_SetType(0, (GXCompType)vat_a->col0_format, 
-        (GXCompCnt)vat_a->col0_count);
-    video_core::g_renderer->VertexColor_SetType(1, (GXCompType)vat_a->col1_format, 
-        (GXCompCnt)vat_a->col1_count);
-    video_core::g_renderer->VertexTexcoord_SetType(0, (GXCompType)vat_a->tex0_format,
-        (GXCompCnt)vat_a->tex0_count);
-    video_core::g_renderer->VertexTexcoord_SetType(1, (GXCompType)vat_b->tex1_format,
-        (GXCompCnt)vat_b->tex1_count);
-    video_core::g_renderer->VertexTexcoord_SetType(2, (GXCompType)vat_b->tex2_format,
-        (GXCompCnt)vat_b->tex2_count);
-    video_core::g_renderer->VertexTexcoord_SetType(3, (GXCompType)vat_b->tex3_format,
-        (GXCompCnt)vat_b->tex3_count);
-    video_core::g_renderer->VertexTexcoord_SetType(4, (GXCompType)vat_b->tex4_format,
-        (GXCompCnt)vat_b->tex4_count);
-    video_core::g_renderer->VertexTexcoord_SetType(5, (GXCompType)vat_c->tex5_format,
-        (GXCompCnt)vat_c->tex5_count);
-    video_core::g_renderer->VertexTexcoord_SetType(6, (GXCompType)vat_c->tex6_format,
-        (GXCompCnt)vat_c->tex6_count);
-    video_core::g_renderer->VertexTexcoord_SetType(7, (GXCompType)vat_c->tex7_format,
-        (GXCompCnt)vat_c->tex7_count);
-    
+    state.pos.count    = (GXCompCnt)vat_a->pos_count;
+    state.pos.type     = (GXCompType)vat_a->pos_type;
+    state.nrm.count    = (GXCompCnt)vat_a->normal_count;
+    state.nrm.type     = (GXCompType)vat_a->normal_type;
+    state.col[0].count = (GXCompCnt)vat_a->col0_count;
+    state.col[0].type  = (GXCompType)vat_a->col0_type;
+    state.col[1].count = (GXCompCnt)vat_a->col1_count;
+    state.col[1].type  = (GXCompType)vat_a->col1_type;
+    state.tex[0].count = (GXCompCnt)vat_a->tex0_count;
+    state.tex[0].type  = (GXCompType)vat_a->tex0_type;
+    state.tex[1].count = (GXCompCnt)vat_b->tex1_count;
+    state.tex[1].type  = (GXCompType)vat_b->tex1_type;
+    state.tex[2].count = (GXCompCnt)vat_b->tex2_count;
+    state.tex[2].type  = (GXCompType)vat_b->tex2_type;
+    state.tex[3].count = (GXCompCnt)vat_b->tex3_count;
+    state.tex[3].type  = (GXCompType)vat_b->tex3_type;
+    state.tex[4].count = (GXCompCnt)vat_b->tex4_count;
+    state.tex[4].type  = (GXCompType)vat_b->tex4_type;
+    state.tex[5].count = (GXCompCnt)vat_c->tex5_count;
+    state.tex[5].type  = (GXCompType)vat_c->tex5_type;
+    state.tex[6].count = (GXCompCnt)vat_c->tex6_count;
+    state.tex[6].type  = (GXCompType)vat_c->tex6_type;
+    state.tex[7].count = (GXCompCnt)vat_c->tex7_count;
+    state.tex[7].type  = (GXCompType)vat_c->tex7_type;
+
+    video_core::g_renderer->SetVertexState(state);
+    video_core::g_shader_manager->UpdateVertexState(state);
 
     for (int i = 0; i < count; i++) {
 

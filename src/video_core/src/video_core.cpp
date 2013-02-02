@@ -50,6 +50,7 @@ namespace video_core {
 EmuWindow*      g_emu_window = NULL;    ///< Frontend emulator window
 RendererBase*   g_renderer = NULL;      ///< Renderer plugin
 SDL_Thread*     g_video_thread = NULL;
+ShaderManager*  g_shader_manager = NULL;
 TextureManager* g_texture_manager = NULL;
 int             g_current_frame = 0;
 
@@ -93,6 +94,7 @@ void Init(EmuWindow* emu_window) {
     gp::CP_Init();
     gp::XF_Init();
 
+    g_shader_manager = new ShaderManager(g_renderer->shader_interface());
     g_texture_manager = new TextureManager(g_renderer->texture_interface());
 
     g_current_frame = 0;
@@ -107,6 +109,7 @@ void Shutdown() {
     gp::VertexLoader_Shutdown();
 
     delete g_renderer;
+    delete g_shader_manager;
     delete g_texture_manager;
 }
 

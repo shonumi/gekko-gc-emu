@@ -36,7 +36,7 @@
 #include "xf_mem.h"
 
 #include "renderer_gl3.h"
-#include "shader_manager.h"
+#include "shader_interface.h"
 #include "texture_interface.h"
 #include "utils.h"
 
@@ -57,40 +57,26 @@ RendererGL3::RendererGL3() {
     memset(fbo_, 0, sizeof(fbo_));  
     memset(fbo_rbo_, 0, sizeof(fbo_rbo_));  
     memset(fbo_depth_buffers_, 0, sizeof(fbo_depth_buffers_));
+    memset(&vertex_state_, 0, sizeof(vertex_state_));
     resolution_width_ = 640;
     resolution_height_ = 480;
     vbo_handle_ = 0;
-    vertex_position_format_ = 0;
-    vertex_position_format_size_ = 0;
-    vertex_position_component_count_ = (GXCompCnt)0;
-    vertex_color_cur_ = 0;
-    vertex_color_cur_type_[0] = vertex_color_cur_type_[1] = GX_RGBA8;
-    vertex_color_cur_count_[0] = vertex_color_cur_count_[1] = GX_CLR_RGBA;
-    vertex_texcoord_cur_ = 0;
     last_mode_ = 0;
-    for (int i = 0; i < kGCMaxActiveTextures; i++) {
-        vertex_texcoord_format_[i] = 0;
-        vertex_texcoord_enable_[i] = 0;
-        vertex_texcoord_format_size_[i] = 0;
-        vertex_texcoord_component_count_[i] = (GXCompCnt)0;
-    }
     blend_mode_ = 0;
     render_window_ = NULL;
     uniform_manager_ = NULL;
-    shader_manager_ = NULL;
-    generic_shader_id_ = 0;
     prim_type_ = (GXPrimitive)0;
     gl_prim_type_ = 0;
-    shader_manager_ = new ShaderManager();
     uniform_manager_ = new UniformManager();
     texture_interface_ = new TextureInterface(this);
+    shader_interface_ = new ShaderInterface(this);
 }
 
 /// RendererGL3 destructor
 RendererGL3::~RendererGL3() {
-    delete shader_manager_;
     delete uniform_manager_;
     delete texture_interface_;
+    delete shader_interface_;
 }
 
 /**
@@ -141,9 +127,6 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
     static GLenum gl_types[8] = {GL_QUADS, 0, GL_TRIANGLES, GL_TRIANGLE_STRIP, 
         GL_TRIANGLE_FAN, GL_LINES,  GL_LINE_STRIP, GL_POINTS};
 
-    // Beginning of primitive - reset vertex info
-    memset(vertex_texcoord_enable_, 0, sizeof(vertex_texcoord_enable_));
-
     // Set the renderer primitive type
     prim_type_ = prim;
     gl_prim_type_ = gl_types[(prim >> 3) - 16];
@@ -153,7 +136,7 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
         return;
     }
     // Update shader(s)
-    shader_manager_->SetShader();
+    video_core::g_shader_manager->Bind();
     uniform_manager_->ApplyChanges();
 
     // Bind pointers to buffers
@@ -170,48 +153,19 @@ void RendererGL3::BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u3
 }
 
 /**
- * Set the type of postion vertex data
- * @param type Position data type (e.g. GX_F32)
- * @param count Position data count (e.g. GX_POS_XYZ)
+ * Set the current vertex state (format and count of each vertex component)
+ * @param vertex_state VertexState structure of the current vertex state
  */
-void RendererGL3::VertexPosition_SetType(GXCompType type, GXCompCnt count) {
-    static GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
-    static GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
-    vertex_position_format_ = gl_types[type];
-    vertex_position_format_size_ = gl_types_size[type];
-    vertex_position_component_count_ = count;
-}
-
-/**
- * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
- * @param color Which color to configure (0 or 1)
- * @param type GXCompType color format type
- * @param count Color data count (e.g. GX_CLR_RGBA)
- */
-void RendererGL3::VertexColor_SetType(int color, GXCompType type, GXCompCnt count) {
-    vertex_color_cur_ = color;
-    vertex_color_cur_type_[color] = type;
-    vertex_color_cur_count_[color] = count;
-}
-
-/**
- * Set the type of texture coordinate vertex data
- * @param texcoord 0-7 texcoord to set type of
- * @param type Texcoord data type (e.g. GX_F32)
- * @param count Texcoord data count (e.g. GX_TEX_ST)
- */
-void RendererGL3::VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count) {
-    const GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
-    const GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
-    vertex_texcoord_cur_ = texcoord;
-    vertex_texcoord_format_[texcoord] = gl_types[type];
-    vertex_texcoord_format_size_[texcoord] = gl_types_size[type];
-    vertex_texcoord_component_count_[texcoord] = count;
-    vertex_texcoord_enable_[texcoord] = 1;
+void RendererGL3::SetVertexState(const gp::VertexState& vertex_state) {
+    vertex_state_ = vertex_state;
 }
 
 /// Draws a primitive from the previously decoded vertex array
 void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
+
+    static GLuint gl_types[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT};
+    static GLuint gl_types_size[5] = {1, 1, 2, 2, 4};
+
     // Do nothing if no data sent
     if (vertex_num == 0) {
         return;
@@ -221,7 +175,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
 
     // Position
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, vertex_position_format_, GL_FALSE, sizeof(GXVertex), 
+    glVertexAttribPointer(0, 3, gl_types[vertex_state_.pos.type], GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(0));
     // Color 0
     glEnableVertexAttribArray(1);
@@ -234,11 +188,9 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     // TexCoords
     //_ASSERT_MSG(TGP, gp::g_xf_regs.num_texgen.num_texgens < 7, "Number of texgens >= 7"); 
     for (int i = 0; i < gp::g_xf_regs.num_texgen.num_texgens; i++) {
-		if (vertex_texcoord_enable_[i]) {
-			glEnableVertexAttribArray(i + 4);
-			glVertexAttribPointer(i + 4, 4, vertex_texcoord_format_[i], GL_FALSE, sizeof(GXVertex), 
-            reinterpret_cast<void*>(56 + (i * 8)));
-		}
+        glEnableVertexAttribArray(i + 4);
+        glVertexAttribPointer(i + 4, 4, gl_types[vertex_state_.tex[i].type], GL_FALSE, 
+            sizeof(GXVertex), reinterpret_cast<void*>(56 + (i * 8)));
 	}
     // Position matrix index
     glEnableVertexAttribArray(12);
@@ -714,9 +666,6 @@ void RendererGL3::Init() {
     // --------------------------
 
     InitFramebuffer();
-
-    shader_manager_->Init(uniform_manager_);
-    uniform_manager_->Init(shader_manager_->GetDefaultShader());
 
     LOG_NOTICE(TGP, "GL_VERSION: %s\n", glGetString(GL_VERSION));
 }

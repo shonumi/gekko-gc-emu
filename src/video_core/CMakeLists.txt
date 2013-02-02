@@ -7,11 +7,12 @@ set(SRCS
             src/vertex_loader.cpp
             src/vertex_manager.cpp
             src/video_core.cpp
+            src/shader_manager.cpp
             src/texture_decoder.cpp
             src/texture_manager.cpp
             src/utils.cpp
             src/renderer_gl3/renderer_gl3.cpp
-            src/renderer_gl3/shader_manager.cpp
+            src/renderer_gl3/shader_interface.cpp
             src/renderer_gl3/texture_interface.cpp
             src/renderer_gl3/uniform_manager.cpp)
 

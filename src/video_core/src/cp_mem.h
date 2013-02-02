@@ -87,20 +87,20 @@ union CPVatRegA {
     struct {
         // 0:8
         u32 pos_count       : 1;
-        u32 pos_format      : 3; 
+        u32 pos_type        : 3; 
         u32 pos_shift       : 5; 
         // 9:12
         u32 normal_count    : 1; 
-        u32 normal_format   : 3; 
+        u32 normal_type     : 3; 
         // 13:16
         u32 col0_count      : 1;
-        u32 col0_format     : 3; 
+        u32 col0_type       : 3; 
         // 17:20
         u32 col1_count      : 1;
-        u32 col1_format     : 3; 
+        u32 col1_type       : 3; 
         // 21:29
         u32 tex0_count      : 1;
-        u32 tex0_format     : 3; 
+        u32 tex0_type       : 3; 
         u32 tex0_shift      : 5;
         // 30:31
         u32 byte_dequant    : 1;
@@ -108,12 +108,12 @@ union CPVatRegA {
     };
     u32 _u32;
     
-    inline u32 get_pos() { return ((pos_count << 3) | pos_format); }
-    inline u32 get_normal() { return ((normal_count << 3) | normal_format); }
-    inline u32 get_col0() { return ((col0_count << 3) | col0_format); }
-    inline u32 get_col1() { return ((col1_count << 3) | col1_format); }
-    inline u32 get_tex0() { return ((tex0_count << 3) | tex0_format); }
-    inline u32 get_pos_dqf_enabled() { return (GX_F32 != pos_format) ? 1 : 0; }
+    inline u32 get_pos() { return ((pos_count << 3) | pos_type); }
+    inline u32 get_normal() { return ((normal_count << 3) | normal_type); }
+    inline u32 get_col0() { return ((col0_count << 3) | col0_type); }
+    inline u32 get_col1() { return ((col1_count << 3) | col1_type); }
+    inline u32 get_tex0() { return ((tex0_count << 3) | tex0_type); }
+    inline u32 get_pos_dqf_enabled() { return (GX_F32 != pos_type) ? 1 : 0; }
 	inline f32 get_pos_dqf() { return (1.0f / f32(1 << pos_shift)); }
 	inline f32 get_tex0_dqf() { return (1.0f / f32(1 << tex0_shift)); }
 };
@@ -123,28 +123,28 @@ union CPVatRegB {
     struct {
         // 0:8
         u32 tex1_count      : 1;
-        u32 tex1_format     : 3; 
+        u32 tex1_type       : 3; 
         u32 tex1_shift      : 5;
         // 9:17
         u32 tex2_count      : 1;
-        u32 tex2_format     : 3; 
+        u32 tex2_type       : 3; 
         u32 tex2_shift      : 5;
         // 18:26
         u32 tex3_count      : 1;
-        u32 tex3_format     : 3; 
+        u32 tex3_type       : 3; 
         u32 tex3_shift      : 5;
         // 27:30
         u32 tex4_count      : 1;
-        u32 tex4_format     : 3; 
+        u32 tex4_type       : 3; 
         // 
         u32                 : 1;
     };
     u32 _u32;
 
-    inline u32 get_tex1() { return ((tex1_count << 3) | tex1_format); }
-    inline u32 get_tex2() { return ((tex2_count << 3) | tex2_format); }
-    inline u32 get_tex3() { return ((tex3_count << 3) | tex3_format); }
-    inline u32 get_tex4() { return ((tex4_count << 3) | tex4_format); }
+    inline u32 get_tex1() { return ((tex1_count << 3) | tex1_type); }
+    inline u32 get_tex2() { return ((tex2_count << 3) | tex2_type); }
+    inline u32 get_tex3() { return ((tex3_count << 3) | tex3_type); }
+    inline u32 get_tex4() { return ((tex4_count << 3) | tex4_type); }
 
 	inline f32 get_tex1_dqf() { return (1.0f / f32(1 << tex1_shift)); }
 	inline f32 get_tex2_dqf() { return (1.0f / f32(1 << tex2_shift)); }
@@ -158,22 +158,22 @@ union CPVatRegC {
         u32 tex4_shift      : 5;
         // 5:13
         u32 tex5_count      : 1;
-        u32 tex5_format     : 3; 
+        u32 tex5_type       : 3; 
         u32 tex5_shift      : 5;
         // 14:22
         u32 tex6_count      : 1;
-        u32 tex6_format     : 3; 
+        u32 tex6_type       : 3; 
         u32 tex6_shift      : 5;
         // 23:31
         u32 tex7_count      : 1;
-        u32 tex7_format     : 3; 
+        u32 tex7_type       : 3; 
         u32 tex7_shift      : 5;
     };
     u32 _u32;
 
-    inline u32 get_tex5() { return ((tex5_count << 3) | tex5_format); }
-    inline u32 get_tex6() { return ((tex6_count << 3) | tex6_format); }
-    inline u32 get_tex7() { return ((tex7_count << 3) | tex7_format); }
+    inline u32 get_tex5() { return ((tex5_count << 3) | tex5_type); }
+    inline u32 get_tex6() { return ((tex6_count << 3) | tex6_type); }
+    inline u32 get_tex7() { return ((tex7_count << 3) | tex7_type); }
 
 	inline f32 get_tex4_dqf() { return (1.0f / f32(1 << tex4_shift)); }
 	inline f32 get_tex5_dqf() { return (1.0f / f32(1 << tex5_shift)); }

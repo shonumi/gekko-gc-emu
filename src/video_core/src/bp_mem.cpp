@@ -30,14 +30,13 @@
 
 #include "hw/hw_pe.h"
 
-#include "renderer_gl3/shader_manager.h"
-
 #include "utils.h"
 #include "video_core.h"
 #include "vertex_manager.h"
 #include "fifo.h"
 #include "fifo_player.h"
 #include "bp_mem.h"
+#include "xf_mem.h"
 #include "texture_decoder.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,13 +58,13 @@ void BP_SetScissorBox() {
     // The values may be within the range of 0 - 2047 inclusive. Using values that extend beyond the
     // EFB size is allowable since the scissor box may be repositioned within the EFB using 
     // GX_SetScissorBoxOffset().
-    const int offset_x = gp::g_bp_regs.scissor_offset.x * 2 - 342;
-    const int offset_y = gp::g_bp_regs.scissor_offset.y * 2 - 342;
+    const int offset_x = g_bp_regs.scissor_offset.x * 2 - 342;
+    const int offset_y = g_bp_regs.scissor_offset.y * 2 - 342;
 
-    Rect rect(gp::g_bp_regs.scissor_top_left.x - offset_x - 342, 
-              gp::g_bp_regs.scissor_top_left.y - offset_y - 342,
-              gp::g_bp_regs.scissor_bottom_right.x - offset_x - 341, 
-              gp::g_bp_regs.scissor_bottom_right.y - offset_y - 341);
+    Rect rect(g_bp_regs.scissor_top_left.x - offset_x - 342, 
+              g_bp_regs.scissor_top_left.y - offset_y - 342,
+              g_bp_regs.scissor_bottom_right.x - offset_x - 341, 
+              g_bp_regs.scissor_bottom_right.y - offset_y - 341);
 
     rect.x0_ = CLAMP(rect.x0_, 0, kGCEFBWidth);
     rect.y0_ = CLAMP(rect.y0_, 0, kGCEFBHeight);
@@ -77,16 +76,16 @@ void BP_SetScissorBox() {
 
     video_core::g_renderer->SetScissorBox(target_rect);
 
-    gp::XF_UpdateViewport();
+    XF_UpdateViewport();
 }
 
 /// Sets the size of point/line primitives.
 void BP_SetLinePointSize() {
     // TODO(ShizZy): scale based on resolution...
-    //f32 scale = (gp::g_xf_regs.viewport.wd != 0) ? ((f32)resolution_width_ / kGCEFBWidth) : 1.0f;
+    //f32 scale = (g_xf_regs.viewport.wd != 0) ? ((f32)resolution_width_ / kGCEFBWidth) : 1.0f;
     f32 scale = 1.0f;
-    f32 line_width = gp::g_bp_regs.line_point_size.linesize * scale / 6.0f;
-    f32 point_size = gp::g_bp_regs.line_point_size.pointsize * scale / 6.0f;
+    f32 line_width = g_bp_regs.line_point_size.linesize * scale / 6.0f;
+    f32 point_size = g_bp_regs.line_point_size.pointsize * scale / 6.0f;
     video_core::g_renderer->SetLinePointSize(line_width, point_size);
 }
 
@@ -105,6 +104,7 @@ void BP_RegisterWrite(u8 addr, u32 data) {
     switch(addr) {
     case BP_REG_GENMODE: // GEN_MODE
         video_core::g_renderer->SetGenerationMode();
+        video_core::g_shader_manager->UpdateGenMode(g_bp_regs.genmode);
         break;
 
     case BP_REG_SCISSORTL: // SU_SCIS0 - Scissorbox Top Left Corner
@@ -142,8 +142,14 @@ void BP_RegisterWrite(u8 addr, u32 data) {
         }
         break;
 
-    case BP_REG_PE_CONTROL: // PE_CONTROL comp z location z_comp_loc(0x43000040)pixel_fmt(0x43000041)
+    case BP_REG_PE_CMODE1: // PE_CMODE1 - Destination alpha
+        video_core::g_shader_manager->UpdateFlag(ShaderManager::kFlag_DestinationAlpha, 
+                                                 g_bp_regs.cmode1.enable);
+        break;
+
+    case BP_REG_PE_CONTROL: // PE_CONTROL comp z location
         //video_core::g_renderer->SetColorMask();
+        video_core::g_shader_manager->UpdateEFBFormat((BPPixelFormat)g_bp_regs.zcontrol.pixel_format);
         break;
 
     case BP_REG_PE_DRAWDONE: // PE_DONE - draw done
@@ -173,10 +179,10 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 
     case BP_REG_EFB_COPY:  // pe copy execute
         {
-            Rect efb_rect(gp::g_bp_regs.efb_top_left.x,
-                          gp::g_bp_regs.efb_top_left.y,
-                          gp::g_bp_regs.efb_top_left.x + gp::g_bp_regs.efb_height_width.x + 1,
-                          gp::g_bp_regs.efb_top_left.y + gp::g_bp_regs.efb_height_width.y + 1);
+            Rect efb_rect(g_bp_regs.efb_top_left.x,
+                          g_bp_regs.efb_top_left.y,
+                          g_bp_regs.efb_top_left.x + g_bp_regs.efb_height_width.x + 1,
+                          g_bp_regs.efb_top_left.y + g_bp_regs.efb_height_width.y + 1);
 
             BPEFBCopyExec efb_copy_exec;
             efb_copy_exec._u32 = data;
@@ -184,28 +190,28 @@ void BP_RegisterWrite(u8 addr, u32 data) {
             if (efb_copy_exec.copy_to_xfb) {
                 f32 scale_y;
                 if (efb_copy_exec.scale_invert) {
-                    scale_y = 256.0f / (f32)gp::g_bp_regs.disp_copy_y_scale;
+                    scale_y = 256.0f / (f32)g_bp_regs.disp_copy_y_scale;
                 } else {
-                    scale_y = (f32)gp::g_bp_regs.disp_copy_y_scale / 256.0f;
+                    scale_y = (f32)g_bp_regs.disp_copy_y_scale / 256.0f;
                 }
-                u32 xfb_height = (u32)(((f32)gp::g_bp_regs.efb_height_width.y + 1.0f) * scale_y);
-                u32 xfb_width = gp::g_bp_regs.disp_stride << 4;
+                u32 xfb_height = (u32)(((f32)g_bp_regs.efb_height_width.y + 1.0f) * scale_y);
+                u32 xfb_width = g_bp_regs.disp_stride << 4;
                 Rect xfb_rect(0, 0, xfb_width, xfb_height);
 
                 video_core::g_renderer->CopyToXFB(RendererBase::EFBToRendererRect(efb_rect), 
                                                   xfb_rect);
             } else {
                 video_core::g_texture_manager->CopyEFB(
-                    gp::g_bp_regs.efb_copy_addr << 5, 
-                    static_cast<BPPixelFormat>(gp::g_bp_regs.zcontrol.pixel_format), 
+                    g_bp_regs.efb_copy_addr << 5, 
+                    static_cast<BPPixelFormat>(g_bp_regs.zcontrol.pixel_format), 
                     efb_copy_exec,
                     RendererBase::EFBToRendererRect(efb_rect)
                 );
             }
             if (efb_copy_exec.clear) {
-                bool enable_color = gp::g_bp_regs.cmode0.color_update;
-                bool enable_alpha = gp::g_bp_regs.cmode0.alpha_update;
-                bool enable_z = gp::g_bp_regs.zmode.update_enable;
+                bool enable_color = g_bp_regs.cmode0.color_update;
+                bool enable_alpha = g_bp_regs.cmode0.alpha_update;
+                bool enable_z = g_bp_regs.zmode.update_enable;
 
                 // Disable unused alpha channels
                 if (!g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
@@ -243,10 +249,69 @@ void BP_RegisterWrite(u8 addr, u32 data) {
 	        u32 mem_addr = (g_bp_regs.mem[0x64] & 0x1fffff) << 5;
 	        u32 tlut_addr = (g_bp_regs.mem[0x65] & 0x3ff) << 5;
 
-	        memcpy(&gp::tmem[tlut_addr & TMEM_MASK], &Mem_RAM[mem_addr & RAM_MASK], cnt);
+	        memcpy(&tmem[tlut_addr & TMEM_MASK], &Mem_RAM[mem_addr & RAM_MASK], cnt);
             LOG_DEBUG(TGP, "BP-> TX_LOADTLUTx");
             break;
         }
+        break;
+
+    // TEV combiner registers
+    case BP_REG_TEV_COLOR_ENV + 0:
+    case BP_REG_TEV_COLOR_ENV + 2:
+    case BP_REG_TEV_COLOR_ENV + 4:
+    case BP_REG_TEV_COLOR_ENV + 6:
+    case BP_REG_TEV_COLOR_ENV + 8:
+    case BP_REG_TEV_COLOR_ENV + 10:
+    case BP_REG_TEV_COLOR_ENV + 12:
+    case BP_REG_TEV_COLOR_ENV + 14:
+    case BP_REG_TEV_COLOR_ENV + 16:
+    case BP_REG_TEV_COLOR_ENV + 18:
+    case BP_REG_TEV_COLOR_ENV + 20:
+    case BP_REG_TEV_COLOR_ENV + 22:
+    case BP_REG_TEV_COLOR_ENV + 24:
+    case BP_REG_TEV_COLOR_ENV + 26:
+    case BP_REG_TEV_COLOR_ENV + 28:
+    case BP_REG_TEV_COLOR_ENV + 30:
+    case BP_REG_TEV_ALPHA_ENV + 0:
+    case BP_REG_TEV_ALPHA_ENV + 2:
+    case BP_REG_TEV_ALPHA_ENV + 4:
+    case BP_REG_TEV_ALPHA_ENV + 6:
+    case BP_REG_TEV_ALPHA_ENV + 8:
+    case BP_REG_TEV_ALPHA_ENV + 10:
+    case BP_REG_TEV_ALPHA_ENV + 12:
+    case BP_REG_TEV_ALPHA_ENV + 14:
+    case BP_REG_TEV_ALPHA_ENV + 16:
+    case BP_REG_TEV_ALPHA_ENV + 18:
+    case BP_REG_TEV_ALPHA_ENV + 20:
+    case BP_REG_TEV_ALPHA_ENV + 22:
+    case BP_REG_TEV_ALPHA_ENV + 24:
+    case BP_REG_TEV_ALPHA_ENV + 26:
+    case BP_REG_TEV_ALPHA_ENV + 28:
+    case BP_REG_TEV_ALPHA_ENV + 30:
+        {
+            int stage = (addr & 0x1F) >> 1;
+            video_core::g_shader_manager->UpdateTevCombiner(stage, g_bp_regs.combiner[stage]);
+        }
+        break;
+
+    // TEV order registers
+    case BP_REG_TREF + 0:
+    case BP_REG_TREF + 1:
+    case BP_REG_TREF + 2:
+    case BP_REG_TREF + 3:
+    case BP_REG_TREF + 4:
+    case BP_REG_TREF + 5:
+    case BP_REG_TREF + 6:
+    case BP_REG_TREF + 7:
+        {
+            int index = addr - BP_REG_TREF;
+            video_core::g_shader_manager->UpdateTevOrder(index, g_bp_regs.tevorder[index]);
+        }
+        break;
+
+    // Alpha comparison mode
+    case BP_REG_ALPHACOMPARE:
+        video_core::g_shader_manager->UpdateAlphaFunc(g_bp_regs.alpha_func);
         break;
     }
 }
@@ -257,7 +322,7 @@ void BP_LoadTexture() {
         int set = (num & 4) >> 2;
         int index = num & 7;
         for (int stage = 0; stage < kGCMaxTevStages; stage++) {
-            if (gp::g_bp_regs.tevorder[stage >> 1].get_texmap(stage) == num) {
+            if (g_bp_regs.tevorder[stage >> 1].get_texmap(stage) == num) {
                 video_core::g_texture_manager->UpdateData(num, g_bp_regs.tex[set].image_0[index],
                     g_bp_regs.tex[set].image_3[index]);
                 video_core::g_texture_manager->Bind(num);

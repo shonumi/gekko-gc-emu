@@ -32,6 +32,20 @@
 
 namespace gp {
 
+/// Vertex component
+struct VertexComponent {
+    GXCompType  type;
+    GXCompCnt   count;
+};
+
+/// Vertex state
+struct VertexState {
+    VertexComponent pos;
+    VertexComponent col[kGCMaxVertexColors];
+    VertexComponent nrm;
+    VertexComponent tex[kGCMaxActiveTextures];
+};
+
 /**
  * @brief Decode a primitive type
  * @param type Type of primitive (e.g. points, lines, triangles, etc.)

@@ -31,7 +31,6 @@
 #include "hash_container.h"
 #include "gx_types.h"
 #include "renderer_base.h"
-#include "shader_manager.h"
 #include "uniform_manager.h"
 
 #define VBO_MAX_VERTS               (VBO_SIZE / sizeof(GXVertex))     
@@ -78,33 +77,16 @@ public:
     void BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset);
 
     /**
-     * Set the type of postion vertex data
-     * @param type Position data type (e.g. GX_F32)
-     * @param count Position data count (e.g. GX_POS_XYZ)
+     * Set the current vertex state (format and count of each vertex component)
+     * @param vertex_state VertexState structure of the current vertex state
      */
-    void VertexPosition_SetType(GXCompType type, GXCompCnt count);
+    void SetVertexState(const gp::VertexState& vertex_state);
 
     /**
      * Used to signal to the render that a region in XF is required by a primitive
      * @param index Vector index in XF memory that is required
      */
     void VertexPosition_UseIndexXF(u8 index);
-
-    /**
-     * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
-     * @param color Which color to configure (0 or 1)
-     * @param type GXCompType color format type
-     * @param count Color data count (e.g. GX_CLR_RGBA)
-     */
-    void VertexColor_SetType(int color, GXCompType type, GXCompCnt count);
-
-    /**
-     * Set the type of texture coordinate vertex data
-     * @param texcoord 0-7 texcoord to set type of
-     * @param type Texcoord data type (e.g. GX_F32)
-     * @param count Texcoord data count (e.g. GX_TEX_ST)
-     */
-    void VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count);
 
     /// End a primitive (signal renderer to draw it)
     void EndPrimitive(u32 vbo_offset, u32 vertex_num);
@@ -200,6 +182,8 @@ public:
 
     GLuint      fbo_[MAX_FRAMEBUFFERS];                 ///< Framebuffer objects
 
+    UniformManager* uniform_manager_;
+
 private:
 
     /// Initialize the FBO
@@ -230,30 +214,12 @@ private:
     // Vertex format stuff
     // -------------------
 
-    GLuint      vertex_position_format_;            ///< OpenGL position format (e.g. GL_FLOAT)
-    int         vertex_position_format_size_;       ///< Number of bytes to represent one coordinate
-    GXCompCnt   vertex_position_component_count_;   ///< Number of coordinates (2 - XY, 3 - XYZ)
+    gp::VertexState vertex_state_;
 
-    int         vertex_color_cur_;                  ///< Current color, 0 or 1
-    GXCompType  vertex_color_cur_type_[2];
-    GXCompCnt   vertex_color_cur_count_[2];
-
-    int         vertex_texcoord_cur_;               ///< Current texcoord, 0-kNumTextures
-    int         vertex_texcoord_enable_[8];
-
-    GLuint      vertex_texcoord_format_[8];     
-
-    int         vertex_texcoord_format_size_[8];    
-
-    GXCompCnt   vertex_texcoord_component_count_[8];
+    // Video core stuff
+    // ----------------
 
     EmuWindow*  render_window_;
-
-    ShaderManager*  shader_manager_;
-    UniformManager* uniform_manager_;
-
-    GLuint      generic_shader_id_;
-
     u32         last_mode_;                         ///< Last render mode
 
     // BP stuff

@@ -27,6 +27,7 @@
 
 #include "common.h"
 #include "renderer_base.h"
+#include "shader_manager.h"
 #include "texture_manager.h"
 
 #define USE_NEW_VIDEO_CORE
@@ -39,7 +40,8 @@
 
 namespace video_core {
 
-extern RendererBase*   g_renderer;          ///< Renderer plugin 
+extern RendererBase*   g_renderer;          ///< Renderer plugin
+extern ShaderManager*  g_shader_manager;    ///< Shader manager
 extern TextureManager* g_texture_manager;   ///< Texture manager
 extern int             g_current_frame;     ///< Current frame
 

@@ -31,7 +31,6 @@
 #include "cp_mem.h"
 #include "xf_mem.h"
 
-#include "shader_manager.h"
 #include "uniform_manager.h"
 
 UniformManager::UniformManager() {
@@ -260,7 +259,7 @@ void UniformManager::UpdateStagedData() {
     staged_uniform_data_.vs_ubo.state.cp_pos_matrix_offset = 
         gp::g_cp_regs.matrix_index_a.pos_normal_midx;
 
-    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_format != GX_F32) {
+    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].pos_type != GX_F32) {
         staged_uniform_data_.vs_ubo.state.cp_pos_dqf = 
             gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf();
     }

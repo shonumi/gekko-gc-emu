@@ -36,6 +36,7 @@ static const int kGCMaxTextureHeight    = 1024;
 static const int kGCMaxTextureMaps      = 8;    ///< Number of textures maps supported
 static const int kGCMaxActiveTextures   = 8;    ///< Number of textures supported
 static const int kGCMaxTevStages        = 16;   ///< Number of TEV stages supported
+static const int kGCMaxVertexColors     = 2;    ///< Number of vertex color channels supported
 
 /**
  * General struct used for describing a GX Vertex

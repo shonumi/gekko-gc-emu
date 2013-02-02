@@ -24,9 +24,10 @@
     <ClCompile Include="src\fifo.cpp" />
     <ClCompile Include="src\fifo_player.cpp" />
     <ClCompile Include="src\renderer_gl3\renderer_gl3.cpp" />
-    <ClCompile Include="src\renderer_gl3\shader_manager.cpp" />
+    <ClCompile Include="src\renderer_gl3\shader_interface.cpp" />
     <ClCompile Include="src\renderer_gl3\texture_interface.cpp" />
     <ClCompile Include="src\renderer_gl3\uniform_manager.cpp" />
+    <ClCompile Include="src\shader_manager.cpp" />
     <ClCompile Include="src\texture_decoder.cpp" />
     <ClCompile Include="src\texture_manager.cpp" />
     <ClCompile Include="src\utils.cpp" />
@@ -43,9 +44,10 @@
     <ClInclude Include="src\gx_types.h" />
     <ClInclude Include="src\renderer_base.h" />
     <ClInclude Include="src\renderer_gl3\renderer_gl3.h" />
-    <ClInclude Include="src\renderer_gl3\shader_manager.h" />
+    <ClInclude Include="src\renderer_gl3\shader_interface.h" />
     <ClInclude Include="src\renderer_gl3\texture_interface.h" />
     <ClInclude Include="src\renderer_gl3\uniform_manager.h" />
+    <ClInclude Include="src\shader_manager.h" />
     <ClInclude Include="src\texture_decoder.h" />
     <ClInclude Include="src\texture_manager.h" />
     <ClInclude Include="src\utils.h" />

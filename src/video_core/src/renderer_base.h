@@ -30,6 +30,8 @@
 #include "fifo.h"
 #include "gx_types.h"
 #include "video/emuwindow.h"
+#include "vertex_loader.h"
+#include "shader_manager.h"
 #include "texture_manager.h"
 
 class RendererBase {
@@ -88,33 +90,16 @@ public:
     virtual void BeginPrimitive(GXPrimitive prim, int count, GXVertex** vbo, u32 vbo_offset) = 0;
 
     /**
-     * Set the type of postion vertex data
-     * @param type Position data type (e.g. GX_F32)
-     * @param count Position data count (e.g. GX_POS_XYZ)
+     * Set the current vertex state (format and count of each vertex component)
+     * @param vertex_state VertexState structure of the current vertex state
      */
-    virtual void VertexPosition_SetType(GXCompType type, GXCompCnt count) = 0;
+    virtual void SetVertexState(const gp::VertexState& vertex_state) = 0;
 
     /**
      * Used to signal to the render that a region in XF is required by a primitive
      * @param index Vector index in XF memory that is required
      */
     virtual void VertexPosition_UseIndexXF(u8 index) = 0;
-
-    /**
-     * Set the type of color vertex data - type is always RGB8/RGBA8, just set count
-     * @param color Which color to configure (0 or 1)
-     * @param type GXCompType color format type
-     * @param count Color data count (e.g. GX_CLR_RGBA)
-     */
-    virtual void VertexColor_SetType(int color, GXCompType type, GXCompCnt count) = 0;
-
-    /**
-     * Set the type of texture coordinate vertex data
-     * @param texcoord 0-7 texcoord to set type of
-     * @param type Texcoord data type (e.g. GX_F32)
-     * @param count Texcoord data count (e.g. GX_TEX_ST)
-     */
-    virtual void VertexTexcoord_SetType(int texcoord, GXCompType type, GXCompCnt count) = 0;
 
     /// End a primitive (signal renderer to draw it)
     virtual void EndPrimitive(u32 vbo_offset, u32 vertex_num) = 0;
@@ -220,13 +205,16 @@ public:
 
     int current_frame() const { return current_frame_; }
 
+    ShaderManager::BackendInterface* shader_interface() const { return shader_interface_; }
+
     TextureManager::BackendInterface* texture_interface() const { return texture_interface_; }
 
 protected:
     f32 current_fps_;                       ///< Current framerate, should be set by the renderer
     int current_frame_;                     ///< Current frame, should be set by the renderer
 
-    TextureManager::BackendInterface* texture_interface_;
+    ShaderManager::BackendInterface*    shader_interface_;
+    TextureManager::BackendInterface*   texture_interface_;
 
 private:
 

@@ -28,9 +28,6 @@
 #include "crc.h"
 #include "memory.h"
 
-#include "renderer_gl3/renderer_gl3.h"
-#include "renderer_gl3/shader_manager.h"
-
 #include "video_core.h"
 
 #include "bp_mem.h"
