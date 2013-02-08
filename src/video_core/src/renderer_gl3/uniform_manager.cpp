@@ -25,6 +25,7 @@
 #include "common.h"
 #include "crc.h"
 #include "config.h"
+#include "hash.h"
 
 #include "gx_types.h"
 #include "bp_mem.h"
@@ -211,8 +212,8 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     int bytelen = length << 2;
 
     // Invalidate region in UBO if a change is detected
-    if (GenerateCRC((u8*)data, bytelen) != 
-        GenerateCRC((u8*)&__uniform_data_.vs_ubo.xf_mem[addr], bytelen)) {
+    if (common::GetHash64((u8*)data, bytelen, 0) != 
+        common::GetHash64((u8*)&__uniform_data_.vs_ubo.xf_mem[addr], bytelen, 0)) {
 
         // Update data block
         memcpy(&__uniform_data_.vs_ubo.xf_mem[addr], data, bytelen);
@@ -281,7 +282,6 @@ void UniformManager::UpdateStagedData() {
     }
 }
 
-#define _COMBINE_BP_UBO_WRITES
 /// Apply any uniform changes to the shader
 void UniformManager::ApplyChanges() {
 
@@ -308,15 +308,6 @@ void UniformManager::ApplyChanges() {
     // ------------------------------------------
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_fs_handle_);
-
-    // Init changeset markers
-#ifdef _COMBINE_BP_UBO_WRITES
-    int changeset_start = -1;
-    int changeset_length = 0;
-    int num_stage_iterations = kGCMaxTevStages + 1;
-#else
-    int num_stage_iterations = kGCMaxTevStages;
-#endif
     if (!(__uniform_data_.fs_ubo.tev_state == 
         staged_uniform_data_.fs_ubo.tev_state) || 
         !(__uniform_data_.fs_ubo.tev_stages[0] == 
@@ -334,44 +325,15 @@ void UniformManager::ApplyChanges() {
     // Iterate through each stage of UBO data, upload to GPU memory if a change is detected, 
     // otherwise ignore. If _COMBINE_BP_UBO_WRITES is defined, sequentially changes will be combined
     // when uploaded. Otherwise, they will be uploaed individually.
-    for (int stage = 1; stage < num_stage_iterations; stage++) {
+    for (int stage = 1; stage < kGCMaxTevStages; stage++) {
 
         // No change found
-        // ---------------
-
         if ((staged_uniform_data_.fs_ubo.tev_stages[stage] == 
             __uniform_data_.fs_ubo.tev_stages[stage]) || (stage >= kGCMaxTevStages)) {
-
-            // Upload last changeset
-#ifdef _COMBINE_BP_UBO_WRITES               
-            if (changeset_start != -1) {
-                int byte_offset = sizeof(UniformStruct_TevState) + 
-                    (changeset_start * sizeof(UniformStruct_TevStageParams));
-                glBufferSubData(GL_UNIFORM_BUFFER, 
-                    byte_offset, 
-	                sizeof(UniformStruct_TevStageParams) * changeset_length, 
-	                &__uniform_data_.fs_ubo.tev_stages[changeset_start]);
-
-                // Reset changeset markers
-                changeset_start = -1;
-                changeset_length = 0;
-            }
-#endif
             continue;
 
         // Change found
-        // ------------
-
         } else {
-#ifdef _COMBINE_BP_UBO_WRITES 
-            // If new changeset, mark start point of next uniform burst
-            if (changeset_start == -1) {
-                changeset_start = stage;
-            }
-            __uniform_data_.fs_ubo.tev_stages[stage] = 
-                staged_uniform_data_.fs_ubo.tev_stages[stage];
-            changeset_length++;
-#else
             __uniform_data_.fs_ubo.tev_stages[stage] = 
                 staged_uniform_data_.fs_ubo.tev_stages[stage];
 
@@ -380,7 +342,6 @@ void UniformManager::ApplyChanges() {
 
             glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(UniformStruct_TevStageParams), 
 	            &__uniform_data_.fs_ubo.tev_stages[stage]);
-#endif
         }
     }
 }
