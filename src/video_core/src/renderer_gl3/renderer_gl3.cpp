@@ -252,9 +252,12 @@ void RendererGL3::SetGenerationMode() {
 
 /** 
  * Sets the renderer blend mode
+ * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+ * @param pe_cmode_1 BPPECMode1 register to user for blend settings
  * @param blend_mode_ Forces blend mode to update
  */
-void RendererGL3::SetBlendMode(bool force_update) {
+void RendererGL3::SetBlendMode(const gp::BPPECMode0& pe_cmode_0, const gp::BPPECMode1& pe_cmode_1, 
+    bool force_update) {
 
     /// OpenGL color source factors
     static const GLenum g_src_factors[8] = {
@@ -266,16 +269,16 @@ void RendererGL3::SetBlendMode(bool force_update) {
         GL_ZERO,       GL_ONE,                  GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
         GL_SRC1_ALPHA, GL_ONE_MINUS_SRC1_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
     };
-    u32 temp = gp::g_bp_regs.cmode0.subtract << 2;
-    bool use_dest_alpha = gp::g_bp_regs.cmode1.enable && gp::g_bp_regs.cmode0.alpha_update && 
+    u32 temp = pe_cmode_0.subtract << 2;
+    bool use_dest_alpha = pe_cmode_1.enable && pe_cmode_0.alpha_update && 
         gp::g_bp_regs.zcontrol.is_efb_alpha_enabled();
 
-    if (gp::g_bp_regs.cmode0.subtract) {
+    if (pe_cmode_0.subtract) {
         temp |= 0x0049;                             // Enable blending src 1 dst 1
-    } else if (gp::g_bp_regs.cmode0.blend_enable) {
+    } else if (pe_cmode_0.blend_enable) {
         temp |= 1;                                  // Enable blending
-        temp |= gp::g_bp_regs.cmode0.src_factor << 3;
-        temp |= gp::g_bp_regs.cmode0.dst_factor << 6;
+        temp |= pe_cmode_0.src_factor << 3;
+        temp |= pe_cmode_0.dst_factor << 6;
     }
     u32 changes = force_update ? 0xFFFFFFFF : temp ^ blend_mode_;
 
@@ -316,8 +319,11 @@ void RendererGL3::SetBlendMode(bool force_update) {
     blend_mode_ = temp;
 }
 
-/// Sets the renderer logic op mode
-void RendererGL3::SetLogicOpMode() {
+/** 
+ * Sets the renderer logic op mode
+ * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+ */
+void RendererGL3::SetLogicOpMode(const gp::BPPECMode0& pe_cmode_0) {
 
     /// OpenGL color logic opcodes
     static const GLenum logic_opcodes[16] = {
@@ -332,14 +338,18 @@ void RendererGL3::SetLogicOpMode() {
 		GL_CLEAR,         GL_COPY, GL_CLEAR,         GL_COPY,
 		GL_COPY_INVERTED, GL_SET,  GL_COPY_INVERTED, GL_SET
     };
-    if (gp::g_bp_regs.cmode0.logicop_enable && gp::g_bp_regs.cmode0.logic_mode != 3) {
+    if (pe_cmode_0.logicop_enable && pe_cmode_0.logic_mode != 3) {
         GLenum logic_opcode = 0;
         glEnable(GL_COLOR_LOGIC_OP);
-
-        if (gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
-            logic_opcode = logic_opcodes[gp::g_bp_regs.cmode0.logic_mode];
+        bool no_alpha = (pe_cmode_0.src_factor == GX_BL_DSTALPHA || 
+                         pe_cmode_0.src_factor == GX_BL_INVDSTALPHA ||
+                         pe_cmode_0.dst_factor == GX_BL_DSTALPHA || 
+                         pe_cmode_0.dst_factor == GX_BL_INVDSTALPHA) && 
+                         !gp::g_bp_regs.zcontrol.is_efb_alpha_enabled();
+        if (no_alpha) {
+            logic_opcode = logic_opcodes_no_alpha[pe_cmode_0.logic_mode];
         } else {
-            logic_opcode = logic_opcodes_no_alpha[gp::g_bp_regs.cmode0.logic_mode];
+            logic_opcode = logic_opcodes[pe_cmode_0.logic_mode];
         }
         glLogicOp(logic_opcode);
     } else {
@@ -347,25 +357,31 @@ void RendererGL3::SetLogicOpMode() {
     }
 }
 
-/// Sets the renderer dither mode
-void RendererGL3::SetDitherMode() {
-    if (gp::g_bp_regs.cmode0.dither) {
+/**
+ * Sets the renderer dither mode
+ * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+ */
+void RendererGL3::SetDitherMode(const gp::BPPECMode0& pe_cmode_0) {
+    if (pe_cmode_0.dither) {
         glEnable(GL_DITHER);
     } else {
         glDisable(GL_DITHER);
     }
 }
 
-/// Sets the renderer color mask mode
-void RendererGL3::SetColorMask() {
+/**
+ * Sets the renderer color mask mode
+ * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+ */
+void RendererGL3::SetColorMask(const gp::BPPECMode0& pe_cmode_0) {
     GLenum cmask = GL_FALSE;
     GLenum amask = GL_FALSE;
 
     if (gp::g_bp_regs.alpha_func.test_result() != gp::BPAlphaFunc::kTestResult_Fail) {
-        if (gp::g_bp_regs.cmode0.color_update) {
+        if (pe_cmode_0.color_update) {
             cmask = GL_TRUE;
         }
-        if (gp::g_bp_regs.cmode0.alpha_update && gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
+        if (pe_cmode_0.alpha_update && gp::g_bp_regs.zcontrol.is_efb_alpha_enabled()) {
             amask = GL_TRUE;
         }
     }
@@ -409,17 +425,20 @@ void RendererGL3::SetMode(kRenderMode flags) {
     last_mode_ |= flags;
 }
 
-/// Restore the render mode
-void RendererGL3::RestoreMode() {
+/**
+ * Restore the render mode
+ * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+ */
+void RendererGL3::RestoreMode(const gp::BPPECMode0& pe_cmode_0) {
     if(last_mode_ & kRenderMode_ZComp) {
-        SetColorMask();
+        SetColorMask(pe_cmode_0);
     }
     if(last_mode_ & kRenderMode_Multipass) {
         SetDepthMode();
     }
     if (last_mode_ & kRenderMode_UseDstAlpha) {
-        SetColorMask();
-        if (gp::g_bp_regs.cmode0.blend_enable || gp::g_bp_regs.cmode0.subtract) {
+        SetColorMask(pe_cmode_0);
+        if (pe_cmode_0.blend_enable || pe_cmode_0.subtract) {
             glEnable(GL_BLEND);
         }
     }
@@ -444,9 +463,9 @@ void RendererGL3::RestoreRenderState() {
     SetGenerationMode();
     glEnable(GL_SCISSOR_TEST);
     gp::BP_SetScissorBox();
-    SetColorMask();
+    SetColorMask(gp::g_bp_regs.cmode0);
     SetDepthMode();
-    SetBlendMode(true);
+    SetBlendMode(gp::g_bp_regs.cmode0, gp::g_bp_regs.cmode1, true);
     if (common::g_config->current_renderer_config().enable_wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {

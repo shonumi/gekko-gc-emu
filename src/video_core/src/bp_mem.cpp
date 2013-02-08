@@ -125,19 +125,19 @@ void BP_RegisterWrite(u8 addr, u32 data) {
         if (data & 0xFFFF) {
             // Set LogicOp Blending Mode
             if (data & 2) {
-                video_core::g_renderer->SetLogicOpMode();
+                video_core::g_renderer->SetLogicOpMode(g_bp_regs.cmode0);
             }
             // Set Dithering Mode
             if (data & 4) {
-                video_core::g_renderer->SetDitherMode();
+                video_core::g_renderer->SetDitherMode(g_bp_regs.cmode0);
             }
             // Set Blending Mode
             if (data & 0xFE1) {
-                video_core::g_renderer->SetBlendMode(false);
+                video_core::g_renderer->SetBlendMode(g_bp_regs.cmode0, g_bp_regs.cmode1, false);
             }
             // Set Color Mask
             if (data & 0x18) {
-                video_core::g_renderer->SetColorMask();
+                video_core::g_renderer->SetColorMask(g_bp_regs.cmode0);
             }
         }
         break;

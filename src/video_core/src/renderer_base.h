@@ -121,18 +121,30 @@ public:
 
     /** 
      * Sets the renderer blend mode
+     * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+     * @param pe_cmode_1 BPPECMode1 register to user for blend settings
      * @param blend_mode_ Forces blend mode to update
      */
-    virtual void SetBlendMode(bool force_update) = 0;
+    virtual void SetBlendMode(const gp::BPPECMode0& pe_cmode_0, const gp::BPPECMode1& pe_cmode_1, 
+        bool force_update) = 0;
 
-    /// Sets the renderer logic op mode
-    virtual void SetLogicOpMode() = 0;
+    /** 
+     * Sets the renderer logic op mode
+     * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+     */
+    virtual void SetLogicOpMode(const gp::BPPECMode0& pe_cmode_0) = 0;
 
-    /// Sets the renderer dither mode
-    virtual void SetDitherMode() = 0;
+    /**
+     * Sets the renderer dither mode
+     * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+     */
+    virtual void SetDitherMode(const gp::BPPECMode0& pe_cmode_0) = 0;
 
-    /// Sets the renderer color mask mode
-    virtual void SetColorMask() = 0;
+    /**
+     * Sets the renderer color mask mode
+     * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+     */
+    virtual void SetColorMask(const gp::BPPECMode0& pe_cmode_0) = 0;
 
     /* Sets the scissor box
      * @param rect Renderer rectangle to set scissor box to
@@ -172,8 +184,11 @@ public:
      */
     virtual void SetMode(kRenderMode flags) = 0;
 
-    /// Restore the render mode
-    virtual void RestoreMode() = 0;
+    /**
+     * Restore the render mode
+     * @param pe_cmode_0 BPPECMode0 register to user for blend settings
+     */
+    virtual void RestoreMode(const gp::BPPECMode0& pe_cmode_0) = 0;
 
     /// Reset the full renderer API to the NULL state
     virtual void ResetRenderState() = 0;
