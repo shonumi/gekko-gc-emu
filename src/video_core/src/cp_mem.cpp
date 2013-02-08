@@ -35,6 +35,10 @@ CPMemory g_cp_regs; ///< CP memory/registers
 
 /// Write a BP register
 void CP_RegisterWrite(u8 addr, u32 data) {
+    // Skip register write (if nothing is new)
+    if (g_cp_regs.mem[addr] == data) {
+        return;
+    }
     g_cp_regs.mem[addr] = data;
 
     switch (addr) {

@@ -92,12 +92,20 @@ void BP_SetLinePointSize() {
 /// Write a BP register
 void BP_RegisterWrite(u8 addr, u32 data) {
     LOG_DEBUG(TGP, "BP_LOAD [%02x] = %08x", addr, data);
-
+    // Skip register write (if nothing is new)
+    if (g_bp_regs.mem[addr] == data)
+        // These registers trigger something even if the data is not new...
+        if (addr != BP_REG_PE_DRAWDONE   && addr != BP_REG_PE_TOKEN   && 
+            addr != BP_REG_PE_TOKEN_INT  && addr != BP_REG_CLEARBBOX1 &&  
+            addr != BP_REG_CLEARBBOX2    && addr != BP_REG_EFB_COPY   && 
+            addr != BP_REG_LOADTLUT0     && addr != BP_REG_LOADTLUT1  && 
+            addr != BP_REG_TEXINVALIDATE && addr != BP_REG_TEXMODESYNC) {
+        return;
+    }
 	// Write data to bp memory
     g_bp_regs.mem[addr] = data;
 
     // Write to renderer
-	//	Note: This should always happen first to compare what was last written!
     video_core::g_renderer->WriteBP(addr, data);
 
     // Adjust GX globals accordingly
