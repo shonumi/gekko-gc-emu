@@ -217,7 +217,6 @@ private:
     /// Generates the fragment shader header for the current state
     void GenerateFragmentHeader();
 
-
     DISALLOW_COPY_AND_ASSIGN(ShaderManager);
 };
 
