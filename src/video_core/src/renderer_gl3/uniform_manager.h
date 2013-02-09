@@ -78,6 +78,10 @@ public:
 
         f32 projection_matrix[4][4];
 
+        f32 xf_material_color[2][4];
+        f32 xf_ambient_color[2][4];
+
+
         inline bool operator == (const UniformStruct_VertexState &val) const {
             return (
                 cp_pos_dqf                  == val.cp_pos_dqf &&
@@ -113,7 +117,23 @@ public:
                 projection_matrix[3][0]     == val.projection_matrix[3][0] &&
                 projection_matrix[3][1]     == val.projection_matrix[3][1] &&
                 projection_matrix[3][2]     == val.projection_matrix[3][2] &&
-                projection_matrix[3][3]     == val.projection_matrix[3][3]);
+                projection_matrix[3][3]     == val.projection_matrix[3][3] && 
+                xf_material_color[0][0]     == val.xf_material_color[0][0] &&
+                xf_material_color[0][1]     == val.xf_material_color[0][1] &&
+                xf_material_color[0][2]     == val.xf_material_color[0][2] &&
+                xf_material_color[0][3]     == val.xf_material_color[0][3] &&
+                xf_material_color[1][0]     == val.xf_material_color[1][0] &&
+                xf_material_color[1][1]     == val.xf_material_color[1][1] &&
+                xf_material_color[1][2]     == val.xf_material_color[1][2] &&
+                xf_material_color[1][3]     == val.xf_material_color[1][3] &&
+                xf_ambient_color[0][0]      == val.xf_ambient_color[0][0] &&
+                xf_ambient_color[0][1]      == val.xf_ambient_color[0][1] &&
+                xf_ambient_color[0][2]      == val.xf_ambient_color[0][2] &&
+                xf_ambient_color[0][3]      == val.xf_ambient_color[0][3] &&
+                xf_ambient_color[1][0]      == val.xf_ambient_color[1][0] &&
+                xf_ambient_color[1][1]      == val.xf_ambient_color[1][1] &&
+                xf_ambient_color[1][2]      == val.xf_ambient_color[1][2] &&
+                xf_ambient_color[1][3]      == val.xf_ambient_color[1][3]);
         }
     };
 

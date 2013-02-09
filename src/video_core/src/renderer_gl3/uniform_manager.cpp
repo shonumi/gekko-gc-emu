@@ -211,25 +211,55 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
 void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     int bytelen = length << 2;
 
-    // Invalidate region in UBO if a change is detected
-    if (common::GetHash64((u8*)data, bytelen, 0) != 
-        common::GetHash64((u8*)&__uniform_data_.vs_ubo.xf_mem[addr], bytelen, 0)) {
+    // Register
+    if (addr & 0x1000) {
 
-        // Update data block
-        memcpy(&__uniform_data_.vs_ubo.xf_mem[addr], data, bytelen);
+        switch (addr) {
+        case XF_SETCHAN0_AMBCOLOR:
+        case XF_SETCHAN1_AMBCOLOR:
+            {
+                int index = addr - XF_SETCHAN0_AMBCOLOR;
+                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][0] = f32(gp::g_xf_regs.ambient[index].r) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][1] = f32(gp::g_xf_regs.ambient[index].g) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][2] = f32(gp::g_xf_regs.ambient[index].b) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][3] = f32(gp::g_xf_regs.ambient[index].a) / 255.0f;
+            }
+            break;
+        case XF_SETCHAN0_MATCOLOR:
+        case XF_SETCHAN1_MATCOLOR:
+            {
+                int index = addr - XF_SETCHAN0_MATCOLOR;
+                staged_uniform_data_.vs_ubo.state.xf_material_color[index][0] = f32(gp::g_xf_regs.material[index].r) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.xf_material_color[index][1] = f32(gp::g_xf_regs.material[index].g) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.xf_material_color[index][2] = f32(gp::g_xf_regs.material[index].b) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.xf_material_color[index][3] = f32(gp::g_xf_regs.material[index].a) / 255.0f;
+            }
+            break;
+        }
 
-        // Invalidate GPU data block region
-        invalid_regions_xf_[last_invalid_region_xf_].offset = (addr << 2);
-        invalid_regions_xf_[last_invalid_region_xf_].length = bytelen;
+    // TF mem
+    } else if (addr < 0x100) {
 
-        _ASSERT_MSG(TGP, (last_invalid_region_xf_ < kMaxUniformRegions), 
-            "XF uniform region (0x%08X) is outside bounds!", last_invalid_region_xf_);
-        _ASSERT_MSG(TGP, (addr < gp::kXFMemSize), 
-            "XF memory update adrress (0x%04X) is outside bounds!", addr);
-        _ASSERT_MSG(TGP, ((addr + (bytelen >> 2)) < gp::kXFMemSize), 
-            "XF memory update size (0x%04X) is outside bounds!", bytelen);
+        // Invalidate region in UBO if a change is detected
+        if (common::GetHash64((u8*)data, bytelen, 0) != 
+            common::GetHash64((u8*)&__uniform_data_.vs_ubo.xf_mem[addr], bytelen, 0)) {
 
-        last_invalid_region_xf_++;
+            // Update data block
+            memcpy(&__uniform_data_.vs_ubo.xf_mem[addr], data, bytelen);
+
+            // Invalidate GPU data block region
+            invalid_regions_xf_[last_invalid_region_xf_].offset = (addr << 2);
+            invalid_regions_xf_[last_invalid_region_xf_].length = bytelen;
+
+            _ASSERT_MSG(TGP, (last_invalid_region_xf_ < kMaxUniformRegions), 
+                "XF uniform region (0x%08X) is outside bounds!", last_invalid_region_xf_);
+            _ASSERT_MSG(TGP, (addr < gp::kXFMemSize), 
+                "XF memory update adrress (0x%04X) is outside bounds!", addr);
+            _ASSERT_MSG(TGP, ((addr + (bytelen >> 2)) < gp::kXFMemSize), 
+                "XF memory update size (0x%04X) is outside bounds!", bytelen);
+
+            last_invalid_region_xf_++;
+        }
     }
 }
 
