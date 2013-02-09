@@ -185,8 +185,11 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(16));
+    // Normal
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, gl_types[vertex_state_.nrm.type], GL_FALSE, sizeof(GXVertex), 
+        reinterpret_cast<void*>(20));
     // TexCoords
-    //_ASSERT_MSG(TGP, gp::g_xf_regs.num_texgen.num_texgens < 7, "Number of texgens >= 7"); 
     for (int i = 0; i < gp::g_xf_regs.num_texgen.num_texgens; i++) {
         glEnableVertexAttribArray(i + 4);
         glVertexAttribPointer(i + 4, 4, gl_types[vertex_state_.tex[i].type], GL_FALSE, 
