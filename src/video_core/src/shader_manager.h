@@ -214,6 +214,9 @@ private:
     /// Generates the vertex shader header for the current state
     void GenerateVertexHeader();
 
+    /// Generates the lighting shader header for the current state
+    void GenerateVertexLightingHeader();
+
     /// Generates the fragment shader header for the current state
     void GenerateFragmentHeader();
 

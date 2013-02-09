@@ -112,8 +112,8 @@ void XF_Load(u32 length, u32 base_addr, u32* data) {
     // Transformation memory
     } else if (base_addr < 0x100) {
         memcpy(&g_xf_mem[base_addr], data, length << 2);
-        video_core::g_renderer->WriteXF(base_addr, length, data);
     }
+    video_core::g_renderer->WriteXF(base_addr, length, data);
 }
 
 /// Write data into a XF register indexed-form

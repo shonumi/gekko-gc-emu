@@ -24,6 +24,9 @@ struct VertexState {
     vec4 cp_tex_dqf[2];
     ivec4 cp_tex_matrix_offset[2];
     mat4 projection_matrix;
+    
+    vec4 xf_material_color[2];
+    vec4 xf_ambient_color[2];
 };
 
 // XF memory
@@ -33,7 +36,7 @@ layout(std140) uniform _VS_UBO {
 };
 
 // Vertex shader outputs
-out vec4 vtx_color[2];
+out vec4 col[2];
 out vec2 vtx_texcoord[8];
 
 #define XF_MEM_MTX44(addr) mat4( \
@@ -43,6 +46,7 @@ out vec2 vtx_texcoord[8];
     xf_mem[addr].w, xf_mem[addr + 1].w, xf_mem[addr + 2].w, 1.0)
 
 void main() {
+    vec4 vtx_color[2];
     mat4 modelview_matrix;
 #ifdef _VSDEF_POS_MIDX // Position modelview matrix
     modelview_matrix = XF_MEM_MTX44(int(matrix_idx_pos[0]));
@@ -162,5 +166,16 @@ void main() {
     vtx_color[1] = clamp((color1.abgr / 255.0f), 0.0, 1.0);
 #else
     vtx_color[1] = vec4(1.0, 1.0, 1.0, 1.0);
+#endif
+
+#ifdef _VSDEF_COLOR0_MATERIAL_SRC
+    col[0] = _VSDEF_COLOR0_MATERIAL_SRC;
+#else
+    col[0] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+#endif
+#ifdef _VSDEF_COLOR1_MATERIAL_SRC
+    col[1] = _VSDEF_COLOR1_MATERIAL_SRC;
+#else
+    col[1] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 #endif
 }

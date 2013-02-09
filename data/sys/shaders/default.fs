@@ -7,7 +7,6 @@
 // Prepare and compute TEV stage result
 #define STAGE_RESULT(s) \
     tex = _FSDEF_TEXTURE_##s; \
-    tex = _FSDEF_FIX_FORMAT_TEXTURE_##s; \
  \
     stage = tev_stages[s]; \
     konst = stage.konst; \

@@ -23,15 +23,18 @@
  */
 
 #include "hash.h"
+#include "misc_utils.h"
+
 #include "shader_manager.h"
 
 #include "video_core.h"
 #include "cp_mem.h"
 #include "bp_mem.h"
+#include "xf_mem.h"
 #include "crc.h"
 
-#define _VSDEF(str, ...)  vsh_->Write("#define _VSDEF_" str, __VA_ARGS__)
-#define _FSDEF(str, ...)  fsh_->Write("#define _FSDEF_" str, __VA_ARGS__)
+#define _VSDEF(str, ...)  vsh_->Write("#define _VSDEF_" str "\n", __VA_ARGS__)
+#define _FSDEF(str, ...)  fsh_->Write("#define _FSDEF_" str "\n", __VA_ARGS__)
 
 ShaderManager::ShaderManager(const BackendInterface* backend_interface) {
     backend_interface_  = const_cast<BackendInterface*>(backend_interface);
@@ -85,19 +88,118 @@ void ShaderManager::GenerateVertexHeader() {
 
     vsh_->Reset();
 
-    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled()) _VSDEF("POS_DQF\n");
-    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) _VSDEF("POS_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable) _VSDEF("TEX_0_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex1_midx_enable) _VSDEF("TEX_1_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex2_midx_enable) _VSDEF("TEX_2_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) _VSDEF("TEX_3_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable) _VSDEF("TEX_4_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex5_midx_enable) _VSDEF("TEX_5_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex6_midx_enable) _VSDEF("TEX_6_MIDX\n");
-    if (gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) _VSDEF("TEX_7_MIDX\n");
+    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled()) _VSDEF("POS_DQF");
+    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) _VSDEF("POS_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable) _VSDEF("TEX_0_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex1_midx_enable) _VSDEF("TEX_1_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex2_midx_enable) _VSDEF("TEX_2_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) _VSDEF("TEX_3_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable) _VSDEF("TEX_4_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex5_midx_enable) _VSDEF("TEX_5_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex6_midx_enable) _VSDEF("TEX_6_MIDX");
+    if (gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) _VSDEF("TEX_7_MIDX");
 
-    _VSDEF("COLOR0_%s\n", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
-    _VSDEF("COLOR1_%s\n", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
+    _VSDEF("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
+    _VSDEF("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
+
+
+    GenerateVertexLightingHeader();
+}
+
+/*
+
+_VSDEF_COLOR0_MATSOURCE
+
+
+
+ */
+void ShaderManager::GenerateVertexLightingHeader() {
+    int num_channels = gp::g_xf_regs.num_color_channels.num_color_chans;
+
+    _ASSERT_MSG(TGP, num_channels <= 2, "Not implemented num_channels > 2! Got %d", num_channels);
+
+    //static const char* color_material_src[] = { "vtx_color[%d]", "
+    for (int i = 0; i < num_channels; i++) {
+        const gp::XFLitChannel& color = gp::g_xf_regs.color[i];
+        const gp::XFLitChannel& alpha = gp::g_xf_regs.alpha[i];
+
+        std::string mat_src = "vec4(";
+        std::string amb_src = "vec4(";
+
+        // Material source
+        // ---------------
+
+        // Color material source is vertex color (if available)
+        if (color.material_src) {
+            if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+                mat_src += "vtx_color[1].rgb, ";
+            } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+                mat_src += "vtx_color[0].rgb, ";
+            } else {
+                mat_src += "vec3(1.0f, 1.0f, 1.0f), ";
+            }
+        // Otherwise, it is the XF material register
+        } else {
+            mat_src += common::FormatStr("state.xf_material_color[%d].rgb, ", i);
+        }
+        // Alpha material source is vertex alpha
+        if (alpha.material_src) {
+            if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+                mat_src += "vtx_color[1].a)";
+            } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+                mat_src += "vtx_color[0].a)";
+            } else {
+                mat_src += "1.0f)";
+            }
+        // Otherwise, it is the XF material register
+        } else {
+            mat_src += common::FormatStr("state.xf_material_color[%d].a)", i);
+        }
+        _VSDEF("COLOR%d_MATERIAL_SRC %s", i, mat_src.c_str());
+
+        // Ambient source
+        // --------------
+
+        if (color.enable_lighting) {
+            // Color ambient source is vertex color (if available)
+            if (color.ambsource) {
+                if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+                    amb_src += "vtx_color[1].rgb, ";
+                } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+                    amb_src += "vtx_color[0].rgb, ";
+                } else {
+                    amb_src += "vec3(0.0f, 0.0f, 0.0f), ";
+                }
+            // Otherwise, it is the XF ambient register
+            } else {
+                amb_src += common::FormatStr("state.xf_ambient_color[%d].rgb, ", i);
+            }
+        } else {
+            amb_src += "vec3(1.0f, 1.0f, 1.0f), ";
+        }
+        if (alpha.enable_lighting) {
+            // Alpha ambient source is vertex alpha
+            if (alpha.material_src) {
+                if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+                    amb_src += "vtx_color[1].a)";
+                } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+                    amb_src += "vtx_color[0].a)";
+                } else {
+                    amb_src += "0.0f)";
+                }
+            // Otherwise, it is the XF ambient register
+            } else {
+                amb_src += common::FormatStr("state.xf_ambient_color[%d].a)", i);
+            }
+        } else {
+            amb_src += "1.0f)";
+        }
+        _VSDEF("COLOR%d_AMBIENT_SRC %s", i, amb_src.c_str());
+        
+    // COLOR%d_MATERIAL_SRC == mat
+    // COLOR%d_AMBIENT_SRC == lacc
+
+    }
 }
                                                  
 void ShaderManager::GenerateFragmentHeader() {   
@@ -121,17 +223,17 @@ void ShaderManager::GenerateFragmentHeader() {
 
     fsh_->Reset();
 
-    _FSDEF("NUM_STAGES %d\n", state_.fields.num_stages);
-    _FSDEF("ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))\n",
+    _FSDEF("NUM_STAGES %d", state_.fields.num_stages);
+    _FSDEF("ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))",
         alpha_compare_0[state_.fields.alpha_func.comp0],
         alpha_logic[state_.fields.alpha_func.logic],
         alpha_compare_1[state_.fields.alpha_func.comp1]);
 
     for (int stage = 0; stage <= gp::g_bp_regs.genmode.num_tevstages; stage++) {
         reg_index = stage / 2;
-        _FSDEF("CLAMP_COLOR_%d(val) %s\n", stage, clamp[gp::g_bp_regs.combiner[stage].color.clamp]);
-        _FSDEF("CLAMP_ALPHA_%d(val) %s\n", stage, clamp[gp::g_bp_regs.combiner[stage].alpha.clamp]);
-        _FSDEF("STAGE_DEST vec4(%s.rgb, %s.a)\n", 
+        _FSDEF("CLAMP_COLOR_%d(val) %s", stage, clamp[gp::g_bp_regs.combiner[stage].color.clamp]);
+        _FSDEF("CLAMP_ALPHA_%d(val) %s", stage, clamp[gp::g_bp_regs.combiner[stage].alpha.clamp]);
+        _FSDEF("STAGE_DEST vec4(%s.rgb, %s.a)", 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].color.dest], 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].alpha.dest]);
 
@@ -156,54 +258,55 @@ void ShaderManager::GenerateFragmentHeader() {
                     }
                 }
             }*/
-            _FSDEF("TEXTURE_%d texture2D(texture[%d], vtx_texcoord[%d])\n", 
+            _FSDEF("TEXTURE_%d texture2D(texture[%d], vtx_texcoord[%d])", 
                 stage, texmap, texcoord);
 
         // This will use white color for texture
         } else {
-            _FSDEF("TEXTURE_%d vec4(1.0f, 1.0f, 1.0f, 1.0f)\n", stage);
+            _FSDEF("TEXTURE_%d vec4(1.0f, 1.0f, 1.0f, 1.0f)", stage);
         }
-        _FSDEF("COMBINER_COLOR_A_%d %s\n", stage, 
+
+        _FSDEF("COMBINER_COLOR_A_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_a]);
-        _FSDEF("COMBINER_COLOR_B_%d %s\n", stage, 
+        _FSDEF("COMBINER_COLOR_B_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_b]);
-        _FSDEF("COMBINER_COLOR_C_%d %s\n", stage, 
+        _FSDEF("COMBINER_COLOR_C_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_c]);
-        _FSDEF("COMBINER_COLOR_D_%d %s\n", stage, 
+        _FSDEF("COMBINER_COLOR_D_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_d]);
-        _FSDEF("COMBINER_COLOR_DEST_%d %s.rgb\n", stage, 
+        _FSDEF("COMBINER_COLOR_DEST_%d %s.rgb", stage, 
             tev_dest[state_.fields.tev_combiner[stage].color.dest]);
 
-        _FSDEF("COMBINER_ALPHA_A_%d %s\n", stage, 
+        _FSDEF("COMBINER_ALPHA_A_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_a]);
-        _FSDEF("COMBINER_ALPHA_B_%d %s\n", stage, 
+        _FSDEF("COMBINER_ALPHA_B_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_b]);
-        _FSDEF("COMBINER_ALPHA_C_%d %s\n", stage, 
+        _FSDEF("COMBINER_ALPHA_C_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_c]);
-        _FSDEF("COMBINER_ALPHA_D_%d %s\n", stage, 
+        _FSDEF("COMBINER_ALPHA_D_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_d]);
-        _FSDEF("COMBINER_ALPHA_DEST_%d %s.a\n", stage, 
+        _FSDEF("COMBINER_ALPHA_DEST_%d %s.a", stage, 
             tev_dest[state_.fields.tev_combiner[stage].alpha.dest]);
-        _FSDEF("RASCOLOR_%d %s\n", stage, 
+        _FSDEF("RASCOLOR_%d %s", stage, 
             tev_ras[state_.fields.tev_order[reg_index].get_colorchan(stage)]);
     }
     // Do destination alpha?
     if (state_.fields.flags & kFlag_DestinationAlpha) {
-        _FSDEF("SET_DESTINATION_ALPHA\n");
+        _FSDEF("SET_DESTINATION_ALPHA");
     }
     // Adjust color for current EFB format
     switch (state_.fields.efb_format) {
     case gp::kPixelFormat_RGB8_Z24:
-        _FSDEF("EFB_FORMAT(val) vec4((round(val.rgb * 255.0f) / 255.0f), 1.0f)\n");
+        _FSDEF("EFB_FORMAT(val) vec4((round(val.rgb * 255.0f) / 255.0f), 1.0f)");
         break;
     case gp::kPixelFormat_RGBA6_Z24:
-        _FSDEF("EFB_FORMAT(val) FIX_U6(val)\n");
+        _FSDEF("EFB_FORMAT(val) FIX_U6(val)");
         break;
     case gp::kPixelFormat_RGB565_Z16:
-        _FSDEF("EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)\n");
+        _FSDEF("EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)");
         break;
     default:
-        _FSDEF("EFB_FORMAT(val) vec4(val.rgb, 1.0f)\n");
+        _FSDEF("EFB_FORMAT(val) vec4(val.rgb, 1.0f)");
         break;
     }
 }
