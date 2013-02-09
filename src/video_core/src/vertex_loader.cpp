@@ -125,6 +125,7 @@ static void __direct_byte_9(u32 addr, u32* dest) {
     v[6] = gp::Fifo_Pop8();
     v[7] = gp::Fifo_Pop8();
     v[8] = gp::Fifo_Pop8();
+    _ASSERT_MSG(TGP, 0, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
 }
 
 /// Direct vertex component 1 short
@@ -160,6 +161,7 @@ static void __direct_short_9(u32 addr, u32* dest) {
     v[6] = gp::Fifo_Pop16();
     v[7] = gp::Fifo_Pop16();
     v[8] = gp::Fifo_Pop16();
+    _ASSERT_MSG(TGP, 0, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
 }
 
 /// Direct vertex component 1 float
@@ -191,6 +193,7 @@ static void __direct_float_9(u32 addr, u32* dest) {
     dest[6] = gp::Fifo_Pop32();
     dest[7] = gp::Fifo_Pop32();
     dest[8] = gp::Fifo_Pop32();
+    _ASSERT_MSG(TGP, 0, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
 }
 
 /// Indexed vertex component 1 byte
@@ -219,7 +222,7 @@ static void __indexed_byte_3(u32 addr, u32* dest) {
 /// Indexed vertex component 9 bytes
 static void __indexed_byte_9(u32 addr, u32* dest) {
     // Unimplemented
-    LOG_INFO(TGP, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
+    _ASSERT_MSG(TGP, 0, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
 }
 
 /// Indexed vertex component 1 short
@@ -257,6 +260,7 @@ static void __indexed_short_9(u32 addr, u32* dest) {
     v[6] = _indexed_read_16(addr + 12);
     v[7] = _indexed_read_16(addr + 14);
     v[8] = _indexed_read_16(addr + 16);
+    _ASSERT_MSG(TGP, 0, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
 }
 
 /// Indexed vertex component 1 float
@@ -288,6 +292,7 @@ static void __indexed_float_9(u32 addr, u32* dest) {
     dest[6] = _indexed_read_32(addr + 24);
     dest[7] = _indexed_read_32(addr + 28);
     dest[8] = _indexed_read_32(addr + 32);
+    _ASSERT_MSG(TGP, 0, "Unimplemented method %s (%s line %s)", __FUNCTION__, __FILE__, __LINE__);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
