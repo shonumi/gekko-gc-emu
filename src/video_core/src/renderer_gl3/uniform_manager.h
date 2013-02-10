@@ -31,19 +31,31 @@
 #include "xf_mem.h"
 #include "gx_types.h"
 
-/// Struct to represent a Vec4 GLSL color in a UBO
-struct Vec4Color {
-    f32 r, g, b, a;
-
-    Vec4Color(const f32 r = 0, const f32 g = 0, const f32 b = 0, const f32 a = 0) {
-        this->r = r;
-        this->g = g;
-        this->b = b;
-        this->a = a;
+/// Struct to represent a Vec4 in GLSL
+struct Vec4 {
+    union {
+        struct {
+            f32 r, g, b, a;
+        };
+        struct {
+            f32 x, y, z, w;
+        };
+        f32 mem[4];
+    };
+    Vec4(const f32 x = 0, const f32 y = 0, const f32 z = 0, const f32 w = 0) {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+        this->w = w;
     }
-
-    inline bool operator == (const Vec4Color &val) const {
-        return (r == val.r && g  == val.g && b == val.b &&  a == val.a);
+    static Vec4 RGBA8(u32 rgba) {
+        return Vec4((f32)((rgba & 0xFF000000) >> 24) / 255.0f,
+                    (f32)((rgba & 0x00FF0000) >> 16) / 255.0f,
+                    (f32)((rgba & 0x0000FF00) >>  8) / 255.0f,
+                    (f32)((rgba & 0x000000FF) >>  0) / 255.0f);
+    }
+    inline bool operator == (const Vec4 &val) const {
+        return (x == val.x && y  == val.y && z == val.z &&  w == val.w);
     }
 };
 
@@ -66,6 +78,19 @@ public:
     // Uniform structures - These are structs used in the shader
     // ---------------------------------------------------------
 
+    struct UniformStuct_Light {
+        Vec4 col; 
+        Vec4 cos_atten; 
+        Vec4 dist_atten; 
+        Vec4 pos; 
+        Vec4 dir;
+
+        inline bool operator == (const UniformStuct_Light& val) const {
+            return (col == val.col && cos_atten == val.cos_atten && dist_atten == val.dist_atten && 
+                    pos == val.pos && dir == val.dir);
+        }
+    };
+
     struct UniformStruct_VertexState {
         f32 cp_pos_dqf; 
         int cp_pos_matrix_offset;
@@ -78,62 +103,59 @@ public:
 
         f32 projection_matrix[4][4];
 
-        f32 xf_material_color[2][4];
-        f32 xf_ambient_color[2][4];
+        Vec4 material_color[2];
+        Vec4 ambient_color[2];
 
+        UniformStuct_Light light[kGCMaxLights];
 
         inline bool operator == (const UniformStruct_VertexState &val) const {
             return (
-                cp_pos_dqf                  == val.cp_pos_dqf &&
-                cp_pos_matrix_offset        == val.cp_pos_matrix_offset &&
-                cp_tex_dqf[0]               == val.cp_tex_dqf[0] &&
-                cp_tex_dqf[1]               == val.cp_tex_dqf[1] &&
-                cp_tex_dqf[2]               == val.cp_tex_dqf[2] &&
-                cp_tex_dqf[3]               == val.cp_tex_dqf[3] &&
-                cp_tex_dqf[4]               == val.cp_tex_dqf[4] &&
-                cp_tex_dqf[5]               == val.cp_tex_dqf[5] &&
-                cp_tex_dqf[6]               == val.cp_tex_dqf[6] &&
-                cp_tex_dqf[7]               == val.cp_tex_dqf[7] &&
-                cp_tex_matrix_offset[0]     == val.cp_tex_matrix_offset[0] &&
-                cp_tex_matrix_offset[1]     == val.cp_tex_matrix_offset[1] &&
-                cp_tex_matrix_offset[2]     == val.cp_tex_matrix_offset[2] &&
-                cp_tex_matrix_offset[3]     == val.cp_tex_matrix_offset[3] &&
-                cp_tex_matrix_offset[4]     == val.cp_tex_matrix_offset[4] &&
-                cp_tex_matrix_offset[5]     == val.cp_tex_matrix_offset[5] &&
-                cp_tex_matrix_offset[6]     == val.cp_tex_matrix_offset[6] &&
-                cp_tex_matrix_offset[7]     == val.cp_tex_matrix_offset[7] &&
-                projection_matrix[0][0]     == val.projection_matrix[0][0] &&
-                projection_matrix[0][1]     == val.projection_matrix[0][1] &&
-                projection_matrix[0][2]     == val.projection_matrix[0][2] &&
-                projection_matrix[0][3]     == val.projection_matrix[0][3] &&
-                projection_matrix[1][0]     == val.projection_matrix[1][0] &&
-                projection_matrix[1][1]     == val.projection_matrix[1][1] &&
-                projection_matrix[1][2]     == val.projection_matrix[1][2] &&
-                projection_matrix[1][3]     == val.projection_matrix[1][3] &&
-                projection_matrix[2][0]     == val.projection_matrix[2][0] &&
-                projection_matrix[2][1]     == val.projection_matrix[2][1] &&
-                projection_matrix[2][2]     == val.projection_matrix[2][2] &&
-                projection_matrix[2][3]     == val.projection_matrix[2][3] &&
-                projection_matrix[3][0]     == val.projection_matrix[3][0] &&
-                projection_matrix[3][1]     == val.projection_matrix[3][1] &&
-                projection_matrix[3][2]     == val.projection_matrix[3][2] &&
-                projection_matrix[3][3]     == val.projection_matrix[3][3] && 
-                xf_material_color[0][0]     == val.xf_material_color[0][0] &&
-                xf_material_color[0][1]     == val.xf_material_color[0][1] &&
-                xf_material_color[0][2]     == val.xf_material_color[0][2] &&
-                xf_material_color[0][3]     == val.xf_material_color[0][3] &&
-                xf_material_color[1][0]     == val.xf_material_color[1][0] &&
-                xf_material_color[1][1]     == val.xf_material_color[1][1] &&
-                xf_material_color[1][2]     == val.xf_material_color[1][2] &&
-                xf_material_color[1][3]     == val.xf_material_color[1][3] &&
-                xf_ambient_color[0][0]      == val.xf_ambient_color[0][0] &&
-                xf_ambient_color[0][1]      == val.xf_ambient_color[0][1] &&
-                xf_ambient_color[0][2]      == val.xf_ambient_color[0][2] &&
-                xf_ambient_color[0][3]      == val.xf_ambient_color[0][3] &&
-                xf_ambient_color[1][0]      == val.xf_ambient_color[1][0] &&
-                xf_ambient_color[1][1]      == val.xf_ambient_color[1][1] &&
-                xf_ambient_color[1][2]      == val.xf_ambient_color[1][2] &&
-                xf_ambient_color[1][3]      == val.xf_ambient_color[1][3]);
+                cp_pos_dqf              == val.cp_pos_dqf &&
+                cp_pos_matrix_offset    == val.cp_pos_matrix_offset &&
+                cp_tex_dqf[0]           == val.cp_tex_dqf[0] &&
+                cp_tex_dqf[1]           == val.cp_tex_dqf[1] &&
+                cp_tex_dqf[2]           == val.cp_tex_dqf[2] &&
+                cp_tex_dqf[3]           == val.cp_tex_dqf[3] &&
+                cp_tex_dqf[4]           == val.cp_tex_dqf[4] &&
+                cp_tex_dqf[5]           == val.cp_tex_dqf[5] &&
+                cp_tex_dqf[6]           == val.cp_tex_dqf[6] &&
+                cp_tex_dqf[7]           == val.cp_tex_dqf[7] &&
+                cp_tex_matrix_offset[0] == val.cp_tex_matrix_offset[0] &&
+                cp_tex_matrix_offset[1] == val.cp_tex_matrix_offset[1] &&
+                cp_tex_matrix_offset[2] == val.cp_tex_matrix_offset[2] &&
+                cp_tex_matrix_offset[3] == val.cp_tex_matrix_offset[3] &&
+                cp_tex_matrix_offset[4] == val.cp_tex_matrix_offset[4] &&
+                cp_tex_matrix_offset[5] == val.cp_tex_matrix_offset[5] &&
+                cp_tex_matrix_offset[6] == val.cp_tex_matrix_offset[6] &&
+                cp_tex_matrix_offset[7] == val.cp_tex_matrix_offset[7] &&
+                projection_matrix[0][0] == val.projection_matrix[0][0] &&
+                projection_matrix[0][1] == val.projection_matrix[0][1] &&
+                projection_matrix[0][2] == val.projection_matrix[0][2] &&
+                projection_matrix[0][3] == val.projection_matrix[0][3] &&
+                projection_matrix[1][0] == val.projection_matrix[1][0] &&
+                projection_matrix[1][1] == val.projection_matrix[1][1] &&
+                projection_matrix[1][2] == val.projection_matrix[1][2] &&
+                projection_matrix[1][3] == val.projection_matrix[1][3] &&
+                projection_matrix[2][0] == val.projection_matrix[2][0] &&
+                projection_matrix[2][1] == val.projection_matrix[2][1] &&
+                projection_matrix[2][2] == val.projection_matrix[2][2] &&
+                projection_matrix[2][3] == val.projection_matrix[2][3] &&
+                projection_matrix[3][0] == val.projection_matrix[3][0] &&
+                projection_matrix[3][1] == val.projection_matrix[3][1] &&
+                projection_matrix[3][2] == val.projection_matrix[3][2] &&
+                projection_matrix[3][3] == val.projection_matrix[3][3] && 
+                material_color[0]       == val.material_color[0] &&
+                material_color[1]       == val.material_color[1] &&
+                ambient_color[0]        == val.ambient_color[0] &&
+                ambient_color[1]        == val.ambient_color[1] &&
+                light[0]                == val.light[0] && 
+                light[1]                == val.light[1] && 
+                light[2]                == val.light[2] && 
+                light[3]                == val.light[3] && 
+                light[4]                == val.light[4] && 
+                light[5]                == val.light[5] && 
+                light[6]                == val.light[6] && 
+                light[7]                == val.light[7]);
         }
     };
 
@@ -144,7 +166,7 @@ public:
         f32 dest_alpha;
         int pad1;
 
-        Vec4Color color[4];
+        Vec4 color[4];
 
         inline bool operator == (const UniformStruct_TevState &val) const {
             return (
@@ -170,7 +192,7 @@ public:
         int pad0;
         int pad1;
 
-        Vec4Color konst;
+        Vec4 konst;
 
         inline bool operator == (const UniformStruct_TevStageParams &val) const {
             return (
@@ -259,12 +281,12 @@ private:
      * Lookup the TEV konst color value for a given kont selector
      * @param sel Konst selector corresponding to the desired konst color
      */
-    Vec4Color GetTevKonst(int sel);
+    Vec4 GetTevKonst(int sel);
 
     int             last_invalid_region_xf_;
     UniformRegion   invalid_regions_xf_[kMaxUniformRegions];
 
-    Vec4Color konst_[4];
+    Vec4 konst_[4];
 };
 
 #endif // VIDEO_CORE_UNIFORM_MANAGER_H_

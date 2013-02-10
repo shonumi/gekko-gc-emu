@@ -50,39 +50,44 @@ UniformManager::UniformManager() {
  * Lookup the TEV konst color value for a given kont selector
  * @param sel Konst selector corresponding to the desired konst color
  */
-Vec4Color UniformManager::GetTevKonst(int sel) {
-    switch(sel) {
-    case 0:  return Vec4Color(1.0, 1.0, 1.0, 1.0);
-    case 1:  return Vec4Color(0.875, 0.875, 0.875, 0.875);
-    case 2:  return Vec4Color(0.75, 0.75, 0.75, 0.75);
-    case 3:  return Vec4Color(0.625, 0.625,0.625, 0.625);
-    case 4:  return Vec4Color(0.5, 0.5, 0.5, 0.5);
-    case 5:  return Vec4Color(0.375, 0.375, 0.375,  0.375);
-    case 6:  return Vec4Color(0.25, 0.25, 0.25, 0.25);
-    case 7:  return Vec4Color(0.125, 0.125, 0.125, 0.125);
+Vec4 UniformManager::GetTevKonst(int sel) {
+    static const Vec4 constants[] = {
+        Vec4(1.0,   1.0,    1.0,    1.0),
+        Vec4(0.875, 0.875,  0.875,  0.875),
+        Vec4(0.75,  0.75,   0.75,   0.75),
+        Vec4(0.625, 0.625,  0.625,  0.625),
+        Vec4(0.5,   0.5,    0.5,    0.5),
+        Vec4(0.375, 0.375,  0.375,  0.375),
+        Vec4(0.25,  0.25,   0.25,   0.25),
+        Vec4(0.125, 0.125,  0.125,  0.125)
+    };
+    if (sel < 8) {
+        return constants[sel];
+    }
+    switch (sel) {
     case 12: return konst_[0];
     case 13: return konst_[1];
     case 14: return konst_[2];
     case 15: return konst_[3];
-    case 16: return Vec4Color(konst_[0].r, konst_[0].r, konst_[0].r, konst_[0].r);
-    case 17: return Vec4Color(konst_[1].r, konst_[1].r, konst_[1].r, konst_[1].r);
-    case 18: return Vec4Color(konst_[2].r, konst_[2].r, konst_[2].r, konst_[2].r);
-    case 19: return Vec4Color(konst_[3].r, konst_[3].r, konst_[3].r, konst_[3].r);
-    case 20: return Vec4Color(konst_[0].g, konst_[0].g, konst_[0].g, konst_[0].g);
-    case 21: return Vec4Color(konst_[1].g, konst_[1].g, konst_[1].g, konst_[1].g);
-    case 22: return Vec4Color(konst_[2].g, konst_[2].g, konst_[2].g, konst_[2].g);
-    case 23: return Vec4Color(konst_[3].g, konst_[3].g, konst_[3].g, konst_[3].g);
-    case 24: return Vec4Color(konst_[0].b, konst_[0].b, konst_[0].b, konst_[0].b);
-    case 25: return Vec4Color(konst_[1].b, konst_[1].b, konst_[1].b, konst_[1].b);
-    case 26: return Vec4Color(konst_[2].b, konst_[2].b, konst_[2].b, konst_[2].b);
-    case 27: return Vec4Color(konst_[3].b, konst_[3].b, konst_[3].b, konst_[3].b);
-    case 28: return Vec4Color(konst_[0].a, konst_[0].a, konst_[0].a, konst_[0].a);
-    case 29: return Vec4Color(konst_[1].a, konst_[1].a, konst_[1].a, konst_[1].a);
-    case 30: return Vec4Color(konst_[2].a, konst_[2].a, konst_[2].a, konst_[2].a);
-    case 31: return Vec4Color(konst_[3].a, konst_[3].a, konst_[3].a, konst_[3].a);
+    case 16: return Vec4(konst_[0].r, konst_[0].r, konst_[0].r, konst_[0].r);
+    case 17: return Vec4(konst_[1].r, konst_[1].r, konst_[1].r, konst_[1].r);
+    case 18: return Vec4(konst_[2].r, konst_[2].r, konst_[2].r, konst_[2].r);
+    case 19: return Vec4(konst_[3].r, konst_[3].r, konst_[3].r, konst_[3].r);
+    case 20: return Vec4(konst_[0].g, konst_[0].g, konst_[0].g, konst_[0].g);
+    case 21: return Vec4(konst_[1].g, konst_[1].g, konst_[1].g, konst_[1].g);
+    case 22: return Vec4(konst_[2].g, konst_[2].g, konst_[2].g, konst_[2].g);
+    case 23: return Vec4(konst_[3].g, konst_[3].g, konst_[3].g, konst_[3].g);
+    case 24: return Vec4(konst_[0].b, konst_[0].b, konst_[0].b, konst_[0].b);
+    case 25: return Vec4(konst_[1].b, konst_[1].b, konst_[1].b, konst_[1].b);
+    case 26: return Vec4(konst_[2].b, konst_[2].b, konst_[2].b, konst_[2].b);
+    case 27: return Vec4(konst_[3].b, konst_[3].b, konst_[3].b, konst_[3].b);
+    case 28: return Vec4(konst_[0].a, konst_[0].a, konst_[0].a, konst_[0].a);
+    case 29: return Vec4(konst_[1].a, konst_[1].a, konst_[1].a, konst_[1].a);
+    case 30: return Vec4(konst_[2].a, konst_[2].a, konst_[2].a, konst_[2].a);
+    case 31: return Vec4(konst_[3].a, konst_[3].a, konst_[3].a, konst_[3].a);
     default: LOG_ERROR(TGP, "Unknown TEV konst lookup index = %d", sel);
     }
-    return Vec4Color();
+    return Vec4();
 }
 
 /**
@@ -95,7 +100,7 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
     static const f32 tev_sub[] = { 1.0, -1.0 };
     static const f32 tev_bias[] = { 0.0, 0.5, -0.5, 0.0 };
 
-    switch(addr) {
+    switch (addr) {
     case BP_REG_PE_CMODE1:
         staged_uniform_data_.fs_ubo.tev_state.dest_alpha = gp::g_bp_regs.cmode1.get_alpha();
         break;
@@ -212,33 +217,29 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     int bytelen = length << 2;
 
     // Register
-    if (addr & 0x1000) {
+    if (addr > 0x1000) {
 
         switch (addr) {
         case XF_SETCHAN0_AMBCOLOR:
         case XF_SETCHAN1_AMBCOLOR:
             {
                 int index = addr - XF_SETCHAN0_AMBCOLOR;
-                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][0] = f32(gp::g_xf_regs.ambient[index].r) / 255.0f;
-                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][1] = f32(gp::g_xf_regs.ambient[index].g) / 255.0f;
-                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][2] = f32(gp::g_xf_regs.ambient[index].b) / 255.0f;
-                staged_uniform_data_.vs_ubo.state.xf_ambient_color[index][3] = f32(gp::g_xf_regs.ambient[index].a) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.ambient_color[index] = 
+                    Vec4::RGBA8(gp::g_xf_regs.ambient[index]._u32);
             }
             break;
         case XF_SETCHAN0_MATCOLOR:
         case XF_SETCHAN1_MATCOLOR:
             {
                 int index = addr - XF_SETCHAN0_MATCOLOR;
-                staged_uniform_data_.vs_ubo.state.xf_material_color[index][0] = f32(gp::g_xf_regs.material[index].r) / 255.0f;
-                staged_uniform_data_.vs_ubo.state.xf_material_color[index][1] = f32(gp::g_xf_regs.material[index].g) / 255.0f;
-                staged_uniform_data_.vs_ubo.state.xf_material_color[index][2] = f32(gp::g_xf_regs.material[index].b) / 255.0f;
-                staged_uniform_data_.vs_ubo.state.xf_material_color[index][3] = f32(gp::g_xf_regs.material[index].a) / 255.0f;
+                staged_uniform_data_.vs_ubo.state.material_color[index] = 
+                    Vec4::RGBA8(gp::g_xf_regs.material[index]._u32);
             }
             break;
         }
 
     // TF mem
-    } else if (addr < 0x100) {
+    } else if (addr < XF_POSMATRICES_END) {
 
         // Invalidate region in UBO if a change is detected
         if (common::GetHash64((u8*)data, bytelen, 0) != 
@@ -259,6 +260,33 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
                 "XF memory update size (0x%04X) is outside bounds!", bytelen);
 
             last_invalid_region_xf_++;
+        }
+
+    // Lighting mem
+    } else if (addr >= XF_LIGHTS && addr < XF_LIGHTS_END) {
+        for (int i = 0; i < kGCMaxLights; i++) {
+            int offset = XF_LIGHTS + (i * 0x10);
+
+            // ...Skip if outside of bounds
+            if (offset < addr) continue;
+            if (offset >= (addr + length)) break;
+
+            f32* fdata = (f32*)&gp::g_xf_mem[offset];
+
+            staged_uniform_data_.vs_ubo.state.light[i].col = Vec4::RGBA8(gp::g_xf_mem[offset + 3]);
+            staged_uniform_data_.vs_ubo.state.light[i].cos_atten = Vec4(fdata[4], fdata[5], fdata[6]);
+
+            // Dist attenuation, make sure not equal to 0
+			if (fabs(fdata[7]) < 0.00001f && fabs(fdata[8]) < 0.00001f && 
+                fabs(fdata[9]) < 0.00001f) {
+                staged_uniform_data_.vs_ubo.state.light[i].dist_atten = 
+                    Vec4(0.00001f, fdata[8], fdata[9]);
+			} else {
+                staged_uniform_data_.vs_ubo.state.light[i].dist_atten = 
+                    Vec4(fdata[7], fdata[8], fdata[9]);
+            }
+            staged_uniform_data_.vs_ubo.state.light[i].pos = Vec4(fdata[10], fdata[11], fdata[12]);
+            staged_uniform_data_.vs_ubo.state.light[i].dir = Vec4(fdata[13], fdata[14], fdata[15]);
         }
     }
 }

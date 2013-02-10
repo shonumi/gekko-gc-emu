@@ -95,7 +95,6 @@ void XF_UpdateProjection() {
 }
 
 void XF_Load(u32 length, u32 base_addr, u32* data) {
-
     // Register write
     if (base_addr & 0x1000) {
         u8 addr = (base_addr & 0xff);
@@ -110,7 +109,7 @@ void XF_Load(u32 length, u32 base_addr, u32* data) {
         }
 
     // Transformation memory
-    } else if (base_addr < 0x100) {
+    } else if ((base_addr + length) < 0x800) {
         memcpy(&g_xf_mem[base_addr], data, length << 2);
     }
     video_core::g_renderer->WriteXF(base_addr, length, data);
