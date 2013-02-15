@@ -1,3 +1,83 @@
+#ifndef _VSDEF_COLOR0_MATERIAL_SRC
+#define _VSDEF_COLOR0_MATERIAL_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#endif
+
+#ifndef _VSDEF_COLOR1_MATERIAL_SRC
+#define _VSDEF_COLOR1_MATERIAL_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#endif
+
+#ifndef _VSDEF_COLOR0_AMBIENT_SRC
+#define _VSDEF_COLOR0_AMBIENT_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#endif
+
+#ifndef _VSDEF_COLOR1_AMBIENT_SRC
+#define _VSDEF_COLOR1_AMBIENT_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT0
+#define _VSDEF_SET_CHAN0_LIGHT0
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT1
+#define _VSDEF_SET_CHAN0_LIGHT1
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT2
+#define _VSDEF_SET_CHAN0_LIGHT2
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT3
+#define _VSDEF_SET_CHAN0_LIGHT3
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT4
+#define _VSDEF_SET_CHAN0_LIGHT4
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT5
+#define _VSDEF_SET_CHAN0_LIGHT5
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT6
+#define _VSDEF_SET_CHAN0_LIGHT6
+#endif
+
+#ifndef _VSDEF_SET_CHAN0_LIGHT7
+#define _VSDEF_SET_CHAN0_LIGHT7
+#endif
+
+#ifndef _VSDEF_SET_CHAN1_LIGHT0
+#define _VSDEF_SET_CHAN1_LIGHT0
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT1
+#define _VSDEF_SET_CHAN1_LIGHT1
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT2
+#define _VSDEF_SET_CHAN1_LIGHT2
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT3
+#define _VSDEF_SET_CHAN1_LIGHT3
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT4
+#define _VSDEF_SET_CHAN1_LIGHT4
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT5
+#define _VSDEF_SET_CHAN1_LIGHT5
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT6
+#define _VSDEF_SET_CHAN1_LIGHT6
+#endif                 
+                       
+#ifndef _VSDEF_SET_CHAN1_LIGHT7
+#define _VSDEF_SET_CHAN1_LIGHT7
+#endif
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 color0;
 layout(location = 2) in vec4 color1;
@@ -16,23 +96,31 @@ layout(location = 12) in vec4 matrix_idx_pos;
 layout(location = 13) in vec4 matrix_idx_tex03;
 layout(location = 14) in vec4 matrix_idx_tex47;
 
+struct Light {
+    vec4 col; 
+    vec4 cos_atten; 
+    vec4 dist_atten; 
+    vec4 pos; 
+    vec4 dir;
+};
+
 struct VertexState {
-    float cp_pos_dqf; 
-    int cp_pos_matrix_offset;
-    int pad0;
-    int pad1;
-    vec4 cp_tex_dqf[2];
-    ivec4 cp_tex_matrix_offset[2];
-    mat4 projection_matrix;
-    
-    vec4 xf_material_color[2];
-    vec4 xf_ambient_color[2];
+    float   cp_pos_dqf; 
+    int     cp_pos_matrix_offset;
+    float   pad0;
+    float   pad1;
+    vec4    cp_tex_dqf[2];
+    ivec4   cp_tex_matrix_offset[2];
+    mat4    projection_matrix;
+    vec4    xf_material_color[2];
+    vec4    xf_ambient_color[2];
+    Light   light[8]; 
 };
 
 // XF memory
 layout(std140) uniform _VS_UBO {
     VertexState state;
-	vec4 xf_mem[0x40];
+	vec4 xf_mem[0x118];
 };
 
 // Vertex shader outputs
@@ -44,9 +132,25 @@ out vec2 vtx_texcoord[8];
     xf_mem[addr].y, xf_mem[addr + 1].y, xf_mem[addr + 2].y, 0.0, \
     xf_mem[addr].z, xf_mem[addr + 1].z, xf_mem[addr + 2].z, 0.0, \
     xf_mem[addr].w, xf_mem[addr + 1].w, xf_mem[addr + 2].w, 1.0)
+    
+    
+#define XF_MEM_MTX33(addr) mat3( \
+    xf_mem[addr].x, xf_mem[addr + 0].w, xf_mem[addr + 1].z, \
+    xf_mem[addr].y, xf_mem[addr + 1].x, xf_mem[addr + 1].w, \
+    xf_mem[addr].z, xf_mem[addr + 1].y, xf_mem[addr + 2].x)           
 
 void main() {
+    vec4 pos;
+    vec4 nrm;
+    vec4 mat[2];
+    vec4 l_amb[2];
     vec4 vtx_color[2];
+    
+    mat[0]      = _VSDEF_COLOR0_MATERIAL_SRC;
+    mat[1]      = _VSDEF_COLOR1_MATERIAL_SRC;
+    l_amb[0]    = _VSDEF_COLOR0_AMBIENT_SRC;
+    l_amb[1]    = _VSDEF_COLOR1_AMBIENT_SRC;
+    
     mat4 modelview_matrix;
 #ifdef _VSDEF_POS_MIDX // Position modelview matrix
     modelview_matrix = XF_MEM_MTX44(int(matrix_idx_pos[0]));
@@ -54,11 +158,13 @@ void main() {
     modelview_matrix = XF_MEM_MTX44(state.cp_pos_matrix_offset);
 #endif
 #ifdef _VSDEF_POS_DQF // Position shift (dequantization factor) only U8/S8/U16/S16 formats
-    gl_Position = state.projection_matrix * modelview_matrix * 
+    pos = state.projection_matrix * modelview_matrix * 
         vec4(position.xyz * state.cp_pos_dqf, 1.0);
 #else
-    gl_Position = state.projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
+    pos = state.projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
 #endif
+
+    nrm.xyz = XF_MEM_MTX33(state.cp_pos_matrix_offset + 256) * normal.xyz;
 
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MEM_MTX44(int(matrix_idx_tex03[0])) * 
@@ -168,14 +274,33 @@ void main() {
     vtx_color[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 
-#ifdef _VSDEF_COLOR0_MATERIAL_SRC
-    col[0] = _VSDEF_COLOR0_MATERIAL_SRC;
+    _VSDEF_SET_CHAN0_LIGHT0;
+    _VSDEF_SET_CHAN0_LIGHT1;
+    _VSDEF_SET_CHAN0_LIGHT2;
+    _VSDEF_SET_CHAN0_LIGHT3;
+    _VSDEF_SET_CHAN0_LIGHT4;
+    _VSDEF_SET_CHAN0_LIGHT5;
+    _VSDEF_SET_CHAN0_LIGHT6;
+    _VSDEF_SET_CHAN0_LIGHT7;
+    
+    _VSDEF_SET_CHAN1_LIGHT0;
+    _VSDEF_SET_CHAN1_LIGHT1;
+    _VSDEF_SET_CHAN1_LIGHT2;
+    _VSDEF_SET_CHAN1_LIGHT3;
+    _VSDEF_SET_CHAN1_LIGHT4;
+    _VSDEF_SET_CHAN1_LIGHT5;
+    _VSDEF_SET_CHAN1_LIGHT6;
+    _VSDEF_SET_CHAN1_LIGHT7;
+    
+#ifdef _VSDEF_LIGHTING_ENABLE_0
+    col[0] = vtx_color[0];//mat[0] * clamp(l_amb[0], 0.0f, 1.0f);
 #else
-    col[0] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    col[0] = vtx_color[0];//mat[0] * vtx_color[0];
 #endif
-#ifdef _VSDEF_COLOR1_MATERIAL_SRC
-    col[1] = _VSDEF_COLOR1_MATERIAL_SRC;
+#ifdef _VSDEF_LIGHTING_ENABLE_1
+    col[1] = vtx_color[1];//mat[1] * clamp(l_amb[1], 0.0f, 1.0f);
 #else
-    col[1] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    col[1] = vtx_color[1];//mat[1] * vtx_color[1];
 #endif
+    gl_Position = pos;
 }
