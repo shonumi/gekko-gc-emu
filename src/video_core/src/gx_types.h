@@ -132,6 +132,13 @@ enum GXBlendFactor {
     GX_BL_INVDSTCLR = GX_BL_INVSRCCLR
 };
 
+/// GX API diffuse function
+enum GXDiffuseFn {
+    GX_DF_NONE = 0,
+    GX_DF_SIGN,
+    GX_DF_CLAMP
+};
+
 /**
  * @brief Vertex format for an individual vertex component (e.g. position)
  * @todo Clean up unused data here
