@@ -22,12 +22,16 @@
  * http://code.google.com/p/gekko-gc-emu/
  */
 
+
 #include "types.h"
-#include "gx_types.h"
-#include "bp_mem.h"
-#include "vertex_loader.h"
 #include "hash.h"
 #include "hash_container.h"
+
+#include "gx_types.h"
+#include "bp_mem.h"
+#include "xf_mem.h"
+#include "vertex_loader.h"
+
 
 #ifndef VIDEO_CORE_SHADER_MANAGER_H_
 #define VIDEO_CORE_SHADER_MANAGER_H_
@@ -156,6 +160,8 @@ public:
     void UpdateEFBFormat(gp::BPPixelFormat efb_format);
     void UpdateTevCombiner(int index, const gp::BPTevCombiner& tev_combiner);
     void UpdateTevOrder(int index, const gp::BPTevOrder& tev_order);
+    void UpdateAlphaChannel(int index, const gp::XFLitChannel& lit_channel);
+    void UpdateColorChannel(int index, const gp::XFLitChannel& lit_channel);
 
 private:
     CacheEntry*         active_shader_;         ///< Pointer to active shader in shader cache
@@ -166,13 +172,14 @@ private:
     union State {
         struct _Fields{
             u32                 flags;
-            GXCompType          vertex_component[kVertexComponent_NumberOf];
             u8                  num_stages;
             gp::BPAlphaFunc     alpha_func;
             gp::BPTevCombiner   tev_combiner[kGCMaxTevStages];
             gp::BPTevOrder      tev_order[0x8];
             gp::BPPixelFormat   efb_format;
             gp::VertexState     vertex_state;
+            gp::XFLitChannel    color_channel[2];
+            gp::XFLitChannel    alpha_channel[2];
         } fields;
         u8  mem[sizeof(_Fields)/4];
     } state_;

@@ -83,6 +83,14 @@ void ShaderManager::UpdateTevOrder(int index, const gp::BPTevOrder& tev_order) {
     state_.fields.tev_order[index]._u32 = tev_order._u32 & 0x3FF3FF;
 }
 
+void ShaderManager::UpdateAlphaChannel(int index, const gp::XFLitChannel& lit_channel) {
+    state_.fields.alpha_channel[index] = lit_channel;
+}
+
+void ShaderManager::UpdateColorChannel(int index, const gp::XFLitChannel& lit_channel) {
+    state_.fields.color_channel[index] = lit_channel;
+}
+
 void ShaderManager::GenerateVertexHeader() {
     static const char* vertex_color[] = { "RGB565", "RGB8", "RGBX8", "RGBA4", "RGBA6", "RGBA8" };
 
@@ -102,26 +110,22 @@ void ShaderManager::GenerateVertexHeader() {
     _VSDEF("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
     _VSDEF("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
 
-
-    GenerateVertexLightingHeader();
+    //this->GenerateVertexLightingHeader();
 }
 
-/*
-
-_VSDEF_COLOR0_MATSOURCE
-
-
-
- */
 void ShaderManager::GenerateVertexLightingHeader() {
     int num_channels = gp::g_xf_regs.num_color_channels.num_color_chans;
 
     _ASSERT_MSG(TGP, num_channels <= 2, "Not implemented num_channels > 2! Got %d", num_channels);
 
     //static const char* color_material_src[] = { "vtx_color[%d]", "
-    for (int i = 0; i < num_channels; i++) {
-        const gp::XFLitChannel& color = gp::g_xf_regs.color[i];
-        const gp::XFLitChannel& alpha = gp::g_xf_regs.alpha[i];
+    for (int chan_num = 0; chan_num < num_channels; chan_num++) {
+        const gp::XFLitChannel& color = gp::g_xf_regs.color[chan_num];
+        const gp::XFLitChannel& alpha = gp::g_xf_regs.alpha[chan_num];
+
+        if (color.enable_lighting) {
+            _VSDEF("LIGHTING_ENABLE_%d", chan_num);
+        }
 
         std::string mat_src = "vec4(";
         std::string amb_src = "vec4(";
@@ -131,31 +135,31 @@ void ShaderManager::GenerateVertexLightingHeader() {
 
         // Color material source is vertex color (if available)
         if (color.material_src) {
-            if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+            if (gp::g_cp_regs.vcd_lo[0].color1 && chan_num == 1) {
                 mat_src += "vtx_color[1].rgb, ";
-            } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+            } else if (gp::g_cp_regs.vcd_lo[0].color0 && chan_num == 0) {
                 mat_src += "vtx_color[0].rgb, ";
             } else {
                 mat_src += "vec3(1.0f, 1.0f, 1.0f), ";
             }
         // Otherwise, it is the XF material register
         } else {
-            mat_src += common::FormatStr("state.xf_material_color[%d].rgb, ", i);
+            mat_src += common::FormatStr("state.xf_material_color[%d].rgb, ", chan_num);
         }
         // Alpha material source is vertex alpha
         if (alpha.material_src) {
-            if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+            if (gp::g_cp_regs.vcd_lo[0].color1 && chan_num == 1) {
                 mat_src += "vtx_color[1].a)";
-            } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+            } else if (gp::g_cp_regs.vcd_lo[0].color0 && chan_num == 0) {
                 mat_src += "vtx_color[0].a)";
             } else {
                 mat_src += "1.0f)";
             }
         // Otherwise, it is the XF material register
         } else {
-            mat_src += common::FormatStr("state.xf_material_color[%d].a)", i);
+            mat_src += common::FormatStr("state.xf_material_color[%d].a)", chan_num);
         }
-        _VSDEF("COLOR%d_MATERIAL_SRC %s", i, mat_src.c_str());
+        _VSDEF("COLOR%d_MATERIAL_SRC %s", chan_num, mat_src.c_str());
 
         // Ambient source
         // --------------
@@ -163,16 +167,16 @@ void ShaderManager::GenerateVertexLightingHeader() {
         if (color.enable_lighting) {
             // Color ambient source is vertex color (if available)
             if (color.ambsource) {
-                if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+                if (gp::g_cp_regs.vcd_lo[0].color1 && chan_num == 1) {
                     amb_src += "vtx_color[1].rgb, ";
-                } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+                } else if (gp::g_cp_regs.vcd_lo[0].color0 && chan_num == 0) {
                     amb_src += "vtx_color[0].rgb, ";
                 } else {
                     amb_src += "vec3(0.0f, 0.0f, 0.0f), ";
                 }
             // Otherwise, it is the XF ambient register
             } else {
-                amb_src += common::FormatStr("state.xf_ambient_color[%d].rgb, ", i);
+                amb_src += common::FormatStr("state.xf_ambient_color[%d].rgb, ", chan_num);
             }
         } else {
             amb_src += "vec3(1.0f, 1.0f, 1.0f), ";
@@ -180,21 +184,64 @@ void ShaderManager::GenerateVertexLightingHeader() {
         if (alpha.enable_lighting) {
             // Alpha ambient source is vertex alpha
             if (alpha.material_src) {
-                if (gp::g_cp_regs.vcd_lo[0].color1 && i == 1) {
+                if (gp::g_cp_regs.vcd_lo[0].color1 && chan_num == 1) {
                     amb_src += "vtx_color[1].a)";
-                } else if (gp::g_cp_regs.vcd_lo[0].color0 && i == 0) {
+                } else if (gp::g_cp_regs.vcd_lo[0].color0 && chan_num == 0) {
                     amb_src += "vtx_color[0].a)";
                 } else {
                     amb_src += "0.0f)";
                 }
             // Otherwise, it is the XF ambient register
             } else {
-                amb_src += common::FormatStr("state.xf_ambient_color[%d].a)", i);
+                amb_src += common::FormatStr("state.xf_ambient_color[%d].a)", chan_num);
             }
         } else {
             amb_src += "1.0f)";
         }
-        _VSDEF("COLOR%d_AMBIENT_SRC %s", i, amb_src.c_str());
+        _VSDEF("COLOR%d_AMBIENT_SRC %s", chan_num, amb_src.c_str());
+
+        //_ASSERT_MSG(TGP, !alpha.enable_lighting, "Have not implemented alpha lighting");
+
+
+        if (color.enable_lighting) {
+
+            for (int light_num = 0; light_num < kGCMaxLights; light_num++) {
+
+                std::string light_clamp = "%s";
+                std::string light_src = common::FormatStr("l_amb[%d].rgb += ", chan_num);
+
+                if (!(color.attn_func & 1)) {
+
+		           /// atten disabled
+		            switch (color.diffuse_func) {
+			        case GX_DF_NONE:
+                        light_src += "1.0f";
+				        break;
+
+                    case GX_DF_CLAMP: light_clamp = "max(0.0f, %s)";
+                    case GX_DF_SIGN:
+                        {
+                            std::string light_intensity = common::FormatStr("dot(normalize("
+                                "state.light[%d].pos.xyz - pos.xyz), nrm.xyz)", light_num);
+                            light_src += common::FormatStr(light_clamp.c_str(), light_intensity);
+                        }
+			            break;
+
+			        default:
+                        //_ASSERT_MSG(TGP, 0, "unknown diffuse function");
+                        break;
+		            }
+                    _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.rgb", chan_num, light_num, 
+                        light_src.c_str(), light_num);
+
+
+                } else {
+                    //_ASSERT_MSG(TGP, 0, "don't implement spec/spot lighting");
+                }
+
+                
+            }
+        }
         
     // COLOR%d_MATERIAL_SRC == mat
     // COLOR%d_AMBIENT_SRC == lacc
