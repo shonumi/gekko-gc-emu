@@ -239,7 +239,7 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
         }
 
     // TF mem
-    } else if (addr < XF_POSMATRICES_END) {
+    } else if (addr < XF_NORMALMATRICES_END) {
 
         // Invalidate region in UBO if a change is detected
         if (common::GetHash64((u8*)data, bytelen, 0) != 

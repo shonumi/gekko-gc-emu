@@ -94,19 +94,62 @@ void XF_UpdateProjection() {
     }
 }
 
+void XF_RegisterUpdate(u32 length, u32 base_addr) {
+    bool viewport_updated = false;
+    bool projection_updated = false;
+
+    for (u32 addr = base_addr; addr < base_addr + length; addr++) {
+        switch (addr) {
+
+        case XF_SETCHAN0_COLOR:
+        case XF_SETCHAN1_COLOR:
+            {
+                int index = addr - XF_SETCHAN0_COLOR;
+                video_core::g_shader_manager->UpdateColorChannel(index, g_xf_regs.color[index]);
+            }
+            break;
+        
+        case XF_SETCHAN0_ALPHA:
+        case XF_SETCHAN1_ALPHA:
+            {
+                int index = addr - XF_SETCHAN0_ALPHA;
+                video_core::g_shader_manager->UpdateAlphaChannel(index, g_xf_regs.alpha[index]);
+            }
+            break;
+
+        // Viewport register range
+        case XF_SETVIEWPORT:
+        case XF_SETVIEWPORT + 1:
+        case XF_SETVIEWPORT + 2:
+        case XF_SETVIEWPORT + 3:
+        case XF_SETVIEWPORT + 4:
+        case XF_SETVIEWPORT + 5:
+            if (viewport_updated) continue;
+            XF_UpdateViewport();
+            break;
+
+        // Projection matrix register range
+        case XF_SETPROJECTIONA:
+        case XF_SETPROJECTIONB:
+        case XF_SETPROJECTIONC:
+        case XF_SETPROJECTIOND:
+        case XF_SETPROJECTIONE:
+        case XF_SETPROJECTIONF:
+        case XF_SETPROJECTION_ORTHO1:
+        case XF_SETPROJECTION_ORTHO2:
+            if (projection_updated) continue;
+            XF_UpdateProjection();
+            break;
+        }
+    }
+}
+
 void XF_Load(u32 length, u32 base_addr, u32* data) {
     // Register write
     if (base_addr & 0x1000) {
         u8 addr = (base_addr & 0xff);
         memcpy(&g_xf_regs.mem[addr], data, length << 2);
-
-        // Viewport register range
-        if (addr >= 0x1A && addr <= 0x1F) {
-            XF_UpdateViewport();
-        // Projection matrix register range
-        } else if (addr >= 0x20 && addr <= 0x26) {
-            XF_UpdateProjection();
-        }
+        XF_RegisterUpdate(length, base_addr);
 
     // Transformation memory
     } else if ((base_addr + length) < 0x800) {
