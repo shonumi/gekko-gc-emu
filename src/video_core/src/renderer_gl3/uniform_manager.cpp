@@ -40,7 +40,9 @@ UniformManager::UniformManager() {
     ubo_fs_block_index_ = 0;
     ubo_vs_block_index_ = 0;
     last_invalid_region_xf_ = 0;
+    last_invalid_region_nrm_ = 0;
     memset(invalid_regions_xf_, 0, sizeof(invalid_regions_xf_));
+    memset(invalid_regions_nrm_, 0, sizeof(invalid_regions_nrm_));
     memset(&staged_uniform_data_, 0, sizeof(staged_uniform_data_));
     memset(&__uniform_data_, 0, sizeof(__uniform_data_));
     memset(&konst_, 0, sizeof(konst_));
@@ -214,10 +216,11 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
  * @param data Data buffer to write to XF
  */
 void UniformManager::WriteXF(u16 addr, int length, u32* data) {
+    static u32 buff[128];
     int bytelen = length << 2;
 
     // Register
-    if (addr > 0x1000) {
+    if (addr & 0x1000) {
 
         switch (addr) {
         case XF_SETCHAN0_AMBCOLOR:
@@ -239,14 +242,16 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
         }
 
     // TF mem
-    } else if (addr < XF_NORMALMATRICES_END) {
+    } else if (addr < XF_POSMATRICES_END) {
+
+        u32* _mem = (u32*)__uniform_data_.vs_ubo.tf_mem;
 
         // Invalidate region in UBO if a change is detected
         if (common::GetHash64((u8*)data, bytelen, 0) != 
-            common::GetHash64((u8*)&__uniform_data_.vs_ubo.xf_mem[addr], bytelen, 0)) {
+            common::GetHash64((u8*)&_mem[addr], bytelen, 0)) {
 
             // Update data block
-            memcpy(&__uniform_data_.vs_ubo.xf_mem[addr], data, bytelen);
+            memcpy(&_mem[addr], data, bytelen);
 
             // Invalidate GPU data block region
             invalid_regions_xf_[last_invalid_region_xf_].offset = (addr << 2);
@@ -260,6 +265,36 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
                 "XF memory update size (0x%04X) is outside bounds!", bytelen);
 
             last_invalid_region_xf_++;
+        }
+
+    // Normal mem
+    } else if (addr >= XF_NORMALMATRICES && addr < XF_NORMALMATRICES_END) {
+
+        u32* _mem       = (u32*)__uniform_data_.vs_ubo.nrm_mem;
+        bytelen         = (length / 3) * 16;
+        addr            = addr - XF_NORMALMATRICES;
+
+        _ASSERT_MSG(TGP, !(length%3), "Normal matrix data length not divisible by 3!");
+
+        // XYZXYZXYZ to XYZ0XYZ0XYZ0 so we can index nicely with GL
+        for (int i = 0; i < (length / 3); i++) {
+            buff[(i * 4) + 0] = data[(i * 3) + 0];
+            buff[(i * 4) + 1] = data[(i * 3) + 1];
+            buff[(i * 4) + 2] = data[(i * 3) + 2];
+            buff[(i * 4) + 3] = 0;
+        }
+        // Invalidate region in UBO if a change is detected
+        if (common::GetHash64((u8*)buff, bytelen, 0) != 
+            common::GetHash64((u8*)&_mem[addr], bytelen, 0)) {
+
+            // Update data block
+            memcpy(&_mem[addr], buff, bytelen);
+
+            // Invalidate GPU data block region
+            invalid_regions_nrm_[last_invalid_region_nrm_].offset = (addr << 2);
+            invalid_regions_nrm_[last_invalid_region_nrm_].length = bytelen;
+
+            last_invalid_region_nrm_++;
         }
 
     // Lighting mem
@@ -355,12 +390,22 @@ void UniformManager::ApplyChanges() {
             &__uniform_data_.vs_ubo.state);
     }
     for (int i = 0; i < last_invalid_region_xf_; i++) {
+        const u32* data = (const u32*)__uniform_data_.vs_ubo.tf_mem;
         glBufferSubData(GL_UNIFORM_BUFFER, 
             invalid_regions_xf_[i].offset + sizeof(UniformStruct_VertexState), 
             invalid_regions_xf_[i].length, 
-            &__uniform_data_.vs_ubo.xf_mem[invalid_regions_xf_[i].offset >> 2]);
+            &data[invalid_regions_xf_[i].offset >> 2]);
     }
     last_invalid_region_xf_ = 0;
+
+    for (int i = 0; i < last_invalid_region_nrm_; i++) {
+        const u32* data = (const u32*)__uniform_data_.vs_ubo.nrm_mem;
+        glBufferSubData(GL_UNIFORM_BUFFER, 
+            invalid_regions_nrm_[i].offset + sizeof(UniformStruct_VertexState) + sizeof(__uniform_data_.vs_ubo.tf_mem), 
+            invalid_regions_nrm_[i].length, 
+            &data[invalid_regions_nrm_[i].offset >> 2]);
+    }
+    last_invalid_region_nrm_ = 0;
 
     // Update invalid regions fragment shader UBO
     // ------------------------------------------

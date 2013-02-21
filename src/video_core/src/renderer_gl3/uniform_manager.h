@@ -213,7 +213,8 @@ public:
         /// Vertex shader UBO
         struct _VS_UBO {
             UniformStruct_VertexState state;
-            u32 xf_mem[gp::kXFMemSize];
+            Vec4 tf_mem[0x40];
+            Vec4 nrm_mem[0x20]; // vec4 for tight packing (normal is just using xyz)
         } vs_ubo;
 
         /// Fragment shader UBO
@@ -284,7 +285,9 @@ private:
     Vec4 GetTevKonst(int sel);
 
     int             last_invalid_region_xf_;
+    int             last_invalid_region_nrm_;
     UniformRegion   invalid_regions_xf_[kMaxUniformRegions];
+    UniformRegion   invalid_regions_nrm_[kMaxUniformRegions];
 
     Vec4 konst_[4];
 };
