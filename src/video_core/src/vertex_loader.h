@@ -34,8 +34,9 @@ namespace gp {
 
 /// Vertex component
 struct VertexComponent {
-    GXCompType  type;
-    GXCompCnt   count;
+    GXAttrType  attr_type;  ///< Attribute type (direct, indexed8, etc.)
+    GXCompType  comp_type;  ///< Component type (u32, f32, etc.)
+    GXCompCnt   comp_count; ///< Component count (XY, XYZ, RGB, RGBA, etc.)
 };
 
 /// Vertex state
