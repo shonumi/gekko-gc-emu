@@ -216,7 +216,6 @@ void UniformManager::WriteBP(u8 addr, u32 data) {
  * @param data Data buffer to write to XF
  */
 void UniformManager::WriteXF(u16 addr, int length, u32* data) {
-    static u32 buff[128];
     int bytelen = length << 2;
 
     // Register
@@ -244,14 +243,14 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     // TF mem
     } else if (addr < XF_POSMATRICES_END) {
 
-        u32* _mem = (u32*)__uniform_data_.vs_ubo.tf_mem;
+        u32* _ubo_mem = (u32*)__uniform_data_.vs_ubo.tf_mem;
 
         // Invalidate region in UBO if a change is detected
         if (common::GetHash64((u8*)data, bytelen, 0) != 
-            common::GetHash64((u8*)&_mem[addr], bytelen, 0)) {
+            common::GetHash64((u8*)&_ubo_mem[addr], bytelen, 0)) {
 
             // Update data block
-            memcpy(&_mem[addr], data, bytelen);
+            memcpy(&_ubo_mem[addr], data, bytelen);
 
             // Invalidate GPU data block region
             invalid_regions_xf_[last_invalid_region_xf_].offset = (addr << 2);
@@ -270,25 +269,27 @@ void UniformManager::WriteXF(u16 addr, int length, u32* data) {
     // Normal mem
     } else if (addr >= XF_NORMALMATRICES && addr < XF_NORMALMATRICES_END) {
 
-        u32* _mem       = (u32*)__uniform_data_.vs_ubo.nrm_mem;
-        bytelen         = (length / 3) * 16;
-        addr            = addr - XF_NORMALMATRICES;
+        static u32  _normal_mem[kGCNormalMemSize * 4];
+        u32*        _ubo_mem = (u32*)__uniform_data_.vs_ubo.nrm_mem;
+
+        bytelen = (length / 3) * 16;
+        addr    = addr - XF_NORMALMATRICES;
 
         _ASSERT_MSG(TGP, !(length%3), "Normal matrix data length not divisible by 3!");
 
         // XYZXYZXYZ to XYZ0XYZ0XYZ0 so we can index nicely with GL
         for (int i = 0; i < (length / 3); i++) {
-            buff[(i * 4) + 0] = data[(i * 3) + 0];
-            buff[(i * 4) + 1] = data[(i * 3) + 1];
-            buff[(i * 4) + 2] = data[(i * 3) + 2];
-            buff[(i * 4) + 3] = 0;
+            _normal_mem[(i * 4) + 0] = data[(i * 3) + 0];
+            _normal_mem[(i * 4) + 1] = data[(i * 3) + 1];
+            _normal_mem[(i * 4) + 2] = data[(i * 3) + 2];
+            _normal_mem[(i * 4) + 3] = 0;
         }
         // Invalidate region in UBO if a change is detected
-        if (common::GetHash64((u8*)buff, bytelen, 0) != 
-            common::GetHash64((u8*)&_mem[addr], bytelen, 0)) {
+        if (common::GetHash64((u8*)_normal_mem, bytelen, 0) != 
+            common::GetHash64((u8*)&_ubo_mem[addr], bytelen, 0)) {
 
             // Update data block
-            memcpy(&_mem[addr], buff, bytelen);
+            memcpy(&_ubo_mem[addr], _normal_mem, bytelen);
 
             // Invalidate GPU data block region
             invalid_regions_nrm_[last_invalid_region_nrm_].offset = (addr << 2);

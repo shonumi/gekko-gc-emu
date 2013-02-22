@@ -213,8 +213,8 @@ public:
         /// Vertex shader UBO
         struct _VS_UBO {
             UniformStruct_VertexState state;
-            Vec4 tf_mem[0x40];
-            Vec4 nrm_mem[0x20]; // vec4 for tight packing (normal is just using xyz)
+            Vec4 tf_mem[kGCMatrixMemSize];
+            Vec4 nrm_mem[kGCNormalMemSize]; // vec4 for tight packing (normal is just using xyz)
         } vs_ubo;
 
         /// Fragment shader UBO
