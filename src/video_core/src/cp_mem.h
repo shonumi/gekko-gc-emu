@@ -30,13 +30,6 @@
 #include "gx_types.h"
 #include "fifo.h"
 
-enum {
-    CP_NOT_PRESENT  = 0,
-    CP_DIRECT       = 1,   ///< GX vertex VCD type direct data
-    CP_INDEX8       = 2,   ///< GX vertex VCD type indexed 8-bit
-    CP_INDEX16      = 3,   ///< GX vertex VCD type indexed 16-bit
-};
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // CP register decoding
 
