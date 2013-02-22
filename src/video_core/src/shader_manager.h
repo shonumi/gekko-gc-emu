@@ -156,6 +156,7 @@ public:
     void UpdateFlag(Flag flag, int enable);
     void UpdateVertexState(gp::VertexState& vertex_state);
     void UpdateGenMode(const gp::BPGenMode& gen_mode);
+    void UpdateNumColorChans(u32 num_color_chans);
     void UpdateAlphaFunc(const gp::BPAlphaFunc& alpha_func);
     void UpdateEFBFormat(gp::BPPixelFormat efb_format);
     void UpdateTevCombiner(int index, const gp::BPTevCombiner& tev_combiner);
@@ -172,7 +173,8 @@ private:
     union State {
         struct _Fields{
             u32                 flags;
-            u8                  num_stages;
+            u32                 num_stages;
+            u32                 num_color_chans;
             gp::BPAlphaFunc     alpha_func;
             gp::BPTevCombiner   tev_combiner[kGCMaxTevStages];
             gp::BPTevOrder      tev_order[0x8];

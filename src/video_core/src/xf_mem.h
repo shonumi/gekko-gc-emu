@@ -142,7 +142,7 @@ enum XFTexGenType {
 /// XF number of colors - 0x1009
 union XFNumColors {
     struct {
-        u32 num_color_chans : 2;
+        u32 num : 2;
     };
     u32 _u32;
 };

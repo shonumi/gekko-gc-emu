@@ -101,6 +101,10 @@ void XF_RegisterUpdate(u32 length, u32 base_addr) {
     for (u32 addr = base_addr; addr < base_addr + length; addr++) {
         switch (addr) {
 
+        case XF_SETNUMCHAN:
+            video_core::g_shader_manager->UpdateNumColorChans(g_xf_regs.num_color_channels.num);
+            break;
+
         case XF_SETCHAN0_COLOR:
         case XF_SETCHAN1_COLOR:
             {
