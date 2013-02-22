@@ -381,145 +381,145 @@ int VertexLoader_GetVertexSize() {
 
     // Vertex position size
     switch(gp::g_cp_regs.vcd_lo[0].position) {	
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexPositionSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos()];
         break;
-    case CP_INDEX8: 
+    case GX_INDEX8: 
         size+=1; 
         break;
-    case CP_INDEX16: 
+    case GX_INDEX16: 
         size+=2; 
         break;
     }
     // Vertex normal size
     switch(gp::g_cp_regs.vcd_lo[0].normal) {	
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexNormalSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_normal()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1; 
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2; 
         break;
     }
     // Vertex color 0 size
     switch(gp::g_cp_regs.vcd_lo[0].color0) {	
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexColorSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_col0()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Vertex color 1 size
     switch(gp::g_cp_regs.vcd_lo[0].color1) {	
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexColorSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_col1()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 0 size
     switch(gp::g_cp_regs.vcd_hi[0].tex0_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_tex0()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 1 size
     switch(gp::g_cp_regs.vcd_hi[0].tex1_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex1()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 2 size
     switch(gp::g_cp_regs.vcd_hi[0].tex2_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex2()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 3 size
     switch(gp::g_cp_regs.vcd_hi[0].tex3_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex3()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 4 size
     switch(gp::g_cp_regs.vcd_hi[0].tex4_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_b[gp::g_cur_vat].get_tex4()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 5 size
     switch(gp::g_cp_regs.vcd_hi[0].tex5_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex5()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 6 size
     switch(gp::g_cp_regs.vcd_hi[0].tex6_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex6()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
     // Texture coordinate 7 size
     switch(gp::g_cp_regs.vcd_hi[0].tex7_coord) {
-    case CP_DIRECT:
+    case GX_DIRECT:
         size+=gp::kVertexTextureSize[gp::g_cp_regs.vat_reg_c[gp::g_cur_vat].get_tex7()];
         break;
-    case CP_INDEX8:
+    case GX_INDEX8:
         size+=1;
         break;
-    case CP_INDEX16:
+    case GX_INDEX16:
         size+=2;
         break;
     }
@@ -622,62 +622,62 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
 
         // Decode position
         switch (gp::g_cp_regs.vcd_lo[0].position) {
-        case CP_DIRECT:
+        case GX_DIRECT:
             LookupPositionDirect[vat_a->get_pos()](0, g_vbo->position);
             break;
-        case CP_INDEX8:
+        case GX_INDEX8:
             LookupPositionIndexed[vat_a->get_pos()](pos_base + (gp::Fifo_Pop8() * pos_stride),
                 g_vbo->position);
             break;
-        case CP_INDEX16:
+        case GX_INDEX16:
             LookupPositionIndexed[vat_a->get_pos()](pos_base + (gp::Fifo_Pop16() * pos_stride),
                 g_vbo->position);
             break;
         }
         // Decode normal
         switch (gp::g_cp_regs.vcd_lo[0].normal) {
-        case CP_DIRECT:
+        case GX_DIRECT:
             LookupNormalDirect[vat_a->get_normal()](0, g_vbo->normal);
             break;
-        case CP_INDEX8:
+        case GX_INDEX8:
             LookupNormalIndexed[vat_a->get_normal()](normal_base + (gp::Fifo_Pop8() * normal_stride),
                 g_vbo->normal);
             break;
-        case CP_INDEX16:
+        case GX_INDEX16:
             LookupNormalIndexed[vat_a->get_normal()](normal_base + (gp::Fifo_Pop16() * normal_stride),
                 g_vbo->normal);
             break;
         }
         // Decode color 0
         switch (gp::g_cp_regs.vcd_lo[0].color0) {
-        case CP_NOT_PRESENT:
+        case GX_NONE:
             g_vbo->color[0] = 0xffffffff;
             break;
-        case CP_DIRECT:
+        case GX_DIRECT:
             LookupColorDirect[vat_a->get_col0()](0, &g_vbo->color[0]);
             break;
-        case CP_INDEX8:
+        case GX_INDEX8:
             LookupColorIndexed[vat_a->get_col0()](col0_base + (gp::Fifo_Pop8() * col0_stride),
                 &g_vbo->color[0]);
             break;
-        case CP_INDEX16:
+        case GX_INDEX16:
             LookupColorIndexed[vat_a->get_col0()](col0_base + (gp::Fifo_Pop16() * col0_stride),
                 &g_vbo->color[0]);
             break;
         }
         // Decode color 1
         switch (gp::g_cp_regs.vcd_lo[0].color1) {
-        case CP_NOT_PRESENT:
+        case GX_NONE:
             g_vbo->color[1] = 0xffffffff;
             break;
-        case CP_DIRECT:
+        case GX_DIRECT:
             LookupColorDirect[vat_a->get_col1()](0, &g_vbo->color[1]);
             break;
-        case CP_INDEX8:
+        case GX_INDEX8:
             LookupColorIndexed[vat_a->get_col1()](col1_base + (gp::Fifo_Pop8() * col1_stride),
                 &g_vbo->color[1]);
             break;
-        case CP_INDEX16:
+        case GX_INDEX16:
             LookupColorIndexed[vat_a->get_col1()](col1_base + (gp::Fifo_Pop16() * col1_stride),
                 &g_vbo->color[1]);
             break;
@@ -686,14 +686,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 0
         if (gp::g_cp_regs.vcd_hi[0].tex0_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex0_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_a->get_tex0()](0, &g_vbo->texcoords[0 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_a->get_tex0()](tex0_base + (gp::Fifo_Pop8() * tex0_stride), 
                     &g_vbo->texcoords[0 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_a->get_tex0()](tex0_base + (gp::Fifo_Pop16() * tex0_stride),
                     &g_vbo->texcoords[0 << 1]);
                 break;
@@ -702,14 +702,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 1
         if (gp::g_cp_regs.vcd_hi[0].tex1_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex1_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex1()](0, &g_vbo->texcoords[1 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex1()](tex1_base + (gp::Fifo_Pop8() * tex1_stride),
                     &g_vbo->texcoords[1 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex1()](tex1_base + (gp::Fifo_Pop16() * tex1_stride),
                     &g_vbo->texcoords[1 << 1]);
                 break;
@@ -718,14 +718,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 2
         if (gp::g_cp_regs.vcd_hi[0].tex2_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex2_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex2()](0, &g_vbo->texcoords[2 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex2()](tex2_base + (gp::Fifo_Pop8() * tex2_stride),
                     &g_vbo->texcoords[2 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex2()](tex2_base + (gp::Fifo_Pop16() * tex2_stride),
                     &g_vbo->texcoords[2 << 1]);
                 break;
@@ -734,14 +734,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 3
         if (gp::g_cp_regs.vcd_hi[0].tex3_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex3_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex3()](0, &g_vbo->texcoords[3 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex3()](tex3_base + (gp::Fifo_Pop8() * tex3_stride),
                     &g_vbo->texcoords[3 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex3()](tex3_base + (gp::Fifo_Pop16() * tex3_stride),
                     &g_vbo->texcoords[3 << 1]);
                 break;
@@ -750,14 +750,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 4
         if (gp::g_cp_regs.vcd_hi[0].tex4_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex4_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_b->get_tex4()](0, &g_vbo->texcoords[4 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_b->get_tex4()](tex4_base + (gp::Fifo_Pop8() * tex4_stride),
                     &g_vbo->texcoords[4 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_b->get_tex4()](tex4_base + (gp::Fifo_Pop16() * tex4_stride),
                     &g_vbo->texcoords[4 << 1]);
                 break;
@@ -766,14 +766,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 5
         if (gp::g_cp_regs.vcd_hi[0].tex5_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex5_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex5()](0, &g_vbo->texcoords[5 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_c->get_tex5()](tex5_base + (gp::Fifo_Pop8() * tex5_stride),
                     &g_vbo->texcoords[5 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_c->get_tex5()](tex5_base + (gp::Fifo_Pop16() * tex5_stride),
                     &g_vbo->texcoords[5 << 1]);
                 break;
@@ -782,14 +782,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 6
         if (gp::g_cp_regs.vcd_hi[0].tex6_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex6_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex6()](0, &g_vbo->texcoords[6 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_c->get_tex6()](tex6_base + (gp::Fifo_Pop8() * tex6_stride),
                     &g_vbo->texcoords[6 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_c->get_tex6()](tex6_base + (gp::Fifo_Pop16() * tex6_stride),
                     &g_vbo->texcoords[6 << 1]);
                 break;
@@ -798,14 +798,14 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
         // Decode texcoord 7
         if (gp::g_cp_regs.vcd_hi[0].tex7_coord) {
             switch(gp::g_cp_regs.vcd_hi[0].tex7_coord) {
-            case CP_DIRECT:
+            case GX_DIRECT:
                 LookupTexCoordDirect[vat_c->get_tex7()](0, &g_vbo->texcoords[7 << 1]);
                 break;
-            case CP_INDEX8:
+            case GX_INDEX8:
                 LookupTexCoordIndexed[vat_c->get_tex7()](tex7_base + (gp::Fifo_Pop8() * tex7_stride),
                     &g_vbo->texcoords[7 << 1]);
                 break;
-            case CP_INDEX16:
+            case GX_INDEX16:
                 LookupTexCoordIndexed[vat_c->get_tex7()](tex7_base + (gp::Fifo_Pop16() * tex7_stride),
                     &g_vbo->texcoords[7 << 1]);
                 break;

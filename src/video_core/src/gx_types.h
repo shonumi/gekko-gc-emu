@@ -39,6 +39,9 @@ static const int kGCMaxTevStages        = 16;   ///< Number of TEV stages suppor
 static const int kGCMaxVertexColors     = 2;    ///< Number of vertex color channels supported
 static const int kGCMaxLights           = 8;    ///< Number of lights
 
+static const int kGCMatrixMemSize       = 0x40; ///< Size of XF matrix memory (in vec4s)
+static const int kGCNormalMemSize       = 0x20; ///< Size of XF normal memory (in vec3s)
+
 /**
  * General struct used for describing a GX Vertex
  *
@@ -138,6 +141,14 @@ enum GXDiffuseFn {
     GX_DF_SIGN,
     GX_DF_CLAMP
 };
+
+// GX API vertex attribute type
+enum GXAttrType {
+    GX_NONE = 0,
+    GX_DIRECT,
+    GX_INDEX8,
+    GX_INDEX16
+} GXAttrType;
 
 /**
  * @brief Vertex format for an individual vertex component (e.g. position)
