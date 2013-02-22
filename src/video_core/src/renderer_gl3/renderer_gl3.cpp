@@ -175,7 +175,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
 
     // Position
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, gl_types[vertex_state_.pos.type], GL_FALSE, sizeof(GXVertex), 
+    glVertexAttribPointer(0, 3, gl_types[vertex_state_.pos.comp_type], GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(0));
     // Color 0
     glEnableVertexAttribArray(1);
@@ -187,12 +187,12 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
         reinterpret_cast<void*>(16));
     // Normal
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, gl_types[vertex_state_.nrm.type], GL_FALSE, sizeof(GXVertex), 
+    glVertexAttribPointer(3, 4, gl_types[vertex_state_.nrm.comp_type], GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(20));
     // TexCoords
     for (int i = 0; i < gp::g_xf_regs.num_texgen.num_texgens; i++) {
         glEnableVertexAttribArray(i + 4);
-        glVertexAttribPointer(i + 4, 4, gl_types[vertex_state_.tex[i].type], GL_FALSE, 
+        glVertexAttribPointer(i + 4, 4, gl_types[vertex_state_.tex[i].comp_type], GL_FALSE, 
             sizeof(GXVertex), reinterpret_cast<void*>(56 + (i * 8)));
 	}
     // Position matrix index
