@@ -148,7 +148,7 @@ enum GXAttrType {
     GX_DIRECT,
     GX_INDEX8,
     GX_INDEX16
-} GXAttrType;
+};
 
 /**
  * @brief Vertex format for an individual vertex component (e.g. position)
