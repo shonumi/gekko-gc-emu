@@ -81,4 +81,9 @@ bool MailManager::Empty() {
     return message_queue.empty();
 }
 
-MailManager m_mails;
+/**
+* Clears message queue
+*/
+void MailManager::Clear() {
+    while(!Empty()) { message_queue.pop(); }
+}

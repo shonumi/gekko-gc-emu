@@ -100,7 +100,7 @@ void ucode_zww_sendmsg(u32 msg, int irq) {
 		dspCSRDSPInt = DSP_CSR_DSPINT;
 		//PI_RequestInterrupt(PI_MASK_DSP);
 	}
-	m_mails.PushMail(msg);
+	//m_mails.PushMail(msg);
 }
 
 //uint32 read_msg(

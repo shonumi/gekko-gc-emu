@@ -9,9 +9,7 @@
 #include "hw_ai.h"
 #include "hle/hle_dsp.h"
 #include "powerpc/cpu_core_regs.h"
-#include "hle/dsp/mail_manager.h"
-
-//
+#include "hle/dsp/ucode.h"
 
 //TODO: Code cleanup (shonumi) and soon too
 
@@ -24,6 +22,9 @@ u32		mbox_dsp_cpu; /* from the dsp to the cpu */
 u32		dspDMALenENBSet = 0;
 u32		dspCSRDSPIntMask = 0;
 u32		dspCSRDSPInt = 0;
+
+//TODO: Make this member of future DSPHLE object
+UCode* g_game_ucode = GenerateUCode(UCODE_ROM);
 
 u16		g_AR_INFO;
 u16		g_AR_MODE;
@@ -156,7 +157,7 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 
 	case DSP_CPU_MAILBOX_HI:
                 //printf("CPU (%08x) checks mbox, ",ireg_PC());
-		REGDSP16(DSP_CPU_MAILBOX_HI) = m_mails.ReadMailboxHi();
+		REGDSP16(DSP_CPU_MAILBOX_HI) = g_game_ucode->mail_man.ReadMailboxHi();
 		//printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
 		REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
                 
@@ -164,7 +165,7 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 
 	case DSP_CPU_MAILBOX_LO:
                 //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX_LO));
-		REGDSP16(DSP_CPU_MAILBOX_LO) = m_mails.ReadMailboxLo();
+		REGDSP16(DSP_CPU_MAILBOX_LO) = g_game_ucode->mail_man.ReadMailboxLo();
 		mbox_cpu_dsp = REGDSP32(DSP_CPU_MAILBOX_HI);
                 return REGDSP16(DSP_CPU_MAILBOX_LO);
 
@@ -215,26 +216,15 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 	{
 	case CPU_DSP_MAILBOX_HI:
 		REGDSP16(CPU_DSP_MAILBOX_HI)=data;
-		//printf("CPU writes CPU_DSP_MAILBOX_HI %04x\n",data&0xffff);
+		printf("CPU writes CPU_DSP_MAILBOX_HI %04x\n",data&0xffff);
 		return;
 	case CPU_DSP_MAILBOX_LO:
 		REGDSP16(CPU_DSP_MAILBOX_LO)=data;
 		mbox_cpu_dsp = REGDSP32(CPU_DSP_MAILBOX_HI);
 
 		REGDSP16(CPU_DSP_MAILBOX_HI) &= 0x7fff;
-		//printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
-
-		switch (DSPucode) {
-			case DSPUCODE_LOADER:
-				ucode_loader_parse(mbox_cpu_dsp);
-				break;
-			case DSPUCODE_ZWW:
-				//printf("CPU->DSP message %08x\n",mbox_cpu_dsp);
-				ucode_zww_parse(mbox_cpu_dsp);
-				break;
-			default:
-				printf("CPU->DSP message %08x\n",mbox_cpu_dsp);
-		}
+		printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
+		g_game_ucode->ProcessMail(mbox_cpu_dsp);
 		return;
 	case DSP_CPU_MAILBOX_HI:
 	case DSP_CPU_MAILBOX_LO:
@@ -414,7 +404,7 @@ void DSP_Open(void)
 	mbox_cpu_dsp = 0;
 	mbox_dsp_cpu = 0;
 
-	dsphle_init();
+	//dsphle_init();
 
 	g_DSPDMATime = 0;
 	g_AISampleRate = 32000;

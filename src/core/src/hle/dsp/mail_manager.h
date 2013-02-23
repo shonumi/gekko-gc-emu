@@ -47,6 +47,11 @@ public:
      */
     bool Empty();    
 
+   /**
+    * Clears message queue
+    */
+    void Clear();
+
     /**
      * Reads upper word of a 32-bit mail message
      * @returns Unsigned word of mail message
@@ -67,12 +72,6 @@ public:
 
 private:
     std::queue <u32> message_queue;
-
-    DISALLOW_COPY_AND_ASSIGN(MailManager);
 };
-
-// NOTE: Very bad form. Using now just to test functionality. 
-// Move instance to UCode class when finished (as non-globlal too)
-extern MailManager m_mails; 
 
 #endif // CORE_MAIL_MANAGER_H_ 
