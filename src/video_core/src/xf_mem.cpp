@@ -158,6 +158,8 @@ void XF_Load(u32 length, u32 base_addr, u32* data) {
     // Transformation memory
     } else if ((base_addr + length) < 0x800) {
         memcpy(&g_xf_mem[base_addr], data, length << 2);
+    } else {
+        _ASSERT_MSG(TGP, 0, "XF write to %08X outside of address space!", base_addr + length); 
     }
     video_core::g_renderer->WriteXF(base_addr, length, data);
 }
