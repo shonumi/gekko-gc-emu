@@ -121,8 +121,8 @@ void ShaderManager::GenerateVertexLightingHeader() {
     int num_channels = state_.fields.num_color_chans;
 
     _ASSERT_MSG(TGP, num_channels <= 2, "Not implemented num_channels > 2! Got %d", num_channels);
-
-    //static const char* color_material_src[] = { "vtx_color[%d]", "
+    //_ASSERT_MSG(TGP, num_channels, "No channel enabled");
+    //static const char* color_material_src[] = { "col[%d]", "
     for (int chan_num = 0; chan_num < num_channels; chan_num++) {
         const gp::XFLitChannel& color = state_.fields.color_channel[chan_num];
         const gp::XFLitChannel& alpha = state_.fields.alpha_channel[chan_num];
@@ -140,9 +140,9 @@ void ShaderManager::GenerateVertexLightingHeader() {
         // Color material source is vertex color (if available)
         if (color.material_src) {
             if (state_.fields.vertex_state.col[1].attr_type && chan_num == 1) {
-                mat_src += "vtx_color[1].rgb, ";
+                mat_src += "col[1].rgb, ";
             } else if (state_.fields.vertex_state.col[0].attr_type && chan_num == 0) {
-                mat_src += "vtx_color[0].rgb, ";
+                mat_src += "col[0].rgb, ";
             } else {
                 mat_src += "vec3(1.0f, 1.0f, 1.0f), ";
             }
@@ -153,9 +153,9 @@ void ShaderManager::GenerateVertexLightingHeader() {
         // Alpha material source is vertex alpha
         if (alpha.material_src) {
             if (state_.fields.vertex_state.col[1].attr_type && chan_num == 1) {
-                mat_src += "vtx_color[1].a)";
+                mat_src += "col[1].a)";
             } else if (state_.fields.vertex_state.col[0].attr_type && chan_num == 0) {
-                mat_src += "vtx_color[0].a)";
+                mat_src += "col[0].a)";
             } else {
                 mat_src += "1.0f)";
             }
@@ -163,6 +163,8 @@ void ShaderManager::GenerateVertexLightingHeader() {
         } else {
             mat_src += common::FormatStr("state.xf_material_color[%d].a)", chan_num);
         }
+        //LOG_NOTICE(TGP, mat_src.c_str());
+
         _VSDEF("COLOR%d_MATERIAL_SRC %s", chan_num, mat_src.c_str());
 
         // Ambient source
@@ -172,9 +174,9 @@ void ShaderManager::GenerateVertexLightingHeader() {
             // Color ambient source is vertex color (if available)
             if (color.ambsource) {
                 if (state_.fields.vertex_state.col[1].attr_type && chan_num == 1) {
-                    amb_src += "vtx_color[1].rgb, ";
+                    amb_src += "col[1].rgb, ";
                 } else if (state_.fields.vertex_state.col[0].attr_type && chan_num == 0) {
-                    amb_src += "vtx_color[0].rgb, ";
+                    amb_src += "col[0].rgb, ";
                 } else {
                     amb_src += "vec3(0.0f, 0.0f, 0.0f), ";
                 }
@@ -189,9 +191,9 @@ void ShaderManager::GenerateVertexLightingHeader() {
             // Alpha ambient source is vertex alpha
             if (alpha.material_src) {
                 if (state_.fields.vertex_state.col[1].attr_type && chan_num == 1) {
-                    amb_src += "vtx_color[1].a)";
+                    amb_src += "col[1].a)";
                 } else if (state_.fields.vertex_state.col[0].attr_type && chan_num == 0) {
-                    amb_src += "vtx_color[0].a)";
+                    amb_src += "col[0].a)";
                 } else {
                     amb_src += "0.0f)";
                 }
@@ -206,10 +208,14 @@ void ShaderManager::GenerateVertexLightingHeader() {
 
         //_ASSERT_MSG(TGP, !alpha.enable_lighting, "Have not implemented alpha lighting");
 
+        //_ASSERT_MSG(TGP, color.material_src == alpha.material_src, "color.material_src != alpha.material_src");
 
         if (color.enable_lighting) {
 
-            for (int light_num = 0; light_num < kGCMaxLights; light_num++) {
+            for (int light_num = 0; light_num < kGCMaxLights; ++light_num) {
+
+                if (!(color.get_light_mask() & (1 << light_num))) continue;
+
 
                 std::string light_clamp = "%s";
                 std::string light_src = common::FormatStr("l_amb[%d].rgb += ", chan_num);
@@ -222,12 +228,13 @@ void ShaderManager::GenerateVertexLightingHeader() {
                         light_src += "1.0f";
 				        break;
 
-                    case GX_DF_CLAMP: light_clamp = "clamp(%s, 0.0f, 1.0f)";
+                    case GX_DF_CLAMP: light_clamp = "max(%s, 0.0f)";
+
                     case GX_DF_SIGN:
                         {
                             std::string light_intensity = common::FormatStr("dot(normalize("
                                 "state.light[%d].pos.xyz - pos.xyz), nrm.xyz)", light_num);
-                            light_src += common::FormatStr(light_clamp.c_str(), light_intensity);
+                            light_src += common::FormatStr(light_clamp.c_str(), light_intensity.c_str());
                         }
 			            break;
 

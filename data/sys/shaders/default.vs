@@ -120,118 +120,97 @@ struct VertexState {
 // XF memory
 layout(std140) uniform _VS_UBO {
     VertexState state;
-    vec4 tf_mem[0x40];
-    vec4 nrm_mem[0x20]; // vec4 for tight packing (normal is just using xyz)
+    vec4 xf_matrix_mem[0x40];
+    vec4 xf_normal_mem[0x20]; // vec4 for tight packing (normal is just using xyz)
 };
 
 // Vertex shader outputs
 out vec4 vtx_color[2];
 out vec2 vtx_texcoord[8];
 
-#define TF_MEM_MTX44(addr) mat4( \
-    tf_mem[addr].x, tf_mem[addr + 1].x, tf_mem[addr + 2].x, 0.0, \
-    tf_mem[addr].y, tf_mem[addr + 1].y, tf_mem[addr + 2].y, 0.0, \
-    tf_mem[addr].z, tf_mem[addr + 1].z, tf_mem[addr + 2].z, 0.0, \
-    tf_mem[addr].w, tf_mem[addr + 1].w, tf_mem[addr + 2].w, 1.0)
+#define XF_MTX44(addr) mat4( \
+    xf_matrix_mem[addr].x, xf_matrix_mem[addr + 1].x, xf_matrix_mem[addr + 2].x, 0.0, \
+    xf_matrix_mem[addr].y, xf_matrix_mem[addr + 1].y, xf_matrix_mem[addr + 2].y, 0.0, \
+    xf_matrix_mem[addr].z, xf_matrix_mem[addr + 1].z, xf_matrix_mem[addr + 2].z, 0.0, \
+    xf_matrix_mem[addr].w, xf_matrix_mem[addr + 1].w, xf_matrix_mem[addr + 2].w, 1.0)
 
 void main() {
-    vec4 pos;
-    vec4 nrm;
-    vec4 mat[2];
-    vec4 l_amb[2];
-    vec4 col[2];
+    vec4    pos;
+    vec4    nrm;
+    vec4    mat[2];
+    vec4    l_amb[2];
+    vec4    col[2];
+    float   pos_dqf         = 1.0f;
+    int     pos_nrm_index   = state.cp_pos_matrix_offset;
     
-    vec3 N0, N1, N2;
-    
-    mat[0]      = _VSDEF_COLOR0_MATERIAL_SRC;
-    mat[1]      = _VSDEF_COLOR1_MATERIAL_SRC;
-    l_amb[0]    = _VSDEF_COLOR0_AMBIENT_SRC;
-    l_amb[1]    = _VSDEF_COLOR1_AMBIENT_SRC;
-    
-    mat4 modelview_matrix;
 #ifdef _VSDEF_POS_MIDX // Position modelview matrix
-    modelview_matrix = TF_MEM_MTX44(int(matrix_idx_pos[0]));
-    
-    int nrm_matrix_offset = int(matrix_idx_pos[0]);
-    if (state.cp_pos_matrix_offset >= 32) {
-        nrm_matrix_offset -= 32;
-    }
-    N0 = nrm_mem[nrm_matrix_offset + 0].xyz;
-    N1 = nrm_mem[nrm_matrix_offset + 1].xyz;
-    N2 = nrm_mem[nrm_matrix_offset + 2].xyz;
-#else
-    modelview_matrix = TF_MEM_MTX44(state.cp_pos_matrix_offset);
-    
-    int nrm_matrix_offset = state.cp_pos_matrix_offset;
-    if (state.cp_pos_matrix_offset >= 32) {
-        nrm_matrix_offset -= 32;
-    }
-    N0 = nrm_mem[nrm_matrix_offset + 0].xyz;
-    N1 = nrm_mem[nrm_matrix_offset + 1].xyz;
-    N2 = nrm_mem[nrm_matrix_offset + 2].xyz;
+    pos_nrm_index = int(matrix_idx_pos[0]);
 #endif
-#ifdef _VSDEF_POS_DQF // Position shift (dequantization factor) only U8/S8/U16/S16 formats
-    pos = state.projection_matrix * modelview_matrix * 
-        vec4(position.xyz * state.cp_pos_dqf, 1.0);
-#else
-    pos = state.projection_matrix * modelview_matrix * vec4(position.xyz, 1.0);
-#endif
-    nrm.xyz = normalize(vec3(dot(N0, normal.xyz), dot(N1, normal.xyz), dot(N2, normal.xyz)));
 
+#ifdef _VSDEF_POS_DQF // Position shift (dequantization factor) only U8/S8/U16/S16 formats
+    pos_dqf = state.cp_pos_dqf;
+#endif
+    
+    pos = state.projection_matrix * XF_MTX44(pos_nrm_index) * vec4(position.xyz * pos_dqf, 1.0);
+    pos_nrm_index &= 0x31; // Normal matrix is only 32 entries
+    nrm.xyz = normalize(vec3(dot(xf_normal_mem[pos_nrm_index + 0].xyz, normal.xyz), 
+                             dot(xf_normal_mem[pos_nrm_index + 1].xyz, normal.xyz), 
+                             dot(xf_normal_mem[pos_nrm_index + 2].xyz, normal.xyz)));   
+                             
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
-    vtx_texcoord[0] = vec4(TF_MEM_MTX44(int(matrix_idx_tex03[0])) * 
+    vtx_texcoord[0] = vec4(XF_MTX44(int(matrix_idx_tex03[0])) * 
         vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[0] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[0][0]) * 
+    vtx_texcoord[0] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][0]) * 
         vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_1_MIDX // Texture coord 1
-    vtx_texcoord[1] = vec4(TF_MEM_MTX44(int(matrix_idx_tex03[1])) * 
+    vtx_texcoord[1] = vec4(XF_MTX44(int(matrix_idx_tex03[1])) * 
         vec4(texcoord1.st * state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[1] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[0][1]) * 
+    vtx_texcoord[1] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][1]) * 
         vec4(texcoord1.st * state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_2_MIDX // Texture coord 2
-    vtx_texcoord[2] = vec4(TF_MEM_MTX44(int(matrix_idx_tex03[2])) * 
+    vtx_texcoord[2] = vec4(XF_MTX44(int(matrix_idx_tex03[2])) * 
         vec4(texcoord2.st * state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[2] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[0][2]) * 
+    vtx_texcoord[2] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][2]) * 
         vec4(texcoord2.st * state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_3_MIDX // Texture coord 3
-    vtx_texcoord[3] = vec4(TF_MEM_MTX44(int(matrix_idx_tex03[3])) * 
+    vtx_texcoord[3] = vec4(XF_MTX44(int(matrix_idx_tex03[3])) * 
         vec4(texcoord3.st * state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[3] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[0][3]) * 
+    vtx_texcoord[3] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][3]) * 
         vec4(texcoord3.st * state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_4_MIDX // Texture coord 4
-    vtx_texcoord[4] = vec4(TF_MEM_MTX44(int(matrix_idx_tex47[0])) * 
+    vtx_texcoord[4] = vec4(XF_MTX44(int(matrix_idx_tex47[0])) * 
         vec4(texcoord4.st * state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[4] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[1][0]) * 
+    vtx_texcoord[4] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][0]) * 
         vec4(texcoord4.st * state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_5_MIDX // Texture coord 5
-    vtx_texcoord[5] = vec4(TF_MEM_MTX44(int(matrix_idx_tex47[1])) * 
+    vtx_texcoord[5] = vec4(XF_MTX44(int(matrix_idx_tex47[1])) * 
         vec4(texcoord5.st * state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[5] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[1][1]) * 
+    vtx_texcoord[5] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][1]) * 
         vec4(texcoord5.st * state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_6_MIDX // Texture coord 6
-    vtx_texcoord[6] = vec4(TF_MEM_MTX44(int(matrix_idx_tex47[2])) * 
+    vtx_texcoord[6] = vec4(XF_MTX44(int(matrix_idx_tex47[2])) * 
         vec4(texcoord6.st * state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[6] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[1][2]) * 
+    vtx_texcoord[6] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][2]) * 
         vec4(texcoord6.st * state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #endif
 #ifdef _VSDEF_TEX_7_MIDX // Texture coord 7
-    vtx_texcoord[7] = vec4(TF_MEM_MTX44(int(matrix_idx_tex47[3])) * 
+    vtx_texcoord[7] = vec4(XF_MTX44(int(matrix_idx_tex47[3])) * 
         vec4(texcoord7.st * state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #else
-    vtx_texcoord[7] = vec4(TF_MEM_MTX44(state.cp_tex_matrix_offset[1][3]) * 
+    vtx_texcoord[7] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][3]) * 
         vec4(texcoord7.st * state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #endif
     
@@ -286,6 +265,11 @@ void main() {
     col[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 
+    mat[0]      = _VSDEF_COLOR0_MATERIAL_SRC;
+    mat[1]      = _VSDEF_COLOR1_MATERIAL_SRC;
+    l_amb[0]    = _VSDEF_COLOR0_AMBIENT_SRC;
+    l_amb[1]    = _VSDEF_COLOR1_AMBIENT_SRC;
+    
     _VSDEF_SET_CHAN0_LIGHT0;
     _VSDEF_SET_CHAN0_LIGHT1;
     _VSDEF_SET_CHAN0_LIGHT2;
@@ -307,12 +291,12 @@ void main() {
 #ifdef _VSDEF_LIGHTING_ENABLE_0
     vtx_color[0] = mat[0] * clamp(l_amb[0], 0.0f, 1.0f);
 #else
-    vtx_color[0] = mat[0] * col[0];
+    vtx_color[0] = mat[0];
 #endif
 #ifdef _VSDEF_LIGHTING_ENABLE_1
     vtx_color[1] = mat[1] * clamp(l_amb[1], 0.0f, 1.0f);
 #else
-    vtx_color[1] = mat[1] * col[1];
+    vtx_color[1] = mat[1];
 #endif
     gl_Position = pos;
 }
