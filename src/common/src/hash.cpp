@@ -62,8 +62,73 @@ inline u64 fmix64(u64 k) {
     return k;
 }
 
+#define ROTL32(x,y)     rotl32(x,y)
+
+inline uint32_t fmix ( uint32_t h )
+{
+  h ^= h >> 16;
+  h *= 0x85ebca6b;
+  h ^= h >> 13;
+  h *= 0xc2b2ae35;
+  h ^= h >> 16;
+
+  return h;
+}
+
+u32 __compute_murmur_hash3_32(const u8 *src, int len, u32 samples) {
+    u32 h = len;
+    u32 step = (len >> 2);
+    const u32 *data = (const u32*)src;
+    const u32 *end = data + step;
+    if (samples == 0) {
+        samples = std::max(step, 1u);
+    }
+    step  = step / samples;
+    if(step < 1) { 
+        step = 1;
+    }
+    u32 h1 = 0x2f6af274;
+    const u32 c1 = 0xcc9e2d51;
+    const u32 c2 = 0x1b873593;
+
+    while (data < end) {
+        u32 k1 = data[0];
+
+        k1 *= c1;
+        k1 = (k1 << 15) | (k1 >> (32 - 15));
+        k1 *= c2;
+
+        h1 ^= k1;
+        h1 = (h1 << 15) | (h1 >> (32 - 13)); 
+        h1 = h1*5+0xe6546b64;
+
+        data += step;
+    }
+    const u8 * tail = (const u8*)(data);
+
+    u32 k1 = 0;
+
+    switch(len & 3) {
+    case 3: 
+        k1 ^= tail[2] << 16;
+    case 2: 
+        k1 ^= tail[1] << 8;
+    case 1: 
+        k1 ^= tail[0];
+        k1 *= c1; 
+        k1 = (k1 << 15) | (k1 >> (32 - 15));
+        k1 *= c2; 
+        h1 ^= k1;
+    };
+    h1 ^= len;
+    h1 = fmix(h1);
+
+    return h1;
+} 
+
+
 /// MurmurHash is a non-cryptographic hash function suitable for general hash-based lookup
-u64 __compute_murmur_hash_3(const u8 *src, int len, u32 samples) {
+u64 __compute_murmur_hash3_64(const u8 *src, int len, u32 samples) {
     const u8 * data = (const u8*)src;
     const int nblocks = len / 16;
     u32 step = (len / 8);
@@ -161,10 +226,15 @@ Hash64 GetHash64(const u8 *src, int len, u32 samples) {
     if (x86_utils.IsExtensionSupported(X86Utils::kExtensionX86_SSE4_2)) {
         return __compute_crc32_sse4(src, len, samples);
     } else {
-        return __compute_murmur_hash_3(src, len, samples);
+
+#ifdef EMU_ARCHITECTURE_X64
+        return __compute_murmur_hash3_64(src, len, samples);
+#else
+        return __compute_murmur_hash3_32(src, len, samples);
+#endif
     }
 #else
-    return __compute_murmur_hash_3(src, len, samples);
+    return __compute_murmur_hash3_32(src, len, samples);
 #endif
 }
 
