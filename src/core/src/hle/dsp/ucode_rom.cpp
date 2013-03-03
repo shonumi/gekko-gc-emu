@@ -72,7 +72,7 @@ void UCode_ROM::ProcessMail(u32 message) {
                 case 0x80F3D001:
                     current_ucode.start_pc = message & 0xFFFF;
                     printf("UCode ROM Start PC: %08x\n", current_ucode.start_pc);
-                    BootUCode(); 
+                    BootUCode();
                     break;
 
                 default: break;
@@ -89,7 +89,8 @@ void UCode_ROM::Update() { }
  * @param message Mail sent to DSP for booting
  */
 void UCode_ROM::BootUCode() {
-crc = GenerateCRC(&Mem_RAM[current_ucode.dmem_length & RAM_MASK],
-				current_ucode.length);
-printf("UCode ROM BootUCode Generates CRC: %08x\n",crc);
+    crc = GenerateCRC(&Mem_RAM[current_ucode.dmem_length & RAM_MASK],
+				    current_ucode.length);
+    printf("UCode ROM BootUCode Generates CRC: %08x\n",crc);
+    upload_in_progress = false;
 }

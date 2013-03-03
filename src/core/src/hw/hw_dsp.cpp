@@ -9,7 +9,6 @@
 #include "hw_ai.h"
 #include "hle/hle_dsp.h"
 #include "powerpc/cpu_core_regs.h"
-#include "hle/dsp/ucode.h"
 
 //TODO: Code cleanup (shonumi) and soon too
 
@@ -17,14 +16,11 @@ sDSP	dsp;
 u8		DSPRegisters[REG_SIZE];
 u8		ARAM[ARAM_SIZE];
 s64		g_DSPDMATime;
-u32		mbox_cpu_dsp; /* from the cpu to the dsp */
-u32		mbox_dsp_cpu; /* from the dsp to the cpu */
 u32		dspDMALenENBSet = 0;
 u32		dspCSRDSPIntMask = 0;
 u32		dspCSRDSPInt = 0;
 
-//TODO: Make this member of future DSPHLE object
-UCode* g_game_ucode = GenerateUCode(UCODE_ROM);
+DSPHLE dsp_emulator;
 
 u16		g_AR_INFO;
 u16		g_AR_MODE;
@@ -157,7 +153,7 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 
 	case DSP_CPU_MAILBOX_HI:
                 //printf("CPU (%08x) checks mbox, ",ireg_PC());
-		REGDSP16(DSP_CPU_MAILBOX_HI) = g_game_ucode->mail_man.ReadMailboxHi();
+		REGDSP16(DSP_CPU_MAILBOX_HI) = dsp_emulator.DSP_ReadMailboxHi(false);
 		//printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
 		REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
                 
@@ -165,8 +161,8 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 
 	case DSP_CPU_MAILBOX_LO:
                 //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX_LO));
-		REGDSP16(DSP_CPU_MAILBOX_LO) = g_game_ucode->mail_man.ReadMailboxLo();
-		mbox_cpu_dsp = REGDSP32(DSP_CPU_MAILBOX_HI);
+		REGDSP16(DSP_CPU_MAILBOX_LO) = dsp_emulator.DSP_ReadMailboxHi(false);
+		dsp_emulator.mbox_cpu_dsp = REGDSP32(DSP_CPU_MAILBOX_HI);
                 return REGDSP16(DSP_CPU_MAILBOX_LO);
 
 	case DSP_CSR:
@@ -220,11 +216,17 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 		return;
 	case CPU_DSP_MAILBOX_LO:
 		REGDSP16(CPU_DSP_MAILBOX_LO)=data;
-		mbox_cpu_dsp = REGDSP32(CPU_DSP_MAILBOX_HI);
+		dsp_emulator.mbox_cpu_dsp = REGDSP32(CPU_DSP_MAILBOX_HI);
 
 		REGDSP16(CPU_DSP_MAILBOX_HI) &= 0x7fff;
 		printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
-		g_game_ucode->ProcessMail(mbox_cpu_dsp);
+		dsp_emulator.game_ucode->ProcessMail(dsp_emulator.mbox_cpu_dsp);
+  
+                //After processing mail, see if new UCode needs to be generated
+		if(!dsp_emulator.game_ucode->upload_in_progress) { 
+                    delete dsp_emulator.game_ucode;
+                    dsp_emulator.game_ucode = GenerateUCode(dsp_emulator.game_ucode->crc);
+                }
 		return;
 	case DSP_CPU_MAILBOX_HI:
 	case DSP_CPU_MAILBOX_LO:
@@ -401,10 +403,7 @@ void DSP_Open(void)
 	memset(DSPRegisters, 0, sizeof(DSPRegisters));
 	memset(ARAM, 0, sizeof(ARAM));
 
-	mbox_cpu_dsp = 0;
-	mbox_dsp_cpu = 0;
-
-	//dsphle_init();
+	dsp_emulator.game_ucode = GenerateUCode(UCODE_ROM);
 
 	g_DSPDMATime = 0;
 	g_AISampleRate = 32000;

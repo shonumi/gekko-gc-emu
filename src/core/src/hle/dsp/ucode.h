@@ -25,7 +25,6 @@
 #ifndef CORE_UCODE_H_
 #define CORE_UCODE_H_
 
-#include "common.h"
 #include "mail_manager.h"
 
 #define UCODE_ROM            0x0000000
@@ -78,12 +77,11 @@ public:
 
     MailManager mail_man;
 
-protected:
-
     bool resume_mail;
     bool upload_in_progress;
-
     u32 crc;
+
+protected:
 
     struct UCodeLoader {
         u32 mram_dest_addr;

@@ -1,19 +1,85 @@
-enum {
-	DSPUCODE_HARDROM,
-	DSPUCODE_LOADER,
-	DSPUCODE_ZWW /* wind waker US */
+/*!
+ * Copyright (C) 2005-2013 Gekko Emulator
+ *
+ * @file    hle_dsp.h
+ * @author  Shonumi <shonumi@gmail.com>
+ * @date    2013-2-15
+ * @brief   Class for High Level DSP Emulation
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Official project repository can be found at:
+ * http://code.google.com/p/gekko-gc-emu/
+ */ 
+ 
+#ifndef CORE_DSP_HLE_H_
+#define CORE_DSP_HLE_H_
+
+#include "hle/dsp/ucode.h" 
+
+class DSPHLE {
+public:
+
+    DSPHLE() {};
+    ~DSPHLE() {};
+
+    /**
+     * @brief Writes upper word of a 32-bit mail message
+     * @param cpu_mbox If true write to CPU's mailbox, if false write to DSP's mailbox
+     * @param message The mail message itself
+     */
+    void DSP_WriteMailboxHi(bool cpu_mbox, u16 message);
+
+    /**
+     * @brief Writes lower word of a 32-bit mail message
+     * @param cpu_mbox If true write to CPU's mailbox, if false write to DSP's mailbox
+     * @param message The mail message itself
+     */
+    void DSP_WriteMailboxLo(bool cpu_mbox, u16 message);
+
+    /**
+     * @brief Reads upper word of a 32-bit mail message from mailbox
+     * @param cpu_mbox If true read from CPU's mailbox, if false read from DSP's mailbox
+     * @returns Unsigned word of mail message
+     */
+    u16 DSP_ReadMailboxHi(bool cpu_mbox);
+
+    /**
+     * @brief Reads lower word of a 32-bit mail message from mailbox
+     * @param cpu_mbox If true read from CPU's mailbox, if false read from DSP's mailbox
+     * @returns Unsigned word of mail message
+     */
+    u16 DSP_ReadMailboxLo(bool cpu_mbox);
+
+    /**
+     * @brief Allows access into DSP mail manager (private member)
+     * @returns Reference to DSPHLE's MailManager instance
+     */
+    MailManager& AccessMailManager() { return mail_man; }
+
+   /**
+    * @brief Initializes the DSP - sets various values and such
+    * @returns If initialized correctly, return true, false if otherwise
+    */
+    bool Init();
+
+    UCode* game_ucode;
+
+    MailManager mail_man;
+    u32 mbox_cpu_dsp;
+    u32 mbox_dsp_cpu;
+
+    DISALLOW_COPY_AND_ASSIGN(DSPHLE);
 };
 
-extern int DSPucode;
-
-//int is_msg_queue_empty(void);
-//u32 peek_msg_queue(void);
-//void pop_msg_queue(void);
-//void write_msg_queue(u32 msg);
-
-void dsphle_init(void);
-void ucode_loader_parse(u32 message);
-
-void ucode_zww_init(void);
-void ucode_zww_parse(u32 mesg);
-void ucode_zww_processcmd(u32 * data,int size);
+#endif // CORE_DSP_HLE_H_
