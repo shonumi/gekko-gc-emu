@@ -84,5 +84,41 @@ u16 DSPHLE::DSP_ReadMailboxLo(bool cpu_mbox) {
  */
 bool DSPHLE::Init() {
     game_ucode = NULL;
+    mbox_cpu_dsp = 0;
+    mbox_dsp_cpu = 0;
+    mail_man.Clear();
+}
+
+/**
+ * @brief Gets the CRC from the UCode
+ * @returns CRC of the current UCode, 0 if UCode pointer is null
+ */
+u32 DSPHLE::GetCRC() {
+    if(game_ucode == NULL) {
+        return 0;
+    } else {
+        return game_ucode->crc;
+    }
+}
+
+/**
+ * @brief Gets the upload status of the UCode
+ * @returns Boolean value of current UCode upload_in_progress
+ */
+bool DSPHLE::UploadStatus() {
+    if(game_ucode == NULL) {
+        return true; //If UCode is null, treat it so that we don't try to boot into another
+    } else {
+        return game_ucode->upload_in_progress;
+    }
+}
+
+/**
+ * @brief Set/Switch current UCode
+ * @param crc CRC used to generate new UCode
+ */
+void DSPHLE::SetUCode(u32 crc) {
+    delete game_ucode;
+    game_ucode = GenerateUCode(crc);
 }
 

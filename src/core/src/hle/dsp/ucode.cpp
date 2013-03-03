@@ -67,6 +67,8 @@ bool UCode::ResumeMail() {
     return false;
 }
 
+//TODO: SendMail should be part of DSPHLE, ideally
+
 /**
  * Sends mail from DSP to CPU
  * @param message Mail going to CPU

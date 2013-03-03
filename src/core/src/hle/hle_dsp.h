@@ -61,23 +61,38 @@ public:
      */
     u16 DSP_ReadMailboxLo(bool cpu_mbox);
 
-    /**
-     * @brief Allows access into DSP mail manager (private member)
-     * @returns Reference to DSPHLE's MailManager instance
-     */
-    MailManager& AccessMailManager() { return mail_man; }
-
    /**
     * @brief Initializes the DSP - sets various values and such
     * @returns If initialized correctly, return true, false if otherwise
     */
     bool Init();
 
-    UCode* game_ucode;
+   /**
+    * @brief Gets the CRC from the UCode
+    * @returns CRC of the current UCode, 0 if UCode pointer is null
+    */
+    u32 GetCRC();
 
-    MailManager mail_man;
+    /**
+     * @brief Gets the upload status of the UCode
+     * @returns Boolean value of current UCode upload_in_progress
+     */
+    bool UploadStatus();
+
+    /**
+     * @brief Set/Switch current UCode
+     * @param crc CRC used to generate new UCode
+     */
+    void SetUCode(u32 crc);
+
+    UCode* game_ucode; //Not quite ready to make these private yet
+
     u32 mbox_cpu_dsp;
     u32 mbox_dsp_cpu;
+
+    private:
+
+    MailManager mail_man;
 
     DISALLOW_COPY_AND_ASSIGN(DSPHLE);
 };

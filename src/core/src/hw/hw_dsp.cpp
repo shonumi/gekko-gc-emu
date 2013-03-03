@@ -222,10 +222,10 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 		printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
 		dsp_emulator.game_ucode->ProcessMail(dsp_emulator.mbox_cpu_dsp);
   
+                //TODO: Move this to DSP_WriteMailboxLo()
                 //After processing mail, see if new UCode needs to be generated
-		if(!dsp_emulator.game_ucode->upload_in_progress) { 
-                    delete dsp_emulator.game_ucode;
-                    dsp_emulator.game_ucode = GenerateUCode(dsp_emulator.game_ucode->crc);
+		if(!dsp_emulator.UploadStatus()) { 
+                    dsp_emulator.SetUCode(dsp_emulator.GetCRC());
                 }
 		return;
 	case DSP_CPU_MAILBOX_HI:
@@ -403,7 +403,7 @@ void DSP_Open(void)
 	memset(DSPRegisters, 0, sizeof(DSPRegisters));
 	memset(ARAM, 0, sizeof(ARAM));
 
-	dsp_emulator.game_ucode = GenerateUCode(UCODE_ROM);
+	dsp_emulator.SetUCode(UCODE_ROM);
 
 	g_DSPDMATime = 0;
 	g_AISampleRate = 32000;
