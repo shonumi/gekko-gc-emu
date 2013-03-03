@@ -85,12 +85,12 @@ public:
      */
     void SetUCode(u32 crc);
 
-    UCode* game_ucode; //Not quite ready to make these private yet
+    private:
+
+    UCode* game_ucode; 
 
     u32 mbox_cpu_dsp;
     u32 mbox_dsp_cpu;
-
-    private:
 
     MailManager mail_man;
 

@@ -50,6 +50,11 @@ void DSPHLE::DSP_WriteMailboxLo(bool cpu_mbox, u16 message) {
     } else {
         printf("DSPHLE::Warning, CPU attempted to write to the DSP's mailbox\n");
     }
+
+    //If current UCode has finished uploading, boot to new UCode
+    if(!UploadStatus()) { 
+        SetUCode(GetCRC());
+    }
 }
 
 /**
@@ -61,7 +66,7 @@ u16 DSPHLE::DSP_ReadMailboxHi(bool cpu_mbox) {
     if(cpu_mbox) {
         return (mbox_cpu_dsp >> 16) & 0xFFFF;
     } else {
-        return mail_man.ReadMailboxHi();
+        return (mail_man.ReadMailboxHi() | 0x8000);
     }
 }
 

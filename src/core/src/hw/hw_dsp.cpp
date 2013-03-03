@@ -145,25 +145,19 @@ u16 EMU_FASTCALL DSP_Read16(u32 addr)
 	{
 	case CPU_DSP_MAILBOX_HI:
 		//printf("CPU checks DSP mbox PC=%08x (%04x)\n",ireg_PC(),REGDSP16(CPU_DSP_MAILBOX_HI));
-		return REGDSP16(addr);
+                return dsp_emulator.DSP_ReadMailboxHi(true);
 
 	case CPU_DSP_MAILBOX_LO:
 		//printf("CPU checks DSP mbox+2 PC=%08x\n",ireg_PC());
-		return REGDSP16(addr);
+                return dsp_emulator.DSP_ReadMailboxLo(true);
 
 	case DSP_CPU_MAILBOX_HI:
                 //printf("CPU (%08x) checks mbox, ",ireg_PC());
-		REGDSP16(DSP_CPU_MAILBOX_HI) = dsp_emulator.DSP_ReadMailboxHi(false);
-		//printf("gets %04x\n",REGDSP16(DSP_CPU_MAILBOX_HI));
-		REGDSP16(DSP_CPU_MAILBOX_HI) |= 0x8000;
-                
-                return REGDSP16(DSP_CPU_MAILBOX_HI);
+                return dsp_emulator.DSP_ReadMailboxHi(false);
 
 	case DSP_CPU_MAILBOX_LO:
                 //printf("CPU (%08x) checks mbox+2, gets %04x\n",ireg_PC(),REGDSP16(DSP_CPU_MAILBOX_LO));
-		REGDSP16(DSP_CPU_MAILBOX_LO) = dsp_emulator.DSP_ReadMailboxHi(false);
-		dsp_emulator.mbox_cpu_dsp = REGDSP32(DSP_CPU_MAILBOX_HI);
-                return REGDSP16(DSP_CPU_MAILBOX_LO);
+                return dsp_emulator.DSP_ReadMailboxLo(false);
 
 	case DSP_CSR:
 		//printf("reading DSP_CSR=%04x\n",REGDSP16(DSP_CSR));
@@ -211,23 +205,15 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 	switch(addr)
 	{
 	case CPU_DSP_MAILBOX_HI:
-		REGDSP16(CPU_DSP_MAILBOX_HI)=data;
 		printf("CPU writes CPU_DSP_MAILBOX_HI %04x\n",data&0xffff);
+                dsp_emulator.DSP_WriteMailboxHi(true, data);
 		return;
-	case CPU_DSP_MAILBOX_LO:
-		REGDSP16(CPU_DSP_MAILBOX_LO)=data;
-		dsp_emulator.mbox_cpu_dsp = REGDSP32(CPU_DSP_MAILBOX_HI);
 
-		REGDSP16(CPU_DSP_MAILBOX_HI) &= 0x7fff;
+	case CPU_DSP_MAILBOX_LO:
 		printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
-		dsp_emulator.game_ucode->ProcessMail(dsp_emulator.mbox_cpu_dsp);
-  
-                //TODO: Move this to DSP_WriteMailboxLo()
-                //After processing mail, see if new UCode needs to be generated
-		if(!dsp_emulator.UploadStatus()) { 
-                    dsp_emulator.SetUCode(dsp_emulator.GetCRC());
-                }
+                dsp_emulator.DSP_WriteMailboxLo(true, data);
 		return;
+
 	case DSP_CPU_MAILBOX_HI:
 	case DSP_CPU_MAILBOX_LO:
 		return;
