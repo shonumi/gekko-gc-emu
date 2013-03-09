@@ -89,10 +89,10 @@ public:
 
     UCode* game_ucode; 
 
+    MailManager mail_man;
+
     u32 mbox_cpu_dsp;
     u32 mbox_dsp_cpu;
-
-    MailManager mail_man;
 
     DISALLOW_COPY_AND_ASSIGN(DSPHLE);
 };

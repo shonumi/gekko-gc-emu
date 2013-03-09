@@ -75,7 +75,7 @@ public:
             DSP_FRAME_END = 0xDCD10005,
      };
 
-    MailManager mail_man;
+    MailManager* mail_man;
 
     bool resume_mail;
     bool upload_in_progress;
@@ -105,6 +105,6 @@ protected:
  * @param crc Checksum to use
  * @returns Pointer to new UCode
  */
-UCode* GenerateUCode(u32 crc);
+UCode* GenerateUCode(u32 crc, MailManager* mail_mngr);
 
 #endif // CORE_UCODE_H_

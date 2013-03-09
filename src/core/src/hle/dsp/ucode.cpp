@@ -24,6 +24,7 @@
 
 #include "ucode.h"
 #include "ucode_rom.h"
+#include "ucode_zelda.h"
 
 #include "crc.h"
 #include "memory.h"
@@ -31,16 +32,16 @@
 #include "hw/hw_pi.h"
 #include "hw/hw_ai.h"
 
-UCode* GenerateUCode(u32 crc) {
+//TODO: Might as well put this in DSPHLE
+UCode* GenerateUCode(u32 crc, MailManager* mail_mngr) {
     switch(crc) {
 
         case UCODE_ROM:       //IROM
-            return new UCode_ROM;
+            return new UCode_ROM(mail_mngr);
 
         case 0x86E5FF9D:            //Legend of Zelda: Wind Waker (NTSC-U/PAL);
             printf("Booting Zelda Ucode\n");
-            return NULL;
-           // return new UCode_Zelda;
+            return new UCode_Zelda(mail_mngr);
 
 	default: 
             return NULL;
@@ -81,7 +82,7 @@ void UCode::SendMail(u32 message, int interrupt_req) {
 		//PI_RequestInterrupt(PI_MASK_DSP);
     }
 	
-    mail_man.PushMail(message);
+    mail_man->PushMail(message);
 }
 
 /**

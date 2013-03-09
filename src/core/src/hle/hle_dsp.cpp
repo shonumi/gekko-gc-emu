@@ -124,6 +124,6 @@ bool DSPHLE::UploadStatus() {
  */
 void DSPHLE::SetUCode(u32 crc) {
     delete game_ucode;
-    game_ucode = GenerateUCode(crc);
+    game_ucode = GenerateUCode(crc, &mail_man);
 }
 

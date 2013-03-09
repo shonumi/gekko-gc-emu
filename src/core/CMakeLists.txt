@@ -12,6 +12,7 @@ set(SRCS	src/core.cpp
 			src/hle/dsp/mail_manager.cpp
 			src/hle/dsp/ucode.cpp
 			src/hle/dsp/ucode_rom.cpp
+			src/hle/dsp/ucode_zelda.cpp
 			src/hle/hle_audio.cpp
 			src/hle/hle.cpp
 			src/hle/hle_dsp.cpp

@@ -1,10 +1,10 @@
 /*!
  * Copyright (C) 2005-2013 Gekko Emulator
  *
- * @file    ucode_rom.h
+ * @file    ucode_zelda.h
  * @author  Shonumi <shonumi@gmail.com>
- * @date    2013-02-19
- * @brief   Ucode ROM
+ * @date    2013-03-07
+ * @brief   Zelda UCode
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -22,16 +22,17 @@
  * http://code.google.com/p/gekko-gc-emu/
  */ 
 
-#ifndef CORE_UCODE_ROM_H_
-#define CORE_UCODE_ROM_H_
+#ifndef CORE_UCODE_ZELDA_H_
+#define CORE_UCODE_ZELDA_H_
 
+#include <vector>
 #include "ucode.h"
 
-class UCode_ROM : public UCode {
+class UCode_Zelda : public UCode {
 public:
 
-    UCode_ROM(MailManager* mail_mngr);
-    virtual ~UCode_ROM() {};
+    UCode_Zelda(MailManager* mail_mngr);
+    virtual ~UCode_Zelda() {};
 
     /**
      * Processes all mail sent to DSP
@@ -45,23 +46,18 @@ public:
     void Update();
 
     /**
-     * Updates UCode
+     * Processes all commands sent to DSP
      */
-    void BootUCode();
+    void ProcessCommands();
 
 private:
+    u8 command_length;
+    u8 command_count;
+    u8 command_type;
 
-    struct UCodeLoader {
-        u32 ram_addr;
-        u32 length;
-        u32 imem_addr;
-        u32 dmem_length;
-        u32 start_pc;
-    };
-
-    UCodeLoader current_ucode;
-    u32 boot_steps;
-    u32 next_parameter;
+    std::vector <u32> command_list;
+    bool processing_commands;
+    bool sync_in_progress;
 };
 
-#endif // CORE_UCODE_ROM_H_
+#endif // CORE_UCODE_ZELDA_H_

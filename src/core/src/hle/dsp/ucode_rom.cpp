@@ -27,9 +27,11 @@
 #include "memory.h"
 
 //UCode_ROM Constructor
-UCode_ROM::UCode_ROM() {    
-    mail_man.Clear();
-    //mail_man.PushMail(0x8071FEED);
+UCode_ROM::UCode_ROM(MailManager* mail_mngr) {    
+    mail_man = mail_mngr;
+    mail_man->Clear();
+    next_parameter = 0;
+    //mail_man->PushMail(0x8071FEED);
 }
 
 /**
@@ -41,7 +43,7 @@ void UCode_ROM::ProcessMail(u32 message) {
 
         if((message & 0xFFFF0000) != 0x80F30000) {
             message = 0xFEEE0000 | (message & 0xFFFF);
-            mail_man.PushMail(message);
+            mail_man->PushMail(message);
         } else {
             next_parameter = message;
         }
