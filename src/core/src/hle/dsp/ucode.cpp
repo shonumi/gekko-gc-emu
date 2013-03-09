@@ -39,7 +39,12 @@ UCode* GenerateUCode(u32 crc, MailManager* mail_mngr) {
         case UCODE_ROM:       //IROM
             return new UCode_ROM(mail_mngr);
 
-        case 0x86E5FF9D:            //Legend of Zelda: Wind Waker (NTSC-U/PAL);
+        //TODO: Find a better way of IDing games?
+        //SMS currently segfaults, probably because it's DMA version of ucode
+        //Can't get CRC of Pikmin just yet, probably because it's Light version of ucode
+        case 0x86E5FF9D:            //Legend of Zelda: Wind Waker (NTSC-U/PAL)
+        case 0xB1678846:             //Legend of Zelda: Four Swords Adventures
+        case 0xC1948EA1:            //Mario Kart: Double Dash
             printf("Booting Zelda Ucode\n");
             return new UCode_Zelda(mail_mngr);
 
