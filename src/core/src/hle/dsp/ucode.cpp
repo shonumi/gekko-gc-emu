@@ -49,6 +49,7 @@ UCode* GenerateUCode(u32 crc, MailManager* mail_mngr) {
             return new UCode_Zelda(mail_mngr);
 
 	default: 
+            printf("Unknown Ucode \n"); //Should default to AX ucode eventually
             return NULL;
     }
 }          
@@ -82,12 +83,12 @@ bool UCode::ResumeMail() {
  */
 void UCode::SendMail(u32 message, int interrupt_req) {
     if(interrupt_req) {
-        REGDSP16(DSP_CSR)  |= DSP_CSR_DSPINT;
-		dspCSRDSPInt = DSP_CSR_DSPINT;
-		//PI_RequestInterrupt(PI_MASK_DSP);
+        REGDSP16(DSP_CSR) |= DSP_CSR_DSPINT;
+        dspCSRDSPInt = DSP_CSR_DSPINT;
     }
 	
     mail_man->PushMail(message);
+    printf("DSP writes: %08x\n", message);
 }
 
 /**

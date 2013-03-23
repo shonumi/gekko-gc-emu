@@ -45,6 +45,7 @@ void DSPHLE::DSP_WriteMailboxHi(bool cpu_mbox, u16 message) {
 void DSPHLE::DSP_WriteMailboxLo(bool cpu_mbox, u16 message) {
     if(cpu_mbox) {
         mbox_cpu_dsp = (mbox_cpu_dsp & 0xFFFF0000) | message;
+        printf("CPU Writes: %08x\n", mbox_cpu_dsp);
         game_ucode->ProcessMail(mbox_cpu_dsp);
 	mbox_cpu_dsp &= 0x7FFFFFFF;
     } else {
@@ -127,3 +128,9 @@ void DSPHLE::SetUCode(u32 crc) {
     game_ucode = GenerateUCode(crc, &mail_man);
 }
 
+/**
+ * @brief Updates current UCode
+ */
+void DSPHLE::UpdateUCode() {
+    game_ucode->Update();
+}

@@ -25,6 +25,9 @@
 #ifndef CORE_UCODE_ZELDA_H_
 #define CORE_UCODE_ZELDA_H_
 
+#include "memory.h"
+#include "hw/hw_dsp.h"
+
 #include <vector>
 #include "ucode.h"
 
@@ -54,6 +57,11 @@ private:
     u8 command_length;
     u8 command_count;
     u8 command_type;
+
+    u8 max_voices;
+    u8 current_buffer;
+    u8 num_buffers;
+    u8 num_voices;
 
     std::vector <u32> command_list;
     bool processing_commands;

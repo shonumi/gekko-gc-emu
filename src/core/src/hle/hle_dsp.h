@@ -85,6 +85,11 @@ public:
      */
     void SetUCode(u32 crc);
 
+    /**
+     * @brief Updates current UCode
+     */
+    void UpdateUCode();
+
     private:
 
     UCode* game_ucode; 

@@ -205,12 +205,12 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 	switch(addr)
 	{
 	case CPU_DSP_MAILBOX_HI:
-		printf("CPU writes CPU_DSP_MAILBOX_HI %04x\n",data&0xffff);
+		//printf("CPU writes CPU_DSP_MAILBOX_HI %04x\n",data&0xffff);
                 dsp_emulator.DSP_WriteMailboxHi(true, data);
 		return;
 
 	case CPU_DSP_MAILBOX_LO:
-		printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
+		//printf("CPU writes CPU_DSP_MAILBOX_LO %04x\n",data&0xffff);
                 dsp_emulator.DSP_WriteMailboxLo(true, data);
 		return;
 
@@ -354,6 +354,8 @@ void EMU_FASTCALL DSP_Write32(u32 addr, u32 data)
 
 void DSP_Update(void)
 {
+	dsp_emulator.UpdateUCode();
+
 	// DSP DMA (interrupt)
 
 	if(!dspDMALenENBSet || (ireg.TBR.TBR < (u64)g_DSPDMATime))
