@@ -78,6 +78,56 @@
 #define _VSDEF_SET_CHAN1_LIGHT7
 #endif
 
+
+#ifndef _VSDEF_SET_CHAN1_LIGHT0_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT0_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT1_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT1_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT2_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT2_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT3_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT3_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT4_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT4_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT5_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT5_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT6_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT6_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN1_LIGHT7_ATTEN
+#define _VSDEF_SET_CHAN1_LIGHT7_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN0_LIGHT0_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT0_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN0_LIGHT1_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT1_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN0_LIGHT2_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT2_ATTEN
+#endif                         
+#ifndef _VSDEF_SET_CHAN0_LIGHT3_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT3_ATTEN
+#endif                        
+#ifndef _VSDEF_SET_CHAN0_LIGHT4_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT4_ATTEN
+#endif                
+#ifndef _VSDEF_SET_CHAN0_LIGHT5_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT5_ATTEN
+#endif               
+#ifndef _VSDEF_SET_CHAN0_LIGHT6_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT6_ATTEN
+#endif                 
+#ifndef _VSDEF_SET_CHAN0_LIGHT7_ATTEN
+#define _VSDEF_SET_CHAN0_LIGHT7_ATTEN
+#endif  
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 color0;
 layout(location = 2) in vec4 color1;
@@ -133,6 +183,12 @@ out vec2 vtx_texcoord[8];
     xf_matrix_mem[addr].y, xf_matrix_mem[addr + 1].y, xf_matrix_mem[addr + 2].y, 0.0, \
     xf_matrix_mem[addr].z, xf_matrix_mem[addr + 1].z, xf_matrix_mem[addr + 2].z, 0.0, \
     xf_matrix_mem[addr].w, xf_matrix_mem[addr + 1].w, xf_matrix_mem[addr + 2].w, 1.0)
+    
+#define XF_NORMAL_MTX44(addr) mat4( \
+    xf_normal_mem[addr].x, xf_normal_mem[addr + 1].x, xf_normal_mem[addr + 2].x, 0.0, \
+    xf_normal_mem[addr].y, xf_normal_mem[addr + 1].y, xf_normal_mem[addr + 2].y, 0.0, \
+    xf_normal_mem[addr].z, xf_normal_mem[addr + 1].z, xf_normal_mem[addr + 2].z, 0.0, \
+    xf_normal_mem[addr].w, xf_normal_mem[addr + 1].w, xf_normal_mem[addr + 2].w, 1.0)
 
 void main() {
     vec4    pos;
@@ -140,6 +196,10 @@ void main() {
     vec4    mat[2];
     vec4    l_amb[2];
     vec4    col[2];
+    float   atten           = 0.0f;
+    vec3    ldir;
+    float   dist            = 0.0f;
+    float   dist2           = 0.0f;
     float   pos_dqf         = 1.0f;
     int     pos_nrm_index   = state.cp_pos_matrix_offset;
     
@@ -152,10 +212,8 @@ void main() {
 #endif
     
     pos = state.projection_matrix * XF_MTX44(pos_nrm_index) * vec4(position.xyz * pos_dqf, 1.0);
-    pos_nrm_index &= 0x31; // Normal matrix is only 32 entries
-    nrm.xyz = normalize(vec3(dot(xf_normal_mem[pos_nrm_index + 0].xyz, normal.xyz), 
-                             dot(xf_normal_mem[pos_nrm_index + 1].xyz, normal.xyz), 
-                             dot(xf_normal_mem[pos_nrm_index + 2].xyz, normal.xyz)));   
+    pos_nrm_index &= 0x1F; // Normal matrix is only 32 entries
+    nrm = normalize(XF_NORMAL_MTX44(pos_nrm_index) * normal);   
                              
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MTX44(int(matrix_idx_tex03[0])) * 
@@ -270,22 +328,38 @@ void main() {
     l_amb[0]    = _VSDEF_COLOR0_AMBIENT_SRC;
     l_amb[1]    = _VSDEF_COLOR1_AMBIENT_SRC;
     
+    _VSDEF_SET_CHAN0_LIGHT0_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT0;
+    _VSDEF_SET_CHAN0_LIGHT1_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT1;
+    _VSDEF_SET_CHAN0_LIGHT2_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT2;
+    _VSDEF_SET_CHAN0_LIGHT3_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT3;
+    _VSDEF_SET_CHAN0_LIGHT4_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT4;
+    _VSDEF_SET_CHAN0_LIGHT5_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT5;
+    _VSDEF_SET_CHAN0_LIGHT6_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT6;
+    _VSDEF_SET_CHAN0_LIGHT7_ATTEN;
     _VSDEF_SET_CHAN0_LIGHT7;
-    
+   
+    _VSDEF_SET_CHAN1_LIGHT0_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT0;
+    _VSDEF_SET_CHAN1_LIGHT1_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT1;
+    _VSDEF_SET_CHAN1_LIGHT2_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT2;
+    _VSDEF_SET_CHAN1_LIGHT3_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT3;
+    _VSDEF_SET_CHAN1_LIGHT4_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT4;
+    _VSDEF_SET_CHAN1_LIGHT5_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT5;
+    _VSDEF_SET_CHAN1_LIGHT6_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT6;
+    _VSDEF_SET_CHAN1_LIGHT7_ATTEN;
     _VSDEF_SET_CHAN1_LIGHT7;
     
 #ifdef _VSDEF_LIGHTING_ENABLE_0

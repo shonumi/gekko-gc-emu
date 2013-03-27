@@ -117,6 +117,134 @@ void ShaderManager::GenerateVertexHeader() {
     this->GenerateVertexLightingHeader();
 }
 
+/// Generates the header code for a single light
+void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitChannel chan) {
+    std::string light_clamp = "%s";
+    std::string light_src = common::FormatStr("l_amb[%d].rgb += ", chan_num);
+
+    if (!(chan.attn_func & 1)) {
+
+		/// atten disabled
+		switch (chan.diffuse_func) {
+		case GX_DF_NONE:
+            light_src += "1.0f";
+			break;
+
+        case GX_DF_CLAMP: light_clamp = "max(%s, 0.0f)";
+
+        case GX_DF_SIGN:
+            {
+                std::string light_intensity = common::FormatStr("dot(normalize("
+                    "state.light[%d].pos.xyz - pos.xyz), nrm.xyz)", light_num);
+                light_src += common::FormatStr(light_clamp.c_str(), light_intensity.c_str());
+            }
+			break;
+
+		default:
+            _ASSERT_MSG(TGP, 0, "unknown diffuse function");
+            break;
+		}
+        _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.rgb", chan_num, light_num, 
+            light_src.c_str(), light_num);
+
+    } else {
+
+        //_ASSERT_MSG(TGP, 0, "Spec lighting");
+
+        std::string real_atten;
+
+        // Specular lighting
+        if (chan.attn_func == 1) {
+
+                        
+			_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN atten = (dot(nrm.xyz, normalize(state.light[%d].pos.xyz)) >= 0.0f) ? max(0.0f, dot(nrm.xyz, state.light[%d].dir.xyz)) : 0.0f", chan_num, light_num, light_num, light_num);
+			            
+                        
+            real_atten = common::FormatStr("(max(0.0f, dot(state.light[%d].cos_atten.xyz, vec3(1, atten, atten * atten))) / dot(state.light[%d].dist_atten.xyz, vec3(1,atten,atten*atten)))", light_num, light_num);
+
+                        
+                        
+		    switch (chan.diffuse_func) {
+			case GX_DF_NONE:
+                light_src += real_atten;
+				break;
+
+            case GX_DF_CLAMP: light_clamp = "max(%s, 0.0f)";
+
+            case GX_DF_SIGN:
+                {
+                    std::string light_intensity = common::FormatStr("%s * dot(normalize(state.light[%d].pos.xyz), nrm.xyz)", real_atten.c_str(), light_num);
+                    light_src += common::FormatStr(light_clamp.c_str(), light_intensity.c_str());
+                }
+			    break;
+
+			default:
+                _ASSERT_MSG(TGP, 0, "unknown diffuse function");
+                break;
+		    }
+                        
+                        
+                        
+            _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.rgb", chan_num, light_num, 
+                light_src.c_str(), light_num);
+
+        // Spot lighting
+        } else if (chan.attn_func == 3) {
+
+            //_ASSERT_MSG(TGP, 0, "Spot lighting");
+
+			//WRITE(p, "ldir = %s.lights[%d].pos.xyz - pos.xyz;\n", lightsName, index);
+			//WRITE(p, "dist2 = dot(ldir, ldir);\n"
+				// "dist = sqrt(dist2);\n"
+				// "ldir = ldir / dist;\n"
+				// "attn = max(0.0f, dot(ldir, %s.lights[%d].dir.xyz));\n", lightsName, index);
+
+
+
+
+			_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN "
+                    "ldir = state.light[%d].pos.xyz - pos.xyz; "
+                    "dist2 = dot(ldir, ldir); "
+                    "dist = sqrt(dist2); "
+                    "ldir = ldir / dist; "
+                    "atten = max(0.0f, dot(ldir, state.light[%d].dir.xyz)); "
+                    "atten = max(0.0f, dot(state.light[%d].cos_atten.xyz, vec3(1.0f, atten, atten*atten))) / dot(state.light[%d].dist_atten.xyz, vec3(1.0f,dist,dist2))", 
+                chan_num, light_num, light_num, light_num, light_num, light_num);
+
+                        
+		    switch (chan.diffuse_func) {
+			case GX_DF_NONE:
+                light_src += "atten";
+				break;
+
+            case GX_DF_CLAMP: light_clamp = "max(%s, 0.0f)";
+
+            case GX_DF_SIGN:
+                {
+                    std::string light_intensity = common::FormatStr("atten * dot(ldir, nrm.xyz)", light_num);
+                    light_src += common::FormatStr(light_clamp.c_str(), light_intensity.c_str());
+                }
+			    break;
+
+			default:
+                _ASSERT_MSG(TGP, 0, "unknown diffuse function");
+                break;
+		    }
+                        
+                        
+                        
+            _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.rgb", chan_num, light_num, 
+                light_src.c_str(), light_num);
+
+        // Unknown
+        } else {
+            _ASSERT_MSG(TGP, 0, "Lighting mode not implemented");
+        }
+                    
+    }
+
+}
+
 void ShaderManager::GenerateVertexLightingHeader() {
     int num_channels = state_.fields.num_color_chans;
 
@@ -207,56 +335,41 @@ void ShaderManager::GenerateVertexLightingHeader() {
         _VSDEF("COLOR%d_AMBIENT_SRC %s", chan_num, amb_src.c_str());
 
         //_ASSERT_MSG(TGP, !alpha.enable_lighting, "Have not implemented alpha lighting");
+        //_ASSERT_MSG(TGP, color.material_src == alpha.material_src, 
+        //    "color.material_src != alpha.material_src");
 
-        //_ASSERT_MSG(TGP, color.material_src == alpha.material_src, "color.material_src != alpha.material_src");
+        if (color.enable_lighting && alpha.enable_lighting) {
+            int mask = 0;
 
-        if (color.enable_lighting) {
-
-            for (int light_num = 0; light_num < kGCMaxLights; ++light_num) {
-
-                if (!(color.get_light_mask() & (1 << light_num))) continue;
-
-
-                std::string light_clamp = "%s";
-                std::string light_src = common::FormatStr("l_amb[%d].rgb += ", chan_num);
-
-                if (!(color.attn_func & 1)) {
-
-		           /// atten disabled
-		            switch (color.diffuse_func) {
-			        case GX_DF_NONE:
-                        light_src += "1.0f";
-				        break;
-
-                    case GX_DF_CLAMP: light_clamp = "max(%s, 0.0f)";
-
-                    case GX_DF_SIGN:
-                        {
-                            std::string light_intensity = common::FormatStr("dot(normalize("
-                                "state.light[%d].pos.xyz - pos.xyz), nrm.xyz)", light_num);
-                            light_src += common::FormatStr(light_clamp.c_str(), light_intensity.c_str());
+            // Shared lights
+            if (color.light_params == alpha.light_params) {
+                mask = color.get_light_mask() & alpha.get_light_mask();
+                if (mask) {
+                    for (int i = 0; i < kGCMaxLights; ++i) {
+                        if (mask & (1 << i)) {
+                            GenerateLightHeader(chan_num, i, color);
                         }
-			            break;
-
-			        default:
-                        _ASSERT_MSG(TGP, 0, "unknown diffuse function");
-                        break;
-		            }
-                    _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.rgb", chan_num, light_num, 
-                        light_src.c_str(), light_num);
-
-
-                } else {
-                    //_ASSERT_MSG(TGP, 0, "don't implement spec/spot lighting");
+                    }
                 }
+            }
 
-                
+            // Not shared lights
+			for (int i = 0; i < kGCMaxLights; ++i) {
+				if (!(mask & (1 << i)) && (color.get_light_mask() & (1 << i))) {
+					GenerateLightHeader(chan_num, i, color);
+                }
+				if (!(mask & (1 << i)) && (alpha.get_light_mask() & (1 << i))) {
+					GenerateLightHeader(chan_num, i, alpha);
+                }
+			}
+        } else if (color.enable_lighting || alpha.enable_lighting) {
+            const gp::XFLitChannel chan = color.enable_lighting ? color : alpha;
+            for (int i = 0; i < kGCMaxLights; ++i) {
+                if (chan.get_light_mask() & (1 << i)) {
+                    GenerateLightHeader(chan_num, i, chan);
+                }
             }
         }
-        
-    // COLOR%d_MATERIAL_SRC == mat
-    // COLOR%d_AMBIENT_SRC == lacc
-
     }
 }
                                                  
