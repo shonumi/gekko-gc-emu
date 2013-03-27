@@ -211,10 +211,10 @@ void main() {
     pos_dqf = state.cp_pos_dqf;
 #endif
     
-    pos = state.projection_matrix * XF_MTX44(pos_nrm_index) * vec4(position.xyz * pos_dqf, 1.0);
+    pos = XF_MTX44(pos_nrm_index) * vec4(position.xyz * pos_dqf, 1.0);
     pos_nrm_index &= 0x1F; // Normal matrix is only 32 entries
     nrm = normalize(XF_NORMAL_MTX44(pos_nrm_index) * normal);   
-                             
+    
 #ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MTX44(int(matrix_idx_tex03[0])) * 
         vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
@@ -372,5 +372,5 @@ void main() {
 #else
     vtx_color[1] = mat[1];
 #endif
-    gl_Position = pos;
+    gl_Position = state.projection_matrix * pos;
 }
