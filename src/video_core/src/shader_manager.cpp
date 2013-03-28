@@ -134,13 +134,11 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
     else swizzle = "rgba";
 
     std::string ambient = common::FormatStr("l_amb[%d].%s += ", chan_num, swizzle.c_str());
-
     // Simple diffuse lighting
     if (!(chan.attn_func & 1)) {
         atten = "1.0f";
         intensity = common::FormatStr("dot(normalize(state.light[%d].pos.xyz - pos.xyz), nrm.xyz)",
             light_num);
-
     // Specular lighting
     } else if (chan.attn_func == 1) {
 		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s atten = (dot(nrm.xyz, normalize(state.light[%d].pos.xyz)) "
@@ -151,7 +149,6 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
             light_num, light_num);
         intensity = common::FormatStr("%s * dot(normalize(state.light[%d].pos.xyz), nrm.xyz)", 
             atten.c_str(), light_num);
-    
     // Spot lighting
     } else if (chan.attn_func == 3) {
 		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s "
@@ -166,12 +163,10 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
 
         atten = "atten"; 
 		intensity = common::FormatStr("atten * dot(ldir, nrm.xyz)", light_num);
-
     // Unknown lighting
     } else {
         _ASSERT_MSG(TGP, 0, "Lighting mode not implemented");
     }
-
     // Set diffuse function....
 	switch (chan.diffuse_func) {
 	case GX_DF_NONE:
@@ -192,10 +187,7 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
 
 void ShaderManager::GenerateVertexLightingHeader() {
     int num_channels = state_.fields.num_color_chans;
-
     _ASSERT_MSG(TGP, num_channels <= 2, "Not implemented num_channels > 2! Got %d", num_channels);
-    //_ASSERT_MSG(TGP, num_channels, "No channel enabled");
-    //static const char* color_material_src[] = { "col[%d]", "
     for (int chan_num = 0; chan_num < num_channels; chan_num++) {
         const gp::XFLitChannel& color = state_.fields.color_channel[chan_num];
         const gp::XFLitChannel& alpha = state_.fields.alpha_channel[chan_num];
@@ -203,7 +195,6 @@ void ShaderManager::GenerateVertexLightingHeader() {
         if (color.enable_lighting) {
             _VSDEF("LIGHTING_ENABLE_%d", chan_num);
         }
-
         std::string mat_src = "vec4(";
         std::string amb_src = "vec4(";
 
@@ -301,14 +292,13 @@ void ShaderManager::GenerateVertexLightingHeader() {
 					GenerateLightHeader(chan_num, i, alpha, false, true);
                 }
 			}
-
         // Only color OR alpha lighting is enabled...
         } else if (color.enable_lighting || alpha.enable_lighting) {
             const gp::XFLitChannel chan = color.enable_lighting ? color : alpha;
             for (int i = 0; i < kGCMaxLights; ++i) {
                 if (chan.get_light_mask() & (1 << i)) {
                     GenerateLightHeader(chan_num, i, chan, color.enable_lighting, 
-                        !color.enable_lighting); // should this be alpha.enable_lighting (?)
+                        alpha.enable_lighting);
                 }
             }
         }
