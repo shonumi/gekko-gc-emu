@@ -224,7 +224,8 @@ private:
     void GenerateVertexHeader();
 
     /// Generates the header code for a single light
-    void GenerateLightHeader(int chan_num, int light_num, gp::XFLitChannel chan);
+    void GenerateLightHeader(int chan_num, int light_num, gp::XFLitChannel chan, bool color_enable,
+        bool alpha_enable);
 
     /// Generates the lighting shader header for the current state
     void GenerateVertexLightingHeader();

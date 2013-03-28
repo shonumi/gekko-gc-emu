@@ -118,11 +118,18 @@ void ShaderManager::GenerateVertexHeader() {
 }
 
 /// Generates the header code for a single light
-void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitChannel chan) {
+void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitChannel chan, 
+    bool color_enable, bool alpha_enable) {
+    std::string swizzle;
     std::string atten;
     std::string intensity;
     std::string clamp = "%s";
-    std::string ambient = common::FormatStr("l_amb[%d].rgb += ", chan_num);
+
+    if (color_enable && !alpha_enable) swizzle = "rgb";
+    else if (!color_enable && alpha_enable) swizzle = "a";
+    else swizzle = "rgba";
+
+    std::string ambient = common::FormatStr("l_amb[%d].%s += ", chan_num, swizzle.c_str());
 
     // Simple diffuse lighting
     if (!(chan.attn_func & 1)) {
@@ -175,8 +182,8 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
         _ASSERT_MSG(TGP, 0, "unknown diffuse function");
         break;
 	}
-    _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.rgb", chan_num, light_num, ambient.c_str(),
-        light_num);
+    _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.%s", chan_num, light_num, ambient.c_str(),
+        light_num, swizzle.c_str());
 }
 
 void ShaderManager::GenerateVertexLightingHeader() {
@@ -225,7 +232,6 @@ void ShaderManager::GenerateVertexLightingHeader() {
         } else {
             mat_src += common::FormatStr("state.xf_material_color[%d].a)", chan_num);
         }
-        //LOG_NOTICE(TGP, mat_src.c_str());
 
         _VSDEF("COLOR%d_MATERIAL_SRC %s", chan_num, mat_src.c_str());
 
@@ -268,39 +274,37 @@ void ShaderManager::GenerateVertexLightingHeader() {
         }
         _VSDEF("COLOR%d_AMBIENT_SRC %s", chan_num, amb_src.c_str());
 
-        //_ASSERT_MSG(TGP, !alpha.enable_lighting, "Have not implemented alpha lighting");
-        //_ASSERT_MSG(TGP, color.material_src == alpha.material_src, 
-        //    "color.material_src != alpha.material_src");
-
+        // Color and alpha lighting is enabled...
         if (color.enable_lighting && alpha.enable_lighting) {
             int mask = 0;
-
-            // Shared lights
+            // Shared lights...
             if (color.light_params == alpha.light_params) {
                 mask = color.get_light_mask() & alpha.get_light_mask();
                 if (mask) {
                     for (int i = 0; i < kGCMaxLights; ++i) {
                         if (mask & (1 << i)) {
-                            GenerateLightHeader(chan_num, i, color);
+                            GenerateLightHeader(chan_num, i, color, true, true);
                         }
                     }
                 }
             }
-
-            // Not shared lights
+            // Not shared lights...
 			for (int i = 0; i < kGCMaxLights; ++i) {
 				if (!(mask & (1 << i)) && (color.get_light_mask() & (1 << i))) {
-					GenerateLightHeader(chan_num, i, color);
+					GenerateLightHeader(chan_num, i, color, true, false);
                 }
 				if (!(mask & (1 << i)) && (alpha.get_light_mask() & (1 << i))) {
-					GenerateLightHeader(chan_num, i, alpha);
+					GenerateLightHeader(chan_num, i, alpha, false, true);
                 }
 			}
+
+        // Only color OR alpha lighting is enabled...
         } else if (color.enable_lighting || alpha.enable_lighting) {
             const gp::XFLitChannel chan = color.enable_lighting ? color : alpha;
             for (int i = 0; i < kGCMaxLights; ++i) {
                 if (chan.get_light_mask() & (1 << i)) {
-                    GenerateLightHeader(chan_num, i, chan);
+                    GenerateLightHeader(chan_num, i, chan, color.enable_lighting, 
+                        !color.enable_lighting); // should this be alpha.enable_lighting (?)
                 }
             }
         }
