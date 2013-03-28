@@ -124,9 +124,13 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
     std::string atten;
     std::string intensity;
     std::string clamp = "%s";
+    std::string mode = "";
 
     if (color_enable && !alpha_enable) swizzle = "rgb";
-    else if (!color_enable && alpha_enable) swizzle = "a";
+    else if (!color_enable && alpha_enable) {
+        swizzle = "a";
+        mode = "_ALPHA";
+    }
     else swizzle = "rgba";
 
     std::string ambient = common::FormatStr("l_amb[%d].%s += ", chan_num, swizzle.c_str());
@@ -139,9 +143,9 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
 
     // Specular lighting
     } else if (chan.attn_func == 1) {
-		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN atten = (dot(nrm.xyz, normalize(state.light[%d].pos.xyz)) "
+		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s atten = (dot(nrm.xyz, normalize(state.light[%d].pos.xyz)) "
             ">= 0.0f) ? max(0.0f, dot(nrm.xyz, state.light[%d].dir.xyz)) : 0.0f", chan_num, 
-            light_num, light_num, light_num);           
+            light_num, mode.c_str(), light_num, light_num);           
         atten = common::FormatStr("(max(0.0f, dot(state.light[%d].cos_atten.xyz, vec3(1, atten, "
             "atten * atten))) / dot(state.light[%d].dist_atten.xyz, vec3(1,atten,atten*atten)))", 
             light_num, light_num);
@@ -150,7 +154,7 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
     
     // Spot lighting
     } else if (chan.attn_func == 3) {
-		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN "
+		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s "
                 "ldir = state.light[%d].pos.xyz - pos.xyz; "
                 "dist2 = dot(ldir, ldir); "
                 "dist = sqrt(dist2); "
@@ -158,7 +162,7 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
                 "atten = max(0.0f, dot(ldir, state.light[%d].dir.xyz)); "
                 "atten = max(0.0f, dot(state.light[%d].cos_atten.xyz, vec3(1.0f, atten, atten * "
                 "atten))) / dot(state.light[%d].dist_atten.xyz, vec3(1.0f, dist, dist2))", 
-            chan_num, light_num, light_num, light_num, light_num, light_num);
+            chan_num, light_num, mode.c_str(), light_num, light_num, light_num, light_num);
 
         atten = "atten"; 
 		intensity = common::FormatStr("atten * dot(ldir, nrm.xyz)", light_num);
@@ -182,8 +186,8 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
         _ASSERT_MSG(TGP, 0, "unknown diffuse function");
         break;
 	}
-    _VSDEF("SET_CHAN%d_LIGHT%d %s * state.light[%d].col.%s", chan_num, light_num, ambient.c_str(),
-        light_num, swizzle.c_str());
+    _VSDEF("SET_CHAN%d_LIGHT%d%s %s * state.light[%d].col.%s", chan_num, light_num, mode.c_str(),
+        ambient.c_str(), light_num, swizzle.c_str());
 }
 
 void ShaderManager::GenerateVertexLightingHeader() {
