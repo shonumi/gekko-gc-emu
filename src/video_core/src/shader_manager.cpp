@@ -116,7 +116,7 @@ void ShaderManager::GenerateVertexHeader() {
     _VSDEF("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
     _VSDEF("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
 
-    _VSDEF("NUM_COLOR_CHANNELS", state_.fields.num_color_chans);
+    _VSDEF("NUM_COLOR_CHANNELS %d", state_.fields.num_color_chans);
 
     this->GenerateVertexLightingHeader();
 }

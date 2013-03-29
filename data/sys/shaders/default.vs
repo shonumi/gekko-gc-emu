@@ -359,6 +359,7 @@ void main() {
 #endif
     
     // Vertex color 0
+#ifdef _VSDEF_COLOR0_ENABLE
 #ifdef _VSDEF_COLOR0_RGB565
     col[0].r = float(int(color0[1]) >> 3) / 31.0f;
     col[0].g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
@@ -383,7 +384,12 @@ void main() {
 #else
     col[0] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
+#else
+    col[0] = vec4(1.0, 1.0, 1.0, 1.0);
+#endif // _VSDEF_COLOR0_ENABLE
+
     // Vertex color 1
+#ifdef _VSDEF_COLOR1_ENABLE
 #ifdef _VSDEF_COLOR1_RGB565
     col[1].r = float(int(color1[1]) >> 3) / 31.0f;
     col[1].g = float(((int(color1[1]) & 0x7) << 3) | (int(color1[0]) >> 5)) / 63.0f;
@@ -408,6 +414,9 @@ void main() {
 #else
     col[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
+#else
+    col[1] = vec4(1.0, 1.0, 1.0, 1.0);
+#endif // _VSDEF_COLOR0_ENABLE
 
     mat[0]      = _VSDEF_COLOR0_MATERIAL_SRC;
     mat[1]      = _VSDEF_COLOR1_MATERIAL_SRC;
@@ -480,15 +489,30 @@ void main() {
     _VSDEF_SET_CHAN1_LIGHT7;
     _VSDEF_SET_CHAN1_LIGHT7_ALPHA;
     
+    
+#if _VSDEF_NUM_COLOR_CHANNELS == 0
+    vtx_color[0] = col[0];
+#endif // _VSDEF_NUM_COLOR_CHANNELS == 0
+
 #ifdef _VSDEF_LIGHTING_ENABLE_0
     vtx_color[0] = mat[0] * clamp(l_amb[0], 0.0f, 1.0f);
 #else
     vtx_color[0] = mat[0];
-#endif
+#endif // _VSDEF_LIGHTING_ENABLE_0
+
 #ifdef _VSDEF_LIGHTING_ENABLE_1
     vtx_color[1] = mat[1] * clamp(l_amb[1], 0.0f, 1.0f);
 #else
     vtx_color[1] = mat[1];
-#endif
+#endif // _VSDEF_LIGHTING_ENABLE_1
+
+#if _VSDEF_NUM_COLOR_CHANNELS < 2
+#ifdef _VSDEF_COLOR1_ENABLE
+    vtx_color[1] = col[0]
+#else
+    vtx_color[1] = vtx_color[0];
+#endif // _VSDEF_COLOR1_ENABLE
+#endif // _VSDEF_NUM_COLOR_CHANNELS < 2
+
     gl_Position = state.projection_matrix * pos;
 }
