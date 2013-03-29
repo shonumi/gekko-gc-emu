@@ -80,6 +80,11 @@ void CP_RegisterWrite(u8 addr, u32 data) {
         video_core::g_shader_manager->UpdateFlag(ShaderManager::kFlag_MatrixIndexed_TexCoord_7,
                                                  gp::g_cp_regs.vcd_lo[0].tex7_midx_enable);
 
+        video_core::g_shader_manager->UpdateFlag(ShaderManager::kFlag_VertexColor0_Enabled, 
+                                                gp::g_cp_regs.vcd_lo[0].color0);
+
+        video_core::g_shader_manager->UpdateFlag(ShaderManager::kFlag_VertexColor1_Enabled, 
+                                                gp::g_cp_regs.vcd_lo[0].color1);
         break;
 
     // Map all 8 CP_REG_VCD_HI registers to the base register

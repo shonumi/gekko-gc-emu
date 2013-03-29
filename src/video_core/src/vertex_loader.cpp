@@ -609,6 +609,8 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
 
     video_core::g_renderer->SetVertexState(state);
     video_core::g_shader_manager->UpdateVertexState(state);
+    video_core::g_shader_manager->UpdateFlag(ShaderManager::kFlag_VertexPostition_DQF, 
+        vat_a->get_pos_dqf_enabled());
 
     for (int i = 0; i < count; i++) {
 

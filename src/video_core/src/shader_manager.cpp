@@ -100,19 +100,23 @@ void ShaderManager::GenerateVertexHeader() {
 
     vsh_->Reset();
 
-    if (gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].get_pos_dqf_enabled()) _VSDEF("POS_DQF");
-    if (gp::g_cp_regs.vcd_lo[0].pos_midx_enable) _VSDEF("POS_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex0_midx_enable) _VSDEF("TEX_0_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex1_midx_enable) _VSDEF("TEX_1_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex2_midx_enable) _VSDEF("TEX_2_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex3_midx_enable) _VSDEF("TEX_3_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex4_midx_enable) _VSDEF("TEX_4_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex5_midx_enable) _VSDEF("TEX_5_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex6_midx_enable) _VSDEF("TEX_6_MIDX");
-    if (gp::g_cp_regs.vcd_lo[0].tex7_midx_enable) _VSDEF("TEX_7_MIDX");
+    if (state_.fields.flags & kFlag_VertexPostition_DQF) _VSDEF("POS_DQF");
+    if (state_.fields.flags & kFlag_MatrixIndexed_Position) _VSDEF("POS_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_0) _VSDEF("TEX_0_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_1) _VSDEF("TEX_1_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_2) _VSDEF("TEX_2_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_3) _VSDEF("TEX_3_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_4) _VSDEF("TEX_4_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_5) _VSDEF("TEX_5_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_6) _VSDEF("TEX_6_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_7) _VSDEF("TEX_7_MIDX");
+    if (state_.fields.flags & kFlag_VertexColor0_Enabled) _VSDEF("COLOR0_ENABLE");
+    if (state_.fields.flags & kFlag_VertexColor1_Enabled) _VSDEF("COLOR1_ENABLE");
 
     _VSDEF("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
     _VSDEF("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
+
+    _VSDEF("NUM_COLOR_CHANNELS", state_.fields.num_color_chans);
 
     this->GenerateVertexLightingHeader();
 }
@@ -192,7 +196,7 @@ void ShaderManager::GenerateVertexLightingHeader() {
         const gp::XFLitChannel& color = state_.fields.color_channel[chan_num];
         const gp::XFLitChannel& alpha = state_.fields.alpha_channel[chan_num];
 
-        if (color.enable_lighting) {
+        if (color.enable_lighting || alpha.enable_lighting) {
             _VSDEF("LIGHTING_ENABLE_%d", chan_num);
         }
         std::string mat_src = "vec4(";

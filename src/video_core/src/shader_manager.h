@@ -50,6 +50,9 @@ public:
         kFlag_MatrixIndexed_TexCoord_6  = 0x00000080,
         kFlag_MatrixIndexed_TexCoord_7  = 0x00000100,
         kFlag_DestinationAlpha          = 0x00000200,
+        kFlag_VertexColor0_Enabled      = 0x00000400,
+        kFlag_VertexColor1_Enabled      = 0x00000800,
+        kFlag_VertexPostition_DQF       = 0x00001000
     };
 
     enum VertexComponent {
