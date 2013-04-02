@@ -282,12 +282,11 @@ void main() {
     vec4    mat[2];
     vec4    l_amb[2];
     vec4    col[2];
-    float   atten           = 0.0f;
-    vec3    ldir;
-    float   dist            = 0.0f;
-    float   dist2           = 0.0f;
-    float   pos_dqf         = 1.0f;
-    int     pos_nrm_index   = state.cp_pos_matrix_offset;
+    float   atten;
+    vec3    l_dir;
+    float   l_dist;
+    float   pos_dqf = 1.0f;
+    int     pos_nrm_index = state.cp_pos_matrix_offset;
     
 #ifdef _VSDEF_POS_MIDX // Position modelview matrix
     pos_nrm_index = int(matrix_idx_pos[0]);

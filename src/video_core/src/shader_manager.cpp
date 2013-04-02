@@ -157,17 +157,16 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
     // Spot lighting
     } else if (chan.attn_func == 3) {
 		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s "
-                "ldir = state.light[%d].pos.xyz - pos.xyz; "
-                "dist2 = dot(ldir, ldir); "
-                "dist = sqrt(dist2); "
-                "ldir = ldir / dist; "
-                "atten = max(0.0f, dot(ldir, state.light[%d].dir.xyz)); "
+                "l_dir = state.light[%d].pos.xyz - pos.xyz; "
+                "l_dist = sqrt(dot(l_dir, l_dir)); "
+                "l_dir = l_dir / l_dist; "
+                "atten = max(0.0f, dot(l_dir, state.light[%d].dir.xyz)); "
                 "atten = max(0.0f, dot(state.light[%d].cos_atten.xyz, vec3(1.0f, atten, atten * "
-                "atten))) / dot(state.light[%d].dist_atten.xyz, vec3(1.0f, dist, dist2))", 
+                "atten))) / dot(state.light[%d].dist_atten.xyz, vec3(1.0f, l_dist, l_dist * l_dist))", 
             chan_num, light_num, mode.c_str(), light_num, light_num, light_num, light_num);
 
         atten = "atten"; 
-		intensity = common::FormatStr("atten * dot(ldir, nrm.xyz)", light_num);
+		intensity = common::FormatStr("atten * dot(l_dir, nrm.xyz)", light_num);
     // Unknown lighting
     } else {
         _ASSERT_MSG(TGP, 0, "Lighting mode not implemented");
