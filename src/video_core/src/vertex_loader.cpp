@@ -566,9 +566,6 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
     u32 tex7_base       = gp::g_cp_regs.array_base[11].addr_base;
     u8  tex7_stride     = gp::g_cp_regs.array_stride[11].addr_stride;
 
-    // Configure renderer to begin a new primitive
-    VertexManager_BeginPrimitive(type, count);
-
     // Set renderer types
     state.pos.attr_type     = (GXAttrType)gp::g_cp_regs.vcd_lo[0].position;
     state.pos.comp_count    = (GXCompCnt)vat_a->pos_count;
@@ -611,6 +608,9 @@ void VertexLoader_DecodePrimitive(GXPrimitive type, int count) {
     video_core::g_shader_manager->UpdateVertexState(state);
     video_core::g_shader_manager->UpdateFlag(ShaderManager::kFlag_VertexPostition_DQF, 
         vat_a->get_pos_dqf_enabled());
+
+    // Configure renderer to begin a new primitive
+    VertexManager_BeginPrimitive(type, count);
 
     for (int i = 0; i < count; i++) {
 

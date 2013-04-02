@@ -110,8 +110,9 @@ void ShaderManager::GenerateVertexHeader() {
     if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_5) _VSDEF("TEX_5_MIDX");
     if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_6) _VSDEF("TEX_6_MIDX");
     if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_7) _VSDEF("TEX_7_MIDX");
-    if (state_.fields.flags & kFlag_VertexColor0_Enabled) _VSDEF("COLOR0_ENABLE");
-    if (state_.fields.flags & kFlag_VertexColor1_Enabled) _VSDEF("COLOR1_ENABLE");
+
+    if (state_.fields.vertex_state.col[0].attr_type) _VSDEF("COLOR0_ENABLE");
+    if (state_.fields.vertex_state.col[1].attr_type) _VSDEF("COLOR1_ENABLE");
 
     _VSDEF("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
     _VSDEF("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
