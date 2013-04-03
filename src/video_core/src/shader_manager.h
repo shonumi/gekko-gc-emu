@@ -204,6 +204,15 @@ private:
             va_end(arg);
         }
 
+        void Define(const char* fmt, ...) {
+            va_list arg;
+            va_start(arg, fmt);
+            offset_ += sprintf(&buff_[offset_], "#define _DEF_");
+            offset_ += vsprintf(&buff_[offset_], fmt, arg);
+            offset_ += sprintf(&buff_[offset_], "\n");
+            va_end(arg);
+        }
+
         void Reset() {
             offset_ = 0;
             memset(buff_, 0, buff_size_);

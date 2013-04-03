@@ -33,9 +33,6 @@
 #include "xf_mem.h"
 #include "crc.h"
 
-#define _VSDEF(str, ...)  vsh_->Write("#define _VSDEF_" str "\n", __VA_ARGS__)
-#define _FSDEF(str, ...)  fsh_->Write("#define _FSDEF_" str "\n", __VA_ARGS__)
-
 ShaderManager::ShaderManager(const BackendInterface* backend_interface) {
     backend_interface_  = const_cast<BackendInterface*>(backend_interface);
     cache_              = new CacheContainer();
@@ -46,6 +43,7 @@ ShaderManager::ShaderManager(const BackendInterface* backend_interface) {
 
 ShaderManager::~ShaderManager() {
     delete cache_;
+    delete active_shader_;
     delete vsh_;
     delete fsh_;
 }
@@ -100,24 +98,23 @@ void ShaderManager::GenerateVertexHeader() {
 
     vsh_->Reset();
 
-    if (state_.fields.flags & kFlag_VertexPostition_DQF) _VSDEF("POS_DQF");
-    if (state_.fields.flags & kFlag_MatrixIndexed_Position) _VSDEF("POS_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_0) _VSDEF("TEX_0_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_1) _VSDEF("TEX_1_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_2) _VSDEF("TEX_2_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_3) _VSDEF("TEX_3_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_4) _VSDEF("TEX_4_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_5) _VSDEF("TEX_5_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_6) _VSDEF("TEX_6_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_7) _VSDEF("TEX_7_MIDX");
+    if (state_.fields.flags & kFlag_VertexPostition_DQF) vsh_->Define("POS_DQF");
+    if (state_.fields.flags & kFlag_MatrixIndexed_Position) vsh_->Define("POS_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_0) vsh_->Define("TEX_0_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_1) vsh_->Define("TEX_1_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_2) vsh_->Define("TEX_2_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_3) vsh_->Define("TEX_3_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_4) vsh_->Define("TEX_4_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_5) vsh_->Define("TEX_5_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_6) vsh_->Define("TEX_6_MIDX");
+    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_7) vsh_->Define("TEX_7_MIDX");
 
-    if (state_.fields.vertex_state.col[0].attr_type) _VSDEF("COLOR0_ENABLE");
-    if (state_.fields.vertex_state.col[1].attr_type) _VSDEF("COLOR1_ENABLE");
+    if (state_.fields.vertex_state.col[0].attr_type) vsh_->Define("COLOR0_ENABLE");
+    if (state_.fields.vertex_state.col[1].attr_type) vsh_->Define("COLOR1_ENABLE");
 
-    _VSDEF("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
-    _VSDEF("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
-
-    _VSDEF("NUM_COLOR_CHANNELS %d", state_.fields.num_color_chans);
+    vsh_->Define("COLOR0_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col0_type]);
+    vsh_->Define("COLOR1_%s", vertex_color[gp::g_cp_regs.vat_reg_a[gp::g_cur_vat].col1_type]);
+    vsh_->Define("NUM_COLOR_CHANNELS %d", state_.fields.num_color_chans);
 
     this->GenerateVertexLightingHeader();
 }
@@ -131,13 +128,14 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
     std::string clamp = "%s";
     std::string mode = "";
 
-    if (color_enable && !alpha_enable) swizzle = "rgb";
-    else if (!color_enable && alpha_enable) {
+    if (color_enable && !alpha_enable) {
+        swizzle = "rgb";
+    } else if (!color_enable && alpha_enable) {
         swizzle = "a";
         mode = "_ALPHA";
+    } else { 
+        swizzle = "rgba";
     }
-    else swizzle = "rgba";
-
     std::string ambient = common::FormatStr("l_amb[%d].%s += ", chan_num, swizzle.c_str());
     // Simple diffuse lighting
     if (!(chan.attn_func & 1)) {
@@ -146,7 +144,7 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
             light_num);
     // Specular lighting
     } else if (chan.attn_func == 1) {
-		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s atten = (dot(nrm.xyz, normalize(state.light[%d].pos.xyz)) "
+		vsh_->Define("SET_CHAN%d_LIGHT%d_ATTEN%s atten = (dot(nrm.xyz, normalize(state.light[%d].pos.xyz)) "
             ">= 0.0f) ? max(0.0f, dot(nrm.xyz, state.light[%d].dir.xyz)) : 0.0f", chan_num, 
             light_num, mode.c_str(), light_num, light_num);           
         atten = common::FormatStr("(max(0.0f, dot(state.light[%d].cos_atten.xyz, vec3(1, atten, "
@@ -156,7 +154,7 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
             atten.c_str(), light_num);
     // Spot lighting
     } else if (chan.attn_func == 3) {
-		_VSDEF("SET_CHAN%d_LIGHT%d_ATTEN%s "
+		vsh_->Define("SET_CHAN%d_LIGHT%d_ATTEN%s "
                 "l_dir = state.light[%d].pos.xyz - pos.xyz; "
                 "l_dist = sqrt(dot(l_dir, l_dir)); "
                 "l_dir = l_dir / l_dist; "
@@ -185,7 +183,7 @@ void ShaderManager::GenerateLightHeader(int chan_num, int light_num, gp::XFLitCh
         _ASSERT_MSG(TGP, 0, "unknown diffuse function");
         break;
 	}
-    _VSDEF("SET_CHAN%d_LIGHT%d%s %s * state.light[%d].col.%s", chan_num, light_num, mode.c_str(),
+    vsh_->Define("SET_CHAN%d_LIGHT%d%s %s * state.light[%d].col.%s", chan_num, light_num, mode.c_str(),
         ambient.c_str(), light_num, swizzle.c_str());
 }
 
@@ -197,7 +195,7 @@ void ShaderManager::GenerateVertexLightingHeader() {
         const gp::XFLitChannel& alpha = state_.fields.alpha_channel[chan_num];
 
         if (color.enable_lighting || alpha.enable_lighting) {
-            _VSDEF("LIGHTING_ENABLE_%d", chan_num);
+            vsh_->Define("LIGHTING_ENABLE_%d", chan_num);
         }
         std::string mat_src = "vec4(";
         std::string amb_src = "vec4(";
@@ -231,8 +229,7 @@ void ShaderManager::GenerateVertexLightingHeader() {
         } else {
             mat_src += common::FormatStr("state.xf_material_color[%d].a)", chan_num);
         }
-
-        _VSDEF("COLOR%d_MATERIAL_SRC %s", chan_num, mat_src.c_str());
+        vsh_->Define("COLOR%d_MATERIAL_SRC %s", chan_num, mat_src.c_str());
 
         // Ambient source
         // --------------
@@ -271,7 +268,7 @@ void ShaderManager::GenerateVertexLightingHeader() {
         } else {
             amb_src += "1.0f)";
         }
-        _VSDEF("COLOR%d_AMBIENT_SRC %s", chan_num, amb_src.c_str());
+        vsh_->Define("COLOR%d_AMBIENT_SRC %s", chan_num, amb_src.c_str());
 
         // Color and alpha lighting is enabled...
         if (color.enable_lighting && alpha.enable_lighting) {
@@ -330,17 +327,17 @@ void ShaderManager::GenerateFragmentHeader() {
 
     fsh_->Reset();
 
-    _FSDEF("NUM_STAGES %d", state_.fields.num_stages);
-    _FSDEF("ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))",
+    fsh_->Define("NUM_STAGES %d", state_.fields.num_stages);
+    fsh_->Define("ALPHA_COMPARE(val, ref0, ref1) (!(%s %s %s))",
         alpha_compare_0[state_.fields.alpha_func.comp0],
         alpha_logic[state_.fields.alpha_func.logic],
         alpha_compare_1[state_.fields.alpha_func.comp1]);
 
     for (int stage = 0; stage <= gp::g_bp_regs.genmode.num_tevstages; stage++) {
         reg_index = stage / 2;
-        _FSDEF("CLAMP_COLOR_%d(val) %s", stage, clamp[gp::g_bp_regs.combiner[stage].color.clamp]);
-        _FSDEF("CLAMP_ALPHA_%d(val) %s", stage, clamp[gp::g_bp_regs.combiner[stage].alpha.clamp]);
-        _FSDEF("STAGE_DEST vec4(%s.rgb, %s.a)", 
+        fsh_->Define("CLAMP_COLOR_%d(val) %s", stage, clamp[gp::g_bp_regs.combiner[stage].color.clamp]);
+        fsh_->Define("CLAMP_ALPHA_%d(val) %s", stage, clamp[gp::g_bp_regs.combiner[stage].alpha.clamp]);
+        fsh_->Define("STAGE_DEST vec4(%s.rgb, %s.a)", 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].color.dest], 
             tev_dest[gp::g_bp_regs.combiner[gp::g_bp_regs.genmode.num_tevstages].alpha.dest]);
 
@@ -365,55 +362,55 @@ void ShaderManager::GenerateFragmentHeader() {
                     }
                 }
             }*/
-            _FSDEF("TEXTURE_%d texture2D(texture[%d], vtx_texcoord[%d])", 
+            fsh_->Define("TEXTURE_%d texture2D(texture[%d], vtx_texcoord[%d])", 
                 stage, texmap, texcoord);
 
         // This will use white color for texture
         } else {
-            _FSDEF("TEXTURE_%d vec4(1.0f, 1.0f, 1.0f, 1.0f)", stage);
+            fsh_->Define("TEXTURE_%d vec4(1.0f, 1.0f, 1.0f, 1.0f)", stage);
         }
 
-        _FSDEF("COMBINER_COLOR_A_%d %s", stage, 
+        fsh_->Define("COMBINER_COLOR_A_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_a]);
-        _FSDEF("COMBINER_COLOR_B_%d %s", stage, 
+        fsh_->Define("COMBINER_COLOR_B_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_b]);
-        _FSDEF("COMBINER_COLOR_C_%d %s", stage, 
+        fsh_->Define("COMBINER_COLOR_C_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_c]);
-        _FSDEF("COMBINER_COLOR_D_%d %s", stage, 
+        fsh_->Define("COMBINER_COLOR_D_%d %s", stage, 
             tev_color_input[state_.fields.tev_combiner[stage].color.sel_d]);
-        _FSDEF("COMBINER_COLOR_DEST_%d %s.rgb", stage, 
+        fsh_->Define("COMBINER_COLOR_DEST_%d %s.rgb", stage, 
             tev_dest[state_.fields.tev_combiner[stage].color.dest]);
 
-        _FSDEF("COMBINER_ALPHA_A_%d %s", stage, 
+        fsh_->Define("COMBINER_ALPHA_A_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_a]);
-        _FSDEF("COMBINER_ALPHA_B_%d %s", stage, 
+        fsh_->Define("COMBINER_ALPHA_B_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_b]);
-        _FSDEF("COMBINER_ALPHA_C_%d %s", stage, 
+        fsh_->Define("COMBINER_ALPHA_C_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_c]);
-        _FSDEF("COMBINER_ALPHA_D_%d %s", stage, 
+        fsh_->Define("COMBINER_ALPHA_D_%d %s", stage, 
             tev_alpha_input[state_.fields.tev_combiner[stage].alpha.sel_d]);
-        _FSDEF("COMBINER_ALPHA_DEST_%d %s.a", stage, 
+        fsh_->Define("COMBINER_ALPHA_DEST_%d %s.a", stage, 
             tev_dest[state_.fields.tev_combiner[stage].alpha.dest]);
-        _FSDEF("RASCOLOR_%d %s", stage, 
+        fsh_->Define("RASCOLOR_%d %s", stage, 
             tev_ras[state_.fields.tev_order[reg_index].get_colorchan(stage)]);
     }
     // Do destination alpha?
     if (state_.fields.flags & kFlag_DestinationAlpha) {
-        _FSDEF("SET_DESTINATION_ALPHA");
+        fsh_->Define("SET_DESTINATION_ALPHA");
     }
     // Adjust color for current EFB format
     switch (state_.fields.efb_format) {
     case gp::kPixelFormat_RGB8_Z24:
-        _FSDEF("EFB_FORMAT(val) vec4((round(val.rgb * 255.0f) / 255.0f), 1.0f)");
+        fsh_->Define("EFB_FORMAT(val) vec4((round(val.rgb * 255.0f) / 255.0f), 1.0f)");
         break;
     case gp::kPixelFormat_RGBA6_Z24:
-        _FSDEF("EFB_FORMAT(val) FIX_U6(val)");
+        fsh_->Define("EFB_FORMAT(val) FIX_U6(val)");
         break;
     case gp::kPixelFormat_RGB565_Z16:
-        _FSDEF("EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)");
+        fsh_->Define("EFB_FORMAT(val) vec4(FIX_U5(val.r), FIX_U6(val.g), FIX_U5(val.b), 1.0f)");
         break;
     default:
-        _FSDEF("EFB_FORMAT(val) vec4(val.rgb, 1.0f)");
+        fsh_->Define("EFB_FORMAT(val) vec4(val.rgb, 1.0f)");
         break;
     }
 }

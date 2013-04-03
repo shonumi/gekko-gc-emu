@@ -1,217 +1,217 @@
-#ifndef _VSDEF_COLOR0_MATERIAL_SRC
-#define _VSDEF_COLOR0_MATERIAL_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#ifndef _DEF_COLOR0_MATERIAL_SRC
+#define _DEF_COLOR0_MATERIAL_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #endif
 
-#ifndef _VSDEF_COLOR1_MATERIAL_SRC
-#define _VSDEF_COLOR1_MATERIAL_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#ifndef _DEF_COLOR1_MATERIAL_SRC
+#define _DEF_COLOR1_MATERIAL_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #endif
 
-#ifndef _VSDEF_COLOR0_AMBIENT_SRC
-#define _VSDEF_COLOR0_AMBIENT_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#ifndef _DEF_COLOR0_AMBIENT_SRC
+#define _DEF_COLOR0_AMBIENT_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #endif
 
-#ifndef _VSDEF_COLOR1_AMBIENT_SRC
-#define _VSDEF_COLOR1_AMBIENT_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
+#ifndef _DEF_COLOR1_AMBIENT_SRC
+#define _DEF_COLOR1_AMBIENT_SRC vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #endif
 
-#ifndef _VSDEF_SET_CHAN0_LIGHT0
-#define _VSDEF_SET_CHAN0_LIGHT0
+#ifndef _DEF_SET_CHAN0_LIGHT0
+#define _DEF_SET_CHAN0_LIGHT0
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT1
-#define _VSDEF_SET_CHAN0_LIGHT1
+#ifndef _DEF_SET_CHAN0_LIGHT1
+#define _DEF_SET_CHAN0_LIGHT1
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT2
-#define _VSDEF_SET_CHAN0_LIGHT2
+#ifndef _DEF_SET_CHAN0_LIGHT2
+#define _DEF_SET_CHAN0_LIGHT2
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT3
-#define _VSDEF_SET_CHAN0_LIGHT3
+#ifndef _DEF_SET_CHAN0_LIGHT3
+#define _DEF_SET_CHAN0_LIGHT3
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT4
-#define _VSDEF_SET_CHAN0_LIGHT4
+#ifndef _DEF_SET_CHAN0_LIGHT4
+#define _DEF_SET_CHAN0_LIGHT4
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT5
-#define _VSDEF_SET_CHAN0_LIGHT5
+#ifndef _DEF_SET_CHAN0_LIGHT5
+#define _DEF_SET_CHAN0_LIGHT5
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT6
-#define _VSDEF_SET_CHAN0_LIGHT6
+#ifndef _DEF_SET_CHAN0_LIGHT6
+#define _DEF_SET_CHAN0_LIGHT6
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT7
-#define _VSDEF_SET_CHAN0_LIGHT7
-#endif
-
-#ifndef _VSDEF_SET_CHAN1_LIGHT0
-#define _VSDEF_SET_CHAN1_LIGHT0
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT1
-#define _VSDEF_SET_CHAN1_LIGHT1
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT2
-#define _VSDEF_SET_CHAN1_LIGHT2
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT3
-#define _VSDEF_SET_CHAN1_LIGHT3
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT4
-#define _VSDEF_SET_CHAN1_LIGHT4
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT5
-#define _VSDEF_SET_CHAN1_LIGHT5
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT6
-#define _VSDEF_SET_CHAN1_LIGHT6
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT7
-#define _VSDEF_SET_CHAN1_LIGHT7
+#ifndef _DEF_SET_CHAN0_LIGHT7
+#define _DEF_SET_CHAN0_LIGHT7
 #endif
 
+#ifndef _DEF_SET_CHAN1_LIGHT0
+#define _DEF_SET_CHAN1_LIGHT0
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT1
+#define _DEF_SET_CHAN1_LIGHT1
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT2
+#define _DEF_SET_CHAN1_LIGHT2
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT3
+#define _DEF_SET_CHAN1_LIGHT3
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT4
+#define _DEF_SET_CHAN1_LIGHT4
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT5
+#define _DEF_SET_CHAN1_LIGHT5
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT6
+#define _DEF_SET_CHAN1_LIGHT6
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT7
+#define _DEF_SET_CHAN1_LIGHT7
+#endif
 
-#ifndef _VSDEF_SET_CHAN1_LIGHT0_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT0_ATTEN
+
+#ifndef _DEF_SET_CHAN1_LIGHT0_ATTEN
+#define _DEF_SET_CHAN1_LIGHT0_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT1_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT1_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT1_ATTEN
+#define _DEF_SET_CHAN1_LIGHT1_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT2_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT2_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT2_ATTEN
+#define _DEF_SET_CHAN1_LIGHT2_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT3_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT3_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT3_ATTEN
+#define _DEF_SET_CHAN1_LIGHT3_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT4_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT4_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT4_ATTEN
+#define _DEF_SET_CHAN1_LIGHT4_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT5_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT5_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT5_ATTEN
+#define _DEF_SET_CHAN1_LIGHT5_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT6_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT6_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT6_ATTEN
+#define _DEF_SET_CHAN1_LIGHT6_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT7_ATTEN
-#define _VSDEF_SET_CHAN1_LIGHT7_ATTEN
+#ifndef _DEF_SET_CHAN1_LIGHT7_ATTEN
+#define _DEF_SET_CHAN1_LIGHT7_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT0_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT0_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT0_ATTEN
+#define _DEF_SET_CHAN0_LIGHT0_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT1_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT1_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT1_ATTEN
+#define _DEF_SET_CHAN0_LIGHT1_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT2_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT2_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT2_ATTEN
+#define _DEF_SET_CHAN0_LIGHT2_ATTEN
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT3_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT3_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT3_ATTEN
+#define _DEF_SET_CHAN0_LIGHT3_ATTEN
 #endif                        
-#ifndef _VSDEF_SET_CHAN0_LIGHT4_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT4_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT4_ATTEN
+#define _DEF_SET_CHAN0_LIGHT4_ATTEN
 #endif                
-#ifndef _VSDEF_SET_CHAN0_LIGHT5_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT5_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT5_ATTEN
+#define _DEF_SET_CHAN0_LIGHT5_ATTEN
 #endif               
-#ifndef _VSDEF_SET_CHAN0_LIGHT6_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT6_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT6_ATTEN
+#define _DEF_SET_CHAN0_LIGHT6_ATTEN
 #endif                 
-#ifndef _VSDEF_SET_CHAN0_LIGHT7_ATTEN
-#define _VSDEF_SET_CHAN0_LIGHT7_ATTEN
+#ifndef _DEF_SET_CHAN0_LIGHT7_ATTEN
+#define _DEF_SET_CHAN0_LIGHT7_ATTEN
 #endif
 
 
-#ifndef _VSDEF_SET_CHAN0_LIGHT0_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT0_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT0_ALPHA
+#define _DEF_SET_CHAN0_LIGHT0_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT1_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT1_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT1_ALPHA
+#define _DEF_SET_CHAN0_LIGHT1_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT2_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT2_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT2_ALPHA
+#define _DEF_SET_CHAN0_LIGHT2_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT3_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT3_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT3_ALPHA
+#define _DEF_SET_CHAN0_LIGHT3_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT4_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT4_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT4_ALPHA
+#define _DEF_SET_CHAN0_LIGHT4_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT5_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT5_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT5_ALPHA
+#define _DEF_SET_CHAN0_LIGHT5_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT6_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT6_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT6_ALPHA
+#define _DEF_SET_CHAN0_LIGHT6_ALPHA
 #endif
-#ifndef _VSDEF_SET_CHAN0_LIGHT7_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT7_ALPHA
-#endif
-
-#ifndef _VSDEF_SET_CHAN1_LIGHT0_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT0_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT1_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT1_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT2_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT2_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT3_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT3_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT4_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT4_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT5_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT5_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT6_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT6_ALPHA
-#endif                 
-#ifndef _VSDEF_SET_CHAN1_LIGHT7_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT7_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT7_ALPHA
+#define _DEF_SET_CHAN0_LIGHT7_ALPHA
 #endif
 
-#ifndef _VSDEF_SET_CHAN1_LIGHT0_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT0_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT0_ALPHA
+#define _DEF_SET_CHAN1_LIGHT0_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT1_ALPHA
+#define _DEF_SET_CHAN1_LIGHT1_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT2_ALPHA
+#define _DEF_SET_CHAN1_LIGHT2_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT3_ALPHA
+#define _DEF_SET_CHAN1_LIGHT3_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT4_ALPHA
+#define _DEF_SET_CHAN1_LIGHT4_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT5_ALPHA
+#define _DEF_SET_CHAN1_LIGHT5_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT6_ALPHA
+#define _DEF_SET_CHAN1_LIGHT6_ALPHA
+#endif                 
+#ifndef _DEF_SET_CHAN1_LIGHT7_ALPHA
+#define _DEF_SET_CHAN1_LIGHT7_ALPHA
+#endif
+
+#ifndef _DEF_SET_CHAN1_LIGHT0_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT0_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT1_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT1_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT1_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT1_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT2_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT2_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT2_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT2_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT3_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT3_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT3_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT3_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT4_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT4_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT4_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT4_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT5_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT5_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT5_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT5_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT6_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT6_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT6_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT6_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN1_LIGHT7_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN1_LIGHT7_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN1_LIGHT7_ATTEN_ALPHA
+#define _DEF_SET_CHAN1_LIGHT7_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT0_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT0_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT0_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT0_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT1_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT1_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT1_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT1_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT2_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT2_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT2_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT2_ATTEN_ALPHA
 #endif                         
-#ifndef _VSDEF_SET_CHAN0_LIGHT3_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT3_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT3_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT3_ATTEN_ALPHA
 #endif                        
-#ifndef _VSDEF_SET_CHAN0_LIGHT4_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT4_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT4_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT4_ATTEN_ALPHA
 #endif                
-#ifndef _VSDEF_SET_CHAN0_LIGHT5_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT5_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT5_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT5_ATTEN_ALPHA
 #endif               
-#ifndef _VSDEF_SET_CHAN0_LIGHT6_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT6_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT6_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT6_ATTEN_ALPHA
 #endif                 
-#ifndef _VSDEF_SET_CHAN0_LIGHT7_ATTEN_ALPHA
-#define _VSDEF_SET_CHAN0_LIGHT7_ATTEN_ALPHA
+#ifndef _DEF_SET_CHAN0_LIGHT7_ATTEN_ALPHA
+#define _DEF_SET_CHAN0_LIGHT7_ATTEN_ALPHA
 #endif
 
 layout(location = 0) in vec3 position;
@@ -288,11 +288,11 @@ void main() {
     float   pos_dqf = 1.0f;
     int     pos_nrm_index = state.cp_pos_matrix_offset;
     
-#ifdef _VSDEF_POS_MIDX // Position modelview matrix
+#ifdef _DEF_POS_MIDX // Position modelview matrix
     pos_nrm_index = int(matrix_idx_pos[0]);
 #endif
 
-#ifdef _VSDEF_POS_DQF // Position shift (dequantization factor) only U8/S8/U16/S16 formats
+#ifdef _DEF_POS_DQF // Position shift (dequantization factor) only U8/S8/U16/S16 formats
     pos_dqf = state.cp_pos_dqf;
 #endif
     
@@ -300,56 +300,56 @@ void main() {
     pos_nrm_index &= 0x1F; // Normal matrix is only 32 entries
     nrm = normalize(XF_NORMAL_MTX44(pos_nrm_index) * normal);   
     
-#ifdef _VSDEF_TEX_0_MIDX // Texture coord 0
+#ifdef _DEF_TEX_0_MIDX // Texture coord 0
     vtx_texcoord[0] = vec4(XF_MTX44(int(matrix_idx_tex03[0])) * 
         vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[0] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][0]) * 
         vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_1_MIDX // Texture coord 1
+#ifdef _DEF_TEX_1_MIDX // Texture coord 1
     vtx_texcoord[1] = vec4(XF_MTX44(int(matrix_idx_tex03[1])) * 
         vec4(texcoord1.st * state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[1] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][1]) * 
         vec4(texcoord1.st * state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_2_MIDX // Texture coord 2
+#ifdef _DEF_TEX_2_MIDX // Texture coord 2
     vtx_texcoord[2] = vec4(XF_MTX44(int(matrix_idx_tex03[2])) * 
         vec4(texcoord2.st * state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[2] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][2]) * 
         vec4(texcoord2.st * state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_3_MIDX // Texture coord 3
+#ifdef _DEF_TEX_3_MIDX // Texture coord 3
     vtx_texcoord[3] = vec4(XF_MTX44(int(matrix_idx_tex03[3])) * 
         vec4(texcoord3.st * state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[3] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][3]) * 
         vec4(texcoord3.st * state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_4_MIDX // Texture coord 4
+#ifdef _DEF_TEX_4_MIDX // Texture coord 4
     vtx_texcoord[4] = vec4(XF_MTX44(int(matrix_idx_tex47[0])) * 
         vec4(texcoord4.st * state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[4] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][0]) * 
         vec4(texcoord4.st * state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_5_MIDX // Texture coord 5
+#ifdef _DEF_TEX_5_MIDX // Texture coord 5
     vtx_texcoord[5] = vec4(XF_MTX44(int(matrix_idx_tex47[1])) * 
         vec4(texcoord5.st * state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[5] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][1]) * 
         vec4(texcoord5.st * state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_6_MIDX // Texture coord 6
+#ifdef _DEF_TEX_6_MIDX // Texture coord 6
     vtx_texcoord[6] = vec4(XF_MTX44(int(matrix_idx_tex47[2])) * 
         vec4(texcoord6.st * state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #else
     vtx_texcoord[6] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][2]) * 
         vec4(texcoord6.st * state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
 #endif
-#ifdef _VSDEF_TEX_7_MIDX // Texture coord 7
+#ifdef _DEF_TEX_7_MIDX // Texture coord 7
     vtx_texcoord[7] = vec4(XF_MTX44(int(matrix_idx_tex47[3])) * 
         vec4(texcoord7.st * state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
 #else
@@ -358,160 +358,160 @@ void main() {
 #endif
     
     // Vertex color 0
-#ifdef _VSDEF_COLOR0_ENABLE
-#ifdef _VSDEF_COLOR0_RGB565
+#ifdef _DEF_COLOR0_ENABLE
+#ifdef _DEF_COLOR0_RGB565
     col[0].r = float(int(color0[1]) >> 3) / 31.0f;
     col[0].g = float(((int(color0[1]) & 0x7) << 3) | (int(color0[0]) >> 5)) / 63.0f;
     col[0].b = float(int(color0[0]) & 0x1F) / 31.0f;
     col[0].a = 1.0f;
-#elif defined(_VSDEF_COLOR0_RGB8)
+#elif defined(_DEF_COLOR0_RGB8)
     col[0] = vec4(clamp((color0.rgb / 255.0f), 0.0, 1.0), 1.0);
-#elif defined(_VSDEF_COLOR0__RGBX8)
+#elif defined(_DEF_COLOR0__RGBX8)
     col[0] = vec4(clamp((color0.abg / 255.0f), 0.0, 1.0), 1.0);
-#elif defined(_VSDEF_COLOR0_RGBA4)
+#elif defined(_DEF_COLOR0_RGBA4)
     col[0].r = float(int(color0[1]) >> 4) / 15.0f;
     col[0].g = float(int(color0[1]) & 0xF) / 15.0f;
     col[0].b = float(int(color0[0]) >> 4) / 15.0f;
     col[0].a = float(int(color0[0]) & 0xF) / 15.0f;
-#elif defined(_VSDEF_COLOR0_RGBA6)
+#elif defined(_DEF_COLOR0_RGBA6)
     col[0].r = float(int(color0[0]) >> 2) / 63.0f;
     col[0].g = float(((int(color0[0]) & 0x3) << 4) | (int(color0[1]) >> 4)) / 63.0f;
     col[0].b = float(((int(color0[1]) & 0xF) << 2) | (int(color0[2]) >> 6)) / 63.0f;
     col[0].a = float(int(color0[2]) & 0x3F) / 63.0f;
-#elif defined(_VSDEF_COLOR0_RGBA8)
+#elif defined(_DEF_COLOR0_RGBA8)
     col[0] = clamp((color0.abgr / 255.0f), 0.0, 1.0);
 #else
     col[0] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 #else
     col[0] = vec4(1.0, 1.0, 1.0, 1.0);
-#endif // _VSDEF_COLOR0_ENABLE
+#endif // _DEF_COLOR0_ENABLE
 
     // Vertex color 1
-#ifdef _VSDEF_COLOR1_ENABLE
-#ifdef _VSDEF_COLOR1_RGB565
+#ifdef _DEF_COLOR1_ENABLE
+#ifdef _DEF_COLOR1_RGB565
     col[1].r = float(int(color1[1]) >> 3) / 31.0f;
     col[1].g = float(((int(color1[1]) & 0x7) << 3) | (int(color1[0]) >> 5)) / 63.0f;
     col[1].b = float(int(color1[0]) & 0x1F) / 31.0f;
     col[1].a = 1.0f;
-#elif defined(_VSDEF_COLOR1_RGB8)
+#elif defined(_DEF_COLOR1_RGB8)
     col[1] = vec4(clamp((color1.rgb / 255.0f), 0.0, 1.0), 1.0);
-#elif defined(_VSDEF_COLOR1__RGBX8)
+#elif defined(_DEF_COLOR1__RGBX8)
     col[1] = vec4(clamp((color1.abg / 255.0f), 0.0, 1.0), 1.0);
-#elif defined(_VSDEF_COLOR1_RGBA4)
+#elif defined(_DEF_COLOR1_RGBA4)
     col[1].r = float(int(color1[1]) >> 4) / 15.0f;
     col[1].g = float(int(color1[1]) & 0xF) / 15.0f;
     col[1].b = float(int(color1[0]) >> 4) / 15.0f;
     col[1].a = float(int(color1[0]) & 0xF) / 15.0f;
-#elif defined(_VSDEF_COLOR1_RGBA6)
+#elif defined(_DEF_COLOR1_RGBA6)
     col[1].r = float(int(color1[0]) >> 2) / 63.0f;
     col[1].g = float(((int(color1[0]) & 0x3) << 4) | (int(color1[1]) >> 4)) / 63.0f;
     col[1].b = float(((int(color1[1]) & 0xF) << 2) | (int(color1[2]) >> 6)) / 63.0f;
     col[1].a = float(int(color1[2]) & 0x3F) / 63.0f;
-#elif defined(_VSDEF_COLOR1_RGBA8)
+#elif defined(_DEF_COLOR1_RGBA8)
     col[1] = clamp((color1.abgr / 255.0f), 0.0, 1.0);
 #else
     col[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 #else
     col[1] = vec4(1.0, 1.0, 1.0, 1.0);
-#endif // _VSDEF_COLOR0_ENABLE
+#endif // _DEF_COLOR0_ENABLE
 
-    mat[0]      = _VSDEF_COLOR0_MATERIAL_SRC;
-    mat[1]      = _VSDEF_COLOR1_MATERIAL_SRC;
-    l_amb[0]    = _VSDEF_COLOR0_AMBIENT_SRC;
-    l_amb[1]    = _VSDEF_COLOR1_AMBIENT_SRC;
+    mat[0]      = _DEF_COLOR0_MATERIAL_SRC;
+    mat[1]      = _DEF_COLOR1_MATERIAL_SRC;
+    l_amb[0]    = _DEF_COLOR0_AMBIENT_SRC;
+    l_amb[1]    = _DEF_COLOR1_AMBIENT_SRC;
     
-    _VSDEF_SET_CHAN0_LIGHT0_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT0_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT0;
-    _VSDEF_SET_CHAN0_LIGHT0_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT1_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT1_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT1;
-    _VSDEF_SET_CHAN0_LIGHT1_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT2_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT2_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT2;
-    _VSDEF_SET_CHAN0_LIGHT2_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT3_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT3_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT3;
-    _VSDEF_SET_CHAN0_LIGHT3_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT4_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT4_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT4;
-    _VSDEF_SET_CHAN0_LIGHT4_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT5_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT5_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT5;
-    _VSDEF_SET_CHAN0_LIGHT5_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT6_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT6_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT6;
-    _VSDEF_SET_CHAN0_LIGHT6_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT7_ATTEN;
-    _VSDEF_SET_CHAN0_LIGHT7_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN0_LIGHT7;
-    _VSDEF_SET_CHAN0_LIGHT7_ALPHA;
+    _DEF_SET_CHAN0_LIGHT0_ATTEN;
+    _DEF_SET_CHAN0_LIGHT0_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT0;
+    _DEF_SET_CHAN0_LIGHT0_ALPHA;
+    _DEF_SET_CHAN0_LIGHT1_ATTEN;
+    _DEF_SET_CHAN0_LIGHT1_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT1;
+    _DEF_SET_CHAN0_LIGHT1_ALPHA;
+    _DEF_SET_CHAN0_LIGHT2_ATTEN;
+    _DEF_SET_CHAN0_LIGHT2_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT2;
+    _DEF_SET_CHAN0_LIGHT2_ALPHA;
+    _DEF_SET_CHAN0_LIGHT3_ATTEN;
+    _DEF_SET_CHAN0_LIGHT3_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT3;
+    _DEF_SET_CHAN0_LIGHT3_ALPHA;
+    _DEF_SET_CHAN0_LIGHT4_ATTEN;
+    _DEF_SET_CHAN0_LIGHT4_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT4;
+    _DEF_SET_CHAN0_LIGHT4_ALPHA;
+    _DEF_SET_CHAN0_LIGHT5_ATTEN;
+    _DEF_SET_CHAN0_LIGHT5_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT5;
+    _DEF_SET_CHAN0_LIGHT5_ALPHA;
+    _DEF_SET_CHAN0_LIGHT6_ATTEN;
+    _DEF_SET_CHAN0_LIGHT6_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT6;
+    _DEF_SET_CHAN0_LIGHT6_ALPHA;
+    _DEF_SET_CHAN0_LIGHT7_ATTEN;
+    _DEF_SET_CHAN0_LIGHT7_ATTEN_ALPHA;
+    _DEF_SET_CHAN0_LIGHT7;
+    _DEF_SET_CHAN0_LIGHT7_ALPHA;
 
-    _VSDEF_SET_CHAN1_LIGHT0_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT0_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT0;
-    _VSDEF_SET_CHAN1_LIGHT0_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT1_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT1_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT1;
-    _VSDEF_SET_CHAN1_LIGHT1_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT2_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT2_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT2;
-    _VSDEF_SET_CHAN1_LIGHT2_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT3_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT3_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT3;
-    _VSDEF_SET_CHAN1_LIGHT3_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT4_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT4_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT4;
-    _VSDEF_SET_CHAN1_LIGHT4_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT5_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT5_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT5;
-    _VSDEF_SET_CHAN1_LIGHT5_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT6_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT6_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT6;
-    _VSDEF_SET_CHAN1_LIGHT6_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT7_ATTEN;
-    _VSDEF_SET_CHAN1_LIGHT7_ATTEN_ALPHA;
-    _VSDEF_SET_CHAN1_LIGHT7;
-    _VSDEF_SET_CHAN1_LIGHT7_ALPHA;
+    _DEF_SET_CHAN1_LIGHT0_ATTEN;
+    _DEF_SET_CHAN1_LIGHT0_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT0;
+    _DEF_SET_CHAN1_LIGHT0_ALPHA;
+    _DEF_SET_CHAN1_LIGHT1_ATTEN;
+    _DEF_SET_CHAN1_LIGHT1_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT1;
+    _DEF_SET_CHAN1_LIGHT1_ALPHA;
+    _DEF_SET_CHAN1_LIGHT2_ATTEN;
+    _DEF_SET_CHAN1_LIGHT2_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT2;
+    _DEF_SET_CHAN1_LIGHT2_ALPHA;
+    _DEF_SET_CHAN1_LIGHT3_ATTEN;
+    _DEF_SET_CHAN1_LIGHT3_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT3;
+    _DEF_SET_CHAN1_LIGHT3_ALPHA;
+    _DEF_SET_CHAN1_LIGHT4_ATTEN;
+    _DEF_SET_CHAN1_LIGHT4_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT4;
+    _DEF_SET_CHAN1_LIGHT4_ALPHA;
+    _DEF_SET_CHAN1_LIGHT5_ATTEN;
+    _DEF_SET_CHAN1_LIGHT5_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT5;
+    _DEF_SET_CHAN1_LIGHT5_ALPHA;
+    _DEF_SET_CHAN1_LIGHT6_ATTEN;
+    _DEF_SET_CHAN1_LIGHT6_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT6;
+    _DEF_SET_CHAN1_LIGHT6_ALPHA;
+    _DEF_SET_CHAN1_LIGHT7_ATTEN;
+    _DEF_SET_CHAN1_LIGHT7_ATTEN_ALPHA;
+    _DEF_SET_CHAN1_LIGHT7;
+    _DEF_SET_CHAN1_LIGHT7_ALPHA;
     
     
-#if _VSDEF_NUM_COLOR_CHANNELS == 0
+#if _DEF_NUM_COLOR_CHANNELS == 0
     vtx_color[0] = col[0];
-#endif // _VSDEF_NUM_COLOR_CHANNELS == 0
+#endif // _DEF_NUM_COLOR_CHANNELS == 0
 
-#ifdef _VSDEF_LIGHTING_ENABLE_0
+#ifdef _DEF_LIGHTING_ENABLE_0
     vtx_color[0] = mat[0] * clamp(l_amb[0], 0.0f, 1.0f);
 #else
     vtx_color[0] = mat[0];
-#endif // _VSDEF_LIGHTING_ENABLE_0
+#endif // _DEF_LIGHTING_ENABLE_0
 
-#ifdef _VSDEF_LIGHTING_ENABLE_1
+#ifdef _DEF_LIGHTING_ENABLE_1
     vtx_color[1] = mat[1] * clamp(l_amb[1], 0.0f, 1.0f);
 #else
     vtx_color[1] = mat[1];
-#endif // _VSDEF_LIGHTING_ENABLE_1
+#endif // _DEF_LIGHTING_ENABLE_1
 
-#if _VSDEF_NUM_COLOR_CHANNELS < 2
-#ifdef _VSDEF_COLOR1_ENABLE
+#if _DEF_NUM_COLOR_CHANNELS < 2
+#ifdef _DEF_COLOR1_ENABLE
     vtx_color[1] = col[0]
 #else
     vtx_color[1] = vtx_color[0];
-#endif // _VSDEF_COLOR1_ENABLE
-#endif // _VSDEF_NUM_COLOR_CHANNELS < 2
+#endif // _DEF_COLOR1_ENABLE
+#endif // _DEF_NUM_COLOR_CHANNELS < 2
 
     gl_Position = state.projection_matrix * pos;
 }
