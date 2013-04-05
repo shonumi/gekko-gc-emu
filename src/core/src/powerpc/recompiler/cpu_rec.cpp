@@ -796,10 +796,7 @@ GekkoF GekkoCPURecompiler::CompileInstruction(void)
 	BlockPtr = (CompiledBlock *)CompiledTable[(LastOp >> 2) & 0x007FFFFF];
 
 	//lock the area we just compiled from being modified
-    // TODO(ShizZy): Something funky is going here... The commented out line is the right one, but 
-    // it now causes crashes. See Issue #1
-    //VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READ, &OldFlags);
-	VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READWRITE, &OldFlags);
+    VirtualProtect((void *)((u32)(&Mem_RAM[LastOp & RAM_MASK]) & ~(PageSize-1)), PageSize, PAGE_EXECUTE_READ, &OldFlags);
 
 	BlockPtr->CodeBlock();
 }
