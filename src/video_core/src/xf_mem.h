@@ -112,27 +112,27 @@ namespace gp {
 //		Specifies location of incoming textures in vertex (row specific) 
 //		(i.e.: geometry is row0, normal is row1, etc . . . ) for regular tfms 
 enum XFTexSourceRow {
-    XF_GEOM_INROW           = 0x0,	///< vertex positions used as tfm src
-    XF_NORMAL_INROW	        = 0x1,	///< vertex normals used as tfm src
-    XF_COLORS_INROW         = 0x2,	///< vertex colors used as tfm src
-    XF_BINORMAL_T_INROW     = 0x3,
-    XF_BINORMAL_B_INROW     = 0x4,
-    XF_TEX0_INROW           = 0x5,
-    XF_TEX1_INROW           = 0x6,
-    XF_TEX2_INROW           = 0x7,
-    XF_TEX3_INROW           = 0x8,
-    XF_TEX4_INROW           = 0x9,
-    XF_TEX5_INROW           = 0xa,
-    XF_TEX6_INROW           = 0xb,
-    XF_TEX7_INROW           = 0xc
+    kXFTexSourceRow_Geom        = 0x0,	///< vertex positions used as tfm src
+    kXFTexSourceRow_Normal	    = 0x1,	///< vertex normals used as tfm src
+    kXFTexSourceRow_Colors      = 0x2,	///< vertex colors used as tfm src
+    kXFTexSourceRow_BiNormalT   = 0x3,
+    kXFTexSourceRow_BiNormalB   = 0x4,
+    kXFTexSourceRow_Tex0        = 0x5,
+    kXFTexSourceRow_Tex1        = 0x6,
+    kXFTexSourceRow_Tex2        = 0x7,
+    kXFTexSourceRow_Tex3        = 0x8,
+    kXFTexSourceRow_Tex4        = 0x9,
+    kXFTexSourceRow_Tex5        = 0xa,
+    kXFTexSourceRow_Tex6        = 0xb,
+    kXFTexSourceRow_Tex7        = 0xc
 };
 
 /// Texture texgen type
 enum XFTexGenType {
-    XF_REGULAR              = 0x0,  ///< Regular transformation (transform incoming data)
-    XF_EMBOSS_MAP           = 0x1,  ///< TexGen bump mapping
-    XF_COLOR_STRGBC0        = 0x2,  ///< Color texgen: (s,t)=(r,g:b) (g/b are concatenated), col0
-    XF_COLOR_STRGBC1        = 0x3   ///< Color texgen: (s,t)=(r,g:b) (g and b are concatenated), color 1
+    kXFTexGenType_Regular       = 0x0,  ///< Regular transformation (transform incoming data)
+    kXFTexGenType_EmbossMap     = 0x1,  ///< TexGen bump mapping
+    kXFTexGenType_ColorSTRGBC0  = 0x2,  ///< Color texgen: (s,t)=(r,g:b) (g/b are concatenated), col0
+    kXFTexGenType_ColorSTRGBC1  = 0x3   ///< Color texgen: (s,t)=(r,g:b) (g and b are concatenated), color 1
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ union XFTexGenInfo {
         u32 unknown             : 1;
         u32 projection          : 1; ///< XF_TEXPROJ_X
         u32 input_form          : 2; ///< XF_TEXINPUT_X
-        u32 texgen_type         : 3; ///< XF_TEXGEN_X
+        u32 type                : 3; ///< XF_TEXGEN_X
         u32 source_row          : 5; ///< XF_SRCGEOM_X
         u32 emboss_source_shift : 3; ///< What generated texcoord to use
         u32 emboss_light_shift  : 3; ///< Light index that is used
