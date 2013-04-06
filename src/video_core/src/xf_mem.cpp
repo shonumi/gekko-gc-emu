@@ -95,9 +95,6 @@ void XF_UpdateProjection() {
 }
 
 void XF_RegisterUpdate(u32 length, u32 base_addr) {
-    bool viewport_updated = false;
-    bool projection_updated = false;
-
     for (u32 addr = base_addr; addr < base_addr + length; addr++) {
         switch (addr) {
 
@@ -128,7 +125,6 @@ void XF_RegisterUpdate(u32 length, u32 base_addr) {
         case XF_SETVIEWPORT + 3:
         case XF_SETVIEWPORT + 4:
         case XF_SETVIEWPORT + 5:
-            if (viewport_updated) continue;
             XF_UpdateViewport();
             break;
 
@@ -141,8 +137,25 @@ void XF_RegisterUpdate(u32 length, u32 base_addr) {
         case XF_SETPROJECTIONF:
         case XF_SETPROJECTION_ORTHO1:
         case XF_SETPROJECTION_ORTHO2:
-            if (projection_updated) continue;
             XF_UpdateProjection();
+            break;
+
+        case XF_SETNUMTEXGENS:
+            video_core::g_shader_manager->UpdateNumTexGens(g_xf_regs.num_texgens.num);
+            break;
+
+        case XF_SETTEXGENINFO:
+        case XF_SETTEXGENINFO + 1:
+        case XF_SETTEXGENINFO + 2:
+        case XF_SETTEXGENINFO + 3:
+        case XF_SETTEXGENINFO + 4:
+        case XF_SETTEXGENINFO + 5:
+        case XF_SETTEXGENINFO + 6:
+        case XF_SETTEXGENINFO + 7:
+            {
+                int index = addr - XF_SETTEXGENINFO;
+                video_core::g_shader_manager->UpdateTexGenInfo(index, g_xf_regs.texgen_info[index]);
+            }
             break;
         }
     }

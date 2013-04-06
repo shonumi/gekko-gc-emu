@@ -36,7 +36,8 @@ static const int kGCMaxTextureHeight    = 1024;
 static const int kGCMaxTextureMaps      = 8;    ///< Number of textures maps supported
 static const int kGCMaxActiveTextures   = 8;    ///< Number of textures supported
 static const int kGCMaxTevStages        = 16;   ///< Number of TEV stages supported
-static const int kGCMaxVertexColors     = 2;    ///< Number of vertex color channels supported
+static const int kGCMaxTexGens          = 8;    ///< Number of TexGens supported
+static const int kGCMaxColorChannels    = 2;    ///< Number of color channels supported
 static const int kGCMaxLights           = 8;    ///< Number of lights
 
 static const int kGCMatrixMemSize       = 0x40; ///< Size of XF matrix memory (in vec4s)

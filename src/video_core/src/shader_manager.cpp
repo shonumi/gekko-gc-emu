@@ -68,6 +68,10 @@ void ShaderManager::UpdateNumColorChans(u32 num_color_chans) {
     state_.fields.num_color_chans = num_color_chans;
 }
 
+void ShaderManager::UpdateNumTexGens(u32 num_texgens) {
+    state_.fields.num_texgens = num_texgens;
+}
+
 void ShaderManager::UpdateAlphaFunc(const gp::BPAlphaFunc& alpha_func) {
     state_.fields.alpha_func._u32 = alpha_func._u32 & 0xFF0000;
 }
@@ -91,6 +95,10 @@ void ShaderManager::UpdateAlphaChannel(int index, const gp::XFLitChannel& lit_ch
 
 void ShaderManager::UpdateColorChannel(int index, const gp::XFLitChannel& lit_channel) {
     state_.fields.color_channel[index] = lit_channel;
+}
+
+void ShaderManager::UpdateTexGenInfo(int index, const gp::XFTexGenInfo& texgen_info) {
+    state_.fields.texgen_info[index]._u32 = texgen_info._u32;
 }
 
 void ShaderManager::GenerateVertexHeader() {
@@ -117,6 +125,10 @@ void ShaderManager::GenerateVertexHeader() {
     vsh_->Define("NUM_COLOR_CHANNELS %d", state_.fields.num_color_chans);
 
     this->GenerateVertexLightingHeader();
+
+    for (int texgen_num = 0; texgen_num < state_.fields.num_texgens; texgen_num++) {
+        gp::XFTexGenInfo texgen_info = state_.fields.texgen_info[texgen_num];
+    }
 }
 
 /// Generates the header code for a single light

@@ -158,12 +158,14 @@ public:
     void UpdateVertexState(gp::VertexState& vertex_state);
     void UpdateGenMode(const gp::BPGenMode& gen_mode);
     void UpdateNumColorChans(u32 num_color_chans);
+    void UpdateNumTexGens(u32 num_color_chans);
     void UpdateAlphaFunc(const gp::BPAlphaFunc& alpha_func);
     void UpdateEFBFormat(gp::BPPixelFormat efb_format);
     void UpdateTevCombiner(int index, const gp::BPTevCombiner& tev_combiner);
     void UpdateTevOrder(int index, const gp::BPTevOrder& tev_order);
     void UpdateAlphaChannel(int index, const gp::XFLitChannel& lit_channel);
     void UpdateColorChannel(int index, const gp::XFLitChannel& lit_channel);
+    void UpdateTexGenInfo(int index, const gp::XFTexGenInfo& texgen_info);
 
 private:
     CacheEntry*         active_shader_;         ///< Pointer to active shader in shader cache
@@ -176,13 +178,15 @@ private:
             u32                 flags;
             u32                 num_stages;
             u32                 num_color_chans;
+            u32                 num_texgens;
             gp::BPAlphaFunc     alpha_func;
             gp::BPTevCombiner   tev_combiner[kGCMaxTevStages];
             gp::BPTevOrder      tev_order[0x8];
             gp::BPPixelFormat   efb_format;
             gp::VertexState     vertex_state;
-            gp::XFLitChannel    color_channel[2];
-            gp::XFLitChannel    alpha_channel[2];
+            gp::XFLitChannel    color_channel[kGCMaxColorChannels];
+            gp::XFLitChannel    alpha_channel[kGCMaxColorChannels];
+            gp::XFTexGenInfo    texgen_info[kGCMaxTexGens];
         } fields;
         u8  mem[sizeof(_Fields)/4];
     } state_;

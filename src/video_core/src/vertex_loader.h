@@ -42,7 +42,7 @@ struct VertexComponent {
 /// Vertex state
 struct VertexState {
     VertexComponent pos;
-    VertexComponent col[kGCMaxVertexColors];
+    VertexComponent col[kGCMaxColorChannels];
     VertexComponent nrm;
     VertexComponent tex[kGCMaxActiveTextures];
 };

@@ -190,7 +190,7 @@ void RendererGL3::EndPrimitive(u32 vbo_offset, u32 vertex_num) {
     glVertexAttribPointer(3, 4, gl_types[vertex_state_.nrm.comp_type], GL_FALSE, sizeof(GXVertex), 
         reinterpret_cast<void*>(20));
     // TexCoords
-    for (int i = 0; i < gp::g_xf_regs.num_texgen.num_texgens; i++) {
+    for (int i = 0; i < gp::g_xf_regs.num_texgens.num; i++) {
         glEnableVertexAttribArray(i + 4);
         glVertexAttribPointer(i + 4, 4, gl_types[vertex_state_.tex[i].comp_type], GL_FALSE, 
             sizeof(GXVertex), reinterpret_cast<void*>(56 + (i * 8)));
