@@ -126,8 +126,29 @@ void ShaderManager::GenerateVertexHeader() {
 
     this->GenerateVertexLightingHeader();
 
+    vsh_->Define("NUM_TEXGENS %d", state_.fields.num_texgens);
+
     for (int texgen_num = 0; texgen_num < state_.fields.num_texgens; texgen_num++) {
         gp::XFTexGenInfo texgen_info = state_.fields.texgen_info[texgen_num];
+
+        switch (texgen_info.source_row) {
+        case gp::kXFTexSourceRow_Normal:
+            vsh_->Define("TEXGEN_COORD%d vec4(nrm.xyz, 1.0f)", texgen_num);
+            break;
+        default:
+            vsh_->Define("TEXGEN_COORD%d vec4(texcoord%d.st * state.cp_tex_dqf[%d][%d], 1.0f, "
+                "1.0f)", texgen_num, texgen_num, (texgen_num >> 2) & 1, texgen_num & 3);
+            //_ASSERT_MSG(TGP, 0, "Unimplemented XFTexGenInfo source row %d", texgen_info.source_row);
+            break;
+        }
+        switch (texgen_info.type) {
+        case gp::kXFTexGenType_Regular:
+            // TODO(ShizZy): Handle the other things that should happen here......
+            break;
+        default:
+            //_ASSERT_MSG(TGP, 0, "Unimplemented XFTexGenInfo type %d", texgen_info.type);
+            break;
+        }
     }
 }
 

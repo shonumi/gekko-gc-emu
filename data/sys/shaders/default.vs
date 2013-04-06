@@ -275,7 +275,10 @@ out vec2 vtx_texcoord[8];
     xf_normal_mem[addr].y, xf_normal_mem[addr + 1].y, xf_normal_mem[addr + 2].y, 0.0, \
     xf_normal_mem[addr].z, xf_normal_mem[addr + 1].z, xf_normal_mem[addr + 2].z, 0.0, \
     xf_normal_mem[addr].w, xf_normal_mem[addr + 1].w, xf_normal_mem[addr + 2].w, 1.0)
-
+    
+#define TEXGEN_RESULT(s, midx) \
+    vtx_texcoord[s] = vec4(XF_MTX44(midx) * _DEF_TEXGEN_COORD##s).st; 
+        
 void main() {
     vec4    pos;
     vec4    nrm;
@@ -298,65 +301,11 @@ void main() {
     
     pos = XF_MTX44(pos_nrm_index) * vec4(position.xyz * pos_dqf, 1.0);
     pos_nrm_index &= 0x1F; // Normal matrix is only 32 entries
-    nrm = normalize(XF_NORMAL_MTX44(pos_nrm_index) * normal);   
+    nrm = normalize(XF_NORMAL_MTX44(pos_nrm_index) * normal);
     
-#ifdef _DEF_TEX_0_MIDX // Texture coord 0
-    vtx_texcoord[0] = vec4(XF_MTX44(int(matrix_idx_tex03[0])) * 
-        vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[0] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][0]) * 
-        vec4(texcoord0.st * state.cp_tex_dqf[0][0], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_1_MIDX // Texture coord 1
-    vtx_texcoord[1] = vec4(XF_MTX44(int(matrix_idx_tex03[1])) * 
-        vec4(texcoord1.st * state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[1] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][1]) * 
-        vec4(texcoord1.st * state.cp_tex_dqf[0][1], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_2_MIDX // Texture coord 2
-    vtx_texcoord[2] = vec4(XF_MTX44(int(matrix_idx_tex03[2])) * 
-        vec4(texcoord2.st * state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[2] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][2]) * 
-        vec4(texcoord2.st * state.cp_tex_dqf[0][2], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_3_MIDX // Texture coord 3
-    vtx_texcoord[3] = vec4(XF_MTX44(int(matrix_idx_tex03[3])) * 
-        vec4(texcoord3.st * state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[3] = vec4(XF_MTX44(state.cp_tex_matrix_offset[0][3]) * 
-        vec4(texcoord3.st * state.cp_tex_dqf[0][3], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_4_MIDX // Texture coord 4
-    vtx_texcoord[4] = vec4(XF_MTX44(int(matrix_idx_tex47[0])) * 
-        vec4(texcoord4.st * state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[4] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][0]) * 
-        vec4(texcoord4.st * state.cp_tex_dqf[1][0], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_5_MIDX // Texture coord 5
-    vtx_texcoord[5] = vec4(XF_MTX44(int(matrix_idx_tex47[1])) * 
-        vec4(texcoord5.st * state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[5] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][1]) * 
-        vec4(texcoord5.st * state.cp_tex_dqf[1][1], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_6_MIDX // Texture coord 6
-    vtx_texcoord[6] = vec4(XF_MTX44(int(matrix_idx_tex47[2])) * 
-        vec4(texcoord6.st * state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[6] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][2]) * 
-        vec4(texcoord6.st * state.cp_tex_dqf[1][2], 0.0f, 1.0f)).st;
-#endif
-#ifdef _DEF_TEX_7_MIDX // Texture coord 7
-    vtx_texcoord[7] = vec4(XF_MTX44(int(matrix_idx_tex47[3])) * 
-        vec4(texcoord7.st * state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
-#else
-    vtx_texcoord[7] = vec4(XF_MTX44(state.cp_tex_matrix_offset[1][3]) * 
-        vec4(texcoord7.st * state.cp_tex_dqf[1][3], 0.0f, 1.0f)).st;
-#endif
-    
+    // Vertex color decoding
+    // ---------------------
+
     // Vertex color 0
 #ifdef _DEF_COLOR0_ENABLE
 #ifdef _DEF_COLOR0_RGB565
@@ -416,6 +365,9 @@ void main() {
 #else
     col[1] = vec4(1.0, 1.0, 1.0, 1.0);
 #endif // _DEF_COLOR0_ENABLE
+
+    // Lighting channels
+    // -----------------
 
     mat[0]      = _DEF_COLOR0_MATERIAL_SRC;
     mat[1]      = _DEF_COLOR1_MATERIAL_SRC;
@@ -488,6 +440,8 @@ void main() {
     _DEF_SET_CHAN1_LIGHT7;
     _DEF_SET_CHAN1_LIGHT7_ALPHA;
     
+    // Vertex material color
+    // ---------------------
     
 #if _DEF_NUM_COLOR_CHANNELS == 0
     vtx_color[0] = col[0];
@@ -512,6 +466,73 @@ void main() {
     vtx_color[1] = vtx_color[0];
 #endif // _DEF_COLOR1_ENABLE
 #endif // _DEF_NUM_COLOR_CHANNELS < 2
+
+    // TexGen
+    // ------
+
+#if _DEF_NUM_TEXGENS > 0
+#ifdef _DEF_TEX_0_MIDX
+    TEXGEN_RESULT(0, int(matrix_idx_tex03[0]));
+#else
+    TEXGEN_RESULT(0, state.cp_tex_matrix_offset[0][0]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 1
+#ifdef _DEF_TEX_1_MIDX
+    TEXGEN_RESULT(1, int(matrix_idx_tex03[1]));
+#else
+    TEXGEN_RESULT(1, state.cp_tex_matrix_offset[0][1]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 2
+#ifdef _DEF_TEX_2_MIDX
+    TEXGEN_RESULT(2, int(matrix_idx_tex03[2]));
+#else
+    TEXGEN_RESULT(2, state.cp_tex_matrix_offset[0][2]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 3
+#ifdef _DEF_TEX_3_MIDX
+    TEXGEN_RESULT(3, int(matrix_idx_tex03[3]));
+#else
+    TEXGEN_RESULT(3, state.cp_tex_matrix_offset[0][3]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 4
+#ifdef _DEF_TEX_4_MIDX
+    TEXGEN_RESULT(4, int(matrix_idx_tex47[0]));
+#else
+    TEXGEN_RESULT(4, state.cp_tex_matrix_offset[1][0]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 5
+#ifdef _DEF_TEX_5_MIDX
+    TEXGEN_RESULT(5, int(matrix_idx_tex47[1]));
+#else
+    TEXGEN_RESULT(5, state.cp_tex_matrix_offset[1][1]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 6
+#ifdef _DEF_TEX_6_MIDX
+    TEXGEN_RESULT(6, int(matrix_idx_tex47[2]));
+#else
+    TEXGEN_RESULT(6, state.cp_tex_matrix_offset[1][2]);
+#endif
+#endif
+
+#if _DEF_NUM_TEXGENS > 7
+#ifdef _DEF_TEX_7_MIDX
+    TEXGEN_RESULT(7, int(matrix_idx_tex47[3]));
+#else
+    TEXGEN_RESULT(7, state.cp_tex_matrix_offset[1][3]);
+#endif
+#endif
 
     gl_Position = state.projection_matrix * pos;
 }
