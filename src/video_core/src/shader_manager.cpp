@@ -132,13 +132,32 @@ void ShaderManager::GenerateVertexHeader() {
         gp::XFTexGenInfo texgen_info = state_.fields.texgen_info[texgen_num];
 
         switch (texgen_info.source_row) {
+        case gp::kXFTexSourceRow_Geom:
+            vsh_->Define("TEXGEN_COORD%d vec4(pos.xyz, 1.0f)", texgen_num);
+            break;
+
         case gp::kXFTexSourceRow_Normal:
             vsh_->Define("TEXGEN_COORD%d vec4(nrm.xyz, 1.0f)", texgen_num);
             break;
-        default:
+
+        case gp::kXFTexSourceRow_Colors:
+            //vsh_->Define("TEXGEN_COORD%d vtx_color[0]", texgen_num);
+            break;
+
+        case gp::kXFTexSourceRow_Tex0:
+        case gp::kXFTexSourceRow_Tex1:
+        case gp::kXFTexSourceRow_Tex2:
+        case gp::kXFTexSourceRow_Tex3:
+        case gp::kXFTexSourceRow_Tex4:
+        case gp::kXFTexSourceRow_Tex5:
+        case gp::kXFTexSourceRow_Tex6:
+        case gp::kXFTexSourceRow_Tex7:
             vsh_->Define("TEXGEN_COORD%d vec4(texcoord%d.st * state.cp_tex_dqf[%d][%d], 1.0f, "
                 "1.0f)", texgen_num, texgen_num, (texgen_num >> 2) & 1, texgen_num & 3);
-            //_ASSERT_MSG(TGP, 0, "Unimplemented XFTexGenInfo source row %d", texgen_info.source_row);
+            break;
+
+        default:
+            _ASSERT_MSG(TGP, 0, "Unimplemented XFTexGenInfo source row %d", texgen_info.source_row);
             break;
         }
         switch (texgen_info.type) {
