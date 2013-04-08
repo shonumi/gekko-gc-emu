@@ -229,8 +229,8 @@ layout(location = 10) in vec4 texcoord6;
 layout(location = 11) in vec4 texcoord7;
 
 layout(location = 12) in vec4 matrix_idx_pos;
-layout(location = 13) in vec4 matrix_idx_tex03;
-layout(location = 14) in vec4 matrix_idx_tex47;
+layout(location = 13) in vec4 matrix_idx_tex0;
+layout(location = 14) in vec4 matrix_idx_tex1;
 
 struct Light {
     vec4 col; 
@@ -276,8 +276,8 @@ out vec2 vtx_texcoord[8];
     xf_normal_mem[addr].z, xf_normal_mem[addr + 1].z, xf_normal_mem[addr + 2].z, 0.0, \
     xf_normal_mem[addr].w, xf_normal_mem[addr + 1].w, xf_normal_mem[addr + 2].w, 1.0)
     
-#define TEXGEN_RESULT(s, midx) \
-    vtx_texcoord[s] = vec4(XF_MTX44(midx) * _DEF_TEXGEN_COORD##s).st; 
+#define TEXGEN_RESULT(s) \
+    vtx_texcoord[s] = vec4(_DEF_TEXGEN_TF##s * _DEF_TEXGEN_COORD##s).st;
         
 void main() {
     vec4    pos;
@@ -471,68 +471,28 @@ void main() {
     // ------
 
 #if _DEF_NUM_TEXGENS > 0
-#ifdef _DEF_TEX_0_MIDX
-    TEXGEN_RESULT(0, int(matrix_idx_tex03[0]));
-#else
-    TEXGEN_RESULT(0, state.cp_tex_matrix_offset[0][0]);
+    TEXGEN_RESULT(0);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 1
-#ifdef _DEF_TEX_1_MIDX
-    TEXGEN_RESULT(1, int(matrix_idx_tex03[1]));
-#else
-    TEXGEN_RESULT(1, state.cp_tex_matrix_offset[0][1]);
+    TEXGEN_RESULT(1);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 2
-#ifdef _DEF_TEX_2_MIDX
-    TEXGEN_RESULT(2, int(matrix_idx_tex03[2]));
-#else
-    TEXGEN_RESULT(2, state.cp_tex_matrix_offset[0][2]);
+    TEXGEN_RESULT(2);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 3
-#ifdef _DEF_TEX_3_MIDX
-    TEXGEN_RESULT(3, int(matrix_idx_tex03[3]));
-#else
-    TEXGEN_RESULT(3, state.cp_tex_matrix_offset[0][3]);
+    TEXGEN_RESULT(3);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 4
-#ifdef _DEF_TEX_4_MIDX
-    TEXGEN_RESULT(4, int(matrix_idx_tex47[0]));
-#else
-    TEXGEN_RESULT(4, state.cp_tex_matrix_offset[1][0]);
+    TEXGEN_RESULT(4);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 5
-#ifdef _DEF_TEX_5_MIDX
-    TEXGEN_RESULT(5, int(matrix_idx_tex47[1]));
-#else
-    TEXGEN_RESULT(5, state.cp_tex_matrix_offset[1][1]);
+    TEXGEN_RESULT(5);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 6
-#ifdef _DEF_TEX_6_MIDX
-    TEXGEN_RESULT(6, int(matrix_idx_tex47[2]));
-#else
-    TEXGEN_RESULT(6, state.cp_tex_matrix_offset[1][2]);
+    TEXGEN_RESULT(6);
 #endif
-#endif
-
 #if _DEF_NUM_TEXGENS > 7
-#ifdef _DEF_TEX_7_MIDX
-    TEXGEN_RESULT(7, int(matrix_idx_tex47[3]));
-#else
-    TEXGEN_RESULT(7, state.cp_tex_matrix_offset[1][3]);
+    TEXGEN_RESULT(7);
 #endif
-#endif
-
     gl_Position = state.projection_matrix * pos;
 }

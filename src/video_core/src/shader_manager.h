@@ -172,10 +172,27 @@ private:
     CacheContainer*     cache_;                 ///< Shader cache
     BackendInterface*   backend_interface_;     ///< Backend renderer interface
 
+    /// Helper struct for decoding shader flags
+    struct Flags {
+        union {
+            struct {
+                unsigned matrix_indexed_pos      : 1;
+                unsigned matrix_indexed_texcoord : 8;
+                unsigned destination_alpha       : 1;
+                unsigned vertex_pos_dqf          : 1;
+                unsigned rid                     : 21;
+            };
+            u32 _u32;
+        };
+        inline bool is_texcoord_matrix_indexed(int n) { 
+            return (matrix_indexed_texcoord & (1 << n));
+        }
+    };
+
     /// Structure to hold the current shader state
     union State {
         struct _Fields{
-            u32                 flags;
+            Flags               flags;
             u32                 num_stages;
             u32                 num_color_chans;
             u32                 num_texgens;

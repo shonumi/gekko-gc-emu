@@ -50,9 +50,9 @@ ShaderManager::~ShaderManager() {
 
 void ShaderManager::UpdateFlag(Flag flag, int enable) {
     if (enable) {
-        state_.fields.flags |= flag;
+        state_.fields.flags._u32 |= flag;
     } else {
-        state_.fields.flags &= ~flag;
+        state_.fields.flags._u32 &= ~flag;
     }
 }
 
@@ -106,16 +106,16 @@ void ShaderManager::GenerateVertexHeader() {
 
     vsh_->Reset();
 
-    if (state_.fields.flags & kFlag_VertexPostition_DQF) vsh_->Define("POS_DQF");
-    if (state_.fields.flags & kFlag_MatrixIndexed_Position) vsh_->Define("POS_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_0) vsh_->Define("TEX_0_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_1) vsh_->Define("TEX_1_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_2) vsh_->Define("TEX_2_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_3) vsh_->Define("TEX_3_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_4) vsh_->Define("TEX_4_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_5) vsh_->Define("TEX_5_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_6) vsh_->Define("TEX_6_MIDX");
-    if (state_.fields.flags & kFlag_MatrixIndexed_TexCoord_7) vsh_->Define("TEX_7_MIDX");
+    if (state_.fields.flags._u32 & kFlag_VertexPostition_DQF) vsh_->Define("POS_DQF");
+    if (state_.fields.flags._u32 & kFlag_MatrixIndexed_Position) vsh_->Define("POS_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_0) vsh_->Define("TEX_0_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_1) vsh_->Define("TEX_1_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_2) vsh_->Define("TEX_2_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_3) vsh_->Define("TEX_3_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_4) vsh_->Define("TEX_4_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_5) vsh_->Define("TEX_5_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_6) vsh_->Define("TEX_6_MIDX");
+    //if (state_.fields.flags._u32 & kFlag_MatrixIndexed_TexCoord_7) vsh_->Define("TEX_7_MIDX");
 
     if (state_.fields.vertex_state.col[0].attr_type) vsh_->Define("COLOR0_ENABLE");
     if (state_.fields.vertex_state.col[1].attr_type) vsh_->Define("COLOR1_ENABLE");
@@ -128,20 +128,32 @@ void ShaderManager::GenerateVertexHeader() {
 
     vsh_->Define("NUM_TEXGENS %d", state_.fields.num_texgens);
 
-    for (int texgen_num = 0; texgen_num < state_.fields.num_texgens; texgen_num++) {
-        gp::XFTexGenInfo texgen_info = state_.fields.texgen_info[texgen_num];
+    for (int n = 0; n < state_.fields.num_texgens; n++) {
+        gp::XFTexGenInfo texgen_info = state_.fields.texgen_info[n];
+
+        std::string texgen_tf = "";
+
+        int set = ((n >> 2) & 1);
+        int set_index = (n & 3);
+
+        if (state_.fields.flags.is_texcoord_matrix_indexed(n)) {
+            texgen_tf = common::FormatStr("XF_MTX44(int(matrix_idx_tex%d[%d]))", set, set_index);
+        } else {
+            texgen_tf = common::FormatStr("XF_MTX44(state.cp_tex_matrix_offset[%d][%d])", set, set_index);
+        }
+        
 
         switch (texgen_info.source_row) {
         case gp::kXFTexSourceRow_Geom:
-            vsh_->Define("TEXGEN_COORD%d vec4(pos.xyz, 1.0f)", texgen_num);
+            vsh_->Define("TEXGEN_COORD%d vec4(pos.xyz, 1.0f)", n);
             break;
 
         case gp::kXFTexSourceRow_Normal:
-            vsh_->Define("TEXGEN_COORD%d vec4(nrm.xyz, 1.0f)", texgen_num);
+            vsh_->Define("TEXGEN_COORD%d vec4(nrm.xyz, 1.0f)", n);
             break;
 
         case gp::kXFTexSourceRow_Colors:
-            //vsh_->Define("TEXGEN_COORD%d vtx_color[0]", texgen_num);
+            texgen_tf = "1.0f"; // ...disables transformation
             break;
 
         case gp::kXFTexSourceRow_Tex0:
@@ -153,18 +165,32 @@ void ShaderManager::GenerateVertexHeader() {
         case gp::kXFTexSourceRow_Tex6:
         case gp::kXFTexSourceRow_Tex7:
             vsh_->Define("TEXGEN_COORD%d vec4(texcoord%d.st * state.cp_tex_dqf[%d][%d], 1.0f, "
-                "1.0f)", texgen_num, texgen_num, (texgen_num >> 2) & 1, texgen_num & 3);
+                "1.0f)", n, n, set, set_index);
             break;
 
         default:
             _ASSERT_MSG(TGP, 0, "Unimplemented XFTexGenInfo source row %d", texgen_info.source_row);
             break;
         }
+
+
+        vsh_->Define("TEXGEN_TF%d %s", n, texgen_tf.c_str());
+
         switch (texgen_info.type) {
-        case gp::kXFTexGenType_Regular:
-            // TODO(ShizZy): Handle the other things that should happen here......
+
+        case gp::kXFTexGenType_ColorSTRGBC0:
+            vsh_->Define("TEXGEN_COORD%d vec4(vtx_color[0].rg, 1.0f, 1.0f)", n);
             break;
+
+        case gp::kXFTexGenType_ColorSTRGBC1:
+            vsh_->Define("TEXGEN_COORD%d vec4(vtx_color[1].rg, 1.0f, 1.0f)", n);
+            break;
+
+        //case gp::kXFTexGenType_Regular:
+            // TODO(ShizZy): Handle the other things that should happen here......
+        //    break;
         default:
+            //vsh_->Define("");
             //_ASSERT_MSG(TGP, 0, "Unimplemented XFTexGenInfo type %d", texgen_info.type);
             break;
         }
@@ -447,7 +473,7 @@ void ShaderManager::GenerateFragmentHeader() {
             tev_ras[state_.fields.tev_order[reg_index].get_colorchan(stage)]);
     }
     // Do destination alpha?
-    if (state_.fields.flags & kFlag_DestinationAlpha) {
+    if (state_.fields.flags.destination_alpha) {
         fsh_->Define("SET_DESTINATION_ALPHA");
     }
     // Adjust color for current EFB format
