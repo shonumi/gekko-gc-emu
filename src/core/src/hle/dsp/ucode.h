@@ -79,6 +79,7 @@ public:
 
     bool resume_mail;
     bool upload_in_progress;
+    bool update_interrupt;
     u32 crc;
 
 protected:

@@ -58,6 +58,7 @@ UCode* GenerateUCode(u32 crc, MailManager* mail_mngr) {
 UCode::UCode() {
     resume_mail = false;
     upload_in_progress = true;
+    update_interrupt = false;
     ucode_steps = 0;
     crc = 0;
 }

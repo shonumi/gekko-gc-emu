@@ -134,3 +134,12 @@ void DSPHLE::SetUCode(u32 crc) {
 void DSPHLE::UpdateUCode() {
     game_ucode->Update();
 }
+
+/**
+ * @brief Sets the update status of current UCode
+ * @param current_status Boolean values of update status
+ * True: Update has occured, False: Update still pending
+ */
+void DSPHLE::SetUpdateStatus(bool current_status) {
+    game_ucode->update_interrupt = current_status;
+}

@@ -239,6 +239,7 @@ void EMU_FASTCALL DSP_Write16(u32 addr, u32 data)
 		{
 			REGDSP16(DSP_CSR)  &= ~DSP_CSR_AIDINT;
 			PI_ClearInterrupt(PI_MASK_DSP);
+                        dsp_emulator.SetUpdateStatus(false);
 		}
 
 		REGDSP16(DSP_CSR) &= ~DSP_CSR_DMAINT;		// hack
@@ -354,8 +355,6 @@ void EMU_FASTCALL DSP_Write32(u32 addr, u32 data)
 
 void DSP_Update(void)
 {
-	dsp_emulator.UpdateUCode();
-
 	// DSP DMA (interrupt)
 
 	if(!dspDMALenENBSet || (ireg.TBR.TBR < (u64)g_DSPDMATime))
@@ -371,6 +370,8 @@ void DSP_Update(void)
 			PI_RequestInterrupt(PI_MASK_DSP);
 		}
 	}
+
+	dsp_emulator.UpdateUCode();
 
 	if (!dspCSRDSPInt || !dspCSRDSPIntMask)
 		return;

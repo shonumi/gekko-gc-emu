@@ -90,6 +90,13 @@ public:
      */
     void UpdateUCode();
 
+    /**
+     * @brief Sets the update status of current UCode
+     * @param current_status Boolean values of update status
+     * True: Update has occured, False: Update still pending
+     */
+    void SetUpdateStatus(bool current_status);
+
     private:
 
     UCode* game_ucode; 

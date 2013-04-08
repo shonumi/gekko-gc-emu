@@ -103,10 +103,15 @@ void UCode_Zelda::ProcessMail(u32 message) {
  * Updates UCode
  */
 void UCode_Zelda::Update() { 
-    //Request PI Interrupt after sending DSP_FRAME_END
-    if(mail_man->ReadNextMail() == DSP_FRAME_END) { 
-        REGDSP16(DSP_CSR) |= DSP_CSR_DSPINT; 
-        dspCSRDSPInt = DSP_CSR_DSPINT; 
+    //Make sure that we only update *once* until next DsyncFrame
+    if(!update_interrupt) {
+
+        //Request PI Interrupt after sending DSP_FRAME_END
+        if(mail_man->ReadNextMail() == DSP_FRAME_END) { 
+            REGDSP16(DSP_CSR) |= DSP_CSR_DSPINT; 
+            dspCSRDSPInt = DSP_CSR_DSPINT; 
+            update_interrupt = true;
+        }
     }
 }
 
