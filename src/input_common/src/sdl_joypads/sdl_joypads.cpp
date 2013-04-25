@@ -33,7 +33,20 @@
 
 namespace input_common {
 
-/// Sets the controller status from the joypad using SDL
+/**
+ * Gets the name of the current joystick, for UI purposes
+ * @return String of the joystick's name
+ */
+std::string SDLJoypads::GetName() {
+    return name;
+}
+
+/**
+ * Sets the controller status from the joystick using SDL
+ * @param channel Channel of controller to set status of (0-3)
+ * @param pad Joypad input that was activated or released
+ * @param state GCController::GCButtonState we're setting
+ */
 void SDLJoypads::SetControllerStatus(int channel, int pad, GCController::GCButtonState state) {
     for (unsigned int i = 0; i < common::Config::NUM_CONTROLS; ++i) {
         if (pad == common::g_config->controller_ports(channel).pads.key_code[i]) {
@@ -42,7 +55,11 @@ void SDLJoypads::SetControllerStatus(int channel, int pad, GCController::GCButto
     }
 }
 
-/// Gets the controller status from the joypad using SDL
+/**
+ * Gets the controller status from the joystick using SDL
+ * @param channel Channel of controller to set status of (0-3)
+ * @param pad Joypad input that needs to be checked
+ */
 GCController::GCButtonState SDLJoypads::GetControllerStatus(int channel, int pad) {
     for (unsigned int i = 0; i < common::Config::NUM_CONTROLS; ++i) {
         if (pad == common::g_config->controller_ports(channel).pads.key_code[i]) {
@@ -54,7 +71,11 @@ GCController::GCButtonState SDLJoypads::GetControllerStatus(int channel, int pad
     return GCController::GC_CONTROLLER_NULL;   
 }
 
-/// Checks whether joystick is in dead zone or not
+/**
+ * Checks whether joystick is in dead zone or not
+ * @param value Integer from jaxis.value
+ * @return true if in dead zone, false otherwise
+ */
 bool SDLJoypads::DeadZone(int val) {
     if((val < -8000) || (val > 8000)) {
         return false;
@@ -163,7 +184,7 @@ void SDLJoypads::PollEvents() {
 }
 
 void SDLJoypads::ShutDown() {
-    SDL_JoystickClose(0);
+    SDL_JoystickClose(jpad);
 }
 
 // Initialize the joypad - Only init 1, for testing now
@@ -196,8 +217,9 @@ bool SDLJoypads::Init() {
         return false;
     } else {
         LOG_NOTICE(TJOYPAD, "Joypad detected");
-        LOG_NOTICE(TJOYPAD, SDL_JoystickName(0));
+        LOG_NOTICE(TJOYPAD, SDL_JoystickName(jpad));
         LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin initialized ok");
+	name = SDL_JoystickName(jpad);
         return true;
     }
 }

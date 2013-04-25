@@ -39,30 +39,38 @@ public:
     void PollEvents();
     void ShutDown();
 
+    /**
+     * Gets the name of the current joystick, for UI purposes
+     * @return String of the joystick's name
+     */
+    std::string GetName();
+
 private:
-    /*!
-     * \brief Sets the controller status from the joystick using SDL
-     * \param channel Channel of controller to set status of (0-3)
-     * \param pad Joypad input that was activated or released
-     * \param state GCController::GCButtonState we're setting
+    /**
+     * Sets the controller status from the joystick using SDL
+     * @param channel Channel of controller to set status of (0-3)
+     * @param pad Joypad input that was activated or released
+     * @param state GCController::GCButtonState we're setting
      */
     void SetControllerStatus(int channel, int pad, GCController::GCButtonState state);
 
-    /*!
-     * \brief Gets the controller status from the joystick using SDL
-     * \param channel Channel of controller to set status of (0-3)
-     * \param pad Joypad input that needs to be checked
+    /**
+     * Gets the controller status from the joystick using SDL
+     * @param channel Channel of controller to set status of (0-3)
+     * @param pad Joypad input that needs to be checked
      */
     GCController::GCButtonState GetControllerStatus(int channel, int pad);
 
-    /*!
-     * \brief Checks whether joystick is in dead zone or not
-     * \param value Integer from jaxis.value
-     * \return true if in dead zone, false otherwise
+    /**
+     * Checks whether joystick is in dead zone or not
+     * @param value Integer from jaxis.value
+     * @return true if in dead zone, false otherwise
      */
     static inline bool DeadZone(int val);
 
     SDL_Joystick *jpad;
+
+    std::string name;
 
     DISALLOW_COPY_AND_ASSIGN(SDLJoypads);
 };
