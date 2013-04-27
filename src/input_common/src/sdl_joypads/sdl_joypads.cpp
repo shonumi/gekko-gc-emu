@@ -119,10 +119,24 @@ void SDLJoypads::PollEvents() {
             }
 
             // Check for joy axis input on corresponding pads
-            if((GetControllerStatus(0, pad) == GCController::RELEASED) && (!DeadZone(val))) {
+            if(!DeadZone(val)) {
                 SetControllerStatus(0, pad, GCController::PRESSED);
-            } else if((GetControllerStatus(0, pad) == GCController::PRESSED) && (DeadZone(val))) {
+
+                //Release opposite axis, prevents input from getting stuck
+                if(pad % 2 == 0) {
+                    SetControllerStatus(0, pad+1, GCController::RELEASED);
+                } else {
+                    SetControllerStatus(0, pad-1, GCController::RELEASED);
+                }
+            } else if(DeadZone(val)) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
+
+                //Release opposite axis, prevents input from getting stuck
+                if(pad % 2 == 0) {
+                    SetControllerStatus(0, pad+1, GCController::RELEASED);
+                } else {
+                    SetControllerStatus(0, pad-1, GCController::RELEASED);
+                }
             }
             break;
         // Handle joystick hat motion events
