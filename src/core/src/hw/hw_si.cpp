@@ -137,6 +137,17 @@ void EMU_FASTCALL SI_Write32(u32 addr, u32 data)
     case SI_C0OUTBUF:						// Channel 0 Output Buffer						
         si.shadow[0] = data;
         REGSI32(SI_STATUS) |= SI_STAT_WRST0;		// Buffer Not Copied
+
+        //Check for rumble enable/disable command. 1 = Start, 0 = Stop, 2 = Hard Stop
+        //This may need to actually be in ProcessCommand? It works fine here.
+        //TODO: Investigate possibly moving this
+	if((data & COMMAND_MASK) && ((data & 0xFF) == 0x1)) { 
+            input_common::g_controller_state[0]->set_rumble_status(true);
+        } else if((data & COMMAND_MASK) && ((data & 0xFF) == 0x0)) { 
+            input_common::g_controller_state[0]->set_rumble_status(false); 
+        } else if((data & COMMAND_MASK) && ((data & 0xFF) == 0x2)) { 
+            input_common::g_controller_state[0]->set_rumble_status(false);
+        }
         return;
 
     case SI_C1OUTBUF:						// Channel 1 Output Buffer						

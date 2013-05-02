@@ -31,6 +31,10 @@
 #include "gc_controller.h"
 #include "sdl_joypads.h"
 
+//TODO: Set rumble strength
+//TODO: Choose rumble types (sine, triangle, ...)
+//TODO: Handle multiple joypads
+
 namespace input_common {
 
 /**
@@ -87,6 +91,15 @@ bool SDLJoypads::DeadZone(int val) {
 /// Poll for joypad input
 void SDLJoypads::PollEvents() {
     SDL_Event joyevent;
+
+    //Frequently check rumble status even if no joystick events
+    if((g_controller_state[0]->get_rumble_status()) && (haptic_support) && (!is_rumbling)) {
+        SDL_HapticRumblePlay(rumble, 0.5, -1);
+        is_rumbling = true;
+    } else if((!g_controller_state[0]->get_rumble_status()) && (haptic_support) && (is_rumbling)) {
+        SDL_HapticRumbleStop(rumble);
+        is_rumbling = false;
+    }
 
     while (SDL_PollEvent(&joyevent)) {
 
@@ -199,6 +212,7 @@ void SDLJoypads::PollEvents() {
 
 void SDLJoypads::ShutDown() {
     SDL_JoystickClose(jpad);
+    SDL_HapticClose(rumble);
 }
 
 // Initialize the joypad - Only init 1, for testing now
@@ -218,12 +232,12 @@ bool SDLJoypads::Init() {
 
     //Initalize SDL joypad subsystem first of all
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+    SDL_InitSubSystem(SDL_INIT_HAPTIC);
 
-    // TODO - Initialize multiple joypads
     jpad = NULL;
     jpad = SDL_JoystickOpen(0);
 
-    //Check to see if joypad was not opened
+    //Check to see if joypad was not opened or was not enabled
     if(jpad == NULL) {
         LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin could not initialize");
         return false;
@@ -233,9 +247,25 @@ bool SDLJoypads::Init() {
         LOG_NOTICE(TJOYPAD, "Joypad detected");
         LOG_NOTICE(TJOYPAD, SDL_JoystickName(jpad));
         LOG_NOTICE(TJOYPAD, "\"SDL joypads\" input plugin initialized ok");
-	name = SDL_JoystickName(jpad);
-        return true;
     }
+
+    //Initialize haptic rumbling
+    rumble = SDL_HapticOpenFromJoystick(jpad);
+    
+    if(rumble == NULL) {
+        LOG_NOTICE(TJOYPAD, "\"SDL joypads\" rumbling not supported on this device or driver");
+    }
+
+    if(SDL_HapticRumbleInit(rumble) != 0) {
+        LOG_NOTICE(TJOYPAD, "\"SDL joypads\" could not enable haptic on device or driver");
+        haptic_support = false;
+    } else {
+        haptic_support = true;
+    }
+
+    name = SDL_JoystickName(jpad);
+    is_rumbling = false;
+    return true;
 }
 
 

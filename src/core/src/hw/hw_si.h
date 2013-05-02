@@ -89,6 +89,8 @@ extern u8 SIRegisters[REG_SIZE];
 #define T_PRESSED			0xFF
 #define T_RELEASED			0x00
 
+#define COMMAND_MASK			0x00400000
+
 ////////////////////////////////////////////////////////////
 
 typedef struct t_sSI

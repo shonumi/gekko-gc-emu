@@ -25,6 +25,8 @@
 #ifndef INPUT_COMMON_SDL_JOYPADS_
 #define INPUT_COMMON_SDL_JOYPADS_
 
+#include <SDL_haptic.h>
+
 #include "common.h"
 #include "input_common.h"
 
@@ -69,6 +71,10 @@ private:
     static inline bool DeadZone(int val);
 
     SDL_Joystick *jpad;
+    SDL_Haptic *rumble;
+
+    bool haptic_support;
+    bool is_rumbling;
 
     std::string name;
 

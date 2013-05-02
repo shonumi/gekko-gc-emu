@@ -52,8 +52,12 @@ public:
     GCButtonState control_status(common::Config::Control control) { return status_[control]; }
     void set_control_status(common::Config::Control control, GCButtonState val) { status_[control] = val; }
 
+    void set_rumble_status(bool r_stat) { rumble_status = r_stat; }
+    bool get_rumble_status() { return rumble_status; }
+
 private:
     GCButtonState status_[common::Config::NUM_CONTROLS];
+    bool rumble_status;
 
     DISALLOW_COPY_AND_ASSIGN(GCController);
 };
