@@ -76,15 +76,98 @@ GCController::GCButtonState SDLJoypads::GetControllerStatus(int channel, int pad
 }
 
 /**
+ * Sets the  joystick's dead zone
+ * @param value Integer for the dead zone, +/-
+ */
+void SDLJoypads::SetDeadZone(int val) {
+    dead_zone = val;
+}
+
+/**
  * Checks whether joystick is in dead zone or not
  * @param value Integer from jaxis.value
  * @return true if in dead zone, false otherwise
  */
-bool SDLJoypads::DeadZone(int val) {
-    if((val < -8000) || (val > 8000)) {
+bool SDLJoypads::CheckDeadZone(int val) {
+    if((val < -dead_zone) || (val > dead_zone)) {
         return false;
-    } else if((val > -8000) && (val < 8000)) {
+    } else if((val > -dead_zone) && (val < dead_zone)) {
         return true;
+    }
+}
+
+/**
+ * Sets the degree of axis input
+ * @param pad Joypad input that was activated
+ * @param val axis input value - 0x20 to 0xE0
+ */
+void SDLJoypads::SetAxisDegree(int pad, int val)
+{
+
+    common::Config::Control temp_control;
+
+    //Find out what we're setting
+    for (unsigned int i = 0; i < common::Config::NUM_CONTROLS; ++i) {
+        if(pad == common::g_config->controller_ports(0).pads.key_code[i]) {
+            temp_control = (common::Config::Control)i;
+        }
+    }
+
+    //Check if input was for Analog or C Stick from joystick
+    if(pad >= 200 && pad < 300)
+    {
+        switch(temp_control)
+        {
+            case common::Config::ANALOG_UP:
+            case common::Config::ANALOG_DOWN:
+                g_controller_state[0]->ANALOG_Y = val;
+                break;
+            case common::Config::ANALOG_LEFT:
+            case common::Config::ANALOG_RIGHT:
+                g_controller_state[0]->ANALOG_X = val;
+                break;
+            case common::Config::C_UP:
+            case common::Config::C_DOWN:
+                g_controller_state[0]->C_Y = val;
+                break;
+            case common::Config::C_LEFT:
+            case common::Config::C_RIGHT:
+                g_controller_state[0]->C_X = val;
+                break;
+         }
+    } 
+
+    //It's possible that someone might set their Analog or C Stick to the dpad or the buttons
+    //In that case, these inputs do not take values other than on or off
+    //Here we set them to the maximum/minimum values manually for SI (0x20 - 0xE0)
+    else {
+        switch(temp_control)
+        {
+            case common::Config::ANALOG_UP:
+                g_controller_state[0]->ANALOG_Y = 0xE0;
+                break;
+            case common::Config::ANALOG_DOWN:
+                g_controller_state[0]->ANALOG_Y = 0x20;
+                break;
+            case common::Config::ANALOG_LEFT:
+                g_controller_state[0]->ANALOG_X = 0x20;
+                break;
+            case common::Config::ANALOG_RIGHT:
+                g_controller_state[0]->ANALOG_X = 0xE0;
+                break;
+            case common::Config::C_UP:
+                g_controller_state[0]->C_Y = 0xE0;
+                break;
+            case common::Config::C_DOWN:
+                g_controller_state[0]->C_Y = 0x20;
+                break;
+            case common::Config::C_LEFT:
+                g_controller_state[0]->C_X = 0x20;
+                break;
+            case common::Config::C_RIGHT:
+                g_controller_state[0]->C_X = 0xE0;
+                break;
+        }
     }
 }
 
@@ -106,6 +189,7 @@ void SDLJoypads::PollEvents() {
         //Unique number to id joypad input
         int pad = 0;
         int val = 0;
+        u32 axis_degree = 0;
 
         switch(joyevent.type) {
 
@@ -114,6 +198,7 @@ void SDLJoypads::PollEvents() {
             pad = 100;
             pad += joyevent.jbutton.button;
             SetControllerStatus(0, pad, GCController::PRESSED);
+            SetAxisDegree(pad, 0);
             break;
         // Handle joystick button release events
         case SDL_JOYBUTTONUP:
@@ -131,8 +216,37 @@ void SDLJoypads::PollEvents() {
                 pad += 1; 
             }
 
+            //Convert joystick axis value to something SI can understand
+            //Here we turn inputs from -32768 and 32767 to values between 
+            //0x20 and 0xEO  
+            if((pad % 4 == 0) || (pad % 4 == 1)) {
+            	if(val < (0 - dead_zone)) {
+                    axis_degree = ((-32768 * -1) - dead_zone)/(0x60);
+                    axis_degree = 0x80 - (((val * -1) - dead_zone)/axis_degree);
+                } else if(val > (0 + dead_zone)) {
+                    axis_degree = (32767 - dead_zone)/(0x60);
+                    axis_degree = 0x80 + ((val - dead_zone)/axis_degree);
+                } else {
+                    axis_degree = 0x80;
+                }
+            }
+
+            else {
+            	if(val < (0 - dead_zone)) {
+                    axis_degree = ((-32768 * -1) - dead_zone)/(0x60);
+                    axis_degree = 0x80 + (((val * -1) - dead_zone)/axis_degree);
+                } else if(val > (0 + dead_zone)) {
+                    axis_degree = (32767 - dead_zone)/(0x60);
+                    axis_degree = 0x80 - ((val - dead_zone)/axis_degree);
+                } else {
+                    axis_degree = 0x80;
+                }
+            }
+
+            SetAxisDegree(pad, axis_degree);
+
             // Check for joy axis input on corresponding pads
-            if(!DeadZone(val)) {
+            if(!CheckDeadZone(val)) {
                 SetControllerStatus(0, pad, GCController::PRESSED);
 
                 //Release opposite axis, prevents input from getting stuck
@@ -141,7 +255,7 @@ void SDLJoypads::PollEvents() {
                 } else {
                     SetControllerStatus(0, pad-1, GCController::RELEASED);
                 }
-            } else if(DeadZone(val)) {
+            } else if(CheckDeadZone(val)) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
 
                 //Release opposite axis, prevents input from getting stuck
@@ -164,41 +278,53 @@ void SDLJoypads::PollEvents() {
                 SetControllerStatus(0, pad+1, GCController::RELEASED);
                 SetControllerStatus(0, pad+2, GCController::RELEASED);
                 SetControllerStatus(0, pad+3, GCController::RELEASED);
+                SetAxisDegree(pad, -1);
             } else if(joyevent.jhat.value == SDL_HAT_LEFTUP) {
                 SetControllerStatus(0, pad, GCController::PRESSED);
                 SetControllerStatus(0, pad+1, GCController::RELEASED);
                 SetControllerStatus(0, pad+2, GCController::PRESSED);
                 SetControllerStatus(0, pad+3, GCController::RELEASED);
+                SetAxisDegree(pad, -1);
+                SetAxisDegree(pad+2, -1);
             } else if(joyevent.jhat.value == SDL_HAT_LEFTDOWN) {
                 SetControllerStatus(0, pad, GCController::PRESSED);
                 SetControllerStatus(0, pad+1, GCController::RELEASED);
                 SetControllerStatus(0, pad+2, GCController::RELEASED);
                 SetControllerStatus(0, pad+3, GCController::PRESSED);
+                SetAxisDegree(pad, -1);
+                SetAxisDegree(pad+3, -1);
             } else if(joyevent.jhat.value == SDL_HAT_RIGHT) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
                 SetControllerStatus(0, pad+1, GCController::PRESSED);
                 SetControllerStatus(0, pad+2, GCController::RELEASED);
                 SetControllerStatus(0, pad+3, GCController::RELEASED);
+                SetAxisDegree(pad+1, -1);
             } else if(joyevent.jhat.value == SDL_HAT_RIGHTUP) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
                 SetControllerStatus(0, pad+1, GCController::PRESSED);
                 SetControllerStatus(0, pad+2, GCController::PRESSED);
                 SetControllerStatus(0, pad+3, GCController::RELEASED);
+                SetAxisDegree(pad+1, -1);
+                SetAxisDegree(pad+2, -1);
             } else if(joyevent.jhat.value == SDL_HAT_RIGHTDOWN) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
                 SetControllerStatus(0, pad+1, GCController::PRESSED);
                 SetControllerStatus(0, pad+2, GCController::RELEASED);
                 SetControllerStatus(0, pad+3, GCController::PRESSED);
+                SetAxisDegree(pad+1, -1);
+                SetAxisDegree(pad+3, -1);
             } else if(joyevent.jhat.value == SDL_HAT_UP) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
                 SetControllerStatus(0, pad+1, GCController::RELEASED);
                 SetControllerStatus(0, pad+2, GCController::PRESSED);
                 SetControllerStatus(0, pad+3, GCController::RELEASED);
+                SetAxisDegree(pad+2, -1);
             } else if(joyevent.jhat.value == SDL_HAT_DOWN) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
                 SetControllerStatus(0, pad+1, GCController::RELEASED);
                 SetControllerStatus(0, pad+2, GCController::RELEASED);
                 SetControllerStatus(0, pad+3, GCController::PRESSED);
+                SetAxisDegree(pad+3, -1);
             } else if(joyevent.jhat.value == SDL_HAT_CENTERED) {
                 SetControllerStatus(0, pad, GCController::RELEASED);
                 SetControllerStatus(0, pad+1, GCController::RELEASED);
@@ -264,6 +390,7 @@ bool SDLJoypads::Init() {
     }
 
     name = SDL_JoystickName(jpad);
+    SetDeadZone(8000); //This is arbitrary. Later, read this from the config XML
     is_rumbling = false;
     return true;
 }

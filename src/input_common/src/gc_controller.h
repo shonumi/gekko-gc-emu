@@ -55,6 +55,12 @@ public:
     void set_rumble_status(bool r_stat) { rumble_status = r_stat; }
     bool get_rumble_status() { return rumble_status; }
 
+    /// Axis positions for SI - Between 0x20 and 0xE0
+    u8 ANALOG_X;
+    u8 ANALOG_Y;
+    u8 C_X;
+    u8 C_Y;
+
 private:
     GCButtonState status_[common::Config::NUM_CONTROLS];
     bool rumble_status;

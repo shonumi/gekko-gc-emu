@@ -277,36 +277,36 @@ void SI_ReadKeys(int _channel)
 
     // Analog Stick Y Axis
     if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_UP))) {
-        si.pad[_channel].aY = A_HIGH;
+        si.pad[_channel].aY = input_common::g_controller_state[_channel]->ANALOG_Y;
     }else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_DOWN))) {
-        si.pad[_channel].aY = A_LOW;
+        si.pad[_channel].aY = input_common::g_controller_state[_channel]->ANALOG_Y;
     }else{
         si.pad[_channel].aY = A_NEUTRAL;
     }
 
     // Analog Stick X Axis
     if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_LEFT))) {
-        si.pad[_channel].aX = A_LOW;
+        si.pad[_channel].aX = input_common::g_controller_state[_channel]->ANALOG_X;
     } else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::ANALOG_RIGHT))) {
-        si.pad[_channel].aX = A_HIGH;
+        si.pad[_channel].aX = input_common::g_controller_state[_channel]->ANALOG_X;
     } else{
         si.pad[_channel].aX = A_NEUTRAL;
     }
 
     // C Stick Y Axis
     if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_UP))) {
-        si.pad[_channel].cY = A_HIGH;
+        si.pad[_channel].cY = input_common::g_controller_state[_channel]->C_Y;
     } else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_DOWN))) {
-        si.pad[_channel].cY = A_LOW;
+        si.pad[_channel].cY = input_common::g_controller_state[_channel]->C_Y;
     } else {
         si.pad[_channel].cY = A_NEUTRAL;
     }
 
     // C Stick X Axis
     if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_LEFT))) {
-        si.pad[_channel].cX = A_LOW;
+        si.pad[_channel].cX = input_common::g_controller_state[_channel]->C_X;
     }else if (IS_GCBUTTON_PRESSED(input_common::g_controller_state[_channel]->control_status(common::Config::C_RIGHT))) {
-        si.pad[_channel].cX = A_HIGH;
+        si.pad[_channel].cX = input_common::g_controller_state[_channel]->C_X;
     }else{
         si.pad[_channel].cX = A_NEUTRAL;
     }

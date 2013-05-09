@@ -47,6 +47,12 @@ public:
      */
     std::string GetName();
 
+    /**
+     * Sets the  joystick's dead zone
+     * @param value Integer for the dead zone, +/-
+     */
+    void SetDeadZone(int val);
+
 private:
     /**
      * Sets the controller status from the joystick using SDL
@@ -68,7 +74,14 @@ private:
      * @param value Integer from jaxis.value
      * @return true if in dead zone, false otherwise
      */
-    static inline bool DeadZone(int val);
+    inline bool CheckDeadZone(int val);
+
+    /**
+     * Sets the degree of axis input
+     * @param pad Joypad input that was activated
+     * @param val axis input value - 0x20 to 0xE0
+     */
+    void SetAxisDegree(int pad, int val);
 
     SDL_Joystick *jpad;
     SDL_Haptic *rumble;
@@ -77,6 +90,7 @@ private:
     bool is_rumbling;
 
     std::string name;
+    int dead_zone;
 
     DISALLOW_COPY_AND_ASSIGN(SDLJoypads);
 };
