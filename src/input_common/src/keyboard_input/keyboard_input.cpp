@@ -73,6 +73,7 @@ void KeyboardInput::ShutDown() {
 }
 
 bool KeyboardInput::Init() {
+    g_controller_state[0]->set_input_type(GCController::KEYBOARD_INPUT);
     return true;
 }
 

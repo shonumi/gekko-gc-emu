@@ -28,6 +28,8 @@
 #include "common.h"
 #include "config.h"
 
+//TODO: Add documentation (shonumi)
+
 /// Macro for checking if a button is pressed
 #define IS_GCBUTTON_PRESSED(val)  (val == input_common::GCController::PRESSED)
 
@@ -43,6 +45,13 @@ public:
         PRESSED                     ///< COntroller button is released
     };
 
+    /// Used to determine the type of input being used.
+    enum InputType {
+        NULL_INPUT = 0,
+        KEYBOARD_INPUT,
+        SDLJOYPAD_INPUT
+    };
+
     GCController() {
         for (unsigned int i = 0; i < common::Config::NUM_CONTROLS; ++i)
             status_[i] = RELEASED;
@@ -52,8 +61,11 @@ public:
     GCButtonState control_status(common::Config::Control control) { return status_[control]; }
     void set_control_status(common::Config::Control control, GCButtonState val) { status_[control] = val; }
 
-    void set_rumble_status(bool r_stat) { rumble_status = r_stat; }
+    InputType get_input_type() { return current_input_type; }
+    void set_input_type(InputType i_type) { current_input_type = i_type; }
+
     bool get_rumble_status() { return rumble_status; }
+    void set_rumble_status(bool r_stat) { rumble_status = r_stat; }
 
     /// Axis positions for SI - Between 0x20 and 0xE0
     u8 ANALOG_X;
@@ -63,6 +75,7 @@ public:
 
 private:
     GCButtonState status_[common::Config::NUM_CONTROLS];
+    InputType current_input_type;
     bool rumble_status;
 
     DISALLOW_COPY_AND_ASSIGN(GCController);
