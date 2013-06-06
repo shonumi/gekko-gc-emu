@@ -45,6 +45,44 @@ bool KeyboardInput::SetControllerStatus(int channel, int key, GCController::GCBu
         if (key == common::g_config->controller_ports(channel).keys.key_code[i])
         {
             g_controller_state[channel]->set_control_status((common::Config::Control)i, state);
+
+            // Set Main Stick and C-Stick Values Manually
+            if(state == GCController::PRESSED)
+            {
+                common::Config::Control temp_control;
+		temp_control = (common::Config::Control)i;
+
+                switch(temp_control)
+                {
+                    case common::Config::ANALOG_UP:
+                        g_controller_state[0]->ANALOG_Y = 0xE0;
+                        break;
+                    case common::Config::ANALOG_DOWN:
+                        g_controller_state[0]->ANALOG_Y = 0x20;
+                        break;
+                    case common::Config::ANALOG_LEFT:
+                        g_controller_state[0]->ANALOG_X = 0x20;
+                        break;
+                    case common::Config::ANALOG_RIGHT:
+                        g_controller_state[0]->ANALOG_X = 0xE0;
+                        break;
+                    case common::Config::C_UP:
+                        g_controller_state[0]->C_Y = 0xE0;
+                        break;
+                    case common::Config::C_DOWN:
+                        g_controller_state[0]->C_Y = 0x20;
+                        break;
+                    case common::Config::C_LEFT:
+                        g_controller_state[0]->C_X = 0x20;
+                        break;
+                    case common::Config::C_RIGHT:
+                        g_controller_state[0]->C_X = 0xE0;
+                        break;
+                    default:
+                        break;
+                } 
+            }
+
             return true;
         }
     }
